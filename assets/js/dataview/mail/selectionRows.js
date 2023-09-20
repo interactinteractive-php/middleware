@@ -38,8 +38,12 @@ function dataViewSendMailBySelectionRows(elem, processMetaDataId, dataViewId, po
             var fieldValue = '';
 
             if (inputPath.indexOf('[') !== -1) {
-                fieldValue = inputPath.match(/\[(.*?)\]/);
-                fieldValue = fieldValue[1];
+                if (postParam != 'emailSubject') {
+                    fieldValue = inputPath.match(/\[(.*?)\]/);
+                    fieldValue = fieldValue[1];
+                } else {
+                    fieldValue = inputPath;
+                }
             } else if (typeof selectedRow[inputPath] !== 'undefined') {
                 fieldValue = selectedRow[inputPath];
             } else {

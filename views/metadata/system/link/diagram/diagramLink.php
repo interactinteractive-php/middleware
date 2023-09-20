@@ -567,7 +567,7 @@
                     <div class="input-group color chart-colorpicker-default" data-color="">
                         <input type="text" name="chartColor" id="chartColor" class="form-control" value="">
                         <span class="input-group-btn">
-                            <button class="btn default" type="button" style="width: 32px; height: 32px;"><i style=""></i>&nbsp;</button>
+                            <button class="btn default colorpicker-input-addon px-1" type="button"><i style=""></i>&nbsp;</button>
                         </span>
                     </div>
                 </td>
@@ -578,7 +578,7 @@
                     <div class="input-group color chart-colorpicker-default" data-color="">
                         <input type="text" name="chartColor2" id="chartColor2" class="form-control" value="">
                         <span class="input-group-btn">
-                            <button class="btn default" type="button" style="width: 32px; height: 32px;"><i style=""></i>&nbsp;</button>
+                            <button class="btn default colorpicker-input-addon px-1" type="button"><i style=""></i>&nbsp;</button>
                         </span>
                     </div>
                 </td>

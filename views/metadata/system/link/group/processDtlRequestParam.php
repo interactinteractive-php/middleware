@@ -144,7 +144,9 @@
                             <div class="input-group color colorpicker-default" data-color="<?php echo $this->groupProcessDtlIconColor; ?>" data-color-format="">
                                 <input type="text" name="groupProcessDtlIconColor" id="groupProcessDtlIconColor" class="form-control form-control-sm" value="<?php echo $this->groupProcessDtlIconColor; ?>">
                                 <span class="input-group-btn">
-                                    <button class="btn default btn-sm" type="button" style="width: 32px;"><i style="background-color: <?php echo $this->groupProcessDtlIconColor; ?>;"></i>&nbsp;</button>
+                                    <button class="btn default btn-sm colorpicker-input-addon px-1" type="button">
+                                        <i style="background-color: <?php echo $this->groupProcessDtlIconColor; ?>;"></i>
+                                    </button>
                                 </span>
                             </div>                                        
                         </div>                                        

@@ -9993,7 +9993,7 @@ function previewReportTemplateFromBp(elem, bpId, uniqId, reportTemplateCode, pro
 
     }, 200);
 }
-function bpFieldTextEditorClickToEdit(elem) {    
+function bpFieldTextEditorClickToEdit(elem, triggerChange) {    
     var $this = $(elem), 
         $parent = $this.closest('.input-group'), 
         $contenteditable = $parent.find('[contenteditable="true"]'), 
@@ -10041,6 +10041,11 @@ function bpFieldTextEditorClickToEdit(elem) {
                 
                 $contenteditable.html(ckeditorInsData);
                 $textarea.val(ckeditorInsData);
+                
+                if (typeof triggerChange !== 'undefined') {
+                    $textarea.trigger('change');
+                }
+
                 $contenteditable.trigger('customEventHtmlClickToEdit');
                 
                 $dialog.dialog('close');

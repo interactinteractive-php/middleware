@@ -42,6 +42,10 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt) {
             mode = opt.mode;
         }
         
+        if (opt.hasOwnProperty('isIgnoreRunButton')) {
+            postData.isIgnoreRunButton = opt.isIgnoreRunButton;
+        }
+        
         if (opt.hasOwnProperty('transferSelectedRow')) {
             
             var selectedRows = getDataViewSelectedRows(mainIndicatorId);
@@ -181,10 +185,14 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt) {
 
                         $dialogSaveBtn.attr('disabled', 'disabled').prepend('<i class="fa fa-spinner fa-pulse fa-fw"></i>');
                         
-                        if (window['kpiIndicatorBeforeSave_' + uniqId]($dialogSaveBtn)) {
+                        if (kpiTypeId == '2009') {
+                            
+                            saveKpiIndicatorFormInit($dialogSaveBtn, uniqId, indicatorId);
+                            
+                        } else if (window['kpiIndicatorBeforeSave_' + uniqId]($dialogSaveBtn)) {
                             
                             if (bpFormValidate($form)) {
-                                
+
                                 $form.ajaxSubmit({
                                     type: 'post',
                                     url: 'mdform/saveKpiDynamicDataByList',
@@ -194,17 +202,17 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt) {
                                             formData.push({name: 'mapId', value: postData.param.mapId});
                                             formData.push({name: 'hiddenParams', value: postData.param.hiddenParams});
                                         }
-                                        
+
                                         if ($this.hasAttr('data-statusconfig') && $this.attr('data-statusconfig') != '') {
-                                            
+
                                             var statusConfig = $this.attr('data-statusconfig');
                                             var statusConfigObj = JSON.parse(statusConfig);
                                             var wfmStatusId = selectedRows[0]['wfmstatusid'];
-                                            
+
                                             statusConfigObj.mainindicatorid = mainIndicatorId;
                                             statusConfigObj.currentwfmstatusid = wfmStatusId;
                                             statusConfigObj.recordid = selectedRows[0][window['idField_'+mainIndicatorId]];
-                                            
+
                                             formData.push({name: 'wfmStatusParams', value: JSON.stringify(statusConfigObj)});
                                         }
                                     },
@@ -240,7 +248,7 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt) {
                     }}
                 ];
                 
-                if (!isEdit) {
+                if (!isEdit && kpiTypeId != '2009') {
                     
                     buttons.splice(0, 0, {
                         text: plang.get('save_btn_add'),
@@ -475,7 +483,7 @@ function microFlowConfirmationDialog(id, text, indicator, elem, uniqId, indicato
 }
 function saveKpiIndicatorFormInit(elem, uniqId, indicatorId) {
     var $this = $(elem);
-    var $form = $this.closest('form');    
+    var $form = $('div[data-bp-uniq-id="'+uniqId+'"]').closest('form');    
 
     if (window['kpiIndicatorBeforeSave_' + uniqId]($this) && bpFormValidate($form)) {
 
@@ -577,7 +585,12 @@ function removeKpiIndicatorValue(elem, indicatorId) {
                     $.ajax({
                         type: 'post',
                         url: 'mdform/removeKpiDynamicData',
-                        data: {indicatorId: indicatorId, selectedRows: selectedRows, idField: window['idField_'+mainIndicatorId]}, 
+                        data: {
+                            indicatorId: indicatorId, 
+                            crudIndicatorId: $this.attr('data-crud-indicatorid'), 
+                            selectedRows: selectedRows, 
+                            idField: window['idField_'+mainIndicatorId]
+                        }, 
                         dataType: 'json',
                         beforeSend: function () {
                             Core.blockUI({message: 'Loading...', boxed: true});
@@ -591,9 +604,9 @@ function removeKpiIndicatorValue(elem, indicatorId) {
                                 sticker: false, 
                                 addclass: pnotifyPosition
                             });
+                            $dialog.dialog('close');
                             
                             if (data.status == 'success') {
-                                $dialog.dialog('close');
                                 dataViewReload(mainIndicatorId);
                             }
                             
@@ -5640,6 +5653,85 @@ function mvFlowChartExecuteRedirect(elem, indicatorId) {
     } else {
         window.location = 'appmenu/module/'+indicatorId+'?kmid='+indicatorId+'&mmid=1671709456096413';
     }
+}
+function mvFilterRelationLoadData(elem, indicatorId, filterData) {
+    var drillDownCriteria = window['drillDownCriteria_' + indicatorId],
+        $elem = $(elem), 
+        $parent = $elem.closest('.list-group');
+    var postData = {
+        indicatorId: indicatorId, 
+        filterData: filterData, 
+        drillDownCriteria: drillDownCriteria
+    };
+    
+    if ($parent.find('.list-group-item.active').length) {
+        if ($elem.hasClass('form-control')) {
+            postData.ignoreColName = $elem.closest('[data-kpi-indicator-filter-between-input]').attr('data-kpi-indicator-filter-between-input');
+        } else {
+            postData.ignoreColName = $elem.attr('data-colname');
+        }
+    }
+    
+    $.ajax({
+        type: 'post',
+        url: 'mdform/filterKpiIndicatorValueForm',
+        data: postData,
+        dataType: 'json',
+        success: function(data) {
+            
+            if (data.status == 'success') {
+                
+                var $html = $('<div />', {html: data.html}), $filterCheckbox = $html.find('[data-filter-type="checkbox"]');
+                
+                if ($filterCheckbox.length) {
+                    
+                    var $openedFilter = $parent.find('.list-group-body:not(.d-none)').closest('[data-filter-type]'), openedFilterCol = {};
+
+                    if ($openedFilter.length) {
+                        $openedFilter.each(function() { openedFilterCol[$(this).attr('data-filter-column')] = 1; });
+                    }
+                    
+                    $filterCheckbox.each(function() {
+                        
+                        var $this = $(this), colName = $this.attr('data-filter-column');
+                        
+                        if ($this.find('.list-group-item').length) {
+                            
+                            $parent.find('[data-filter-type="checkbox"][data-filter-column="'+colName+'"]').empty().append($this.html()).promise().done(function() {
+                                
+                                var $prevFilteredElem = $parent.find('[data-filter-type="checkbox"][data-filter-column="'+colName+'"]');
+                                
+                                if (openedFilterCol.hasOwnProperty(colName)) {
+                                    $prevFilteredElem.find('.kpi-indicator-filter-collapse-btn').find('i').removeClass('fa-plus-square').addClass('fa-minus-square');
+                                    $prevFilteredElem.find('.list-group-body').removeClass('d-none');
+                                }
+                                
+                                if (filterData.hasOwnProperty(colName)) {
+                                    
+                                    var prevFilteredData = filterData[colName];
+                                        
+                                    for (var f in prevFilteredData) {
+                                        
+                                        var $detectText = $prevFilteredElem.find('span[data-value-mode]').filter(function(){ return ($(this).text() == prevFilteredData[f]); });
+                                        
+                                        if ($detectText.length) {
+                                            var $activeItem = $detectText.closest('.list-group-item');
+                                            
+                                            $activeItem.addClass('active');
+                                            $activeItem.find('i').removeClass('far fa-square').addClass('fas fa-check-square');
+                                        }
+                                    }
+                                }
+                            });
+                            
+                        } else {
+                            $parent.find('[data-filter-type="checkbox"][data-filter-column="'+colName+'"]').empty();
+                        }
+                    });
+                }
+            }
+        }
+    });
 }
 function renderAddModeIndicatorTabInit(uniqId, refStructureId, tabType, elem, selectedDataRow, dmMetadataId) {
     var bpContainer = $('div[data-bp-uniq-id="' + uniqId + '"]');

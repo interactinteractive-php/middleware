@@ -782,6 +782,8 @@ function filterKpiIndicatorValueGrid(elem) {
     } else {
         objectdatagrid_<?php echo $this->indicatorId; ?>.treegrid('load', queryParams);
     }
+    
+    mvFilterRelationLoadData(elem, indicatorId, filterData);
 }
 
 function wfmstatusRender_<?php echo $this->indicatorId ?>(e, type, isIgnoreAlert) {

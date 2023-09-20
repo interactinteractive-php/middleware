@@ -2,6 +2,11 @@
     <?php include_once "recordmap2content.php"; ?>
 </div>
 
+<style>
+  #kpi-component-<?php echo $this->componentUniqId; ?> .reldetail.active {
+    background-color: #afe4fb !important;
+  }
+</style>
 <script type="text/javascript">
 $(function() {
     
@@ -29,6 +34,12 @@ $(function() {
             
             kpiIndicatorRelationFillRows($this, $this.attr('data-lookupid'), rows, attributesObj.id, attributesObj.code, attributesObj.name, 'single');
         }
+    });
+    
+    $('#kpi-component-<?php echo $this->componentUniqId; ?>').on('click', '.reldetail', function() {
+        var $this = $(this);
+        $('#kpi-component-<?php echo $this->componentUniqId; ?>').find('.reldetail').removeClass('active');
+        $this.addClass('active');
     });
     
 });  
@@ -146,6 +157,7 @@ function runKpiRelatonBp(elem, metaDataId) {
     );
   }
   var $dialog = $("#" + $dialogName);
+  var recordId = $('#kpi-component-<?php echo $this->componentUniqId; ?>').find('.reldetail.active').data('rowid');
 
   if ($this.closest("div.ws-area").length > 0) {
       var wsArea = $this.closest("div.ws-area");
@@ -159,9 +171,10 @@ function runKpiRelatonBp(elem, metaDataId) {
     url: "mdwebservice/callMethodByMeta",
     data: {
       metaDataId: metaDataId,
+      dmMetaDataId: 16425125540641,
       isDialog: true,
       isSystemMeta: false,
-      // fillDataParams: "id=" + cashRegisterId,
+      oneSelectedRow: {id: recordId},
       responseType: "",
       workSpaceId: workSpaceId,
       workSpaceParams: workSpaceParams,

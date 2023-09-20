@@ -6395,7 +6395,7 @@ class Mdform_Model extends Model {
                         'class' => 'input-group color bp-color-picker',
                         'data-section-path' => $columnNamePath,
                         'data-color' => $value,
-                    ), Form::text($attrArray) . '<span class="input-group-btn"><button tabindex="-1" onclick="initBpColorPicker(this); return false;" class="btn default border-left-0 mr-0" style="height: 25px;border-radius: 0 3px 3px 0;"><i style="position:relative; rigth: 0; background-color: ' . $value . '"></i></button></span>', true
+                    ), Form::text($attrArray) . '<span class="input-group-btn"><button tabindex="-1" onclick="initBpColorPicker(this); return false;" class="btn default border-left-0 mr-0 colorpicker-input-addon px-1" style="height: 25px;border-radius: 0 3px 3px 0;"><i style="position:relative; rigth: 0; background-color: ' . $value . '"></i></button></span>', true
                 );
             }
             break;
@@ -11139,9 +11139,14 @@ class Mdform_Model extends Model {
         try {
             
             $indicatorId = Input::numeric('indicatorId');
+            $crudIndicatorId = Input::numeric('crudIndicatorId');
             
             if (!$indicatorId) {
                 return array('status' => 'error', 'message' => 'Invalid indicator id!');
+            }
+            
+            if (!$crudIndicatorId) {
+                return array('status' => 'error', 'message' => 'Invalid crudIndicator id! Please refresh your browser.');
             }
         
             $row = self::getKpiIndicatorRowModel($indicatorId);
@@ -11154,9 +11159,54 @@ class Mdform_Model extends Model {
             $selectedRows = Input::post('selectedRows');
             $idField      = Input::post('idField');
             $idField      = $idField ? $idField : 'ID';
-            $ids          = Arr::implode_key(',', $selectedRows, $idField, true);
+            $ids          = Input::param(Arr::implode_key(',', $selectedRows, $idField, true));
             
             $isSystemTable = self::isCheckSystemTable($tableName);
+            $criteriaCount = self::getCountIndicatorActionCriteria($crudIndicatorId);
+            
+            if ($criteriaCount['status'] == 'error') {
+                return $criteriaCount;
+            }
+            
+            if ((int) $criteriaCount['count'] > 0) {
+                $criterias = self::getIndicatorActionCriteriaByPermission($crudIndicatorId);
+                
+                if ($criterias) {
+                    foreach ($selectedRows as $selectedRow) {
+                    
+                        $selectedRow = Arr::changeKeyLower($selectedRow);
+
+                        foreach ($criterias as $criteriaRow) {
+                            $criteria = $criteriaRow['CRITERIA'];
+                            $message = $criteriaRow['MESSAGE'];
+
+                            foreach ($selectedRow as $sk => $sv) {
+
+                                if (!is_array($sv)) {
+
+                                    if (is_string($sv) && strpos($sv, "'") === false) {
+                                        $sv = "'".Str::lower($sv)."'";
+                                    } elseif (is_null($sv)) {
+                                        $sv = "''";
+                                    }
+
+                                    $sk = ($sk == '' ? 'tmpkey' : $sk);
+
+                                    $criteria = preg_replace('/\b'.$sk.'\b/u', $sv, $criteria);
+                                }
+                            }
+
+                            try {
+                                if (!eval(sprintf('return (%s);', $criteria))) {
+                                    return array('status' => 'warning', 'message' => $message);
+                                }
+                            } catch (ParseError $p) {
+                                return array('status' => 'error', 'message' => $p->getMessage());
+                            }
+                        }
+                    }
+                }
+            }
             
             if ($isSystemTable == false) {
                 
@@ -11176,6 +11226,7 @@ class Mdform_Model extends Model {
             }
             
             if ($result) {
+                
                 self::runGenerateKpiRelationDataMartByIndicatorId($indicatorId);
                 self::runGenerateKpiDataMartByIndicatorId($indicatorId, $ids);
                 
@@ -11185,6 +11236,57 @@ class Mdform_Model extends Model {
         } catch (Exception $ex) {
             return array('status' => 'error', 'message' => $ex->getMessage());
         }
+    }
+    
+    public function getCountIndicatorActionCriteria($indicatorId) {
+        
+        try {
+            
+            $count = $this->db->GetOne("
+                SELECT 
+                    COUNT(1)
+                FROM UM_PERMISSION_KEY PK 
+                    INNER JOIN REF_SEGMENTATION RS ON RS.ID = PK.SEGMENTATION_ID
+                WHERE PK.INDICATOR_ID = ".$this->db->Param(0)." 
+                    AND RS.CRITERIA IS NOT NULL", 
+                array($indicatorId));
+            
+            return array('status' => 'success', 'count' => $count);
+            
+        } catch (ADODB_Exception $ex) {
+            return array('status' => 'error', 'message' => $ex->getMessage());
+        }
+    }
+    
+    public function getIndicatorActionCriteriaByPermission($indicatorId) {
+        
+        $idPh1 = $this->db->Param(0);
+        $idPh2 = $this->db->Param(1);
+        
+        $data = $this->db->GetAll("
+            SELECT 
+                T1.SEGMENTATION_NAME AS MESSAGE, 
+                LOWER(T1.CRITERIA) AS CRITERIA 
+            FROM (
+                SELECT 
+                    PK.SEGMENTATION_ID
+                FROM UM_PERMISSION_KEY PK 
+                    INNER JOIN REF_SEGMENTATION RS ON RS.ID = PK.SEGMENTATION_ID 
+                    LEFT JOIN UM_USER_ROLE UR ON UR.ROLE_ID = PK.ROLE_ID 
+                        AND UR.IS_ACTIVE = 1 
+                        AND UR.USER_ID = $idPh2 
+                    LEFT JOIN UM_USER UK ON UK.USER_ID = PK.USER_ID 
+                        AND UK.USER_ID = $idPh2 
+                WHERE PK.INDICATOR_ID = $idPh1 
+                    AND RS.CRITERIA IS NOT NULL 
+                    AND (UR.USER_ID IS NOT NULL OR UK.USER_ID IS NOT NULL) 
+                GROUP BY  
+                    PK.SEGMENTATION_ID
+            ) T0 
+                INNER JOIN REF_SEGMENTATION T1 ON T1.ID = T0.SEGMENTATION_ID", 
+            array($indicatorId, Ue::sessionUserKeyId()));
+        
+        return $data;
     }
     
     public function removeAddonStructureFormModel() {
@@ -14546,6 +14648,7 @@ class Mdform_Model extends Model {
             $isCheckSystemTable = $isQueryString ? true : self::isCheckSystemTable($tableName);
             $sessionUserKeyId   = Ue::sessionUserKeyId();
             $drillDownCriteria  = Input::post('drillDownCriteria');
+            $ignoreColName      = Input::post('ignoreColName');
             
             $result = array();
             
@@ -14576,13 +14679,48 @@ class Mdform_Model extends Model {
                 }
             }
             
-            if ($isChartList == 1) {
+            if ($isChartList == 1 || $ignoreColName) {
                 
                 $filterData = Input::post('filterData');
                 
                 if ($filterData) {
+                    
+                    $columnsConfig = array();
+                    
+                    foreach ($headerDatas as $col) {
+                
+                        $columnName = $col['COLUMN_NAME'];
+                        $showType   = $col['SHOW_TYPE'];
+
+                        $columnsConfig[$columnName] = array('labelName' => $col['LABEL_NAME'], 'showType' => $showType);
+                    }
+                    
                     foreach ($filterData as $filterColName => $filterColVals) {
-                        $subCondition .= " AND $filterColName IN ('".Arr::implode_r("','", $filterColVals, true)."')";
+                        
+                        if (isset($filterColVals[0]['begin'])) {
+                            
+                            foreach ($filterColVals as $filterColVal) {
+                            
+                                $filterShowType = $columnsConfig[$filterColName]['showType'];
+                                $filterColBeginVal = $filterColVal['begin'];
+                                $filterColEndVal = $filterColVal['end'];
+
+                                if ($filterShowType == 'bigdecimal' || $filterShowType == 'decimal' || $filterShowType == 'number') {
+
+                                    $subCondition .= " AND $filterColName BETWEEN $filterColBeginVal AND $filterColEndVal";
+
+                                } elseif ($filterShowType == 'date') {
+
+                                    $subCondition .= " AND $filterColName BETWEEN ".$this->db->ToDate("'$filterColBeginVal'", 'YYYY-MM-DD')." AND ".$this->db->ToDate("'$filterColEndVal'", 'YYYY-MM-DD');
+
+                                } elseif ($filterShowType == 'datetime') {
+
+                                    $subCondition .= " AND $filterColName BETWEEN ".$this->db->ToDate("'$filterColBeginVal'", 'YYYY-MM-DD HH24:MI:SS')." AND ".$this->db->ToDate("'$filterColEndVal'", 'YYYY-MM-DD HH24:MI:SS');
+                                }
+                            }
+                        } else {
+                            $subCondition .= " AND $filterColName IN ('".Arr::implode_r("','", $filterColVals, true)."')";
+                        }
                     }
                 }
             }
@@ -14600,9 +14738,9 @@ class Mdform_Model extends Model {
                     
                     $runMode = issetParam($headerData['RUN_MODE']);
                     $showType = $headerData['SHOW_TYPE'];
-                    $realColumnName = $headerData['COLUMN_NAME'];
                     $labelName = $headerData['LABEL_NAME'];
                     $trgAliasName = $headerData['TRG_ALIAS_NAME'];
+                    $realColumnName = $headerData['COLUMN_NAME'];
                     
                     if ($runMode == 'dashboard') {
                         
@@ -14664,6 +14802,10 @@ class Mdform_Model extends Model {
                         $columnName = $realColumnName;
                     }
                     
+                    if ($ignoreColName && $ignoreColName == $columnName) {
+                        continue;
+                    }
+                    
                     $row['config'] = array(
                         'showType'       => $showType, 
                         'labelName'      => $labelName, 
@@ -14691,7 +14833,7 @@ class Mdform_Model extends Model {
                                 
                         if ($showType != 'bigdecimal' && $showType != 'decimal' && $showType != 'number' && $showType != 'date' && $showType != 'datetime') {
                             
-                            $cacheName = 'mvFilterData_'.$indicatorId.'_'.$columnName.'_'.$sessionUserKeyId;
+                            $cacheName = 'mvFilterData_'.$indicatorId.'_'.md5($columnName.'_'.$sessionUserKeyId.'_'.$subCondition);
                             $data = $cache->get($cacheName);
                             
                             if ($data == null) {
@@ -14722,7 +14864,6 @@ class Mdform_Model extends Model {
                         }
 
                         $result[$columnName] = $row;
-                        
                     }
                 }
             }
@@ -19774,7 +19915,8 @@ class Mdform_Model extends Model {
                 VAR_FNC_EXPRESSION_STRING, 
                 EVENT_EXPRESSION_STRING, 
                 SAVE_EXPRESSION_STRING, 
-                AFTER_SAVE_EXPRESSION_STRING 
+                AFTER_SAVE_EXPRESSION_STRING,
+                GRAPH_JSON
             FROM KPI_INDICATOR 
             WHERE ID = ".$this->db->Param(0), 
             array($templateId)

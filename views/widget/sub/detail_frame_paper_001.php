@@ -120,6 +120,10 @@ if ($jsonConfig) {
         }
 
         $this.closest('.tbody').find('.temp_add_btn_html').remove();
+        var paragraphNumberArr = $this.find('input[data-path="conContractTemplate.paragraphNumber"]').val().split('.');
+        if (paragraphNumberArr.length == 1) {
+            return;
+        }
         $this.find('td[data-cell-path="conContractTemplate.paragraphNumber"]').append('<div style="float:left;" class="temp_add_btn_html">'+
             '<button type="button" class="btn btn-xs green-meadow bpPaper001AddMainRow_<?php echo $this->methodId; ?>" style="padding: 0px 3px !important" onclick="javascript:;"><i class="icon-plus3 icon-plus3-paper001" style="font-size:9px"></i></button>'+
             '<button type="button" class="ml2 btn btn-xs green-meadow bpPaper001AddMainSubRow bpPaper001AddMainRow_<?php echo $this->methodId; ?>" style="padding: 0px 3px !important;background-color:#89d7c7" onclick="javascript:;"><i class="icon-plus3 icon-plus3-paper001" style="font-size:9px"></i></button>'+
@@ -165,6 +169,8 @@ if ($jsonConfig) {
                     var paragraphNumber = $bpRowPaper001.find('input[data-path="conContractTemplate.paragraphNumber"]').val();
                     var conContractTemplateParentId = $bpRowPaper001.find('input[data-path="conContractTemplate.parentId"]').val() ? $bpRowPaper001.find('input[data-path="conContractTemplate.parentId"]').val() : $bpRowPaper001.find('input[data-path="conContractTemplate.id"]').val();
                     var conContractTemplateContractChapterId = $bpRowPaper001.find('input[data-path="conContractTemplate.contractChapterId"]').val();
+                    var conContractTemplateContractChildParentId = $bpRowPaper001.find('input[data-path="conContractTemplate.childParentId"]').val();
+                    var conContractTemplateContractParagraphTemplateId = $bpRowPaper001.find('input[data-path="conContractTemplate.paragraphTemplateId"]').val();
                     $bpRowPaper001.after($html.html());
                     
                     var $lastRow = $getTableBody.find('> .bp-detail-row.addNewRowIndexPaper001_'+addNewRowIndexPaper001);
@@ -173,11 +179,20 @@ if ($jsonConfig) {
                     if (paragraphNumberArr[0]) {
                         var ppp = isSubRow ? paragraphNumberArr[0]+'.'+paragraphNumberArr[1] : paragraphNumberArr[0];
                         if (paragraphNumberArr.length == 2 && isSubRow) {
-                            conContractTemplateParentId = $bpRowPaper001.find('input[data-path="conContractTemplate.id"]').val();
+                            if (!editJsonSavedData.length) {
+                                conContractTemplateContractChildParentId = conContractTemplateContractParagraphTemplateId;
+                                $('div[data-process-id="<?php echo $this->methodId; ?>"]').find('.bp-header-param').find('input[data-field-name="paragraphNumber2"]').val(ppp);
+                            } else {
+                                conContractTemplateParentId = $bpRowPaper001.find('input[data-path="conContractTemplate.id"]').val();
+                            }
                         }
                         $lastRow.find('input[data-path="conContractTemplate.parentId"]').val(conContractTemplateParentId);
-                        $lastRow.find('input[data-path="conContractTemplate.contractChapterId"]').val(conContractTemplateContractChapterId);                        
-                        widget_detail_frame_paper_001_numbering_fromexp(ppp, conContractTemplateParentId, isSubRow);
+                        $lastRow.find('input[data-path="conContractTemplate.contractChapterId"]').val(conContractTemplateContractChapterId);          
+                        $lastRow.find('input[data-path="conContractTemplate.childParentId"]').val(conContractTemplateContractChildParentId);          
+                        $lastRow.find('input[data-path="conContractTemplate.paragraphTemplateId"]').val(conContractTemplateContractParagraphTemplateId);          
+                        if (editJsonSavedData.length) {           
+                            widget_detail_frame_paper_001_numbering_fromexp(ppp, conContractTemplateParentId, isSubRow);
+                        }
                     }
                     addNewRowIndexPaper001++;
                     
@@ -470,7 +485,7 @@ if ($jsonConfig) {
     function rowsFillAfterLoad_<?php echo $this->methodId; ?>_<?php echo $this->paramConfig['code']; ?>() {
         var $jsTreeFilter = $('div.dataviewtreeview_processdetail_filter');
         var $jstreeAnchor = $jsTreeFilter.find('.jstree-anchor');
-        widget_detail_frame_paper_001_numbering($jstreeAnchor);
+        // /widget_detail_frame_paper_001_numbering($jstreeAnchor);
     }
     function widget_detail_frame_paper_001_numbering_fromexp(number, parentId, isSubRow) {
         var $table = $('.bpdtl-widget-detail_frame_paper_001-body').find('table.bprocess-table-dtl'), 
@@ -529,7 +544,7 @@ if ($jsonConfig) {
             });
         }
     }
-    function widget_detail_frame_paper_001_numbering_fromexp_add(number, parentId) {
+    function widget_detail_frame_paper_001_numbering_fromexp_add(number, parentId, number2) {
         var $table = $('.bpdtl-widget-detail_frame_paper_001-body').find('table.bprocess-table-dtl'), 
             $tbody = $table.find('.tbody:eq(0)'), 
             $rows = $tbody.find('.bp-detail-row');
@@ -564,11 +579,18 @@ if ($jsonConfig) {
                 if ($filteredRowsChild.length) {
                     $filteredRowsChild.each(function(ii) {
                         var $thisChild = $(this);
-                        $thisChild.find('input[data-field-name="<?php echo $numberingColumn; ?>"]').val(number + '.' + i + '.' + (++ii));
+                        if (number2) {
+                            $thisChild.find('input[data-field-name="<?php echo $numberingColumn; ?>"]').val(number2 + '.' + (++ii));
+                        } else {
+                            $thisChild.find('input[data-field-name="<?php echo $numberingColumn; ?>"]').val(number + '.' + i + '.' + (++ii));
+                        }
                     });                    
                 }
             }
         });
+        if (number2) {
+            $('div[data-process-id="<?php echo $this->methodId; ?>"]').find('.bp-header-param').find('input[data-field-name="paragraphNumber2"]').val('');
+        }
     }    
     function widget_detail_frame_paper_001_numbering($jstreeAnchor) {
         if ($jstreeAnchor.length) {

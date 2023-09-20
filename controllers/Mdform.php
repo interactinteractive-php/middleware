@@ -2964,9 +2964,13 @@ class Mdform extends Controller {
         } 
         
         $this->view->renderChart = '';
+        
         switch ($this->view->row['KPI_TYPE_ID']) {
             case '1130':
                 self::indicatorDashboard($this->view->indicatorId);
+                break;
+            case '2020':
+                self::buildDashboard($this->view->indicatorId, 'render');
                 break;
             case '1170':
                 self::areaRender($isReturnArray);
@@ -5583,13 +5587,14 @@ class Mdform extends Controller {
         if ($this->view->isAjax == false) {
             $this->view->render('footer');
         }
-    }    
+    }
 
-    public function buildDashboard($indicatorId = '16563838408049', $returnType = 'json') {
+    public function buildDashboard($indicatorId = '', $returnType = 'json') {
         
         $this->view->uniqId = getUID();
-        $this->view->metaDataId = getUID();
+        $this->view->indicatorId = $indicatorId;
         $this->view->configJsonData = array();
+        $this->view->indicatorData = $this->model->getKpiIndicatorFullExpressionModel($indicatorId);
 
         $this->view->isAjax = is_ajax_request();
         
@@ -5616,9 +5621,11 @@ class Mdform extends Controller {
             $this->view->render('header');
             $this->view->render('/layout/index', "projects/views/contentui/build");
             $this->view->render('footer');
-
         } else {
             switch ($returnType) {
+                case 'render':
+                    $this->view->render('/layout/render', "projects/views/contentui/build");
+                    break;
                 case 'html':
                     $this->view->render('/layout/index', "projects/views/contentui/build");
                     break;
@@ -5650,14 +5657,21 @@ class Mdform extends Controller {
         
         $currentDate       = Date::currentDate();
         $createdUserId     = Ue::sessionUserKeyId();
+        $date              = Date::currentDate('Ym');
         $postData = Input::postData();
+        
         $response =  array('status' => 'error', 'text' => Lang::lineCode('msg_save_error'));
         try {
             
             $uniqId = getUID();
-            $imagePath = Mdwebservice::bpUploadGetPath($path = UPLOADPATH . 'layout/');
+            $newPath = UPLOADPATH . 'layout/' . $date . '/';
+            
+            if (!is_dir($newPath)) {
+                mkdir($newPath, 0777, true);
+            }
+
             $base64Img = Input::post('shortcut');
-            $filePath = base64_to_jpeg($base64Img, $imagePath. $uniqId .'.jpg' );
+            $filePath = base64_to_jpeg($base64Img, $newPath. $uniqId .'.jpg' );
 
             $layoutData = array(
                 'ID' => Input::post('id', $uniqId),
@@ -5673,8 +5687,14 @@ class Mdform extends Controller {
                 throw new Exception("LAYOUT үүсгэхэд алдаа гарлаа!"); 
             }
             
-            $layoutFile = fopen($layoutData['CODE'].".php", "w");
-            fwrite($layoutFile, Input::post('page'));
+            $newPath = UPLOADPATH . 'page/' . $date . '/';
+            if (!is_dir($newPath)) {
+                mkdir($newPath, 0777, true);
+            }
+
+            $html = html_entity_decode(Input::post('page'));
+            $layoutFile = fopen($newPath . $layoutData['CODE'].".php", "w");
+            fwrite($layoutFile, $html);
             fclose($layoutFile);
 
             $uniqId = getUID();
@@ -5720,41 +5740,66 @@ class Mdform extends Controller {
             if (!$result) {
                 throw new Exception("LAYOUT HEADER үүсгэхэд алдаа гарлаа!"); 
             }
+            
+            $dataBlobArr = array();
+            if (Input::post('blockUniqId')) {
+                $index = 1;
+                foreach ($postData['blockUniqId'] as $unId) {
+                    $sectionData = array(
+                        'ID' => getUID(),
+                        'CODE' => $index,
+                        'TITLE' => 'TITLE-' . $index,
+                        'HEADER_ID' => $hdrData['ID'],
+                        'WIDGET_ID' => $postData['widgetId'][$unId],
+                        'META_DATA_ID' => $postData['metaDataId'][$unId],
+                        'OTHER_ATTR' => $postData['secNemgoo'][$unId],
+                    );
 
-            $index = 1;
-            foreach ($postData['blockUniqId'] as $unId) {
-                $sectionData = array(
-                    'ID' => getUID(),
-                    'CODE' => $index,
-                    'TITLE' => 'TITLE-' . $index,
-                    'HEADER_ID' => $hdrData['ID'],
-                    'WIDGET_ID' => $postData['widgetId'][$unId],
-                    'OTHER_ATTR' => $postData['secNemgoo'][$unId],
-                );
+                    $tmpArr = array();
+                    if ($postData['secNemgoo'][$unId]) {
+                        $tmpArr = json_decode($postData['secNemgoo'][$unId], true);
+                    }
 
-                $result = $this->db->AutoExecute('META_BP_LAYOUT_SECTION', $sectionData);
-                if ($result) {
-                    if (issetParamArray($postData['positionName'][$unId])) {
-                        foreach ($postData['positionName'][$unId] as $key => $posId) {
-                            if ($postData['positionName'][$unId][$key]) {
-                                $sectionDtlData = array(
-                                    'ID' => getUID(),
-                                    'SECTION_ID' => $sectionData['ID'],
-                                    'POSITION_NAME' => $postData['positionName'][$unId][$key],
-                                    'FIELD_PATH' => $postData['fieldPath'][$unId][$key],
-                                    'OTHER_ATTR' => $postData['posNemgoo'][$unId][$key],
-                                );
-                
-                                $result = $this->db->AutoExecute('META_BP_LAYOUT_SECTION_DTL', $sectionDtlData);
+                    $tmpArr['widgetId'] = $sectionData['WIDGET_ID'];
+                    $tmpArr['metaDataId'] = $sectionData['META_DATA_ID'];
+                    
+                    $result = $this->db->AutoExecute('META_BP_LAYOUT_SECTION', $sectionData);
+    
+                    if ($result) {
+                        if (issetParamArray($postData['positionName'][$unId])) {
+                            foreach ($postData['positionName'][$unId] as $key => $posId) {
+                                if ($postData['positionName'][$unId][$key]) {
+                                    $sectionDtlData = array(
+                                        'ID' => getUID(),
+                                        'SECTION_ID' => $sectionData['ID'],
+                                        'POSITION_NAME' => $postData['positionName'][$unId][$key],
+                                        'FIELD_PATH' => $postData['fieldPath'][$unId][$key],
+                                        'OTHER_ATTR' => $postData['posNemgoo'][$unId][$key],
+                                    );
+                                    $result = $this->db->AutoExecute('META_BP_LAYOUT_SECTION_DTL', $sectionDtlData);
+                                }
                             }
                         }
                     }
-                }
 
-                $index++;
+                    $dataBlobArr[$unId] = $tmpArr;
+                    $index++;
+                }
             }
-                        
+            /* json_encode($jsonConfig, JSON_UNESCAPED_UNICODE); */
+            if (Input::post('indicatorId')) {
+                $indicatorId = Input::post('indicatorId');
+                
+                if ($dataBlobArr)
+                    $this->db->UpdateClob('KPI_INDICATOR', 'GRAPH_JSON', json_encode($dataBlobArr, JSON_UNESCAPED_UNICODE), 'ID = '. $indicatorId);
+
+                if (Input::post('page'))
+                    $this->db->UpdateClob('KPI_INDICATOR', 'LOAD_EXPRESSION_STRING', Input::post('page'), 'ID = '. $indicatorId);
+
+            }
+
             $response =  array('status' => 'success', 'text' => Lang::lineCode('msg_save_success'));
+            
         } catch (Exception $e) {
             $response =  array('status' => 'warning', 'text' => $e->getMessage());
         }

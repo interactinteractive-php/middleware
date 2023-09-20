@@ -1,7 +1,8 @@
   <div class="col p-0">
         <div class="dv-process-buttons">
           <div class="btn-group btn-group-devided">
-            <a class="btn btn-success btn-circle btn-sm" title="Засах" onclick="runKpiRelatonBp(this, '16425125580661');" data-actiontype="update" data-dvbtn-processcode="data_IndicatorMapDV_006" data-ismain="0" href="javascript:;"><i class="far fa-plus-square" style="color:"></i> </a>
+            <a class="btn btn-success btn-circle btn-sm" title="Нэмэх" onclick="runKpiRelatonBp(this, '16425125580661');" data-actiontype="update" data-dvbtn-processcode="data_IndicatorMapDV_006" data-ismain="0" href="javascript:;"><i class="far fa-plus-square" style="color:"></i> </a>
+            <a class="btn btn-warning btn-circle btn-sm" title="Засах" onclick="runKpiRelatonBp(this, '16660589496259');" data-actiontype="update" data-dvbtn-processcode="data_IndicatorMapDV_006" data-ismain="0" href="javascript:;"><i class="far fa-edit" style="color:"></i> </a>
           </div>                                    
         </div>
     </div>
@@ -30,7 +31,7 @@
               }
           }
       ?>
-      <div class="col reldetail mt-2" style="background-color: #f1f8e9; border: 1px solid #e0e0e0;">                       
+      <div class="col reldetail mt-2" style="background-color: #f1f8e9; border: 1px solid #e0e0e0;" data-rowid="<?php echo $row['MAP_ID'] ?>">                       
           <div class="d-flex align-items-center align-items-md-start flex-column flex-md-row pt-2">
               <h5 class="reltitle line-height-normal font-size-14 font-weight-bold cursor-pointer text-select-none" style="-ms-flex: 1;flex: 1;" onclick="kpiIndicatorRelationCollapse(this);">
                   <i class="far fa-angle-down"></i> <?php echo $row['NAME']; ?>                  

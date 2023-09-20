@@ -1635,7 +1635,7 @@ function twoPanelCallProcess_<?php echo $this->uniqId; ?>(obj) {
         
         return;
         
-    } else if (isConfirm == '1') { 
+    } else if (isConfirm == '1' || processId == '1678156885624269') { 
         
         var dvCode = $this.attr('data-dvcode'); 
         window['objectdatagrid_' + dmMetaDataId] = $('#objectdatagrid-'+dmMetaDataId);

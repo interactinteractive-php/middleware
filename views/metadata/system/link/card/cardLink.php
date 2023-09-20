@@ -146,7 +146,7 @@
                     <div class="input-group color colorpicker-default" data-color="<?php echo isset($this->card['BGCOLOR']) ? $this->card['BGCOLOR'] : '#FFFFF'; ?>" data-color-format="rgba">
                         <input type="text" name="bgcolor" id="bgcolor" class="form-control" value="<?php echo isset($this->card['BGCOLOR']) ? $this->card['BGCOLOR'] : ''; ?>">
                         <span class="input-group-btn">
-                            <button class="btn default" type="button" style="width: 32px;"><i style="background-color: <?php echo isset($this->card['BGCOLOR']) ? $this->card['BGCOLOR'] : '#FFFFF'; ?>;"></i>&nbsp;</button>
+                            <button class="btn default colorpicker-input-addon px-1" type="button"><i style="background-color: <?php echo isset($this->card['BGCOLOR']) ? $this->card['BGCOLOR'] : '#FFFFF'; ?>;"></i>&nbsp;</button>
                         </span>
                     </div>
                 </td>

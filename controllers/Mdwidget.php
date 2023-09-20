@@ -3755,6 +3755,15 @@ class Mdwidget extends Controller {
     }
 
     public function playWidgetStandart($widgetCode = '', $type = 'none') {
+        if (is_numeric($widgetCode)) {
+            $mdf = &getInstance();
+            $mdf->load->model('mdform', 'middleware/models/');
+            $widgetCodeTmp = $mdf->model->getMetaWidgetModel($widgetCode);
+            if (file_exists(self::$viewPath.'widgetStandart/'.$widgetCodeTmp.'.php')) {
+                $widgetCode = $widgetCodeTmp;
+            }
+        }
+
         if (file_exists(self::$viewPath.'widgetStandart/'.$widgetCode.'.php')) {
             $dummyFile = file_get_contents('assets/custom/widget/widget_dummy_data.txt');
             eval('$dummyData = '.$dummyFile.';'); 

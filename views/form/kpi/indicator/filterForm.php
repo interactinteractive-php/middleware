@@ -30,6 +30,8 @@ if ($this->filterData) {
             
             $rows = $filter['rows'];
             
+            $html[] = '<div data-filter-type="checkbox" data-filter-column="'.$columnName.'">';
+            
             $html[] = '
                 <a href="javascript:;" class="list-group-item font-weight-bold font-size-14 line-height-normal justify-content-between kpi-indicator-filter-collapse-btn" style="color: #000">
                     '.$labelName.' <i class="far fa-plus-square ml-1"></i>
@@ -72,6 +74,8 @@ if ($this->filterData) {
         } else {
             
             $showType = $rowConfig['showType'];
+            
+            $html[] = '<div data-filter-type="input" data-filter-column="'.$columnName.'">';
             
             $html[] = '
                 <a href="javascript:;" class="list-group-item font-weight-bold font-size-14 line-height-normal justify-content-between kpi-indicator-filter-collapse-btn" style="color: #000">
@@ -193,6 +197,8 @@ if ($this->filterData) {
         
             $html[] = '</div>';
         }
+        
+        $html[] = '</div>';
     }
     
     $html[] = '</div>';

@@ -241,6 +241,10 @@ class Mddatamodel extends Controller {
             if (Input::isEmpty('groupEmail') == false) {
                 $this->view->groupEmail = Input::post('groupEmail');
             }
+            
+            if ($this->view->emailSubject == '') {
+                $this->view->emailSubject = Input::post('emailSubject');
+            }
         }
         
         $this->view->selectedRows = $selectedRows;

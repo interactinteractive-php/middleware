@@ -99,7 +99,7 @@
                     <div class="input-group color chart-colorpicker-default" data-color="<?php echo Arr::get($this->bpRow, 'TAB_BACKGROUND_COLOR'); ?>">
                         <input type="text" name="tabBackgroundColor" id="tabBackgroundColor" class="form-control" value="<?php echo Arr::get($this->bpRow, 'TAB_BACKGROUND_COLOR'); ?>">
                         <span class="input-group-btn">
-                            <button class="btn default" type="button" style="width: 32px; height: 32px;"><i style="background-color: <?php echo Arr::get($this->bpRow, 'TAB_BACKGROUND_COLOR'); ?>;"></i>&nbsp;</button>
+                            <button class="btn default colorpicker-input-addon px-1" type="button"><i style="background-color: <?php echo Arr::get($this->bpRow, 'TAB_BACKGROUND_COLOR'); ?>;"></i>&nbsp;</button>
                         </span>
                     </div>
                 </td>

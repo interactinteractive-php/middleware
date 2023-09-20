@@ -49,7 +49,7 @@
             <div class="input-group color colorpicker-default" data-color="<?php echo $this->params['textColor']; ?>" data-color-format="rgba">
                 <input type="text" name="wfmStatusColor" id="wfmStatusColor" class="form-control" value="<?php echo $this->params['textColor']; ?>">
                 <span class="input-group-btn">
-                    <button class="btn default" type="button" style="width: 32px;"><i style="background-color: <?php echo $this->params['textColor']; ?>;"></i>&nbsp;</button>
+                    <button class="btn default colorpicker-input-addon px-1" type="button"><i style="background-color: <?php echo $this->params['textColor']; ?>;"></i>&nbsp;</button>
                 </span>
             </div>
             

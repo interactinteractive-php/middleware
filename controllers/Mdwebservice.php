@@ -2849,7 +2849,7 @@ class Mdwebservice extends Controller {
                         'class' => 'input-group color bp-color-picker',
                         'data-section-path' => $paramRealPath,
                         'data-color' => $attrArray['value'],
-                    ), Form::text($attrArray) . '<span class="input-group-btn"><button tabindex="-1" onclick="initBpColorPicker(this); return false;" class="btn default border-left-0 mr-0" style="height: 25px;border-radius: 0 3px 3px 0;"><i style="position:relative; rigth: 0; background-color: ' . $attrArray['value'] . '"></i></button></span>', true
+                    ), Form::text($attrArray) . '<span class="input-group-btn"><button tabindex="-1" onclick="initBpColorPicker(this); return false;" class="btn default border-left-0 mr-0 colorpicker-input-addon px-1" style="height: 25px;border-radius: 0 3px 3px 0;"><i style="position:relative; rigth: 0; background-color: ' . $attrArray['value'] . '"></i></button></span>', true
                 );
 
             } elseif ($typeCode == 'codeview') {

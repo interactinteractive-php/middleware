@@ -829,7 +829,7 @@ $className = ($this->diagram['IS_MULTIPLE_PROCESS'] == '1') ? '' : 'hidden';
                     <div class="input-group color chart-colorpicker-default" data-color="<?php echo Arr::get($this->diagram, 'COLOR'); ?>">
                         <input type="text" name="chartColor" id="chartColor" class="form-control" value="<?php echo Arr::get($this->diagram, 'COLOR'); ?>">
                         <span class="input-group-btn">
-                            <button class="btn default" type="button" style="width: 32px; height: 32px;"><i style="background-color: <?php echo Arr::get($this->diagram, 'COLOR'); ?>;"></i>&nbsp;</button>
+                            <button class="btn default colorpicker-input-addon px-1" type="button"><i style="background-color: <?php echo Arr::get($this->diagram, 'COLOR'); ?>;"></i>&nbsp;</button>
                         </span>
                     </div>
                 </td>
@@ -840,7 +840,7 @@ $className = ($this->diagram['IS_MULTIPLE_PROCESS'] == '1') ? '' : 'hidden';
                     <div class="input-group color chart-colorpicker-default" data-color="<?php echo Arr::get($this->diagram, 'COLOR2'); ?>">
                         <input type="text" name="chartColor2" id="chartColor2" class="form-control" value="<?php echo Arr::get($this->diagram, 'COLOR2'); ?>">
                         <span class="input-group-btn">
-                            <button class="btn default" type="button" style="width: 32px; height: 32px;"><i style="background-color: <?php echo Arr::get($this->diagram, 'COLOR2'); ?>;"></i>&nbsp;</button>
+                            <button class="btn default colorpicker-input-addon px-1" type="button"><i style="background-color: <?php echo Arr::get($this->diagram, 'COLOR2'); ?>;"></i>&nbsp;</button>
                         </span>
                     </div>
                 </td>

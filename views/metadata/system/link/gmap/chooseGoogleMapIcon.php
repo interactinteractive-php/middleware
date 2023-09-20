@@ -37,7 +37,7 @@
             <div class="input-group color colorpicker-default" data-color="#<?php echo $this->displayColor; ?>" data-color-format="rgba" style="max-width: 130px;">
                 <input type="text" class="form-control" name="displayColor" value="#<?php echo trim($this->displayColor, '#'); ?>" readonly>
                 <span class="input-group-btn">
-                    <button class="btn default" type="button"><i style="background-color: #<?php echo $this->displayColor; ?>;"></i>&nbsp;</button>
+                    <button class="btn default colorpicker-input-addon px-1" type="button"><i style="background-color: #<?php echo $this->displayColor; ?>;"></i>&nbsp;</button>
                 </span>
             </div>
         </div>

@@ -215,7 +215,7 @@ class Restapi extends Controller {
                         
                         unset($parameters['indicatorId']);
                         
-                        $parameters = array('kpiMainIndicatorId' => $kpiMainIndicatorId, 'kpiTbl' => Arr::changeKeyUpper($parameters));
+                        $parameters = array('kpiMainIndicatorId' => $kpiMainIndicatorId, 'kpiTbl' => Arr::changeKeyUpper($parameters), 'kpiCrudIndicatorId' => Input::param($parameters['crudIndicatorId']));
                         
                         if ($rowId = issetVar($parameters['kpiTbl']['ID'])) {
                             

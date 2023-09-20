@@ -4536,13 +4536,10 @@ class Mdwebservice_Model extends Model {
                     $path = $inputField['inputPath'];
                     $pathLower = strtolower($path);
                     $value = Mdmetadata::setDefaultValue($inputField['value']);
+                    $dataType = issetParam($inputParam[$pathLower]['dataType']);
                     
-                    if (isset($inputParam[$pathLower])) {
-                        $dataType = $inputParam[$pathLower]['dataType'];
-                        
-                        if ($dataType == 'time') {
-                            $value = '1999-01-01 '.$value.':00';
-                        }
+                    if ($dataType == 'time') {
+                        $value = '1999-01-01 '.$value.':00';
                     }
                     
                     if (strpos($path, '.') !== false) {
@@ -4572,6 +4569,30 @@ class Mdwebservice_Model extends Model {
                             eval('$param'.$bracketsKey.' = \''.$value.'\';');
                         }
                         
+                    } elseif ($dataType == 'base64_to_file') {
+                        $fileData = @base64_decode($value);
+                        
+                        if ($fileData) {
+                            $f = finfo_open();
+                            $mimeType = finfo_buffer($f, $fileData, FILEINFO_MIME_TYPE);
+
+                            if ($mimeType == 'text/plain') {
+                                return array('status' => 'error', 'message' => 'Wrong content type!');
+                            } else {
+                                $fileExtension = mimeToExt($mimeType);
+
+                                $filePath = Mdwebservice::bpUploadGetPath();
+                                $fileUrl = $filePath.getUID().'.'.$fileExtension;
+
+                                file_put_contents($fileUrl, $fileData);
+                                
+                                $param[$path] = $fileUrl;
+                            }
+
+                        } else {
+                            $param[$path] = null;
+                        }
+                                
                     } else {
                         $param[$path] = $value;
                     }

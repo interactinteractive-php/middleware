@@ -5532,6 +5532,10 @@ class Mdexpression extends Controller
 
     public function microCurrentParamReplace($obj, $formData)
     {
+        if (empty($obj)) {
+            return ['rowExp' => ''];
+        }
+        
         $rowExp = json_decode($obj, true);
         $path = 'array(';
 

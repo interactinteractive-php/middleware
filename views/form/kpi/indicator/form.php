@@ -1,6 +1,8 @@
 <div class="kpi-ind-tmplt-section" id="kpi-<?php echo $this->uniqId; ?>" data-process-id="<?php echo $this->indicatorId; ?>" data-bp-uniq-id="<?php echo $this->uniqId; ?>">
     <?php
-    if ($this->isKpiIndicatorRender == '1' && ($this->kpiTypeId == '1191' || $this->kpiTypeId == '2009')) {
+    if (!Input::numeric('isIgnoreRunButton')) {
+        
+        if ($this->isKpiIndicatorRender == '1' && ($this->kpiTypeId == '1191' || $this->kpiTypeId == '2009')) {
     ?>
     <div class="text-right mb-2">
         <button type="button" class="btn btn-sm btn-circle btn-success bpMainSaveButton bp-btn-save" onclick="saveKpiIndicatorForm(this, '<?php echo $this->uniqId; ?>', '<?php echo $this->indicatorId; ?>');">
@@ -8,15 +10,17 @@
         </button>
     </div>
     <?php
-    }
-    if ($this->kpiTypeId == '1043') { ?>
+        }
+        if ($this->kpiTypeId == '1043') { 
+    ?>
         <div class="text-right mb-2">
             <button type="button" class="btn btn-sm btn-circle btn-success bpMainSaveButton bp-btn-save" onclick="runKpiIndicatorInternalQuery(this, '<?php echo $this->uniqId; ?>', '<?php echo $this->indicatorId; ?>');">
                 <i class="icon-checkmark-circle2"></i> Ажиллуулах
             </button>
         </div>
     <?php
-    }    
+        }    
+    }
     
     if ((isset($this->components) && $this->components && $this->componentRenderType == 'tab') 
         || (isset(Mdform::$topTabRenderShow) && Mdform::$topTabRenderShow) || issetParam($this->addonTabs)) {    

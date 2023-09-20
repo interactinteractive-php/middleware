@@ -40,7 +40,7 @@
                     <div class="input-group color colorpicker-default" data-color="#3f9eda" data-color-format="rgba">
                         <input type="text" name="wfmStatusColor" id="wfmStatusColor" class="form-control" value="#3f9eda"  required="required">
                         <span class="input-group-btn">
-                            <button class="btn default" type="button" style="width: 32px;"><i style="background-color: #3f9eda;"></i>&nbsp;</button>
+                            <button class="btn default colorpicker-input-addon px-1" type="button"><i style="background-color: #3f9eda;"></i>&nbsp;</button>
                         </span>
                     </div>
                 </td>
