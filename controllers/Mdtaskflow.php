@@ -401,9 +401,10 @@ class Mdtaskflow extends Controller {
             $this->view = new View();
         }
         $this->view->criteriaDisable = false;
-        $this->view->row = Input::postData();
-        $this->view->row['inParamCriteria'] = (Input::postNonTags('inParamCriteria') === 'null' ? '' : Input::postNonTags('inParamCriteria'));
-        $this->view->row['outParamCriteria'] = (Input::postNonTags('outParamCriteria') === 'null' ? '' : Input::postNonTags('outParamCriteria'));
+        $this->view->row = array();
+        $this->view->row['id'] = Input::numeric('id');
+        $this->view->row['inParamCriteria'] = (Input::post('inParamCriteria') === 'null' ? '' : Input::post('inParamCriteria'));
+        $this->view->row['outParamCriteria'] = (Input::post('outParamCriteria') === 'null' ? '' : Input::post('outParamCriteria'));
         if ((Input::post('mainLifeCycle') === Input::post('doneLifeCycle')) && (Input::post('mainProcess') === Input::post('doneProcess'))) {
             $this->view->criteriaDisable = true;
         }

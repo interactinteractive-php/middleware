@@ -358,6 +358,13 @@
     </button>
     <?php
     }
+    if ($this->isConfigAddCustomerSidebar) {
+    ?>
+    <button type="button" class="btn btn-block btn-circle blue-madison btn-sm" onclick="posNewServiceCustomer(this, true);">
+        <?php echo $this->lang->line('POS_0187'); ?>
+    </button>
+    <?php
+    }
     ?>
     <button type="button" class="btn btn-block btn-circle btn-sm blue-madison" onclick="posTalonList();">
         <?php echo $this->lang->line('POS_0046'); ?> <span class="infoShortcut">(Shift+F3)</span>

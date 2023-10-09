@@ -1,14 +1,15 @@
 <div class="row-fluid" id="metaDmBehaviourWindow">
     <div class="col-md-12">
         <form role="form" id="metaDmBehaviour-form" method="post">
-            <?php echo Form::hidden(array('name' => 'id', 'id' => 'id', 'value' => $this->row['id'])); ?>
-            <?php echo Form::hidden(array('name' => 'mainLifeCycle', 'id' => 'mainLifeCycle', 'value' => Input::post('mainLifeCycle'))); ?>
-            <?php echo Form::hidden(array('name' => 'mainProcess', 'id' => 'mainProcess', 'value' => Input::post('mainProcess'))); ?>
-            <?php echo Form::hidden(array('name' => 'doneLifeCycle', 'id' => 'doneLifeCycle', 'value' => Input::post('doneLifeCycle'))); ?>
-            <?php echo Form::hidden(array('name' => 'doneProcess', 'id' => 'doneProcess', 'value' => Input::post('doneProcess'))); ?>
-            <?php echo Form::hidden(array('name' => 'dtlRowId', 'id' => 'dtlRowId', 'value' => Input::post('dtlRowId'))); ?>
-            <?php echo Form::hidden(array('name' => 'batchNumber', 'id' => 'batchNumber', 'value' => Input::post('batchNumber'))); ?>
-
+            <?php 
+            echo Form::hidden(array('name' => 'id', 'id' => 'id', 'value' => $this->row['id'])); 
+            echo Form::hidden(array('name' => 'mainLifeCycle', 'id' => 'mainLifeCycle', 'value' => Input::post('mainLifeCycle'))); 
+            echo Form::hidden(array('name' => 'mainProcess', 'id' => 'mainProcess', 'value' => Input::post('mainProcess'))); 
+            echo Form::hidden(array('name' => 'doneLifeCycle', 'id' => 'doneLifeCycle', 'value' => Input::post('doneLifeCycle'))); 
+            echo Form::hidden(array('name' => 'doneProcess', 'id' => 'doneProcess', 'value' => Input::post('doneProcess'))); 
+            echo Form::hidden(array('name' => 'dtlRowId', 'id' => 'dtlRowId', 'value' => Input::post('dtlRowId'))); 
+            echo Form::hidden(array('name' => 'batchNumber', 'id' => 'batchNumber', 'value' => Input::post('batchNumber'))); 
+            ?>
             <div class="form-body">
                 <div class="row">
                     <div class="col-md-5">

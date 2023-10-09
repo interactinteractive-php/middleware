@@ -184,6 +184,16 @@ class Restapi extends Controller {
                         $_POST['page']        = issetParam($parameters['paging']['offset']);
                         $_POST['rows']        = issetParam($parameters['paging']['pageSize']);
                         
+                        if ($sortColumnNames = issetVar($parameters['sortColumnNames'])) {
+                            if (is_array($sortColumnNames)) {
+                                $sortColumns = '';
+                                foreach ($sortColumnNames as $sortColumnName => $sortType) {
+                                    $sortColumns .= $sortColumnName.'='.$sortType['sortType'].'&';
+                                }
+                                $_POST['sortFields'] = rtrim($sortColumns, '&');
+                            }
+                        }
+                        
                         if ($criteria = issetParam($parameters['criteria'])) {
                             $_POST['criteria'] = $criteria;
                         }

@@ -9408,7 +9408,7 @@ function posNewServiceCustomer(elem, p2) {
       isDialog: true,
       isSystemMeta: false,
       fillJsonParam: jsonParam,
-      responseType: "json",
+      responseType: p2 ? "" : "json",
       callerType: "pos",
       openParams: '{"callerType":"pos"}',
     },
@@ -9473,6 +9473,7 @@ function posNewServiceCustomer(elem, p2) {
                     if (responseData.status === "success") {
                         if (p2) {
                             $dialog.dialog("close");
+                            Core.unblockUI();
                             return;
                         }
                       var responseParam = responseData.paramData;

@@ -1221,6 +1221,7 @@ class Mdworkspace_Model extends Model {
                 unset($selectedRow['pfnextstatuscolumn']);
             }
             foreach ($selectedRow as $k => $v) {
+                $v = str_replace(array('&lt;', '&gt;'), '', $v);
                 $hiddenParam .= Form::hidden(array('name' => 'workSpaceParam[' . $k . ']', 'value' => $v));
             }
         }
@@ -1761,8 +1762,10 @@ class Mdworkspace_Model extends Model {
                 LOWER(SRC_PARAM_NAME) AS SRC_PARAM_NAME, 
                 LOWER(TRG_PARAM_NAME) AS TRG_PARAM_NAME 
             FROM META_SRC_TRG_PARAM 
-            WHERE SRC_META_DATA_ID = $srcDvId 
-                AND TRG_META_DATA_ID = $trgDvId");
+            WHERE SRC_META_DATA_ID = ".$this->db->Param(0)." 
+                AND TRG_META_DATA_ID = ".$this->db->Param(1), 
+            array($srcDvId, $trgDvId)
+        );
          
         if ($configData) {
             

@@ -1172,6 +1172,17 @@ class Mdform extends Controller {
             $this->view->indicatorId = $paramData['indicatorId'];
             $this->view->crudIndicatorId = issetParam($paramData['crudIndicatorId']);
             $structureIndicatorId = $this->view->indicatorId;
+            $isResponseArray = Input::numeric('isResponseArray');
+            
+            $checkMethodAccess = $this->model->checkMethodAccessModel(issetVar($paramData['mainIndicatorId']), $this->view->crudIndicatorId);
+            
+            if ($checkMethodAccess['status'] != 'success') {
+                if ($isResponseArray == 1) {
+                    return $checkMethodAccess;
+                } else {
+                    echo json_encode($checkMethodAccess, JSON_UNESCAPED_UNICODE); exit;
+                }
+            }
             
             if ($this->view->crudIndicatorId) {
                 
@@ -1331,7 +1342,7 @@ class Mdform extends Controller {
             $response = array('status' => 'info', 'message' => 'Загвар сонгоно уу.');
         }
         
-        if (Input::numeric('isResponseArray') == 1) {
+        if ($isResponseArray == 1) {
             return $response;
         } else {
             echo json_encode($response, JSON_UNESCAPED_UNICODE);
@@ -1339,10 +1350,6 @@ class Mdform extends Controller {
     }
     
     public function indicatorFullExpression($uniqId, $indicatorId, $kpiTypeId) {
-        
-        if ($kpiTypeId == '2009') {
-            return array('varFnc' => '', 'event' => '', 'beforeSave' => '');
-        }
         
         $cache = phpFastCache();
         
@@ -1372,6 +1379,12 @@ class Mdform extends Controller {
             
             $kpiFullExpressionWithoutEvent = (new Mdexpression())->fullExpressionConvertWithoutEvent($rowExp, $indicatorId, '', true);
             $cache->set('kpiFullExpressionWithoutEvent_' . $expCacheId, $kpiFullExpressionWithoutEvent, Mdwebservice::$expressionCacheTime);
+        }
+        
+        $kpiFullExpressionWithoutEvent = str_replace('_'.$indicatorId, '_'.$uniqId, $kpiFullExpressionWithoutEvent);
+        
+        if ($kpiTypeId == '2009') { 
+            return array('varFnc' => '', 'event' => '', 'beforeSave' => '', 'withoutEvent' => $kpiFullExpressionWithoutEvent);
         }
         
         if ($kpiFullExpressionVarFnc == null) {
@@ -1437,7 +1450,6 @@ class Mdform extends Controller {
         }
         
         $kpiFullExpressionVarFnc = str_replace('_'.$indicatorId, '_'.$uniqId, $kpiFullExpressionVarFnc);
-        $kpiFullExpressionWithoutEvent = str_replace('_'.$indicatorId, '_'.$uniqId, $kpiFullExpressionWithoutEvent);
         $kpiFullExpressionEvent = str_replace('_'.$indicatorId, '_'.$uniqId, $kpiFullExpressionEvent);
         $kpiFullExpressionBeforeSave = str_replace('_'.$indicatorId, '_'.$uniqId, $kpiFullExpressionBeforeSave);
         $kpiFullExpressionAfterSave = str_replace('_'.$indicatorId, '_'.$uniqId, $kpiFullExpressionAfterSave);
@@ -1568,7 +1580,13 @@ class Mdform extends Controller {
     
     public function saveKpiDynamicData($sourceRecordId = null) {
         $this->load->model('mdform', 'middleware/models/');
-        return $this->model->saveKpiDynamicDataModel($sourceRecordId);
+        $response = $this->model->saveKpiDynamicDataModel($sourceRecordId);
+        
+        if ($response['status'] != 'success') {
+            Mdwebservice::deleteUploadedFiles(FileUpload::$uploadedFiles);
+        }
+        
+        return $response;
     }
     
     public function saveKpiDynamicDataByList() {
@@ -2268,55 +2286,7 @@ class Mdform extends Controller {
         $cacheName = 'dvGetChartData_'.$systemMetaGroupId.'_'.$filterMainId;
         $data = null; //$cache->get($cacheName);
         if ($data === null) {
-            
-            $param = array(
-                'systemMetaGroupId' => $systemMetaGroupId,
-                'showQuery' => 0,
-                'ignorePermission' => 1, 
-                'treeGrid' => 1, 
-                'criteria' => array(
-                    'filterMainId' => array(
-                        array(
-                            'operator' => '=',
-                            'operand' => $filterMainId
-                        )
-                    )
-                )
-            );
-            
-            $this->view->chartMainTypeData = $chartTypeData = $this->model->mainChartTypeDataModel(); /* $this->ws->runSerializeResponse(GF_SERVICE_ADDRESS, Mddatamodel::$getDataViewCommand, $param); */
-            /* convJson($chartTypeData);
-            die; */
-            
-           /*  $tmpArray = array();
-            $key = array();
-            
-            if (issetParamArray($chartTypeData['result']['0']['children'])) {
-                foreach ($chartTypeData['result']['0']['children'] as $chartMainType) {
-                    array_push($this->view->chartMainTypeData, $chartMainType);
-    
-                    if (issetParamArray($chartMainType['children'])) {
-                        foreach ($chartMainType['children'] as $chartType) {
-                            if (issetParamArray($chartType['children'])) {
-                                $chartTypesConfigration = Info::transformTypeDatas($this->view->chartTypesConfigration, $chartType, $tmpArray, $key);
-                                $this->view->chartTypesConfigration = $chartTypesConfigration['panels'];
-                                $tmpArray = $chartTypesConfigration['tmpArray'];
-                                
-                                $config = array();
-                                foreach ($chartType['children'] as $row) {
-                                    $config[$row['code']] = array();
-                                    $config[$row['code']] = Info::transformTypeKeyDatas($config[$row['code']], $row, $row['code']);
-                                }
-    
-                                $chartType['config'] = $config;
-                            }
-                            $chartType['mainDataType'] = $chartMainType['code'];
-    
-                            array_push($this->view->chartDefaultTypes, $chartType);
-                        }
-                    }
-                }
-            } */
+            $this->view->chartMainTypeData = $chartTypeData = $this->model->mainChartTypeDataModel();
             $data = array(
                 'chartMainTypeData' => $this->view->chartMainTypeData,
                 'chartTypesConfigration' => $this->view->chartTypesConfigration,
@@ -2970,7 +2940,7 @@ class Mdform extends Controller {
                 self::indicatorDashboard($this->view->indicatorId);
                 break;
             case '2020':
-                self::buildDashboard($this->view->indicatorId, 'render');
+                self::buildPagemanagment($this->view->indicatorId, 'render', $this->view->row);
                 break;
             case '1170':
                 self::areaRender($isReturnArray);
@@ -5171,7 +5141,7 @@ class Mdform extends Controller {
         $postArrData['kpiDataTblName'] = $getObject['TABLE_NAME'];        
         $postArrData['kpiTbl'] = $postData;
         $postArrData['kpiTblId'] = Input::post('recordId');
-        $postArrData['isMicroFlow'] = true;
+        $postArrData['isMicroFlow'] = true;        
         
         jsonResponse($this->model->saveKpiDynamicDataModel(null, $postArrData));
     }    
@@ -5574,10 +5544,11 @@ class Mdform extends Controller {
         
         $this->view->renderChart = '';
         switch ($this->view->row['KPI_TYPE_ID']) {
-            /* case '1130': */
+            case '1130':
+                self::indicatorDashboard($this->view->indicatorId);
+                break;
             case '2020':
-                /* self::indicatorDashboard($this->view->indicatorId); */
-                self::buildDashboard($this->view->indicatorId, 'html');
+                self::buildPagemanagment($this->view->indicatorId, 'html', $this->view->row);
                 break;
             default:
                 echo 'Харуулах боломжгүй байна.';
@@ -5589,17 +5560,24 @@ class Mdform extends Controller {
         }
     }
 
-    public function buildDashboard($indicatorId = '', $returnType = 'json') {
+    public function buildPagemanagment($indicatorId = '', $returnType = '', $mainIndicatorData = array()) {
         
         $this->view->uniqId = getUID();
         $this->view->indicatorId = $indicatorId;
         $this->view->configJsonData = array();
         $this->view->indicatorData = $this->model->getKpiIndicatorFullExpressionModel($indicatorId);
+        $this->view->chartMainTypeData = $this->model->mainChartTypeDataModel();
 
         $this->view->isAjax = is_ajax_request();
+        /* $this->load->model('mdwidget', 'middleware/models/');
+        $this->view->widgetList = $this->model->getWidgetStandartListModel(); */
         
-        $this->load->model('mdwidget', 'middleware/models/');
-        $this->view->widgetList = $this->model->getWidgetStandartListModel();
+        if ($mainIndicatorData) {
+            $this->view->kpiTypeIndicatorData = $this->model->kpiTypeIndicatorData($mainIndicatorData['KPI_TYPE_ID']);
+        } else {
+            $this->view->row = $this->model->getKpiIndicatorRowModel($this->view->indicatorId);
+            $this->view->kpiTypeIndicatorData = $this->model->kpiTypeIndicatorData($this->view->row['KPI_TYPE_ID']);
+        }
         
         $this->view->js = array_unique(array_merge(array('custom/addon/admin/pages/scripts/app.js'), AssetNew::metaOtherJs()));
         $this->view->css = AssetNew::metaCss();
@@ -5610,14 +5588,8 @@ class Mdform extends Controller {
         );
 
         $this->view->fullUrlJs = array_unique(array_merge($this->view->fullUrlJs, AssetNew::amChartJs()));
-        $this->view->fullUrlCss = array(
-            /* 
-                'middleware/assets/plugins/builder/main.css',
-                'middleware/assets/plugins/builder/style.css', 
-            */
-        );
 
-        if (!$this->view->isAjax) {
+        if (!$this->view->isAjax && $returnType === '') {
             $this->view->render('header');
             $this->view->render('/layout/index', "projects/views/contentui/build");
             $this->view->render('footer');
@@ -5745,6 +5717,26 @@ class Mdform extends Controller {
             if (Input::post('blockUniqId')) {
                 $index = 1;
                 foreach ($postData['blockUniqId'] as $unId) {
+                    $secNemgoo = json_decode($postData['secNemgoo'][$unId], true);
+
+                    if (issetParam($secNemgoo['html'])) {
+                        $html = html_entity_decode($secNemgoo['html']);
+                        $newPath = UPLOADPATH . 'page/section/' . $date . '/';
+                        if (!is_dir($newPath)) {
+                            mkdir($newPath, 0777, true);
+                        }
+                        $layoutFile = fopen($newPath . $layoutData['CODE'].".php", "w");
+                        $secNemgoo['htmlPath'] = $newPath . $layoutData['CODE'].".php";
+                        $secNemgoo['html'] =  $html; /* $html; */
+
+                        fwrite($layoutFile, $html);
+                        fclose($layoutFile);
+
+                        $postData['secNemgoo'][$unId] = json_encode($secNemgoo, JSON_UNESCAPED_UNICODE);
+                        /* var_dump($postData['secNemgoo'][$unId]);
+                        die; */
+                    }
+
                     $sectionData = array(
                         'ID' => getUID(),
                         'CODE' => $index,
@@ -5808,13 +5800,31 @@ class Mdform extends Controller {
     }
 
     public function paramConfigForm() {
+
         $this->view->uniqId = Input::post('uniqId');
         $this->view->itemCfId = Input::post('itemCfId');
+        $this->view->kpiTypeId = Input::post('kpiTypeId');
+
+        $postData = Input::postData();
+        $metaTypeCode = issetParam($postData['metaTypeCode']);
+
+        switch ($metaTypeCode) {
+            case 'echart':
+                $this->view->kpiTypeIndicatorData = $this->model->kpiTypeIndicatorData($this->view->kpiTypeId);
+                convJson(array('data' => $this->view->kpiTypeIndicatorData)); die();
+                break;
+            
+            default:
+            $this->view->kpiTypeIndicatorData = array();
+                break;
+        }        
+
         $response = array(
             'Title' => '',
             'Width' => '700',
             'uniqId' => $this->view->uniqId,
-            'Html' => $this->view->renderPrint('/layout/positionConfig', "projects/views/contentui/build"),
+            'uniqId' => $this->view->uniqId,
+            'Html' => $this->view->renderPrint('/layout/config', "projects/views/contentui/build"),
             'save_btn' => Lang::line('save_btn'),
             'close_btn' => Lang::line('close_btn')
         );
@@ -5831,4 +5841,5 @@ class Mdform extends Controller {
         $getParamInput = $this->model->getKpiIOIndicatorColumnsModel(Input::post('mainIndicatorId'), 1);
         echo json_encode($getParamInput, JSON_UNESCAPED_UNICODE);
     }
+
 }

@@ -261,6 +261,39 @@
     }
 </style>
 <script type="text/javascript">
+    $('body').on('keydown', '.civil_container<?php echo $this->uniqId ?> input[data-path="registerNum"]:eq(0)', function (e) {
+        var _this = $(this),
+            _parentSelector = _this.closest('.civil_container<?php echo $this->uniqId ?>');
+            
+        var keyCode = (e.keyCode ? e.keyCode : e.which);
+        if (keyCode == 13) {
+            $.ajax({
+                url: 'mddoc/findRegisterAfis',
+                type: 'post',
+                dataType: 'json',
+                data: {
+                    registerNum: _this.val()
+                },
+                beforeSend: function () {
+                    Core.blockUI({
+                        target: '.civil_container<?php echo $this->uniqId ?>',
+                        boxed: true,
+                        message: 'Түр хүлээнэ үү...'
+                    });
+                },
+                success: function (data) {
+                    _parentSelector.find('.civil-card').empty().append(data.Html).promise().done(function () {
+                        Core.unblockUI('.civil_container<?php echo $this->uniqId ?>');
+                    });
+                },
+                error: function (jqXHR, exception) {
+                    Core.showErrorMessage(jqXHR, exception);
+                    Core.unblockUI('.civil_container<?php echo $this->uniqId ?>');
+                }
+            });
+        }
+    });
+    
     $('body').on('click', '.civil_container<?php echo $this->uniqId ?> .btn-search', function () {
         var _this = $(this),
             _parentSelector = _this.closest('.civil_container<?php echo $this->uniqId ?>');
@@ -290,6 +323,7 @@
             }
         });
     });
+
     $('body').on('click', '.civil_container<?php echo $this->uniqId ?> .btn-clear', function () {
         var _this = $(this),
             _parentSelector = _this.closest('.civil_container<?php echo $this->uniqId ?>');
@@ -297,6 +331,7 @@
         _parentSelector.find('.civil-card').empty();
         _parentSelector.find('input[data-path="registerNum"]:eq(0)').val('')
     });
+
     $('body').on('click', '.civil_container<?php echo $this->uniqId ?> .btn-save', function () {
         var _this = $(this),
             _parentSelector = _this.closest('.civil_container<?php echo $this->uniqId ?>');
@@ -324,4 +359,5 @@
             }
         });
     });
+
 </script>

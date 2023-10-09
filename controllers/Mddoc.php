@@ -6238,6 +6238,7 @@ class Mddoc extends Controller {
         convJson($response);
     }
     
+    
     public function fingerCheckRender () {
         includeLib('Utils/Functions');
         $this->view->isAjax = is_ajax_request();
@@ -6247,15 +6248,15 @@ class Mddoc extends Controller {
         $this->view->afisStatusChangeList = issetParamArray($data['result']);
         $data = Functions::runDataViewWithoutLogin('1694417262236542', array());
         $this->view->reqTypeList = issetParamArray($data['result']);
-        
-        (Array) $tmp = $result = array();
+
+        (Array) $duplicateData = $tmp = $result = array();
         if (Input::post('registerNum')) {
             $param = array(
                 'registerNum' => Input::post('registerNum'),
             );
-
-            
+    
             $result = Functions::runProcess('crAfisFingerCheckGetDv_004', $param);
+            
             if ( issetParamArray($result['result']['crafisfingercheckgetdtldv'])) {
                 $this->view->id = issetParam($result['result']['id']);
                 foreach ($result['result']['crafisfingercheckgetdtldv'] as $key => $row) {
@@ -6346,9 +6347,100 @@ class Mddoc extends Controller {
                     array_push($tmp, $row);
                 }
             }
+            if ( issetParamArray($result['result']['crafisfingerduplicatedv'])) {
+                $this->view->id = issetParam($result['result']['id']);
+                foreach ($result['result']['crafisfingerduplicatedv'] as $key => $row) {
+                    # code...
+                    if (
+                        issetParam($row['ftpprocess']) !== '' && 
+                        issetParam($row['outputparam']) !== '' && 
+                        issetParam($row['inputparam']) !== '' && 
+                        issetParam($row['srcftppath']) !== '' && 
+                        issetParam($row['replacepath']) !== ''
+                    ) {
+                        (Array) $processArr = $outputparam = $replacepath = $inputparam = $srcftppath = array();
+                        $processArr = $row['ftpprocess'];
+                        $outputparam = $row['outputparam'];
+                        $inputparam = $row['inputparam'];
+                        $srcftppath = $row['srcftppath'];
+                        $replacepath = $row['replacepath'];
+    
+                        $rFtp = Functions::runProcess($processArr, array($inputparam => $row[$srcftppath]));
+                        
+                        if (issetParam($rFtp['result'][$outputparam])) {
+                            $row[$replacepath] = issetParam($rFtp['result'][$outputparam]);
+                        }
+                    }
+    
+                    if (issetParamArray($row['fingerleftdv'])) {
+                        $fingerleftdv = array();
+                        foreach ($row['fingerleftdv'] as $subRow) {
+                            # code...
+                            if (
+                                issetParam($subRow['ftpprocess']) !== '' && 
+                                issetParam($subRow['outputparam']) !== '' && 
+                                issetParam($subRow['inputparam']) !== '' && 
+                                issetParam($subRow['srcftppath']) !== '' && 
+                                issetParam($subRow['replacepath']) !== ''
+                            ) {
+                                (Array) $processArr = $outputparam = $replacepath = $inputparam = $srcftppath = array();
+                                $processArr = $subRow['ftpprocess'];
+                                $outputparam = $subRow['outputparam'];
+                                $inputparam = $subRow['inputparam'];
+                                $srcftppath = $subRow['srcftppath'];
+                                $replacepath = $subRow['replacepath'];
+    
+                                $rFtp = Functions::runProcess($processArr, array($inputparam => $subRow[$srcftppath]));
+                                
+                                if (issetParam($rFtp['result'][$outputparam])) {
+                                    $subRow[$replacepath] = issetParam($rFtp['result'][$outputparam]);
+                                }
+                            }
+    
+                            array_push($fingerleftdv, $subRow);
+                        }
+    
+                        $row['fingerleftdv'] = $fingerleftdv;
+                    }
+    
+                    if (issetParamArray($row['fingerrightdv'])) {
+                        $fingerrightdv = array();
+                        foreach ($row['fingerrightdv'] as $subRow) {
+                            # code...
+                            if (
+                                issetParam($subRow['ftpprocess']) !== '' && 
+                                issetParam($subRow['outputparam']) !== '' && 
+                                issetParam($subRow['inputparam']) !== '' && 
+                                issetParam($subRow['srcftppath']) !== '' && 
+                                issetParam($subRow['replacepath']) !== ''
+                            ) {
+                                (Array) $processArr = $outputparam = $replacepath = $inputparam = $srcftppath = array();
+                                $processArr = $subRow['ftpprocess'];
+                                $outputparam = $subRow['outputparam'];
+                                $inputparam = $subRow['inputparam'];
+                                $srcftppath = $subRow['srcftppath'];
+                                $replacepath = $subRow['replacepath'];
+    
+                                $rFtp = Functions::runProcess($processArr, array($inputparam => $subRow[$srcftppath]));
+                                
+                                if (issetParam($rFtp['result'][$outputparam])) {
+                                    $subRow[$replacepath] = issetParam($rFtp['result'][$outputparam]);
+                                }
+    
+                            }
+                            array_push($fingerrightdv, $subRow);
+                        }
+    
+                        $row['fingerrightdv'] = $fingerrightdv;
+                    }
+    
+                    array_push($duplicateData, $row);
+                }
+            }
         }
 
         $this->view->registerData = $tmp;
+        $this->view->duplicateData = $duplicateData;
         
         if (!$this->view->isAjax) {
             $this->view->css = AssetNew::metaCss();
@@ -6382,13 +6474,14 @@ class Mddoc extends Controller {
         $data = Functions::runDataViewWithoutLogin('1694417262236542', array());
         $this->view->reqTypeList = issetParamArray($data['result']);
         
-        (Array) $tmp = $result = array();
+        (Array) $duplicateData = $tmp = $result = array();
         if (Input::post('registerNum')) {
             $param = array(
                 'registerNum' => Input::post('registerNum'),
             );
     
             $result = Functions::runProcess('crAfisFingerCheckGetDv_004', $param);
+            
             if ( issetParamArray($result['result']['crafisfingercheckgetdtldv'])) {
                 $this->view->id = issetParam($result['result']['id']);
                 foreach ($result['result']['crafisfingercheckgetdtldv'] as $key => $row) {
@@ -6479,13 +6572,106 @@ class Mddoc extends Controller {
                     array_push($tmp, $row);
                 }
             }
+            if ( issetParamArray($result['result']['crafisfingerduplicatedv'])) {
+                $this->view->id = issetParam($result['result']['id']);
+                foreach ($result['result']['crafisfingerduplicatedv'] as $key => $row) {
+                    # code...
+                    if (
+                        issetParam($row['ftpprocess']) !== '' && 
+                        issetParam($row['outputparam']) !== '' && 
+                        issetParam($row['inputparam']) !== '' && 
+                        issetParam($row['srcftppath']) !== '' && 
+                        issetParam($row['replacepath']) !== ''
+                    ) {
+                        (Array) $processArr = $outputparam = $replacepath = $inputparam = $srcftppath = array();
+                        $processArr = $row['ftpprocess'];
+                        $outputparam = $row['outputparam'];
+                        $inputparam = $row['inputparam'];
+                        $srcftppath = $row['srcftppath'];
+                        $replacepath = $row['replacepath'];
+    
+                        $rFtp = Functions::runProcess($processArr, array($inputparam => $row[$srcftppath]));
+                        
+                        if (issetParam($rFtp['result'][$outputparam])) {
+                            $row[$replacepath] = issetParam($rFtp['result'][$outputparam]);
+                        }
+                    }
+    
+                    if (issetParamArray($row['fingerleftdv'])) {
+                        $fingerleftdv = array();
+                        foreach ($row['fingerleftdv'] as $subRow) {
+                            # code...
+                            if (
+                                issetParam($subRow['ftpprocess']) !== '' && 
+                                issetParam($subRow['outputparam']) !== '' && 
+                                issetParam($subRow['inputparam']) !== '' && 
+                                issetParam($subRow['srcftppath']) !== '' && 
+                                issetParam($subRow['replacepath']) !== ''
+                            ) {
+                                (Array) $processArr = $outputparam = $replacepath = $inputparam = $srcftppath = array();
+                                $processArr = $subRow['ftpprocess'];
+                                $outputparam = $subRow['outputparam'];
+                                $inputparam = $subRow['inputparam'];
+                                $srcftppath = $subRow['srcftppath'];
+                                $replacepath = $subRow['replacepath'];
+    
+                                $rFtp = Functions::runProcess($processArr, array($inputparam => $subRow[$srcftppath]));
+                                
+                                if (issetParam($rFtp['result'][$outputparam])) {
+                                    $subRow[$replacepath] = issetParam($rFtp['result'][$outputparam]);
+                                }
+                            }
+    
+                            array_push($fingerleftdv, $subRow);
+                        }
+    
+                        $row['fingerleftdv'] = $fingerleftdv;
+                    }
+    
+                    if (issetParamArray($row['fingerrightdv'])) {
+                        $fingerrightdv = array();
+                        foreach ($row['fingerrightdv'] as $subRow) {
+                            # code...
+                            if (
+                                issetParam($subRow['ftpprocess']) !== '' && 
+                                issetParam($subRow['outputparam']) !== '' && 
+                                issetParam($subRow['inputparam']) !== '' && 
+                                issetParam($subRow['srcftppath']) !== '' && 
+                                issetParam($subRow['replacepath']) !== ''
+                            ) {
+                                (Array) $processArr = $outputparam = $replacepath = $inputparam = $srcftppath = array();
+                                $processArr = $subRow['ftpprocess'];
+                                $outputparam = $subRow['outputparam'];
+                                $inputparam = $subRow['inputparam'];
+                                $srcftppath = $subRow['srcftppath'];
+                                $replacepath = $subRow['replacepath'];
+    
+                                $rFtp = Functions::runProcess($processArr, array($inputparam => $subRow[$srcftppath]));
+                                
+                                if (issetParam($rFtp['result'][$outputparam])) {
+                                    $subRow[$replacepath] = issetParam($rFtp['result'][$outputparam]);
+                                }
+    
+                            }
+                            array_push($fingerrightdv, $subRow);
+                        }
+    
+                        $row['fingerrightdv'] = $fingerrightdv;
+                    }
+    
+                    array_push($duplicateData, $row);
+                }
+            }
         }
 
         $this->view->registerData = $tmp;
+        $this->view->duplicateData = $duplicateData;
         
         (Array) $respone = array(
             'Html' => $this->view->renderPrint('/civil/search', self::$viewPath),
             'Data' => $result,
+            'registerData' => $this->view->registerData,
+            'duplicateData' => $this->view->duplicateData,
         );
         jsonResponse($respone);
 

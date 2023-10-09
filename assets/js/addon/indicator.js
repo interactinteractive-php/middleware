@@ -29,6 +29,7 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt) {
                 var selectedRow = selectedRows[0];
                 postData.param.dynamicRecordId = selectedRow[window['idField_'+mainIndicatorId]];
                 postData.param.idField = window['idField_'+mainIndicatorId];
+                postData.selectedRow = selectedRow;
 
             } else {
                 alert(plang.get('msg_pls_list_select'));
@@ -98,6 +99,7 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt) {
                     var selectedRow = selectedRows[0];
                     postData.param.dynamicRecordId = selectedRow[window['idField_'+mainIndicatorId]];
                     postData.param.idField = window['idField_'+mainIndicatorId];
+                    postData.selectedRow = selectedRow;
 
                 } else {
                     alert(plang.get('msg_pls_list_select'));
@@ -3639,6 +3641,13 @@ function filterKpiIndicatorToggleValue(elem) {
         $this.addClass('active');
         $this.find('i').removeClass('far fa-square').addClass('fas fa-check-square');
     }
+    
+    var $parentFilter = $this.closest('.list-group');
+    var getFilterData = getKpiIndicatorFilterData(elem, $parentFilter);
+    var indicatorId = getFilterData.indicatorId;
+    var filterData = getFilterData.filterData;
+    
+    mvFilterRelationLoadData(elem, indicatorId, filterData);
 }
 
 function bpExpCallKpiIndicatorForm(mainSelector, elem, indicatorId, recordId, mode) {
@@ -4110,7 +4119,9 @@ function mvChangeWfmStatus(elem, mainIndicatorId) {
         dataType: 'json',
         success: function(data) {
             if (data.status == 'success') {
-                var dataRow = data.data;
+                
+                var dataRow = data.data, isFillRelation = Number(dataRow.is_fill_relation);
+                
                 $this.attr({
                     'data-actiontype': dataRow.type_code, 
                     'data-main-indicatorid': mainIndicatorId,
@@ -4118,10 +4129,10 @@ function mvChangeWfmStatus(elem, mainIndicatorId) {
                     'data-crud-indicatorid': dataRow.crud_indicator_id
                 });
                 
-                if (dataRow.structure_indicator_id == mainIndicatorId) {
+                if (dataRow.structure_indicator_id == mainIndicatorId && isFillRelation == 0) {
                     manageKpiIndicatorValue($this, dataRow.kpi_type_id, mainIndicatorId, true);
                 } else {
-                    var opt = {}, isFillRelation = Number(dataRow.is_fill_relation), 
+                    var opt = {}, 
                         typeCode = dataRow.type_code, 
                         isEdit = (typeCode == 'create') ? false : true;
                 
@@ -4215,103 +4226,6 @@ function mvAddStructureFormRemove(elem) {
     $dialog.dialog('open');
 }
 
-function addRowKpiIndicatorTemplate(elem) {
-    var $this = $(elem), $parent = $this.closest('div'), 
-        $nextDiv = $parent.next('div'), $script = $nextDiv.next('script'), 
-        $table = $nextDiv.find('table.table:eq(0)'), 
-        groupPath = $table.attr('data-table-path'), 
-        $tbody = $table.find('> tbody'), 
-        rowLimit = Number($this.attr('data-row-limit')),
-        $form = $this.closest('[data-addonform-uniqid]'), 
-        uniqId = '';
-    
-    if ($form.length) {
-        uniqId = $form.attr('data-addonform-uniqid');
-    } else {
-        uniqId = $this.closest('.kpi-ind-tmplt-section[data-bp-uniq-id]').attr('data-bp-uniq-id');
-    }
-    
-    if ($this.hasClass('bp-add-one-row-num')) {
-        var $addRowNum = $this;
-    } else {
-        var $addRowNum = $this.prev('input.bp-add-one-row-num');
-    }
-    
-    if (rowLimit > 0) {
-        var alreadyRowsLen = Number($tbody.find('> tr.bp-detail-row').length);
-        if (rowLimit <= alreadyRowsLen) {
-            PNotify.removeAll();
-            new PNotify({
-                title: 'Info',
-                text: 'Мөрийн хязгаар дүүрсэн байна!',
-                type: 'info',
-                addclass: pnotifyPosition,
-                sticker: false
-            });      
-            return;
-        }
-    }
-    
-    if ($addRowNum.length && $addRowNum.val() != '') {
-        
-        var addRowNumVal = Number($addRowNum.val());
-        
-        if (rowLimit > 0 && alreadyRowsLen > 0) {
-            addRowNumVal = rowLimit - alreadyRowsLen;
-        }
-        
-        var addingRows = ($script.text()).repeat(addRowNumVal);
-        
-        $tbody.append(addingRows).promise().done(function() {
-            
-            $addRowNum.val('');
-            
-            mvInitControls($tbody);
-            
-            $tbody.find('input:not([data-isdisabled], [readonly="readonly"], [readonly], readonly, [disabled="disabled"], [disabled], disabled, input.meta-name-autocomplete):visible:first').focus().select();
-
-            setRowNumKpiIndicatorTemplate($tbody);
-            kpiSetRowIndex($tbody);
-            
-            var $rowEl = $tbody.find('> .bp-detail-row');
-            var rowLen = $rowEl.length, rowi = 0;
-                
-            if (rowLen === 1) {
-                
-                window['bpFullScriptsWithoutEvent_'+uniqId]($($rowEl[rowi]), groupPath, true, true);
-
-            } else if (rowLen > 1) {
-
-                var rowLen = rowLen - 1;
-
-                for (rowi; rowi < rowLen; rowi++) { 
-                    window['bpFullScriptsWithoutEvent_'+uniqId]($($rowEl[rowi]), groupPath, true, false);
-                }
-                
-                window['bpFullScriptsWithoutEvent_'+uniqId]($($rowEl[rowLen]), groupPath, true, true);
-            }
-            
-            bpDetailFreeze($table);
-            window['dtlAggregateFunction_'+uniqId]();
-        });
-    
-    } else {
-        
-        $tbody.append($script.text()).promise().done(function() {
-            var $lastRow = $tbody.find('tr:last');
-            
-            mvInitControls($lastRow);
-            setRowNumKpiIndicatorTemplate($tbody);
-            kpiSetRowIndex($tbody);
-            
-            window['bpFullScriptsWithoutEvent_'+uniqId]($lastRow, groupPath, false, true);
-            
-            bpDetailFreeze($table);
-            
-            window['dtlAggregateFunction_'+uniqId]();
-        });
-    }
-}
 function mvInitControls($elem) {
     Core.initNumberInput($elem);
     Core.initLongInput($elem);
@@ -4331,7 +4245,7 @@ function kpiSetRowIndex($tbody) {
     var len = $el.length, i = 0;
     
     for (i; i < len; i++) { 
-        var $subElement = $($el[i]).find('input[type="checkbox"]');
+        var $subElement = $($el[i]).find('input, select, textarea');
         var slen = $subElement.length, j = 0;
         for (j; j < slen; j++) { 
             var $inputThis = $($subElement[j]);
@@ -5650,6 +5564,8 @@ function mvFlowChartExecuteRedirect(elem, indicatorId) {
         window.location = 'appmenu/module/166848750564710?kmid=166848750564710&mmid=1671709456096413';
     } else if (indicatorId == '16912758355339') {
         window.location = 'mdlayout/v2/164878015785810&mmid=1632910578101658&mid=1632910578101658';
+    } else if (indicatorId == '184184421') {
+        window.location = 'appmenu/module/1505271180731694?mmid=1505271180731694';
     } else {
         window.location = 'appmenu/module/'+indicatorId+'?kmid='+indicatorId+'&mmid=1671709456096413';
     }
@@ -5670,6 +5586,10 @@ function mvFilterRelationLoadData(elem, indicatorId, filterData) {
         } else {
             postData.ignoreColName = $elem.attr('data-colname');
         }
+    }
+    
+    if ($elem.hasAttr('onclick')) {
+        postData.fncName = $elem.attr('onclick');
     }
     
     $.ajax({

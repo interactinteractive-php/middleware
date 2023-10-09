@@ -5680,8 +5680,8 @@ function bpVExpressionEditor(elem) {
         $form = $this.closest('form'), 
         postData = '';
         //$expressionEditorTagsSource = $form.find('[data-path="expressionEditorTagsSource"]'), 
-        if ($form.find('[data-path="'+$this.attr('data-path')+'_json"]').length) {
-            postData = {expressionJson: $form.find('[data-path="'+$this.attr('data-path')+'_json"]').val()};
+        if ($form.find('[data-path="'+$this.attr('data-path')+'Raw"]').length) {
+            postData = {expressionJson: $form.find('[data-path="'+$this.attr('data-path')+'Raw"]').val()};
         }
 
 
@@ -5710,41 +5710,42 @@ function bpVExpressionEditor(elem) {
                     buttons: [
                         {text: plang.get('save_btn'), class: 'btn btn-sm green bp-btn-subsave', click: function() {         
                             saveVexpression(function(data){
-                                if ($form.find('[data-path="'+$this.attr('data-path')+'_json"]').length) {
-                                    $form.find('[data-path="'+$this.attr('data-path')+'_json"]').val(data.expressionJson);
+                                if ($form.find('[data-path="'+$this.attr('data-path')+'Raw"]').length) {
+                                    $form.find('[data-path="'+$this.attr('data-path')+'Raw"]').val(data.expressionJson);
                                 } else {                                    
                                     new PNotify({
                                         title: 'Warning',
-                                        text: $this.attr('data-path')+'_json path үүсгэнэ үү!',
+                                        text: $this.attr('data-path')+'Raw path үүсгэнэ үү!',
                                         type: 'warning',
                                         addclass: pnotifyPosition,
                                         sticker: false
                                     });
                                     return;                                    
-                                }                       
-                                Core.blockUI({message: 'Loading...', boxed: true});
-                                $.ajax({
-                                    type: 'post',
-                                    url: 'mdexpression/clientMicroFlowExpression',
-                                    data: {
-                                       expressionString: data.expressionString,
-                                       expressionStringJson: data.expressionJson         
-                                    },
-                                    beforeSend: function() {
-                                    },
-                                    success: function(data) {
-//                                        var path = $form.find('[data-path="columnNamePath"]').val();
-//                                        var eventString = $form.find('[data-path="eventString"]').val();
-//                                        var expString = '['+path+'].'+eventString+'(){';
-//                                            expString += data;
-//                                            expString += '}';
-                                        $this.val(data);
-                                        Core.unblockUI();
-                                    },
-                                    error: function() {
-                                        alert('Error');
-                                    }
-                                 });                                    
+                                }                   
+                                $this.val(data.expressionString);    
+                                // Core.blockUI({message: 'Loading...', boxed: true});
+//                                 $.ajax({
+//                                     type: 'post',
+//                                     url: 'mdexpression/clientMicroFlowExpression',
+//                                     data: {
+//                                        expressionString: data.expressionString,
+//                                        expressionStringJson: data.expressionJson         
+//                                     },
+//                                     beforeSend: function() {
+//                                     },
+//                                     success: function(data) {
+// //                                        var path = $form.find('[data-path="columnNamePath"]').val();
+// //                                        var eventString = $form.find('[data-path="eventString"]').val();
+// //                                        var expString = '['+path+'].'+eventString+'(){';
+// //                                            expString += data;
+// //                                            expString += '}';
+//                                         $this.val(data);
+//                                         Core.unblockUI();
+//                                     },
+//                                     error: function() {
+//                                         alert('Error');
+//                                     }
+//                                  });                                    
                             });                                                   
                             $dialog.dialog('close');
                         }},
@@ -10749,4 +10750,15 @@ function bpRenderViewLog(mainSelector) {
         success: function(data) {},
         error: function(e) { console.log(e); }
     });
+}
+function mssSignature(phoneNumber) {
+    var response = $.ajax({
+        type: 'post',
+        url: 'mdintegration/mssSignature',
+        data: {phoneNumber: phoneNumber},
+        dataType: 'json',
+        async: false
+    });
+    
+    return response.responseJSON;
 }

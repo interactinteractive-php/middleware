@@ -14,6 +14,10 @@ if ($this->filterData) {
         }
     }
     
+    if ($fncName = Input::post('fncName')) {
+        $clickFnc = str_replace('(this);', '', $fncName);
+    }
+    
     $html = array();
     $model = new Mdform_model();
     

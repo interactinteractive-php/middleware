@@ -2499,9 +2499,7 @@
                     enableBpDetailFilterByElement($getTable);
                     bpDetailHideShowFields($getTable);
                     bpDetailFreeze($getTable);
-                    $getTable.closest('.bp-overflow-xy-auto').animate({
-                        scrollTop: 10000
-                    }, 0);
+                    $getTable.closest('.bp-overflow-xy-auto').animate({ scrollTop: 10000 }, 0);
                     
                     var $focusElement = $lastRow.find('input:not([data-isdisabled], [readonly="readonly"], [readonly], readonly, [disabled="disabled"], [disabled], disabled, input.meta-name-autocomplete, select.select2):visible:first');
                     
@@ -2595,13 +2593,9 @@
                     }
                 }
             },
-            error: function () {
-                alert('Error');
-            }
+            error: function () { alert('Error'); }
 
-        }).done(function () {
-            Core.unblockUI();
-        });
+        }).done(function () { Core.unblockUI(); });
         
         return;
     }

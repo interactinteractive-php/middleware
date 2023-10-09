@@ -881,6 +881,104 @@ $(function() {
     
 });
 
+function addRowKpiIndicatorTemplate(elem) {
+    var $this = $(elem), $parent = $this.closest('div'), 
+        $nextDiv = $parent.next('div'), $script = $nextDiv.next('script'), 
+        $table = $nextDiv.find('table.table:eq(0)'), 
+        groupPath = $table.attr('data-table-path'), 
+        $tbody = $table.find('> tbody'), 
+        rowLimit = Number($this.attr('data-row-limit')),
+        $form = $this.closest('[data-addonform-uniqid]'), 
+        uniqId = '';
+    
+    if ($form.length) {
+        uniqId = $form.attr('data-addonform-uniqid');
+    } else {
+        uniqId = $this.closest('.kpi-ind-tmplt-section[data-bp-uniq-id]').attr('data-bp-uniq-id');
+    }
+    
+    if ($this.hasClass('bp-add-one-row-num')) {
+        var $addRowNum = $this;
+    } else {
+        var $addRowNum = $this.prev('input.bp-add-one-row-num');
+    }
+    
+    if (rowLimit > 0) {
+        var alreadyRowsLen = Number($tbody.find('> tr.bp-detail-row').length);
+        if (rowLimit <= alreadyRowsLen) {
+            PNotify.removeAll();
+            new PNotify({
+                title: 'Info',
+                text: 'Мөрийн хязгаар дүүрсэн байна!',
+                type: 'info',
+                addclass: pnotifyPosition,
+                sticker: false
+            });      
+            return;
+        }
+    }
+    
+    if ($addRowNum.length && $addRowNum.val() != '') {
+        
+        var addRowNumVal = Number($addRowNum.val());
+        
+        if (rowLimit > 0 && alreadyRowsLen > 0) {
+            addRowNumVal = rowLimit - alreadyRowsLen;
+        }
+        
+        var addingRows = ($script.text()).repeat(addRowNumVal);
+        
+        $tbody.append(addingRows).promise().done(function() {
+            
+            $addRowNum.val('');
+            
+            mvInitControls($tbody);
+            
+            $tbody.find('input:not([data-isdisabled], [readonly="readonly"], [readonly], readonly, [disabled="disabled"], [disabled], disabled, input.meta-name-autocomplete):visible:first').focus().select();
+
+            setRowNumKpiIndicatorTemplate($tbody);
+            kpiSetRowIndex($tbody);
+            
+            var $rowEl = $tbody.find('> .bp-detail-row');
+            var rowLen = $rowEl.length, rowi = 0;
+                
+            if (rowLen === 1) {
+                
+                window['bpFullScriptsWithoutEvent_'+uniqId]($($rowEl[rowi]), groupPath, true, true);
+
+            } else if (rowLen > 1) {
+
+                var rowLen = rowLen - 1;
+
+                for (rowi; rowi < rowLen; rowi++) { 
+                    window['bpFullScriptsWithoutEvent_'+uniqId]($($rowEl[rowi]), groupPath, true, false);
+                }
+                
+                window['bpFullScriptsWithoutEvent_'+uniqId]($($rowEl[rowLen]), groupPath, true, true);
+            }
+            
+            bpDetailFreeze($table);
+            window['dtlAggregateFunction_'+uniqId]();
+        });
+    
+    } else {
+        
+        $tbody.append($script.text()).promise().done(function() {
+            var $lastRow = $tbody.find('tr:last');
+            
+            mvInitControls($lastRow);
+            setRowNumKpiIndicatorTemplate($tbody);
+            kpiSetRowIndex($tbody);
+            
+            window['bpFullScriptsWithoutEvent_'+uniqId]($lastRow, groupPath, false, true);
+            
+            bpDetailFreeze($table);
+            
+            window['dtlAggregateFunction_'+uniqId]();
+        });
+    }
+}
+
 function rowsDtlPathReplacer_<?php echo $this->uniqId; ?>(groupPath) {
     <?php
     if (Mdform::$isRowsReplacePath) {

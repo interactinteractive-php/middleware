@@ -52,7 +52,9 @@ if (typeof isKpiIndicatorScript === 'undefined') {
 }
 
 if (typeof isKpiIndicatorEchartsScript === 'undefined') {
-    $.cachedScript('<?php echo autoVersion('middleware/assets/js/addon/echartsBuilder.js'); ?>');
+    $.cachedScript('<?php echo autoVersion('middleware/assets/js/addon/echartsBuilder.js'); ?>').done(function() {
+        
+    });
 }
 
 filterKpiIndicatorValueChart(<?php echo $this->uniqId; ?>, <?php echo $this->indicatorId; ?>);
@@ -145,7 +147,7 @@ function kpiDataMartLoadChart_<?php echo $this->uniqId; ?>() {
                 var _dataConfigStr = _chartType.find('option[value="'+ _chartType.val() +'"]').attr('data-config');
 
                 if (_dataConfigStr && typeof window['chartConfigrationToggle'] !== 'undefined') {
-                    chartConfigrationToggle(kpiDMChart_<?php echo $this->uniqId; ?>, _dataConfigStr);
+                    EchartBuilder.chartConfigrationToggle(kpiDMChart_<?php echo $this->uniqId; ?>, _dataConfigStr);
                 }
             }
         }
@@ -226,7 +228,7 @@ function kpiDataMartLoadChart_<?php echo $this->uniqId; ?>() {
                                 columnsConfig: data.columnsConfig,
                                 useData: '1',
                             }
-                            kpiDataMartEChartBuildRender(kpiChartObj_<?php echo $this->uniqId; ?>);
+                            EchartBuilder.chartRender(kpiChartObj_<?php echo $this->uniqId; ?>);
     
                         } else {
                             kpiDataMartChartRender({
@@ -237,6 +239,7 @@ function kpiDataMartLoadChart_<?php echo $this->uniqId; ?>() {
                             });
                         }
                     });
+
                 } else {
                     console.log(data);
                 }
@@ -272,34 +275,47 @@ $(function() {
         });
     });
 
-    kpiDMChart_<?php echo $this->uniqId; ?>.on('change', 'select[name="kpiDMChartType"], select[name="kpiDMChartAggregate"], select[name="kpiDMChartCategory"], select[name="kpiDMChartValue"], select[name="kpiDMChartCategoryGroup"], select[name="kpiDMChartValueSortType"], input[name="kpiDMChartRowNum"], input[name="kpiDMChartLabelText"], select[name="kpiDMChartBgColor"], input[name="kpiDMChartIconName"], select[name="kpiDMChartLineChartColumn"], select[name="kpiDMChartLineChartAggregate"], select[name="kpiDMChartMapCountry"]', function() {
+    /* 
+    1. select[name="kpiDMChartType"]
+    2. select[name="kpiDMChartCategory"]
+    3. select[name="kpiDMChartValue"]
+    4. select[name="kpiDMChartCategoryGroup"] 
+    5. select[name="kpiDMChartAggregate"]
+    6. select[name="kpiDMChartValueSortType"]
+    7. input[name="kpiDMChartRowNum"]
+    8. select[name="kpiDMChartLineChartColumn"]
+    9. select[name="kpiDMChartLineChartAggregate"]
+    10.select[name="kpiDMChartBgColor"]
+    11.select[name="kpiDMChartMapCountry"] 
+    12.input[name="kpiDMChartLabelText"]
+    13.input[name="kpiDMChartIconName"]
+    */
+   
+    kpiDMChart_<?php echo $this->uniqId; ?>.on('change', '.chartRootConfigrations select, .chartRootConfigrations input, .chartRootConfigrations textarea', function() {
         
-        var $this = $(this), name = $this.attr('name');
-        var _chartType = kpiDMChart_<?php echo $this->uniqId; ?>.find('select[name="kpiDMChartType"]');
+        var $this = $(this), name = $this.attr('name'),
+            parentSelector = $this.closest('.chartRootConfigrations');
+        
+        var _chartType = parentSelector.find('select[name="kpiDMChartType"]');
+        var $chartValue = parentSelector.find('select[name="kpiDMChartValue"]');
+
         var $chartType = kpiDMChart_<?php echo $this->uniqId; ?>.find('input[name="kpiDMChartType"]');
-        var $chartMainType = $('input[name="kpiDMChartMainType"]');
-        var $chartValue = $('select[name="kpiDMChartValue"]');
-        var $chartParent = $chartValue.parent();
+        var $chartMainType = kpiDMChart_<?php echo $this->uniqId; ?>.find('input[name="kpiDMChartMainType"]');
         
         kpiDMChart_<?php echo $this->uniqId; ?>.find('div.echart').hide();
-        /* if ($chartMainType.val() ==='echart') {
-            kpiDMChart_<?php echo $this->uniqId; ?>.find('div.echart').show();
-        } */
-        
         kpiDMChart_<?php echo $this->uniqId; ?>.find('option[data-type]').hide();
         kpiDMChart_<?php echo $this->uniqId; ?>.find('option[data-type="'+  $chartMainType.val() +'"]').show();
 
         $chartType.val(_chartType.find('option[value="'+ _chartType.val() +'"]').attr('data-value'));
+        $chartMainType.val('amchart');
+
         var _chartMainType = _chartType.find('option[value="'+ _chartType.val() +'"]').attr('data-maintype');
         if (_chartMainType) {
             $chartMainType.val(_chartMainType);
-        } else {
-            $chartMainType.val('amchart');
         }
         
         if (name == 'kpiDMChartType') {
             
-            /* var chartTypeVal = _chartType.val(); */
             var chartTypeVal = $chartType.val();
             
             var $kpiDMChartCategoryGroupRow = $('.kpiDMChartCategoryGroup-row');
@@ -323,43 +339,45 @@ $(function() {
             $kpiDMChartLineChartAggregateRow.addClass('d-none');
             $kpiDMChartMapCountryRow.addClass('d-none');
             
-            if (chartTypeVal == 'clustered_column') {
+            switch (chartTypeVal) {
+                case 'clustered_column':
+                    if (!$chartValue.hasAttr('multiple')) {
+                        $chartValue.prop('multiple', true);
+                    }
+                    $kpiDMChartLineChartColumnRow.removeClass('d-none');
+                    $kpiDMChartLineChartAggregateRow.removeClass('d-none');
+                    break;
+                case 'column':
+                    $kpiDMChartLineChartColumnRow.removeClass('d-none');
+                    $kpiDMChartLineChartAggregateRow.removeClass('d-none');
+                    break;
+                case 'stacked_column':
+
+                    $kpiDMChartCategoryGroupRow.removeClass('d-none');
                 
-                if (!$chartValue.hasAttr('multiple')) {
-                    $chartValue.prop('multiple', true);
-                }
-            
-            } else if (chartTypeVal == 'stacked_column') {
+                    $chartValue.prepend('<option value="">- '+plang.get('select_btn')+' -</option>');
+                    $chartValue.prop('multiple', false);
+                    break;
+                case 'card':
+                case 'card_vertical':
+
+                    $kpiDMChartCategoryRow.addClass('d-none');
+                    $kpiDMChartLabelTextRow.removeClass('d-none');
+                    $kpiDMChartBgColorRow.removeClass('d-none');
+                    $kpiDMChartIconNameRow.removeClass('d-none');
                 
-                $kpiDMChartCategoryGroupRow.removeClass('d-none');
+                    $chartValue.prepend('<option value="">- '+plang.get('select_btn')+' -</option>');
+                    $chartValue.prop('multiple', false);
+                    break;
+                case 'maps':
+
+                    $kpiDMChartMapCountryRow.removeClass('d-none');
+                    break;
                 
-                $chartValue.prepend('<option value="">- '+plang.get('select_btn')+' -</option>');
-                $chartValue.prop('multiple', false);
-                
-            } else if (chartTypeVal == 'card' || chartTypeVal == 'card_vertical') { 
-                
-                $kpiDMChartCategoryRow.addClass('d-none');
-                $kpiDMChartLabelTextRow.removeClass('d-none');
-                $kpiDMChartBgColorRow.removeClass('d-none');
-                $kpiDMChartIconNameRow.removeClass('d-none');
-            
-                $chartValue.prepend('<option value="">- '+plang.get('select_btn')+' -</option>');
-                $chartValue.prop('multiple', false);
-                
-            } else if (chartTypeVal == 'maps') { 
-                
-                $kpiDMChartMapCountryRow.removeClass('d-none');
-                
-            } else {
-                
-                $chartValue.prepend('<option value="">- '+plang.get('select_btn')+' -</option>');
-                $chartValue.prop('multiple', false);
-            }
-            
-            if (chartTypeVal == 'clustered_column' || chartTypeVal == 'column') {
-                
-                $kpiDMChartLineChartColumnRow.removeClass('d-none');
-                $kpiDMChartLineChartAggregateRow.removeClass('d-none');
+                default:
+                    $chartValue.prepend('<option value="">- '+plang.get('select_btn')+' -</option>');
+                    $chartValue.prop('multiple', false);
+                    break;
             }
 
             try {
@@ -367,8 +385,10 @@ $(function() {
             } catch (error) {
                 console.log(error);                
             }
-            Core.initSelect2($chartParent);
+
+            Core.initSelect2(parentSelector);
             
+            kpyInidicatorTypeData<?php echo $this->uniqId ?>($this);
         } else if (name == 'kpiDMChartValue') {
             
             var valueShowType = $chartValue.find('option:selected').attr('data-showtype');
@@ -398,8 +418,15 @@ $(function() {
         if (isArray(chartValue)) {
             chartValue = chartValue.join(',');
         }
-        
-        kpiDMChart_<?php echo $this->uniqId; ?>.find('select[name="kpiDMChartType"], select[name="kpiDMChartAggregate"], select[name="kpiDMChartCategory"], select[name="kpiDMChartValue"], select[name="kpiDMChartCategoryGroup"], select[name="kpiDMChartMapCountry"]').removeClass('error');
+
+        /* select[name="kpiDMChartType"]
+        select[name="kpiDMChartAggregate"]
+        select[name="kpiDMChartCategory"]
+        select[name="kpiDMChartValue"]
+        select[name="kpiDMChartCategoryGroup"]
+        select[name="kpiDMChartMapCountry"] */
+
+        kpiDMChart_<?php echo $this->uniqId; ?>.find('.chartRootConfigrations select').removeClass('error');
         console.log(chartType);
         if (chartType == '' || ((chartType != 'card' && chartType != 'card_vertical') && chartCategory == '') || (chartValue == '' && chartAggregate != 'COUNT' && chartType != 'tree' && chartType != 'tree_circle') || chartAggregate == '') {
             
@@ -437,7 +464,7 @@ $(function() {
                 '<div class="form-group row">'+
                     '<label class="col-form-label col-md-2 text-right pr0" for="dmart_label_name"><span class="required">*</span>Чартын нэр:</label>'+
                     '<div class="col-md-10">'+
-                        '<input type="text" name="chartTitle" class="form-control form-control-sm" placeholder="Чартын нэр" required="required" value="<?php echo issetParam($this->chartName); ?>"/>'+
+                        '<input type="text" name="chartTitle" class="form-control form-control-sm mt-0" placeholder="Чартын нэр" required="required" value="<?php echo issetParam($this->chartName); ?>"/>'+
                     '</div>'+
                 '</div>'+
             '</div>'+
@@ -581,20 +608,9 @@ $(function() {
         }
     });
 
-    <?php
-    if (issetParam($this->graphJsonConfig)) {
-    ?>
-    kpiDMChart_<?php echo $this->uniqId; ?>.find('select[name="kpiDMChartType"]').trigger('change');
-    
-    /*if (kpiDMChart_<?php echo $this->uniqId; ?>.find('select[name="kpiDMChartValue"]') != '' 
-        && kpiDMChart_<?php echo $this->uniqId; ?>.find('select[name="kpiDMChartValue"]').find('option:selected').attr('data-showtype') == 'text') {
-        
-        $('select[name="kpiDMChartAggregate"]').val('COUNT');
-    }*/
-
-    <?php
-    }
-    ?>
+    <?php if (issetParam($this->graphJsonConfig)) { ?>
+        kpiDMChart_<?php echo $this->uniqId; ?>.find('select[name="kpiDMChartType"]').trigger('change');
+    <?php } ?>
 
 });
 
@@ -606,37 +622,263 @@ $(function() {
             $form = $this.closest('form');
             $form.find('.theme-plan-group').removeClass('selected');
             $this.addClass('selected');
-        /* 
-        if (typeof kpiChartObj_<?php echo $this->uniqId; ?>['chartConfig'] ==='undefined') {
-            kpiChartObj_<?php echo $this->uniqId; ?>['chartConfig'] = {};
-        }
-        */
+        
         kpiChartObj_<?php echo $this->uniqId; ?>['chartConfig']['themeCode'] = themeGroup.code;
         kpiChartObj_<?php echo $this->uniqId; ?>['chartConfig']['bgColor'] = themeGroup.bgColor;
         kpiChartObj_<?php echo $this->uniqId; ?>['chartConfig']['color'] = themeGroup.themeColor;
 
-        kpiDataMartEChartBuildRender(kpiChartObj_<?php echo $this->uniqId; ?>);
+        EchartBuilder.chartRender(kpiChartObj_<?php echo $this->uniqId; ?>);
     });
     
-    kpiDMChart_<?php echo $this->uniqId; ?>.on('change', '.configration input, .configration select', function () {
+    kpiDMChart_<?php echo $this->uniqId; ?>.on('change', '.type-config<?php echo $this->uniqId ?> input, .type-config<?php echo $this->uniqId ?> select', function () {
         var $this = $(this),
             _tagName = $this.prop('tagName').toLowerCase();
-            _attrType = $this.attr('type');
-            _code = $this.attr('id');
 
         if (typeof kpiChartObj_<?php echo $this->uniqId; ?>['chartConfig'] ==='undefined') {
             kpiChartObj_<?php echo $this->uniqId; ?>['chartConfig'] = {};
         }
         
-        if (_attrType === 'checkbox') {
-            kpiChartObj_<?php echo $this->uniqId; ?>['chartConfig'][_code] = $this.is(':checked');
-        } else {
-            kpiChartObj_<?php echo $this->uniqId; ?>['chartConfig'][_code] = $this.val();
-        }
-        kpiDataMartEChartBuildRender(kpiChartObj_<?php echo $this->uniqId; ?>);
+        $this.closest('.type-config<?php echo $this->uniqId ?>').find('input, select').each(function (i, r) {
+            var $r = $(r);
+            if ($r && typeof $r.attr('data-path') !== 'undefined') {
+                var _code = $r.attr('data-path').replace('.', '_');
+                delete kpiChartObj_<?php echo $this->uniqId; ?>['chartConfig'][_code];
+                if ($r.attr('type') === 'checkbox') {
+                    kpiChartObj_<?php echo $this->uniqId; ?>['chartConfig'][_code] = $r.is(':checked');
+                } else {
+                    if ($r.val())
+                        kpiChartObj_<?php echo $this->uniqId; ?>['chartConfig'][_code] = $r.val();
+                }
+            }
+        });
+
+        EchartBuilder.chartRender(kpiChartObj_<?php echo $this->uniqId; ?>);
     });
     
-
     <?php } ?>
+
+    function kpyInidicatorTypeData<?php echo $this->uniqId ?>(element) {
+        var kpiTypeId = element.val(),
+            parentSelector = element.closest('.chartRootConfigrations');
+        if (!kpiTypeId) return;
+        
+        $.ajax({
+            type: 'post',
+            dataType: 'json',
+            url: "mdform/paramConfigForm",
+            data: {
+                uniqId: '<?php echo $this->uniqId ?>', 
+                kpiTypeId: kpiTypeId, 
+                metaTypeCode: 'echart', 
+            },
+            beforeSend: function() {
+                Core.blockUI();
+            },
+            success: function(response) {
+                blockUniqId = kpiTypeId;
+                var __html = '<div class="item-config" data-item-cf="' + blockUniqId +'" style="display: none">';
+                    __html += '<input type="hidden" name="blockUniqId[]" value="'+ blockUniqId +'">';
+                    /* __html += '<input type="hidden" name="widgetId['+ blockUniqId +']" data-path="widgetId" value="">'; */
+                    if (response.data) {
+                        __html += '<div class="card-group-control card-group-control-left">';
+                            $.each(response.data, function (i, r) {
+                                __html += '<div class="card rounded-top-0 p-0 mb-0 border-top-0 border-bottom-1 conf_'+ r.ID +'">';
+                                    __html += '<div class="card-header h-auto m-0 px-1 py-2 bg-root-color">';
+                                        __html += '<h6 class="card-title pull-left w-100">';
+                                            __html += '<a class="text-white w-100 pull-left collapsed" data-toggle="collapse" href="#collapsible-'+ r.ID +'-group" aria-expanded="true">'+ plang.get(r.CODE + '_collapse') +'</a>';
+                                        __html += '</h6>';
+                                    __html += '</div>';
+                                    __html += '<div id="collapsible-'+ r.ID +'-group" class="collapse">';
+                                        __html += '<div class="card-body">';
+                                            __html += '<div class="col-md-12">';
+                                                if (typeof r.children !== 'undefined' && r.children) {
+                                                    __html += buildHtmlByIndicators<?php echo $this->uniqId ?>(r.children, '');
+                                                } else {
+                                                    switch (r.CODE) {
+                                                        case 'sectionCol':
+                                                            __html += '<div class="form-group row">';
+                                                                __html += '<label class="col-form-label col-md-4 text-right pr-0 pt-1">'+ plang.get(r.CODE) +' :</label>';
+                                                                __html += '<div class="col-md-8">';
+                                                                    __html += '<select class="form-control form-control-sm mt-0" name="sectionCol['+ blockUniqId +']" data-path="'+ r.CODE +'">';
+                                                                        __html += '<option value="">- Сонгох -</option>';
+                                                                        for (var i = 1; i <= 12; i++) {
+                                                                            __html += '<option value="'+ i +'">col-'+ i +'</option>';
+                                                                        }
+                                                                    __html += '</select>';
+                                                                __html += '</div>';
+                                                            __html += '</div>';
+                                                            break;
+                                                        case 'series.data':
+                                                        case 'json':
+                                                            html += '<div class="form-group row">';
+                                                                html += '<label class="col-form-label col-md-4 text-right pr-0 pt-1" for="sectionCol">'+ plang.get(r.CODE) +' :</label>';
+                                                                html += '<div class="col-md-8">';
+                                                                    html += '<div class="input-group">';
+                                                                        html += '<textarea tabindex="" class="form-control form-control-sm mt-0 expression_editorInit" disabled="disabled" data-path="'+ r.CODE +' data-isclear="0" style="height: 28px; overflow: hidden; resize: none;" draggable="false" rows="1" placeholder=""></textarea>';
+                                                                        html += '<span class="input-group-append"><button class="btn grey-cascade" type="button" onclick="bpExpressionEditor(this);"><i class="far fa-code"></i></button></span> ';
+                                                                    html += '</div>';
+                                                                html += '</div>';
+                                                            html += '</div>';
+                                                            break;
+                                                        case 'html':
+                                                            __html += '<div class="form-group row">';
+                                                                __html += '<label class="col-form-label col-md-4 text-right pr-0 pt-1">'+ plang.get(r.CODE) +' :</label>';
+                                                                __html += '<div class="col-md-8">';
+                                                                    __html += '<div class="input-group">';
+                                                                        __html += '<textarea tabindex="" class="form-control form-control-sm mt-0 " data-path="html" disabled="disabled" data-path="'+ r.CODE +' data-isclear="0" style="height: 28px; overflow: hidden; resize: none;" draggable="false" rows="1" placeholder=""></textarea>';
+                                                                        __html += '<span class="input-group-append"><button class="btn grey-cascade" type="button" onclick="bpFieldTextEditorClickToEdit(this, \'1\');"><i class="far fa-code"></i></button></span> ';
+                                                                    __html += '</div>';
+                                                                __html += '</div>';
+                                                            __html += '</div>';
+                                                            break;
+                                                        default:
+                                                            __html += '<div class="form-group row">';
+                                                                __html += '<label class="col-form-label col-md-4 text-right pr-0 pt-1">'+ plang.get(r.CODE) +' :</label>';
+                                                                __html += '<div class="col-md-8">';
+                                                                    __html += '<div class="input-group">';
+                                                                        __html += '<input type="text" class="form-control form-control-sm mt-0" data-path="'+ r.CODE +'" />';
+                                                                        __html += '<span class="input-group-append">';
+                                                                            __html += '<button class="btn grey-cascade" type="button" onclick="clearKpiTypeAttr<?php echo $this->uniqId ?>(this);"><i class="far fa-trash"></i></button>';
+                                                                        __html += '</span> ';
+                                                                    __html += '</div>';
+                                                                __html += '</div>';
+                                                            __html += '</div>';
+                                                            break;
+                                                    }
+                                                }
+                                            __html += '</div>';
+                                        __html += '</div>';
+                                    __html += '</div>';
+                                __html += '</div>';
+                            });
+                            __html += '<div class="card-group-control card-group-control-left">';
+                                __html += '<div class="card rounded-top-0 p-0 mb-0 border-top-0 border-bottom-1 conf_'+ blockUniqId +'">';
+                                    __html += '<div class="card-header h-auto m-0 px-1 py-2 bg-root-color">';
+                                        __html += '<h6 class="card-title pull-left w-100">';
+                                            __html += '<a class="text-white w-100 pull-left" data-toggle="collapse" href="#collapsible-'+ blockUniqId +'-group" aria-expanded="true">'+ plang.get('other_config_collapse') +'</a>';
+                                        __html += '</h6>';
+                                    __html += '</div>';
+                                    __html += '<div id="collapsible-'+ blockUniqId +'-group" class="collapse show">';
+                                        __html += '<div class="col-md-12">';
+                                            __html += '<div class="form-group row -item-addinconfig mt-2">';
+                                                __html += '<label class="col-form-label col-md-4 text-right pr-0 pt-1" for="widgetId">Нэмэлт тохиргоо :</label>';
+                                                __html += '<div class="col-md-8">';
+                                                    __html += '<div class="input-group">';
+                                                        __html += '<textarea name="addintionalConfig" tabindex="" class="form-control form-control-sm expression_editorInit" data-path="addintionalConfig" data-field-name="addintionalConfig" data-isclear="0" style="height: 28px; overflow: hidden; resize: none;" draggable="false" rows="1" placeholder="Нэмэлт тохиргоо"></textarea>';
+                                                        __html += '<span class="input-group-append"><button class="btn grey-cascade" type="button" onclick="bpExpressionEditor(this);"><i class="far fa-code"></i></button></span> ';
+                                                    __html += '</div>';
+                                                __html += '</div>';
+                                            __html += '</div>';
+                                        __html += '</div>';
+                                    __html += '</div>';
+                                __html += '</div>';
+                            __html += '</div>';
+                        __html += '</div>';
+                    }
+                __html += '</div>';
+        
+                var _itemFounder = kpiDMChart_<?php echo $this->uniqId; ?>.find('.type-config<?php echo $this->uniqId ?>');
+                _itemFounder.find('.item-config').hide();
+        
+                _itemFounder.empty().append(__html).promise().done(function () {
+                    _itemFounder.find('.item-config[data-item-cf="' + blockUniqId +'"]').show();
+                });
+                Core.unblockUI();
+            },
+            error: function (jqXHR, exception) {
+                Core.unblockUI();
+                Core.showErrorMessage(jqXHR, exception);
+            }
+        });
+    }
+    
+    function buildHtmlByIndicators<?php echo $this->uniqId ?>(kpiTypeIndicators, html) {
+        var defaultVal = '';
+        $.each(kpiTypeIndicators, function (i, r) {
+            defaultVal = (typeof r.DEFAULT_VALUE && r.DEFAULT_VALUE) ? r.DEFAULT_VALUE : '';
+            console.log(typeof defaultVal);
+            if (defaultVal && typeof eval(defaultVal) == 'object')
+                defaultVal = JSON.stringify(eval(defaultVal));
+
+            if (typeof r.children !== 'undefined' && r.children) {
+                html += buildHtmlByIndicators<?php echo $this->uniqId ?>(r.children, html);
+            } else {
+                switch (r.CODE) {
+                    case 'sectionCol':
+                        html += '<div class="form-group row">';
+                            html += '<label class="col-form-label col-md-4 text-right pr-0 pt-1">'+ plang.get(r.CODE) +' :</label>';
+                            html += '<div class="col-md-8">';
+                                html += '<select class="form-control form-control-sm mt-0" name="sectionCol['+ blockUniqId +']" data-path="'+ r.CODE +'">';
+                                    html += '<option value="">- Сонгох -</option>';
+                                    for (var i = 1; i <= 12; i++) {
+                                        html += '<option value="'+ i +'">col-'+ i +'</option>';
+                                    }
+                                html += '</select>';
+                            html += '</div>';
+                        html += '</div>';
+                        break;
+                    case 'series.data':
+                    case 'json':
+                        html += '<div class="form-group row">';
+                            html += '<label class="col-form-label col-md-4 text-right pr-0 pt-1" for="sectionCol">'+ plang.get(r.CODE) +' :</label>';
+                            html += '<div class="col-md-8">';
+                                html += '<div class="input-group">';
+                                    html += '<textarea tabindex="" class="form-control form-control-sm mt-0 expression_editorInit" disabled="disabled" data-path="'+ r.CODE +' data-isclear="0" style="height: 28px; overflow: hidden; resize: none;" draggable="false" rows="1" placeholder="">'+ defaultVal +'</textarea>';
+                                    html += '<span class="input-group-append"><button class="btn grey-cascade" type="button" onclick="bpExpressionEditor(this);"><i class="far fa-code"></i></button></span> ';
+                                html += '</div>';
+                            html += '</div>';
+                        html += '</div>';
+                        break;
+                    case 'html':
+                        html += '<div class="form-group row">';
+                            html += '<label class="col-form-label col-md-4 text-right pr-0 pt-1" for="sectionCol">'+ plang.get(r.CODE) +' :</label>';
+                            html += '<div class="col-md-8">';
+                                html += '<div class="input-group">';
+                                    html += '<textarea tabindex="" class="form-control form-control-sm mt-0 " data-path="html" disabled="disabled" data-path="'+ r.CODE +' data-isclear="0" style="height: 28px; overflow: hidden; resize: none;" draggable="false" rows="1" placeholder=""></textarea>';
+                                    html += '<span class="input-group-append"><button class="btn grey-cascade" type="button" onclick="bpFieldTextEditorClickToEdit(this, \'1\');"><i class="far fa-code"></i></button></span> ';
+                                html += '</div>';
+                            html += '</div>';
+                        html += '</div>';
+                        break;
+                    default:
+                        html += '<div class="form-group row">';
+                            html += '<label class="col-form-label col-md-4 text-right pr-0 pt-1">'+ plang.get(r.CODE) +' :</label>';
+                            html += '<div class="col-md-8">';
+                                html += '<div class="input-group">';
+                                    html += '<input type="text" class="form-control form-control-sm mt-0" data-path="'+ r.CODE +'" />';
+                                    html += '<span class="input-group-append">';
+                                        html += '<button class="btn grey-cascade" type="button" onclick="clearKpiTypeAttr<?php echo $this->uniqId ?>(this);"><i class="far fa-trash"></i></button>';
+                                    html += '</span> ';
+                                html += '</div>';
+                            html += '</div>';
+                        html += '</div>';
+                        break;
+                }
+            }
+        });
+        return html;
+    }
+
+    function clearKpiTypeAttr<?php echo $this->uniqId ?>(element) {
+        var $this = $(element),
+            $parent = $this.closest('.input-group');
+
+        $parent.find('input, textarea').val('');
+        $this.closest('.type-config<?php echo $this->uniqId ?>').find('input, select').each(function (i, r) {
+            var $r = $(r);
+            if ($r && typeof $r.attr('data-path') !== 'undefined') {
+                var _code = $r.attr('data-path').replace('.', '_');
+                delete kpiChartObj_<?php echo $this->uniqId; ?>['chartConfig'][_code];
+                if ($r.attr('type') === 'checkbox') {
+                    kpiChartObj_<?php echo $this->uniqId; ?>['chartConfig'][_code] = $r.is(':checked');
+                } else {
+                    if ($r.val()) 
+                        kpiChartObj_<?php echo $this->uniqId; ?>['chartConfig'][_code] = $r.val();
+                }
+            }
+        });
+
+        EchartBuilder.chartRender(kpiChartObj_<?php echo $this->uniqId; ?>);
+    }
 
 </script>

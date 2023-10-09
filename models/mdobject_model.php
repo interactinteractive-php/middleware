@@ -651,6 +651,8 @@ class Mdobject_Model extends Model {
     public function getGroupParamConfigByDataView($inputMetaDataId, $selfParam) {
         
         $selfParamLower = strtolower($selfParam);
+        $idPh1 = $this->db->Param(0);
+        $idPh2 = $this->db->Param(1);
         
         $data = $this->db->GetAll("
             SELECT 
@@ -658,9 +660,11 @@ class Mdobject_Model extends Model {
                 DEFAULT_VALUE, 
                 PARAM_META_DATA_CODE AS FIELD_NAME  
             FROM META_GROUP_PARAM_CONFIG PC 
-            WHERE GROUP_META_DATA_ID = $inputMetaDataId 
-                AND LOWER(FIELD_PATH) = '$selfParamLower' 
-                AND (IS_GROUP = 0 OR IS_GROUP IS NULL)");
+            WHERE GROUP_META_DATA_ID = $idPh1 
+                AND LOWER(FIELD_PATH) = $idPh2 
+                AND (IS_GROUP = 0 OR IS_GROUP IS NULL)", 
+            array($inputMetaDataId, $selfParamLower)
+        );
 
         if (count($data) == 0) {
             
@@ -670,9 +674,11 @@ class Mdobject_Model extends Model {
                     DEFAULT_VALUE, 
                     PARAM_META_DATA_CODE AS FIELD_NAME  
                 FROM META_GROUP_PARAM_CONFIG 
-                WHERE GROUP_META_DATA_ID = $inputMetaDataId 
-                    AND LOWER(FIELD_PATH) = '$selfParamLower' 
-                    AND IS_GROUP = 1");                
+                WHERE GROUP_META_DATA_ID = $idPh1 
+                    AND LOWER(FIELD_PATH) = $idPh2 
+                    AND IS_GROUP = 1", 
+                array($inputMetaDataId, $selfParamLower)
+            );                
         }
 
         return $data;

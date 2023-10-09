@@ -121,7 +121,7 @@ class Mdworkspace extends Controller {
             
         } elseif ($this->view->wsRow['ROW_DATAVIEW_ID'] != '' && $this->view->wsRow['ACTION_TYPE'] != 'add' && $selectedRow) {
             
-            $rowData = $this->model->getRowDataViewIdByIdModel(Input::post('dmMetaDataId'), $this->view->wsRow['ROW_DATAVIEW_ID'], $selectedRow);
+            $rowData = $this->model->getRowDataViewIdByIdModel(Input::numeric('dmMetaDataId'), $this->view->wsRow['ROW_DATAVIEW_ID'], $selectedRow);
             
             if ($rowData) {
                 $selectedRow = array_merge($selectedRow, $rowData);
@@ -138,7 +138,7 @@ class Mdworkspace extends Controller {
         }
         
         $this->view->wsOneSelectedRow = $selectedRow;
-        $this->view->wsDmMetaDataId = Input::post('dmMetaDataId');
+        $this->view->wsDmMetaDataId = Input::numeric('dmMetaDataId');
         
         $this->load->model('mdworkspace', 'middleware/models/');
         
@@ -162,7 +162,7 @@ class Mdworkspace extends Controller {
             if ($menuData['status'] == 'success' && isset($menuData['menuData'][0]['child'])) {
                 
                 if (isset($selectedRow['defaultmenuid'])) {
-                    $this->view->defaultMenuId = $selectedRow['defaultmenuid'];
+                    $this->view->defaultMenuId = Input::paramNum($selectedRow['defaultmenuid']);
                 }
                 
                 switch ($themeCode) {
@@ -304,12 +304,6 @@ class Mdworkspace extends Controller {
         } 
        
         if (Input::postCheck('selectedRow') && Input::postCheck('dmMetaDataId')) {
-
-            /**
-             * SelectedRow der html tag-uud irj asuudal garsn uchraas remove hiilee.
-             * 2020-03-31 18:30
-             * Ulaankhuu.Ts
-             */
             
             if (is_array($selectedRow)) {
                 
@@ -321,12 +315,14 @@ class Mdworkspace extends Controller {
                     if (isset($srow['pfnextstatuscolumn'])) {
                         unset($srow['pfnextstatuscolumn']);
                     }
-
-                    $selectedRow[$skey] = is_array($srow) ? $srow : strip_tags($srow);
+                    
+                    if (!is_array($srow)) {
+                        $selectedRow[$skey] = strip_tags($srow);
+                    }
                 }
             }
             
-            $dmMetaDataId = Input::post('dmMetaDataId');
+            $dmMetaDataId = Input::numeric('dmMetaDataId');
             
             $replaced = array(
                 $this->view->metaDataId, 

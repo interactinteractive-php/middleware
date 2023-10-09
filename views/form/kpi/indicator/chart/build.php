@@ -81,9 +81,10 @@ try {
                             </h6>
                         </div>
                         <div id="chart-builder-group2" class="collapse show">
-                            <div class="card-body">
-                                <input type="hidden" name="kpiDMChartMainType" value="<?php echo checkDefaultVal($this->graphJsonConfig['chartConfig']['mainType'], 'amchart'); ?>" />
-                                <input type="hidden" name="kpiDMChartType" value="<?php echo issetParam($this->graphJsonConfig['chartConfig']['type']); ?>" />
+                            <input type="hidden" name="kpiDMChartMainType" value="<?php echo checkDefaultVal($this->graphJsonConfig['chartConfig']['mainType'], 'amchart'); ?>" />
+                            <input type="hidden" name="kpiDMChartType" value="<?php echo issetParam($this->graphJsonConfig['chartConfig']['type']); ?>" />
+                            
+                            <div class="card-body chartRootConfigrations">
                                 <div class="col-md-12">
                                     <div class="form-group row">
                                         <?php echo Form::label(array('text'=>$this->lang->line('chart_type_btn'), 'class'=>'col-form-label col-md-auto text-right pr-0 pt-1', 'style' => 'width: 100px')); ?>
@@ -92,11 +93,12 @@ try {
                                                 <option value="">- Сонгох -</option>
                                                 <?php if ($chartDefaultTypes) {
                                                     foreach ($chartDefaultTypes as $key => $row) { 
-                                                        /* $rowJson = issetParam($row['config']) ? htmlentities(json_encode($row['config']), ENT_QUOTES, 'UTF-8') : '';  */
                                                         $selected = ($row[$metaTypeCode] === issetParam($this->graphJsonConfig['chartConfig']['type'])) ? 'selected="selected"' : ''; ?>
                                                         <option data-value="<?php echo issetParam($row[$metaTypeCode]) ?>"<?php echo $selected ?> value="<?php echo $row['ID'] ?>" data-config="<?php echo $row['SUB_TYPE_CODE'] ?>" data-maintype="<?php echo $row['TYPE_CODE'] ?>"><?php echo $row[$metaTypeName] ?></option>
                                                     <?php }
                                                 } ?>
+                                                <option data-value="card" value="card">Card</option>
+                                                <option data-value="card_vertical" value="card_vertical">Card vertical</option>
                                             </select>
                                         </div>
                                     </div>
@@ -374,9 +376,11 @@ try {
                             </div>
                         </div>
                     </div>
+                    <div class="card rounded-top-0 p-0 mb-0 border-top-0 border-bottom-1 type-config<?php echo $this->uniqId ?>">
+                    </div>
                     <?php 
                     /* var_dump($this->graphJsonConfig['chartConfig']); */
-                    if ($chartTypesConfigration) {
+                    if (1 == 0 && $chartTypesConfigration) {
                         foreach ($chartTypesConfigration as $config) { 
                             ?> 
                                 <div class="echart card rounded-top-0 p-0 mb-0 border-top-0 border-bottom-1 chartTypesConfigration conf_<?php echo $config['TYPE_CODE']; ?>">
@@ -467,7 +471,3 @@ try {
     }
     
 </style>
-
-<script type="text/javascript">
-
-</script>

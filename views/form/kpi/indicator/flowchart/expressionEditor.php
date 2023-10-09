@@ -860,8 +860,8 @@
                         ulString = '<ul style="list-style: none;padding-left: 0;max-height: 350px;">';
                         for(var ii = 0; ii < getResult.length; ii++) {
                             ulString += '<li data-value="" class="mt-1"><div class="d-flex" style="align-items: center;">'+
-                            '<div style="flex: 0 0 40%;padding: 5px 5px 4px 5px;text-align: right;overflow-wrap: anywhere;">'+getResult[ii]['LABEL_NAME']+'</div>'+
-                            '<div style="width:100%"><input class="form-control input-sm" placeholder="'+getResult[ii]['COLUMN_NAME']+'" data-micro-path="'+getResult[ii]['LABEL_NAME']+'"></div>'+
+                            '<div style="flex: 0 0 40%;padding: 5px 5px 4px 5px;text-align: right;overflow-wrap: anywhere;">'+getResult[ii]['COLUMN_NAME']+'</div>'+
+                            '<div style="width:100%"><input class="form-control input-sm" placeholder="'+getResult[ii]['LABEL_NAME']+'" data-micro-path="'+getResult[ii]['COLUMN_NAME']+'"></div>'+
                             '</div></li>';
                         }
                         ulString += '</ul>';

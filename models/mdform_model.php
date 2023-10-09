@@ -4294,7 +4294,17 @@ class Mdform_Model extends Model {
                                     AND T2.DATA_INDICATOR_ID IS NOT NULL 
                             WHERE T0.SRC_INDICATOR_ID = KI.ID  
                                 AND T0.SEMANTIC_TYPE_ID = 10000015
-                        ) AS COUNT_REPORT_TEMPLATE 
+                        ) AS COUNT_REPORT_TEMPLATE, 
+                        (
+                            SELECT 
+                                COUNT(1) 
+                            FROM KPI_INDICATOR_INDICATOR_MAP T0 
+                            WHERE T0.MAIN_INDICATOR_ID = KI.ID 
+                                AND T0.IS_UNIQUE = 1 
+                                AND T0.COLUMN_NAME IS NOT NULL 
+                                AND ".$this->db->IfNull('T0.IS_INPUT', '0')." = 1 
+                                AND T0.SHOW_TYPE NOT IN ('row', 'rows', 'label', 'config') 
+                        ) AS COUNT_UNIQUE 
                     FROM KPI_INDICATOR KI 
                     WHERE KI.ID = ".$this->db->Param(0), 
                     array($templateId)
@@ -6833,7 +6843,7 @@ class Mdform_Model extends Model {
                             Mdform::$pathPrefix = '[rows]['.$arrRow['COLUMN_NAME'].']';
                         }
                         
-                        Mdform::$pathSuffix = '[]';
+                        Mdform::$pathSuffix = '[0]';
                 
                         $controlRender[] = self::rowsKpiIndicatorTemplate($indicatorId, $data, $arrRow['ID'], $arrRow);
                     }
@@ -6876,9 +6886,11 @@ class Mdform_Model extends Model {
             $configRow = $this->db->GetRow("
                 SELECT 
                     T1.TABLE_NAME, 
-                    T1.ID AS MAIN_INDICATOR_ID 
+                    T1.ID AS MAIN_INDICATOR_ID, 
+                    T2.STRUCTURE_INDICATOR_ID 
                 FROM KPI_INDICATOR_INDICATOR_MAP T0 
-                    INNER JOIN KPI_INDICATOR T1 ON T1.ID = T0.TRG_INDICATOR_ID
+                    INNER JOIN KPI_INDICATOR T1 ON T1.ID = T0.TRG_INDICATOR_ID 
+                    INNER JOIN KPI_INDICATOR T2 ON T2.ID = T0.MAIN_INDICATOR_ID  
                 WHERE T0.MAIN_INDICATOR_ID = ".$this->db->Param(0)." 
                     AND T0.COLUMN_NAME = ".$this->db->Param(1), 
                 array($mainIndicatorId, $columnName)
@@ -7223,7 +7235,8 @@ class Mdform_Model extends Model {
                         $isShowDescCol = array_key_exists('SHOW_DESC', $templateRows[0]) ? true : false;
                         
                         foreach ($templateRows as $t => $templateRow) {
-                             
+                            
+                            Mdform::$pathSuffix = '['.$t.']';
                             Mdform::$indicatorTemplateRow[$parentColumnName] = $templateRow;
                             
                             $id = issetParam($templateRow['ID']);
@@ -7400,6 +7413,7 @@ class Mdform_Model extends Model {
                         
                         foreach ($savedDataJson as $k => $row) {
                             
+                            Mdform::$pathSuffix = '['.$n.']';
                             $row['rowNum'] = $k;
                             
                             $render[] = '<tr class="bp-detail-row saved-bp-row" data-savedrow="1">';
@@ -7606,7 +7620,7 @@ class Mdform_Model extends Model {
             Mdform::$pathPrefix = '[rows]['.$arrRow['COLUMN_NAME'].']';
         }
 
-        Mdform::$pathSuffix = '[]';
+        Mdform::$pathSuffix = '[0]';
         
         if ($isUpperCase) {
             $rowDatas = Arr::changeKeyUpper($rowDatas);
@@ -7936,15 +7950,6 @@ class Mdform_Model extends Model {
             
             return false;
         }
-
-        /*if ($tblName != '' 
-            && strpos($tblName, 'v_') === false 
-            && strpos($tblName, 'd_1') === false 
-            && strpos($tblName, 'kpi_') === false 
-            && strpos($tblName, 'cam_') === false) {
-            
-            return true;
-        }*/
         
         return true;
     }
@@ -7970,7 +7975,7 @@ class Mdform_Model extends Model {
             $kpiDataTblName = $configRow['TABLE_NAME'];
             $namePattern    = $configRow['NAME_PATTERN'];
             $kpiTypeId      = $configRow['KPI_TYPE_ID'];
-            $kpiTblIdField  = $fieldConfig['idField'] ? $fieldConfig['idField'] : 'ID';
+            $kpiTblIdField  = issetVar($postData['customIdField']) ? $postData['customIdField'] : ($fieldConfig['idField'] ? $fieldConfig['idField'] : 'ID');
             
             $schemaName = self::getKpiDbSchemaName($kpiMainIndicatorId);
             $tblName = $kpiDataTblName ? $kpiDataTblName : $schemaName . 'V_'.$kpiMainIndicatorId;
@@ -8015,7 +8020,22 @@ class Mdform_Model extends Model {
                                         $tmpJson[$key] = $jsonVal;
                                     }
                                     
-                                    $tmpJson[$key][$subKey] = $val;
+                                    if (isset($fileParamData['name']['rows'][$subColumnName][$subKey][$key])) {
+                                        
+                                        $fileAttr['name'] = $fileParamData['name']['rows'][$subColumnName][$subKey][$key];
+                                        $fileAttr['tmp_name'] = $fileParamData['tmp_name']['rows'][$subColumnName][$subKey][$key];
+                                        $fileAttr['size'] = $fileParamData['size']['rows'][$subColumnName][$subKey][$key];
+                                        $fileAttr['type'] = $fileParamData['type']['rows'][$subColumnName][$subKey][$key];
+                                        
+                                        $uploadResult = Mdwebservice::bpFileUpload(array('newFileName' => 'mv_'.getUIDAdd($key), 'META_TYPE_CODE' => 'file'), $fileAttr);
+
+                                        if ($uploadResult) {
+                                            $val = $uploadResult['path'] . $uploadResult['newname'];
+                                            array_push(FileUpload::$uploadedFiles, $val);
+                                        } 
+                                    }
+                                    
+                                    $tmpJson[$key][$subKey] = Input::param($val);
                                     
                                     $columnJson[$key] = $tmpJson[$key];
                                 }
@@ -8150,6 +8170,7 @@ class Mdform_Model extends Model {
 
                                 if ($uploadResult) {
                                     $val = $uploadResult['path'] . $uploadResult['newname'];
+                                    array_push(FileUpload::$uploadedFiles, $val);
                                 }
                             } 
                             
@@ -8258,7 +8279,9 @@ class Mdform_Model extends Model {
                 }                
                 
                 if ($expIndicatorId) {
-                    $microFlowResponce = (new Mdexpression())->executeMicroFlowExpression($expIndicatorId, $dataClob);            
+                    $flowData = $saveData;
+                    $flowData['indicatorinfo_id'] = $kpiMainIndicatorId;
+                    $microFlowResponce = (new Mdexpression())->executeMicroFlowExpression($expIndicatorId, $flowData);            
                     if ($microFlowResponce != '_microflow_success') {
                         $this->db->RollbackTrans();
                         
@@ -8277,9 +8300,41 @@ class Mdform_Model extends Model {
                         }
                         $response = array('status' => 'error', 'message' => $microFlowResponce);
                         return $response;
-                    }                
-                }                
+                    }                               
+                }          
+
+                if ($kpiTypeId === '16641793815766') {
+                    $getTypeIndicatorId = $this->db->GetOne("SELECT RELATED_INDICATOR_ID FROM KPI_TYPE WHERE ID = ".$this->db->Param(0), array($kpiTypeId));
+
+                    $flowData = $saveData;
+                    $flowData['indicatorinfo_id'] = $kpiMainIndicatorId;              
+                    $microFlowResponce = (new Mdexpression())->executeMicroFlowExpression($getTypeIndicatorId, $flowData);            
+                    if ($microFlowResponce != '_microflow_success') {
+                        $this->db->RollbackTrans();
+                        
+                        if (issetParam($microFlowResponce['status']) === 'microflowConfirmation') {
+                            return $microFlowResponce;
+                        }
+                        
+                        if (isset($microFlowResponce['data']) && issetParam($microFlowResponce['data']['type']) === 'message') {
+                            $messageStr = '<ul style="padding-left: 20px;">';
+                            foreach ($microFlowResponce['data']['result'] as $messRow)
+                                $messageStr .= '<li>'.$messRow['message'].'</li>';
+                            $messageStr .= '</ul>';
+                        }
+                        if (isset($messageStr)) {
+                            $microFlowResponce = $messageStr;
+                        }
+                        $response = array('status' => 'error', 'message' => $microFlowResponce);
+                        return $response;
+                    }                           
+                }                 
             }
+
+            if ($kpiTypeId == '2009') {
+                $response = array('status' => 'success', 'message' => Lang::line('msg_save_success'), 'uniqId' => getUID());             
+                return $response;
+            }            
 
             if (isset($getExpIndicatorId) && isset($_POST['isMicroFlowSelfSave']) && !$isExcelImport) { 
                 $this->db->CommitTrans();
@@ -8295,6 +8350,14 @@ class Mdform_Model extends Model {
             if (is_numeric($sfId) && !$kpiTblId) {
                 $kpiTblId = $sfId;
                 $isSetRowIdByExpression = true;
+            }
+            
+            if ($configRow['COUNT_UNIQUE']) {
+                $checkUnique = self::beforeSaveCheckUnique($kpiMainIndicatorId, $tblName, $kpiTblIdField, $columnsData, $saveData, $kpiTblId);
+                
+                if ($checkUnique['status'] != 'success') {
+                    return $checkUnique;
+                }
             }
             
             if (!$kpiTblId) {
@@ -8329,7 +8392,7 @@ class Mdform_Model extends Model {
                     
                 if ($isIgnoreAlter == false) {
 
-                    if ($configRow['IS_USE_WORKFLOW'] == '1') {
+                    if ($configRow['IS_USE_WORKFLOW'] == '1' && !Input::numeric('isRunAutoSave')) {
 
                         $this->load->model('mdobject', 'middleware/models/');
 
@@ -8522,6 +8585,7 @@ class Mdform_Model extends Model {
                         $_POST['kpiDataTblName']     = $subConfigRow['TABLE_NAME'];
                         $_POST['kpiTblIdField']      = 'ID';
                         $_POST['isExcelImport']      = 1;
+                        $_POST['isRunAutoSave']      = 1;
                         
                         $_POST['recordMap']['srcIndicatorId'] = $kpiMainIndicatorId;
                         $_POST['recordMap']['srcPath']        = $subPath;
@@ -8540,6 +8604,8 @@ class Mdform_Model extends Model {
                                 throw new Exception($result['message']); 
                             }
                         }
+                        
+                        unset($_POST['isRunAutoSave']);
                     }
                 }
             }
@@ -8576,6 +8642,7 @@ class Mdform_Model extends Model {
                     $_POST['kpiMainIndicatorId'] = $addonIndicatorId;
                     $_POST['kpiTblIdField']      = 'ID';
                     $_POST['isExcelImport']      = 1;
+                    $_POST['isRunAutoSave']      = 1;
                     $_POST['kpiTblId']           = $addonRecordId;
 
                     unset($_POST['kpiTbl']);
@@ -8604,6 +8671,8 @@ class Mdform_Model extends Model {
                         $this->db->AutoExecute('META_DM_RECORD_MAP', $insertMapRow);
                     }
                     
+                    unset($_POST['isRunAutoSave']);
+                    
                     $a ++;
                 }
             }
@@ -8615,7 +8684,7 @@ class Mdform_Model extends Model {
             self::runGenerateKpiDataMartByIndicatorId($kpiMainIndicatorId, $sourceRecordId);
             self::runGenerateKpiRelationDataMartByIndicatorId($kpiMainIndicatorId);
             
-            if (Input::postCheck('wfmStatusParams')) {
+            if (Input::postCheck('wfmStatusParams') && !Input::numeric('isRunAutoSave')) {
                 self::mvChangeWfmStatus($configRow, $rowId);
             }
             
@@ -8632,7 +8701,6 @@ class Mdform_Model extends Model {
                 'uniqId' => getUID(), 
                 'result' => $saveData
             );
-            (new Mdwebservice)->saveBpAddOn($kpiMainIndicatorId, $rowId);
             
             if (isset($setWfmStatusArr)) {
                 
@@ -8641,10 +8709,12 @@ class Mdform_Model extends Model {
                 $_POST['dataRow'] = array('id' => $setWfmStatusArr['id']);
                 $_POST['description'] = '';
                 $_POST['isIndicator'] = 1;
-
+                
+                $this->load->model('mdobject', 'middleware/models/');
                 $statusResponse = $this->model->setRowWfmStatusModel();
             }
             
+            (new Mdwebservice)->saveBpAddOn($kpiMainIndicatorId, $rowId);
             Mdform::clearCacheData($kpiMainIndicatorId);
             
         } catch (Exception $ex) {
@@ -8738,6 +8808,87 @@ class Mdform_Model extends Model {
             $_POST['isIndicator'] = 1;
 
             $response = $this->model->setRowWfmStatusModel();
+        }
+    }
+    
+    public function beforeSaveCheckUnique($indicatorId, $tblName, $kpiTblIdField, $columnsData, $saveData, $kpiTblId) {
+        
+        try {
+            
+            $uniqueColumn = array();
+            
+            foreach ($columnsData as $row) {
+                if ($row['IS_UNIQUE'] == '1' && ($row['SHOW_TYPE'] != 'rows' && $row['SHOW_TYPE'] != 'row' && $row['SHOW_TYPE'] != 'label' && $row['SHOW_TYPE'] != 'config')) {
+                    $uniqueColumn[$row['COLUMN_NAME']] = array('showType' => $row['SHOW_TYPE'], 'labelName' => $row['LABEL_NAME']);
+                }
+            }
+            
+            $p = 0;
+            $whereClause = $uniqueColumns = '';
+            $bindParam = array();
+            
+            foreach ($uniqueColumn as $colName => $col) {
+                
+                if (!isset($saveData[$colName])) {
+                    $ignoreCheckUnique = true;
+                    break;
+                    
+                } elseif ($saveData[$colName] == '') {
+                    $ignoreCheckUnique = true;
+                    break;
+                    
+                } else {
+                    
+                    $showType = $col['showType'];
+                    
+                    if ($showType == 'date' || $showType == 'datetime' 
+                        || $showType == 'combo' || $showType == 'radio' 
+                        || $showType == 'popup' || $showType == 'number' 
+                        || $showType == 'long' || $showType == 'decimal' 
+                        || $showType == 'decimal_zero' || $showType == 'bigdecimal' 
+                        || $showType == 'percent') {
+                        
+                        $whereClause .= "$colName = " . $this->db->Param($p) . ' AND ';
+                        $bindParam[] = $saveData[$colName];
+                        
+                    } else {
+                        $whereClause .= "LOWER($colName) = " . $this->db->Param($p) . ' AND ';
+                        $bindParam[] = Str::lower($saveData[$colName]);
+                    }
+                    
+                    $uniqueColumns .= $this->lang->line($col['labelName']) . ': ' . $saveData[$colName] . ', ';
+                    
+                    $p ++;
+                }
+            }
+            
+            if (isset($ignoreCheckUnique)) {
+                return array('status' => 'success');
+            } 
+            
+            if ($kpiTblId != '') {
+                $whereClause .= "$kpiTblIdField <> " . $this->db->Param($p) . ' AND ';
+                $bindParam[] = $kpiTblId;
+            }
+            
+            $whereClause = trim(rtrim(trim($whereClause), 'AND'));
+            
+            $dataCount = $this->db->GetOne("SELECT COUNT(1) FROM $tblName WHERE DELETED_USER_ID IS NULL AND $whereClause", $bindParam);
+            
+            if ((int) $dataCount > 0) {
+                 
+                $uniqueColumns = trim(rtrim(trim($uniqueColumns), ','));
+            
+                $globeMessage = $this->lang->lineDefault('PF_CHECK_UNIQUE_MESSAGE', 'Тухайн өгөгдөл өмнө нь үүссэн байна. /[uniquecolumns]/');
+                $globeMessage = str_ireplace('[uniquecolumns]', $uniqueColumns, $globeMessage);
+                
+                return array('status' => 'warning', 'message' => $globeMessage);
+            } 
+            
+            return array('status' => 'success');
+            
+        } catch (Exception $ex) {
+            return array('status' => 'error', 'message' => $ex->getMessage());
         }
     }
     
@@ -8908,6 +9059,16 @@ class Mdform_Model extends Model {
                 
                 if ($dynamicDataMapConfig) {
                     
+                    $this->db->Execute("
+                        DELETE 
+                        FROM META_DM_RECORD_MAP 
+                        WHERE SRC_REF_STRUCTURE_ID = ".$this->db->Param(0)." 
+                            AND SRC_RECORD_ID = ".$this->db->Param(1), 
+                        array($srcIndicatorId, $srcRecordId)
+                    );
+                    
+                    $tmpMetaDmRecordMaps = $metaDmRecordMaps = array();
+                    
                     foreach ($dynamicDataMapConfig as $dynamicDataMapRow) {
                         
                         if ($checkCodeValue == $dynamicDataMapRow['CODE']) {
@@ -8960,8 +9121,9 @@ class Mdform_Model extends Model {
                     }
                 }
                 
-                if ($trgIndicatorIds = issetParam($metaDmRecordMaps['indicatorId'])) {
+                if (isset($metaDmRecordMaps['indicatorId']) && $metaDmRecordMaps['indicatorId']) {
                     
+                    $trgIndicatorIds = $metaDmRecordMaps['indicatorId'];
                     $removedRows = $checkDeletedRows = $checkSubRows = array();
                     $sessionUserKeyId = Ue::sessionUserKeyId();
                     $metaDmRecordMapsSubForm = issetParamArray($_POST['kpiTbl']['metaDmRecordMapsSubForm']);
@@ -9042,8 +9204,8 @@ class Mdform_Model extends Model {
                                             
                                             $metaDmRecordMapsSubForm[$k][$dataMapConfigMetaInfoIndicatorId.'_'.$subUniqId][$dataMapConfigSrcIndicatorPath] = $dataMapConfigValue;
                                             
-                                            if ($company_department_id = issetParam($childRowData['company_department_id'])) {
-                                                $metaDmRecordMapsSubForm[$k][$dataMapConfigMetaInfoIndicatorId.'_'.$subUniqId]['COMPANY_DEPARTMENT_ID'] = $company_department_id;
+                                            if (isset($childRowData['company_department_id']) && $childRowData['company_department_id']) {
+                                                $metaDmRecordMapsSubForm[$k][$dataMapConfigMetaInfoIndicatorId.'_'.$subUniqId]['COMPANY_DEPARTMENT_ID'] = $childRowData['company_department_id'];
                                             }
                                         }
                                     }
@@ -9093,11 +9255,27 @@ class Mdform_Model extends Model {
 
                                         $addonIndicatorRow = self::getKpiIndicatorRowModel($addonIndicatorId);
                                         $addonIndicatorTblName = $addonIndicatorRow['TABLE_NAME'];
-                                        $trgMapIds = Arr::implode_key(',', $checkRecordMapData, 'ID', true);
-                                        $trgRecordIds = Arr::implode_key(',', $checkRecordMapData, 'TRG_RECORD_ID', true);
-
-                                        $this->db->Execute("DELETE FROM META_DM_RECORD_MAP WHERE ID IN ($trgMapIds)");
-                                        $this->db->Execute("DELETE FROM $addonIndicatorTblName WHERE ID IN ($trgRecordIds)");
+                                        
+                                        if ($addonIndicatorTblName && $checkRecordMapData) {
+                                            
+                                            $idsSplit = array_chunk($checkRecordMapData, 500); 
+                                            $where    = ' AND (';
+                                            $whereTbl = ' AND (';
+                                            
+                                            foreach ($idsSplit as $idsArr) {
+                                                $where .= ' ID IN (' . Arr::implode_key(',', $idsArr, 'ID', true) . ') OR';
+                                                $whereTbl .= ' ID IN (' . Arr::implode_key(',', $idsArr, 'TRG_RECORD_ID', true) . ') OR';
+                                            }
+                                            
+                                            $where = rtrim($where, ' OR');
+                                            $where .= ')';
+                                            
+                                            $whereTbl = rtrim($whereTbl, ' OR');
+                                            $whereTbl .= ')';
+                                            
+                                            $this->db->Execute("DELETE FROM META_DM_RECORD_MAP WHERE 1 = 1 $where");
+                                            $this->db->Execute("DELETE FROM $addonIndicatorTblName WHERE 1 = 1 $whereTbl");
+                                        }
                                     }
 
                                     $checkDeletedRows[$trgIndicatorId.'_'.$addonIndicatorId] = 1;
@@ -9147,8 +9325,8 @@ class Mdform_Model extends Model {
                                         
                                         $findHeaderDataFilter = '';
                                         
-                                        if ($rowCompanyDepartmentId = issetParam($addonParams['COMPANY_DEPARTMENT_ID'])) {
-                                            $findHeaderDataFilter = " AND COMPANY_DEPARTMENT_ID = $rowCompanyDepartmentId";
+                                        if (isset($addonParams['COMPANY_DEPARTMENT_ID']) && $addonParams['COMPANY_DEPARTMENT_ID']) {
+                                            $findHeaderDataFilter = " AND COMPANY_DEPARTMENT_ID = ".$addonParams['COMPANY_DEPARTMENT_ID'];
                                         }
                                         
                                         /*if ($isUseCompanyDepartmentId) {
@@ -9889,7 +10067,7 @@ class Mdform_Model extends Model {
 
                     if ($column['COLUMN_NAME'] == 'WFM_STATUS_NAME') {
 
-                        $width = $column['COLUMN_WIDTH'];
+                        $width = $column['COLUMN_WIDTH'] ? $column['COLUMN_WIDTH'] : 200;
 
                         $columns[] = "{field: 'wfmstatusname', title: '".Lang::line($column['LABEL_NAME'])."', sortable: true, fixed: true, width: '$width', halign: 'center', ".$rowspan;
                         $columns[] = "align: 'center', ";
@@ -9917,10 +10095,15 @@ class Mdform_Model extends Model {
 
                         $columns[] = "{field: '$columnName', title: '$labelName', sortable:true, fixed: true, width: '$width', halign: 'center', ".$rowspan;
 
-                        if ($column['SHOW_TYPE'] == 'decimal') {
+                        if ($column['SHOW_TYPE'] == 'decimal' || $column['SHOW_TYPE'] == 'bigdecimal') {
 
                             $columns[] = "align: 'right', ";
                             $columns[] = "formatter: function(v, r, i) { return ".$startAnchor."gridAmountField(v, r)$endAnchor; },";
+
+                        } elseif ($column['SHOW_TYPE'] == 'number' || $column['SHOW_TYPE'] == 'long' || $column['SHOW_TYPE'] == 'integer') {
+
+                            $columns[] = "align: 'right', ";
+                            $columns[] = "formatter: function(v, r, i) { return ".$startAnchor."gridLongField(v, r)$endAnchor; },";
 
                         } elseif ($column['SHOW_TYPE'] == 'file') {
 
@@ -10472,11 +10655,13 @@ class Mdform_Model extends Model {
                     
                     foreach ($sortFields as $sortKey => $sortType) {
                         
-                        if ($sortType != 'asc' && $sortType != 'desc') {
-                            $sortType = 'asc';
+                        $sortType = strtoupper($sortType);
+                        
+                        if ($sortType != 'ASC' && $sortType != 'DESC') {
+                            $sortType = 'ASC';
                         }
                         
-                        $sortField = $sortKey . ' ' . $sortType;
+                        $sortField = Input::param($sortKey) . ' ' . Input::param($sortType);
                     }
                 }
             }
@@ -11162,49 +11347,18 @@ class Mdform_Model extends Model {
             $ids          = Input::param(Arr::implode_key(',', $selectedRows, $idField, true));
             
             $isSystemTable = self::isCheckSystemTable($tableName);
-            $criteriaCount = self::getCountIndicatorActionCriteria($crudIndicatorId);
+            $criteriaCount = self::getCountIndicatorActionCriteria($indicatorId, $crudIndicatorId);
             
             if ($criteriaCount['status'] == 'error') {
                 return $criteriaCount;
             }
             
             if ((int) $criteriaCount['count'] > 0) {
-                $criterias = self::getIndicatorActionCriteriaByPermission($crudIndicatorId);
                 
-                if ($criterias) {
-                    foreach ($selectedRows as $selectedRow) {
-                    
-                        $selectedRow = Arr::changeKeyLower($selectedRow);
-
-                        foreach ($criterias as $criteriaRow) {
-                            $criteria = $criteriaRow['CRITERIA'];
-                            $message = $criteriaRow['MESSAGE'];
-
-                            foreach ($selectedRow as $sk => $sv) {
-
-                                if (!is_array($sv)) {
-
-                                    if (is_string($sv) && strpos($sv, "'") === false) {
-                                        $sv = "'".Str::lower($sv)."'";
-                                    } elseif (is_null($sv)) {
-                                        $sv = "''";
-                                    }
-
-                                    $sk = ($sk == '' ? 'tmpkey' : $sk);
-
-                                    $criteria = preg_replace('/\b'.$sk.'\b/u', $sv, $criteria);
-                                }
-                            }
-
-                            try {
-                                if (!eval(sprintf('return (%s);', $criteria))) {
-                                    return array('status' => 'warning', 'message' => $message);
-                                }
-                            } catch (ParseError $p) {
-                                return array('status' => 'error', 'message' => $p->getMessage());
-                            }
-                        }
-                    }
+                $checkResult = self::checkMethodAccessModel($indicatorId, $crudIndicatorId, $selectedRows);
+                
+                if ($checkResult['status'] != 'success') {
+                    return $checkResult;
                 }
             }
             
@@ -11238,7 +11392,91 @@ class Mdform_Model extends Model {
         }
     }
     
-    public function getCountIndicatorActionCriteria($indicatorId) {
+    public function checkMethodAccessModel($mainIndicatorId, $actionIndicatorId, $rows = array()) {
+        
+        if ($mainIndicatorId && $actionIndicatorId) {
+            $criterias = self::getIndicatorActionCriteriaByPermission($mainIndicatorId, $actionIndicatorId);
+            
+            if ($criterias) {
+                
+                if (!$rows) {
+                    if ($selectedRows = Input::post('selectedRow')) {
+                        $rows = $selectedRows;
+                    } elseif ($selectedRows = Input::post('fillSelectedRow')) {
+                        $rows = $selectedRows;
+                    } elseif ($selectedRows = Input::post('fillDynamicSelectedRow')) {
+                        $rows = $selectedRows;
+                    }
+                }
+                
+                if ($rows) {
+                    
+                    $selectedRows = !isset($rows[0]) ? array($rows) : $rows;
+                    
+                    foreach ($selectedRows as $selectedRow) {
+                    
+                        $selectedRow = Arr::changeKeyLower($selectedRow);
+
+                        foreach ($criterias as $criteriaRow) {
+                            $criteria = $criteriaRow['CRITERIA'];
+                            $message = $this->lang->line($criteriaRow['MESSAGE']);
+
+                            foreach ($selectedRow as $sk => $sv) {
+
+                                if (!is_array($sv)) {
+
+                                    if (is_string($sv) && strpos($sv, "'") === false) {
+                                        $sv = "'".Str::lower($sv)."'";
+                                    } elseif (is_null($sv)) {
+                                        $sv = "''";
+                                    }
+
+                                    $sk = ($sk == '' ? 'tmpkey' : $sk);
+
+                                    $criteria = preg_replace('/\b'.$sk.'\b/u', $sv, $criteria);
+                                }
+                            }
+
+                            try {
+                                
+                                ob_start();
+                                $isCheck = !eval(sprintf('return (%s);', $criteria));
+                                $error = ob_get_contents();
+                                ob_end_clean();
+
+                                if ($error) {
+                                    return array('status' => 'warning', 'message' => Mdcommon::parseCodeErrorMsg($error));
+                                } elseif ($isCheck) {
+                                    
+                                    $lastError = error_get_last();
+                                    if (isset($lastError['file']) && strpos($lastError['file'], 'mdform_model') !== false) {
+                                        return array('status' => 'warning', 'message' => Mdcommon::parseCodeErrorMsg($lastError['message']));
+                                    } 
+
+                                    return array('status' => 'warning', 'message' => $message);
+                                }
+            
+                            } catch (ParseError $p) {
+                                return array('status' => 'error', 'message' => $p->getMessage());
+                            } catch (Error $p) {
+                                return array('status' => 'error', 'message' => $p->getMessage());
+                            } catch (Throwable $p) {
+                                return array('status' => 'error', 'message' => $p->getMessage());
+                            } catch (Exception $p) {
+                                return array('status' => 'error', 'message' => $p->getMessage());
+                            }
+                        }
+                    }
+                } else {
+                    return array('status' => 'warning', 'message' => $this->lang->line('msg_pls_list_select'));
+                }
+            }
+        }
+        
+        return array('status' => 'success');
+    }
+    
+    public function getCountIndicatorActionCriteria($mainIndicatorId, $actionIndicatorId) {
         
         try {
             
@@ -11247,9 +11485,10 @@ class Mdform_Model extends Model {
                     COUNT(1)
                 FROM UM_PERMISSION_KEY PK 
                     INNER JOIN REF_SEGMENTATION RS ON RS.ID = PK.SEGMENTATION_ID
-                WHERE PK.INDICATOR_ID = ".$this->db->Param(0)." 
+                WHERE RS.INDICATOR_ID = ".$this->db->Param(0)." 
+                    AND PK.INDICATOR_ID = ".$this->db->Param(1)." 
                     AND RS.CRITERIA IS NOT NULL", 
-                array($indicatorId));
+                array($mainIndicatorId, $actionIndicatorId));
             
             return array('status' => 'success', 'count' => $count);
             
@@ -11258,33 +11497,35 @@ class Mdform_Model extends Model {
         }
     }
     
-    public function getIndicatorActionCriteriaByPermission($indicatorId) {
+    public function getIndicatorActionCriteriaByPermission($mainIndicatorId, $actionIndicatorId) {
         
         $idPh1 = $this->db->Param(0);
         $idPh2 = $this->db->Param(1);
+        $idPh3 = $this->db->Param(2);
         
         $data = $this->db->GetAll("
             SELECT 
-                T1.SEGMENTATION_NAME AS MESSAGE, 
+                T1.MESSAGE, 
                 LOWER(T1.CRITERIA) AS CRITERIA 
             FROM (
                 SELECT 
-                    PK.SEGMENTATION_ID
+                    PK.SEGMENTATION_ID 
                 FROM UM_PERMISSION_KEY PK 
                     INNER JOIN REF_SEGMENTATION RS ON RS.ID = PK.SEGMENTATION_ID 
                     LEFT JOIN UM_USER_ROLE UR ON UR.ROLE_ID = PK.ROLE_ID 
                         AND UR.IS_ACTIVE = 1 
-                        AND UR.USER_ID = $idPh2 
+                        AND UR.USER_ID = $idPh3 
                     LEFT JOIN UM_USER UK ON UK.USER_ID = PK.USER_ID 
-                        AND UK.USER_ID = $idPh2 
-                WHERE PK.INDICATOR_ID = $idPh1 
+                        AND UK.USER_ID = $idPh3 
+                WHERE RS.INDICATOR_ID = $idPh1 
+                    AND PK.INDICATOR_ID = $idPh2 
                     AND RS.CRITERIA IS NOT NULL 
                     AND (UR.USER_ID IS NOT NULL OR UK.USER_ID IS NOT NULL) 
                 GROUP BY  
                     PK.SEGMENTATION_ID
             ) T0 
                 INNER JOIN REF_SEGMENTATION T1 ON T1.ID = T0.SEGMENTATION_ID", 
-            array($indicatorId, Ue::sessionUserKeyId()));
+            array($mainIndicatorId, $actionIndicatorId, Ue::sessionUserKeyId()));
         
         return $data;
     }
@@ -16699,19 +16940,22 @@ class Mdform_Model extends Model {
                 'structure_indicator_id' => $srcId, 
                 'type_code' => 'create', 
                 'kpi_type_id' => '2008', 
-                'map_id' => $mapId
+                'map_id' => $mapId, 
+                'crud_indicator_id' => '999'
             ), 
             array(
                 'structure_indicator_id' => $srcId, 
                 'type_code' => 'update', 
                 'kpi_type_id' => '2008', 
-                'map_id' => $mapId
+                'map_id' => $mapId, 
+                'crud_indicator_id' => '999'
             ), 
             array(
                 'structure_indicator_id' => $srcId, 
                 'type_code' => 'delete', 
                 'kpi_type_id' => '2008', 
-                'map_id' => $mapId
+                'map_id' => $mapId, 
+                'crud_indicator_id' => '999'
             )
         );
         
@@ -18460,6 +18704,11 @@ class Mdform_Model extends Model {
                             }
                             
                             $fillMapTableName = self::parseQueryString($fillMapTableName);
+                            $queryNamedParams = DBSql::getQueryNamedParams($fillMapTableName);
+                            
+                            foreach ($queryNamedParams as $queryNamedParam) {
+                                $fillMapTableName = str_ireplace($queryNamedParam, "''", $fillMapTableName);
+                            }
                             
                             $rowData = $this->db->GetRow("SELECT * FROM $fillMapTableName WHERE 1 = 1 $where");
                             
@@ -19982,9 +20231,27 @@ class Mdform_Model extends Model {
         return $result;
     }
 
-    public function mainChartTypeDataModel() {
+    public function kpiTypeIndicatorData($filterId) {
+        $qry = "SELECT 
+                        T1.CODE, 
+                        T1.ID,
+                        T1.PARENT_ID,
+                        T1.SHOW_TYPE,
+                        T1.ORDER_NUMBER,
+                        t1.DEFAULT_VALUE
+                    FROM KPI_TYPE T0 
+                    INNER JOIN KPI_INDICATOR T2 ON T0.RELATED_INDICATOR_ID = T2.ID
+                    INNER JOIN KPI_INDICATOR_INDICATOR_MAP T1 ON T2.ID = T1.MAIN_INDICATOR_ID
+                    WHERE T0.ID = ". $this->db->Param(0) . " ORDER BY T1.ORDER_NUMBER";
+        $typeData = $this->db->GetAll($qry, array($filterId));
+        $indicatorData = Arr::buildTree($typeData, 0, 'ID', 'PARENT_ID');
+        /* if ($indicatorData) 
+            $indicatorData = Arr::changeKeyLower($indicatorData);
+         */
+        return $indicatorData;
+    }
 
-        $filterCode = '002';
+    public function mainChartTypeDataModel($filterCode = '002') {
         $qry = "SELECT DISTINCT
                         t2.* ,
                         t1.CODE AS TYPE_CODE
@@ -20005,7 +20272,7 @@ class Mdform_Model extends Model {
                         INNER JOIN KPI_INDICATOR_INDICATOR_MAP t4 ON t3.ID = t4.MAIN_INDICATOR_ID
                         WHERE t0.CODE =  ". $this->db->Param(0) ."
                     ) t1 ON t1.MAIN_ID = t0.ID
-                    LEFT JOIN (
+                    INNER JOIN (
                             SELECT 
                                 t0.ID as MAIN_ID, 
                                 t1.ID as CHILD_ID, 
@@ -20017,7 +20284,7 @@ class Mdform_Model extends Model {
                                 t2.COLOR,
                                 t2.ICON,
                                 t2.PARENT_ID,
-                                LISTAGG( t4.CODE,'##') WITHIN GROUP ( ORDER BY t4.CODE) AS SUB_TYPE_CODE
+                                '' AS SUB_TYPE_CODE --LISTAGG( t4.CODE,'##') WITHIN GROUP ( ORDER BY t4.CODE)
                             FROM KPI_TYPE t0 
                             INNER JOIN KPI_TYPE t1 ON t0.ID = t1.PARENT_ID
                             INNER JOIN KPI_TYPE t2 ON t1.ID = t2.PARENT_ID
@@ -20036,6 +20303,7 @@ class Mdform_Model extends Model {
                                 t2.PARENT_ID
                     ) t2 ON t2.MAIN_ID = t0.ID AND t1.ID = t2.CHILD_ID
                     where t0.CODE =  ". $this->db->Param(0) ." ORDER BY t1.CODE";
+
         $typeCode = $this->db->GetAll($qry, array($filterCode));
 
         $subSql = "SELECT 
@@ -20051,7 +20319,7 @@ class Mdform_Model extends Model {
                     INNER JOIN KPI_INDICATOR t3 ON t2.RELATED_INDICATOR_ID = t3.ID
                     INNER JOIN KPI_INDICATOR_INDICATOR_MAP t4 ON t3.ID = t4.MAIN_INDICATOR_ID
                     WHERE t0.CODE = ". $this->db->Param(0);
-        
+        /* echo $subSql; die; */
         $typeTreeListData = $this->db->GetAll($subSql, array($filterCode));
         $clearData = $tmp = array();
         foreach ($typeTreeListData as $key => $row) {
@@ -20361,6 +20629,10 @@ class Mdform_Model extends Model {
         }
         
         return $data;
+    }    
+
+    public function getKpiIndicatorExpressionModel($templateId) {        
+        return $this->db->GetRow("SELECT ".$this->db->IfNull("VAR_FNC_EXPRESSION_STRING", "FLOWCHART_EXPRESSION")." AS VAR_FNC_EXPRESSION_STRING, ".$this->db->IfNull("VAR_FNC_EXPRESSION_STRING_JSON", "FLOWCHART_EXPRESSION_RAW")." AS VAR_FNC_EXPRESSION_STRING_JSON FROM KPI_INDICATOR WHERE ID = ".$this->db->Param(0), array($templateId));
     }    
     
 }

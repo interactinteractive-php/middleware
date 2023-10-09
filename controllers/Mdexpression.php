@@ -3335,6 +3335,7 @@ class Mdexpression extends Controller
                     $dvCode = strtolower(trim(str_replace("'", '', $evArr[0])));
 
                     $divIdBySelect = $this->model->getMetaGroupIdByCodeModel($dvCode);
+                    $divIdBySelect = $divIdBySelect ? $divIdBySelect : $dvCode;
 
                     $fullExpression = str_replace($getDataViewColumnVal[0][$ek], 'bpGetVisibleDataViewColumnVal(\'' . $divIdBySelect . '\',' . $evArr[1] . ',' . $evArr[2] . ')', $fullExpression);
                 }
@@ -5422,7 +5423,7 @@ class Mdexpression extends Controller
         return $resultSaveObject;
     }
 
-    public function microUpdateObject($obj, $id)
+    public function microUpdateObject($obj, $id, $customColumnName = '')
     {
         $instanceExp = &getInstance();
         $instanceExp->load->model('mdform', 'middleware/models/');
@@ -5442,7 +5443,8 @@ class Mdexpression extends Controller
         $postArrData['kpiTbl'] = $objectFillData;
         $postArrData['kpiTblId'] = $id;
         $postArrData['isMicroFlow'] = true;
-        $resultSaveObject = $instanceExp->model->saveKpiDynamicDataModel(null, $postArrData);
+        $postArrData['customIdField'] = $customColumnName;
+        $instanceExp->model->saveKpiDynamicDataModel(null, $postArrData);
     }
 
     public function microCallFunction()
@@ -5737,7 +5739,7 @@ class Mdexpression extends Controller
         try {
             //            $isCurrentReplace = false;
             // $rowExp = $obj['text'];
-            $rowExp = $obj['expressionvalue'];
+            $rowExp = isset($obj['expressionvalue']) ? $obj['expressionvalue'] : $obj['text'];
             $rowExpParam = issetParam($obj['expressionmappingparameter']);
             if (substr_count($rowExp, '.val()') > 0) {
                 $currentReplace = self::microCurrentReplace($rowExp, $formData);
@@ -5846,11 +5848,12 @@ class Mdexpression extends Controller
             }
 
             if (!empty($getUpdate)) {
-                $_POST['isMicroFlowSelfSave'] = true;
+                // $_POST['isMicroFlowSelfSave'] = true;
                 preg_match_all('/update\((.*?)\)/i', $rowExp, $rowExpUpdate);
-                $recordId = str_replace('#selectedId#', Input::post('kpiTblId'), $rowExpUpdate[1][0]);
+                $objParams = explode(',', $rowExpUpdate[1][0]);
+                $recordId = str_replace('#selectedId#', Input::post('kpiTblId'), $objParams[0]);
                 $getSaveVariable = explode('.', $rowExp);
-                return 'self::microUpdateObject(' . $getSaveVariable[0] . ',' . $recordId . ')';
+                return 'self::microUpdateObject(' . $getSaveVariable[0] . ',' . $recordId . ',\'' . trim($objParams[1]) . '\')';
             }
 
             //            if (!$isCurrentReplace) {
@@ -6285,8 +6288,10 @@ class Mdexpression extends Controller
         $instanceExp = &getInstance();
         $instanceExp->load->model('mdform', 'middleware/models/');
         Mdform::$isIndicatorRendering = true;
-        $rowExp = $instanceExp->model->getKpiTemplateExpressionModel($indicatorId, 'VAR_FNC_EXPRESSION_STRING');
-        $rowExpJson = $instanceExp->model->getKpiTemplateExpressionModel($indicatorId, 'VAR_FNC_EXPRESSION_STRING_JSON');
+        $getExp = $instanceExp->model->getKpiIndicatorExpressionModel($indicatorId);
+
+        $rowExp = $getExp['VAR_FNC_EXPRESSION_STRING'];
+        $rowExpJson = html_entity_decode($getExp['VAR_FNC_EXPRESSION_STRING_JSON']);
         preg_match_all('/var (.*?)/', $rowExpJson, $parseExpressionEqual);
         foreach ($parseExpressionEqual[0] as $key => $row) {
             $rowExpJson = str_replace($row, $parseExpressionEqual[1][$key], $rowExpJson);
@@ -6298,6 +6303,7 @@ class Mdexpression extends Controller
         $rowExpJson = str_ireplace(':sessiondepartmentid', Mdmetadata::getDefaultValue('sessiondepartmentid'), $rowExpJson);
         $rowExpJson = str_ireplace(':sessionuserkeydepartmentid', Mdmetadata::getDefaultValue('sessionuserkeydepartmentid'), $rowExpJson);
         $rowExpJson = str_ireplace(':sessioncompanydepartmentid', Mdmetadata::getDefaultValue('sessioncompanydepartmentid'), $rowExpJson);
+        $rowExpJson = str_ireplace(':sysdate', "'".Date::currentDate('Y-m-d')."'", $rowExpJson);
 
         //Mdmetadata::getDefaultValue($value)
         $rowExpJson = json_decode($rowExpJson, true);
@@ -6451,7 +6457,7 @@ class Mdexpression extends Controller
         return '';
     }
 
-    public function executeMicroFlowExpression($indicatorId = '16570237729819', $formData = []) {
+    public function executeMicroFlowExpression($indicatorId = '', $formData = []) {
         try {
             // $executeClientScript = '';
             $executeScript = '$instanceExp = &getInstance();'.PHP_EOL;

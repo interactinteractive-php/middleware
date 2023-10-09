@@ -1902,6 +1902,7 @@ class Mdstatement extends Controller {
             $html = self::reportCase($html);
             $html = self::reportPageBreak($html);
             $html = self::reportFiscalPeriodDate($html);
+            $html = self::drillLinkReplacer($statementId, $html);
             
             $response = array('status' => 'success', 'statementName' => $getRowStatement['REPORT_NAME'], 'htmlData' => $html);
             
@@ -3044,6 +3045,29 @@ class Mdstatement extends Controller {
                     } else {
                         $html = str_replace($moneys[0][$ek], $moneys[1][$ek], $html);
                     }
+                }
+            }
+        }
+        
+        return $html;
+    }
+    
+    public function drillLinkReplacer($statementId, $html) {
+        if (strpos($html, 'drill(') !== false) {
+            preg_match_all('/drill\((.*?)\)/i', $html, $drills);
+            if (count($drills[0]) > 0) {
+                foreach ($drills[1] as $ek => $ev) {
+                    
+                    $evArr = explode(',', $ev);
+                    $drillPath = $evArr[0];
+                    
+                    unset($evArr[0]);
+                    $linkText = trim(implode(',', $evArr));
+                    
+                    $anchorStart = '<a href="javascript:;" data-row-data="0|'.$statementId.'|1|'.self::$uniqId.'|'.$drillPath.'|'.Mdstatement::$isStatementModeNum.'" onclick="drillDownStatement(this);">';
+                    $anchorEnd = '</a>';
+                            
+                    $html = str_replace($drills[0][$ek], $anchorStart.$linkText.$anchorEnd, $html);
                 }
             }
         }

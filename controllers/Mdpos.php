@@ -311,6 +311,7 @@ class Mdpos extends Controller {
         $this->view->isReturnValueZero              = Config::getFromCacheDefault('CONFIG_POS_IS_RETURN_VALUE_IS_ZERO', null, 0);
         $this->view->isRequiredJobDelivery          = Config::getFromCacheDefault('POS_IS_REQUIRED_MES_JOB_FOR_IS_DELIVERY', null, 0);
         $this->view->isEditCustomerInfoBook         = Config::getFromCacheDefault('POS_IS_EDIT_CUSTOMER_INFO_FROM_ORDER_BOOK', null, 0);
+        $this->view->isConfigAddCustomerSidebar     = Config::getFromCacheDefault('CONFIG_POS_ADD_CUSTOMER_SIDEBAR', null, 0);
         $this->view->limitBonusAmount               = self::getLimitBonusAmount();
         $this->view->isIpad                         = self::checkIpad();
         

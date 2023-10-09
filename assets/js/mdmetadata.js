@@ -17793,7 +17793,7 @@ function beforeSignChangeWfmStatusId(elem, wfmStatusId, metaDataId, refStructure
 
                 var funcArguments = [elem, wfmStatusId, metaDataId, refStructureId, newWfmStatusColor, newWfmStatusName];
 
-                if (typeof row.physicalpath !== 'undefined') {
+                if (typeof row.physicalpath !== 'undefined' && row.physicalpath) {
                     var physicalpath = row.physicalpath;
 
                     if (physicalpath.split('.').pop().toLowerCase() === 'pdf') {
@@ -18621,11 +18621,9 @@ function drillDownStatement(elem, rowStr) {
 
         var rowData = qryStrToObj(rowStr);
         var statementId = rowData['CLICK_DRILL_LAYOUT_ID'];
-        var columnName = rowData['CLICK_DRILL_FIELD_NAME'];
-        var rId = 'iframe',
-            uniqId = '';
-        var glbookid = '',
-            glbookRecordType = '';
+        var columnName = (rowData['CLICK_DRILL_FIELD_NAME']).toLowerCase();
+        var rId = 'iframe', uniqId = '';
+        var glbookid = '', glbookRecordType = '';
         var filterParams = $('#dataview-statement-search-' + statementId + ' form:eq(0)').serialize();
 
     } else {
@@ -18635,7 +18633,7 @@ function drillDownStatement(elem, rowStr) {
         var statementId = rowData[1];
         var rId = rowData[2];
         var uniqId = rowData[3];
-        var columnName = rowData[4];
+        var columnName = (rowData[4]).toLowerCase();
         var glbookid = typeof $this.attr('data-glbookid') !== 'undefined' ? $this.attr('data-glbookid') : '';
         var glbookRecordType = typeof $this.attr('data-glbook-recordType') !== 'undefined' ? $this.attr('data-glbook-recordType') : '';
         var filterParams = '';
@@ -23531,8 +23529,10 @@ function ntrFingerprintCheck(elem, processMetaDataId, dataViewId, selectedRow, p
         success: function(data) {
             if (data.status === 'success') {
                 selectedRow['physicalpath'] = data.filepath;
-                if ((selectedRow['qrcode'] == '' || !selectedRow['qrcode']) && typeof data['qrCodeString'] !== 'undefined' && data['qrCodeString'] !== '') {
-                    selectedRow['qrcode'] = data['qrCodeString'];
+                if (typeof selectedRow['notstamp'] !== 'undefined' && selectedRow['notstamp'] === '1') {selectedRow['qrcode'] = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==';} else {
+                    if ((selectedRow['qrcode'] == '' || !selectedRow['qrcode']) && typeof data['qrCodeString'] !== 'undefined' && data['qrCodeString'] !== '') {
+                        selectedRow['qrcode'] = data['qrCodeString'];
+                    }
                 }
                 
                 docToPdfUpload(elem, processMetaDataId, dataViewId, selectedRow, paramData, undefined, undefined, 

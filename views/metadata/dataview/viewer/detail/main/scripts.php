@@ -105,7 +105,7 @@
                 if ((isset($this->dataGridDefaultHeight) && $this->dataGridDefaultHeight == 'relative') == false) { 
                     $setGridHeight = true;
                 ?>
-                    objectdatagrid_<?php echo $this->metaDataId; ?>.attr('height', <?php echo isset($this->dataGridDefaultHeight) ? ($this->dataGridDefaultHeight != '' ? $this->dataGridDefaultHeight : 'dynamicHeight') : 'dynamicHeight' ?>);        
+                    objectdatagrid_<?php echo $this->metaDataId; ?>.attr('height', <?php echo isset($this->dataGridDefaultHeight) ? ($this->dataGridDefaultHeight != '' ? "'".$this->dataGridDefaultHeight."'" : 'dynamicHeight') : 'dynamicHeight'; ?>);        
                 <?php    
                 } 
                 ?>

@@ -1901,4 +1901,119 @@ class Mdintegration extends Controller {
         return $mainData;
     }
     
+    public function mssSignature () {
+        try {
+            if (!Input::post('phoneNumber')) {
+                throw new Exception("PhoneNumber хоосон байна!"); 
+            }
+
+            $curl = curl_init();
+            $phoneNumber = Input::post('phoneNumber');
+            $username = Config::getFromCacheDefault('MssSignatureUser', null, '5296722-ap');
+            $password = Config::getFromCacheDefault('MssSignaturePass', null, 'LiuIudOz4lbLolI886qd');
+            $userPass = base64_encode($username . ':' . $password);
+            $url = Config::getFromCacheDefault('MssSignatureUrl', null, 'https://10.10.50.163:9061/rest/service');
+
+            curl_setopt_array($curl, array(
+                CURLOPT_URL => $url,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 30,
+                CURLOPT_SSL_VERIFYHOST => 0,
+                CURLOPT_SSL_VERIFYPEER => 0,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'POST',
+                CURLOPT_POSTFIELDS =>'{ 
+                "MSS_SignatureReq":{ 
+                    "AdditionalServices":[ 
+                        {
+                                "Description": "http://uri.etsi.org/TS102204/v1.1.2#validate"
+                            },
+                            {
+                                "Description": "http://www.methics.fi/KiuruMSSP/v5.0.0#signingCertificate"
+                            },
+                            {
+                                "Description": "http://mss.ficom.fi/TS102204/v1.0.0#userLang",
+                                "UserLang": {
+                                    "Value": "MN"
+                                }
+                            }
+                    ],
+                    "DataToBeDisplayed":{ 
+                        "Data":"Та гарын үсгээ оруулна уу",
+                        "Encoding":"UTF-8",
+                        "MimeType":"text/plain"
+                    },
+                    "DataToBeSigned":{ 
+                        "Data":"data",
+                        "Encoding":"UTF-8",
+                        "MimeType":"text/plain"
+                    },
+                    "MessagingMode":"synch",
+                    "MobileUser":{ 
+                        "MSISDN":"976'. $phoneNumber .'"
+                    },
+                    "SignatureProfile":"http://alauda.mobi/nonRepudiation",
+                    "MSS_Format": "http://www.methics.fi/KiuruMSSP/v3.2.0#PKCS1"
+                }
+                }',
+                CURLOPT_HTTPHEADER => array(
+                    'Content-Type: application/json',
+                    'Authorization: Basic ' . $userPass
+                ),
+            ));
+            
+            $response = curl_exec($curl);       
+            $err = curl_error($curl);
+            curl_close($curl);
+            $registerNumber = '';
+            
+            if (!is_dir(UPLOADPATH . 'temp')) {
+                mkdir(UPLOADPATH . 'temp', 0777, true);
+            }
+
+            if ($err) {
+                $response = array('status' => 'error', 'message' => $err);
+            } else {
+                $response = json_decode($response, true);
+                if (!issetParam($response['Fault'])) {
+                    $response['cert_data'] = array();
+                    if (issetParamArray($response['MSS_SignatureResp']['ServiceResponses'][0]['SigningCertificate']['Certificates'])) {
+                        $tmp = array();
+                        foreach ($response['MSS_SignatureResp']['ServiceResponses'][0]['SigningCertificate']['Certificates'] as $key => $row) {
+                            $filetPath = UPLOADPATH . 'temp/cert.crt';
+                            $cert_txt = '-----BEGIN CERTIFICATE-----' . "\n";
+                            $cert_txt .= $row . "\n";
+                            $cert_txt .= '-----END CERTIFICATE-----';
+
+                            $certFile = fopen($filetPath, "w");
+                            fwrite($certFile, $cert_txt);
+                            fclose($certFile);
+
+                            $ssl = openssl_x509_parse(file_get_contents($filetPath));
+                            array_push($tmp, issetParamArray($ssl['subject']));
+                            if (issetParam($ssl['subject']['UID']) !== '')
+                                $registerNumber = issetParam($ssl['subject']['UID']);
+
+                            @unlink($filetPath);
+                        }
+
+                        $response['cert_data'] = $tmp;
+                    }
+                }
+            }
+
+            
+            if (!$registerNumber) {
+                throw new Exception("Мэдээлэл олдсонгүй!"); 
+            }
+
+            jsonResponse($response);
+
+        } catch (Exception $e) {
+            jsonResponse(array('status' => 'warning', 'message' => $e->getMessage()));
+        }
+    }
 }

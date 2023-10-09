@@ -247,7 +247,7 @@ class Mdwebservice extends Controller {
             $param = Input::post('params');
             $controlName = Input::post('controlName');
             $paramName = Input::post('paramName');
-            $processMetaDataId = Input::post('processMetaDataId');
+            $processMetaDataId = Input::numeric('processMetaDataId');
             $lookupMetaDataId = $param['LOOKUP_META_DATA_ID'];
 
             $lookUpParam = array(
@@ -258,7 +258,7 @@ class Mdwebservice extends Controller {
 
             $this->load->model('mdobject', 'middleware/models/');
 
-            $data = $this->model->getGroupParamConfigByDataView(Input::post('groupMetaDataId'), Input::post('selfParam'));
+            $data = $this->model->getGroupParamConfigByDataView(Input::numeric('groupMetaDataId'), Input::post('selfParam'));
 
             if ($data) {
                 $inputParamArr = Str::simple_parse_str(Input::post('inputParams'));
@@ -8257,7 +8257,7 @@ class Mdwebservice extends Controller {
                     'processId' => $metaDataId, 
                     'responseMethod' => '',
                     'paramData' => $param
-                )
+                ), JSON_UNESCAPED_UNICODE
             ); exit;
             
         } elseif ($postData['responseType'] == 'returnRequestParams') {
@@ -9537,9 +9537,8 @@ class Mdwebservice extends Controller {
     
     public function deleteUploadedFiles($uploadedFiles) {
         if (count($uploadedFiles) > 0) {
-            $path = self::bpUploadGetPath();
             foreach ($uploadedFiles as $k => $file) {
-                @unlink($path . $file);
+                @unlink($file);
             }
         }
         
