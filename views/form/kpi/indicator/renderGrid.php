@@ -65,6 +65,28 @@
                                                 '<i class="far fa-database"></i> Датамарт бэлдэх', true
                                             ); 
                                             
+                                        } elseif ($this->isCheckQuery) {
+                                            
+                                            echo html_tag('a', 
+                                                array(
+                                                    'class' => 'btn btn-success btn-circle btn-sm', 
+                                                    'onclick' => "mvExecuteCheckQuery(this, '".$this->indicatorId."');", 
+                                                    'data-actiontype' => 'executeCheckQuery', 
+                                                    'href' => 'javascript:;'
+                                                ), 
+                                                '<i class="far fa-database"></i> Run check query', true
+                                            ); 
+                                            
+                                            echo html_tag('a', 
+                                                array(
+                                                    'class' => 'btn btn-success btn-circle btn-sm', 
+                                                    'onclick' => "mvExecuteFixQuery(this, '".$this->indicatorId."');", 
+                                                    'data-actiontype' => 'executeFixQuery', 
+                                                    'href' => 'javascript:;'
+                                                ), 
+                                                '<i class="far fa-database"></i> Run fix query', true
+                                            );
+
                                         } else {
                                             
                                             $contextMenu = array();
@@ -456,7 +478,8 @@ $(function() {
             treeConfigs: '<?php echo $this->isTreeGridData; ?>', 
             ignoreFirstLoad: isFilterShowData_<?php echo $this->indicatorId; ?>, 
             drillDownCriteria: drillDownCriteria_<?php echo $this->indicatorId; ?>, 
-            postHiddenParams: '<?php echo $this->postHiddenParams; ?>'
+            postHiddenParams: '<?php echo $this->postHiddenParams; ?>', 
+            filter: '<?php echo $this->filter; ?>'
         }, 
         <?php
         if ($this->isTreeGridData) {

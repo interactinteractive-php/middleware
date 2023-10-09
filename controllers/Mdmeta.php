@@ -2686,6 +2686,11 @@ class Mdmeta extends Controller {
             @unlink($processFullExpressionCache);
         }
         
+        $bpCaches = glob($tmp_dir."/*/bp/bp_".$processMetaDataId."_*.txt");
+        foreach ($bpCaches as $bpCache) {
+            @unlink($bpCache);
+        }
+        
         return true;
     }
     
@@ -3140,12 +3145,55 @@ class Mdmeta extends Controller {
             'save_btn' => $this->lang->line('save_btn'),
             'close_btn' => $this->lang->line('close_btn')
         );
-        echo json_encode($response); exit;
+        echo json_encode($response, JSON_UNESCAPED_UNICODE); 
+    }    
+    
+    public function tempProcessFullExpressionForm() {
+        
+        $this->view->metaDataId = Input::numeric('metaDataId');
+        $this->view->metaDatas = $this->model->getMetaProcessByMetaSingleDatasModel($this->view->metaDataId);
+        
+        $this->view->isVersionForm = false;
+        $this->view->ignoreCacheForm = true;
+        $this->view->configId = null;
+        
+        $this->view->expRow = $this->model->getBPFullExpressionByConfigModel($this->view->metaDataId);
+        
+        $cache = phpFastCache();
+        $sessionId = Ue::appUserSessionId();
+        $bpFullScriptsEvent = $cache->get('bp_'.$this->view->metaDataId.'_ExpEvent_'.$sessionId);
+        
+        if ($bpFullScriptsEvent) {
+            $this->view->expRow['EVENT_EXPRESSION_STRING'] = $bpFullScriptsEvent;
+            $this->view->expRow['LOAD_EXPRESSION_STRING'] = $cache->get('bp_'.$this->view->metaDataId.'_ExpLoad_'.$sessionId);
+            $this->view->expRow['VAR_FNC_EXPRESSION_STRING'] = $cache->get('bp_'.$this->view->metaDataId.'_ExpVarFnc_'.$sessionId);
+            $this->view->expRow['SAVE_EXPRESSION_STRING'] = $cache->get('bp_'.$this->view->metaDataId.'_ExpBeforeSave_'.$sessionId);
+            $this->view->expRow['AFTER_EXPRESSION_STRING'] = $cache->get('bp_'.$this->view->metaDataId.'_ExpAfterSave_'.$sessionId);
+        } else {
+            $this->view->expRow['AFTER_EXPRESSION_STRING'] = Mdmeta::getAfterSave(Arr::get($this->view->expRow, 'SAVE_EXPRESSION_STRING'));
+            $this->view->expRow['SAVE_EXPRESSION_STRING'] = Mdmeta::removeAfterSave(Arr::get($this->view->expRow, 'SAVE_EXPRESSION_STRING'));
+        }
+        
+        $title = 'Full Expression - '.$this->view->expRow['META_DATA_NAME'];
+        
+        $response = array(
+            'Html' => $this->view->renderPrint('system/link/process/setProcessFullExpressionCriteria', self::$viewPath),
+            'Title' => $title,
+            'create_version_btn' => 'Хувилбар үүсгэх',
+            'save_btn' => $this->lang->line('save_btn'),
+            'close_btn' => $this->lang->line('close_btn')
+        );
+        echo json_encode($response, JSON_UNESCAPED_UNICODE); 
     }    
     
     public function saveFullExpression() {
         $response = $this->model->saveFullExpressionModel();
-        echo json_encode($response); exit;
+        echo json_encode($response); 
+    }
+    
+    public function tempSaveFullExpression() {
+        $response = $this->model->tempSaveFullExpressionModel();
+        echo json_encode($response); 
     }
     
     public function fullExpNewVersion() {
@@ -3378,7 +3426,7 @@ class Mdmeta extends Controller {
 
         $picturePath = Input::post('picturePath');
         
-        if (Input::post('id') || $picturePath) {
+        if (Input::numeric('id') || $picturePath) {
             
             $result = html_entity_decode(Input::post('region'));
             $this->view->data = $result;
@@ -3386,7 +3434,7 @@ class Mdmeta extends Controller {
             if ($picturePath) {
                 $this->view->getPhoto['url'] = $picturePath;
             } else {
-                $this->view->getPhoto = $this->model->getWhLocationPhotoModel(Input::post('id'));
+                $this->view->getPhoto = $this->model->getWhLocationPhotoModel(Input::numeric('id'));
             }
 
             if (empty($this->view->getPhoto['url'])) {
@@ -3410,7 +3458,7 @@ class Mdmeta extends Controller {
     
     public function customImageMarkerCtrl2() {
         
-        if (Input::post('id')) {
+        if (Input::numeric('id')) {
             
             $result = html_entity_decode(Input::post('region'));
             $this->view->data = $result;
@@ -3432,11 +3480,11 @@ class Mdmeta extends Controller {
     
     public function customImageMarkerCtrl3() {
         
-        if (Input::post('id')) {
+        if (Input::numeric('id')) {
             
             $result = html_entity_decode(Input::post('region'));
             $this->view->data = $result;
-            $this->view->getPhoto = $this->model->getWhLocationPhotoModel3(Input::post('id'));
+            $this->view->getPhoto = $this->model->getWhLocationPhotoModel3(Input::numeric('id'));
             $this->view->locationId = '';
 
             $response = array(
@@ -3717,9 +3765,14 @@ class Mdmeta extends Controller {
             @unlink($kpiTemplateAfterSaveFile);
         }
         
-        $kpiUserConfigsMerge = glob($tmp_dir."/*/dv/dvUserConfigMergeCols2_".$templateId."_*.txt");
-        foreach ($kpiUserConfigsMerge as $dvUserConfigMerge) {
-            @unlink($dvUserConfigMerge);
+        $indicatorParams = glob($tmp_dir."/*/kp/kpiIndicatorParams_".$templateId."_*.txt");
+        foreach ($indicatorParams as $indicatorParam) {
+            @unlink($indicatorParam);
+        } 
+        
+        $kpiUserConfigsMerges = glob($tmp_dir."/*/dv/dvUserConfigMergeCols2_".$templateId."_*.txt");
+        foreach ($kpiUserConfigsMerges as $kpiUserConfigsMerge) {
+            @unlink($kpiUserConfigsMerge);
         }                  
         
         return true;

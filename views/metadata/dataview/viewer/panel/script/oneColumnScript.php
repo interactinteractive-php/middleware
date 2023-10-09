@@ -401,6 +401,34 @@ $(function () {
         }
     });
     
+    panelDv_<?php echo $this->uniqId; ?>.on('click', '.dv-paneltype-filter-btn', function() {
+            
+        $.ajax({
+            type: 'post',
+            url: 'mdobject/panelMainColumn/getResult',
+            data: {
+                dvId: '<?php echo $this->metaDataId; ?>', 
+                formFilter: 1, 
+                params: panelDv_<?php echo $this->uniqId; ?>.find('.dv-paneltype-filter-form').serialize()
+            },
+            success: function(data) {
+                $('#dv-panel-tab1-<?php echo $this->uniqId; ?> .not-datagrid').empty().append(data).promise().done(function(){
+                    $('a[href="#dv-panel-tab1-<?php echo $this->uniqId; ?>"]').tab('show');
+                    firstList_<?php echo $this->uniqId; ?> = panelDv_<?php echo $this->uniqId; ?>.find('ul[data-part="dv-twocol-first-list"]');
+                });
+            }
+        });
+    });
+    
+    panelDv_<?php echo $this->uniqId; ?>.on('keydown', '.dv-paneltype-filter-form input[type="text"]', function(e) {
+        if (e.which == 13) {
+            panelDv_<?php echo $this->uniqId; ?>.find('.dv-paneltype-filter-btn').trigger('click');
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
+    });
+    
     <?php
     if (isset($this->dataViewProcessCommand['commandContext']) && $this->dataViewProcessCommand['commandContext']) {
     ?>

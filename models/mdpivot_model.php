@@ -514,7 +514,7 @@ class Mdpivot_Model extends Model {
             } 
 
         } catch (Exception $ex) {
-            $response = array('status' => 'error', 'message' => $ex->getMessage());
+            $response = array('status' => 'error', 'message' => 'Error - createPivotGridSaveModel');
         }
 
         return $response;
@@ -525,7 +525,7 @@ class Mdpivot_Model extends Model {
         try {
 
             parse_str(Input::post('param'), $param);
-            $reportModelId = Input::param($param['reportModelId']);
+            $reportModelId = Input::paramNum($param['reportModelId']);
             $userKeyId = Ue::sessionUserKeyId();
 
             $data = array(
@@ -631,7 +631,7 @@ class Mdpivot_Model extends Model {
             } 
 
         } catch (Exception $ex) {
-            $response = array('status' => 'error', 'message' => $ex->getMessage());
+            $response = array('status' => 'error', 'message' => 'Error - editPivotGridSaveModel');
         }
 
         return $response;

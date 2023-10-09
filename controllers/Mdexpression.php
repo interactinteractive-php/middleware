@@ -5595,16 +5595,14 @@ class Mdexpression extends Controller
     public function microRunMeta($metaCode, $parameter, $isPreview = null)
     {
         unset(WebService::$addonHeaderParam['windowSessionId']);
-        //$parameter = json_decode($parameter, true);
+
         $getParams = explode('|', $parameter);
         $prm = [];
+        
         foreach ($getParams as $row) {
             $rowValue = explode('@', $row);
             $prm[$rowValue[0]] = $rowValue[1];
         }
-        //        foreach ($parameter as $row) {
-        //            $prm[$row['srcPath']] = $row['value'];
-        //        }
 
         $returnData = [];
         $result = $this->ws->runSerializeResponse(GF_SERVICE_ADDRESS, $metaCode, $prm);
@@ -5616,6 +5614,7 @@ class Mdexpression extends Controller
             print_r($returnData);
             exit;
         }
+        
         return $returnData;
     }
 
@@ -5686,6 +5685,10 @@ class Mdexpression extends Controller
 
     public function microRunProcedure($indicatorId, $parameter, $isPreview = null)
     {
+        if (!$indicatorId || !is_numeric($indicatorId)) {
+            return array('status' => 'error', 'message' => 'Invalid id!');
+        }
+        
         $instanceExp = &getInstance();
         $instanceExp->load->model('mdform', 'middleware/models/');
 
@@ -5708,7 +5711,7 @@ class Mdexpression extends Controller
         } else {
             $returnData = $result;
         }
-        if ($isPreview) {
+        if ($isPreview == 1) {
             print_r($returnData);
             exit;
         }
@@ -6493,7 +6496,7 @@ class Mdexpression extends Controller
         }        
     }    
 
-    public function executeMicroFlowExpressionNew($indicatorId = '16570237729819', $formData = [])
+    public function executeMicroFlowExpressionNew($indicatorId = '', $formData = [])
     {
         try {
             $cache = phpFastCache();
@@ -6578,9 +6581,6 @@ class Mdexpression extends Controller
             }
 
             $executeScript .= $generateScript;
-            if ($indicatorId == '166919941993510') {
-                $executeScript .= ' }';
-            }
             // pa($executeScript);
             eval($executeScript);
 

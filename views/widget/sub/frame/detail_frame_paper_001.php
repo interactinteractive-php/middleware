@@ -544,6 +544,7 @@ if ($jsonConfig) {
             });
         }
     }
+    
     function widget_detail_frame_paper_001_numbering_fromexp_add(number, parentId, number2) {
         var $table = $('.bpdtl-widget-detail_frame_paper_001-body').find('table.bprocess-table-dtl'), 
             $tbody = $table.find('.tbody:eq(0)'), 
@@ -560,6 +561,7 @@ if ($jsonConfig) {
             return isDoneRows;
         });    
         
+        console.log($filteredRows)
         $filteredRows.each(function(i) {
             var $this = $(this);
             if (!i) {

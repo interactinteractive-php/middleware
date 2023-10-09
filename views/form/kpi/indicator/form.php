@@ -698,7 +698,18 @@ $(function() {
                     
                     descName = rowData[$this.attr('data-name')];
                 } else {
-                    descName = $this.find('option:selected').text();
+                    if ($this.is('[multiple]')) {
+                        var selectedValue = $this.find('option:selected');
+                        if (selectedValue.length) {
+                            var result = new Array();
+                            selectedValue.each(function() {
+                                result.push($(this).text());
+                            });
+                            descName = result.join(', ');
+                        } 
+                    } else {
+                        descName = $this.find('option:selected').text();
+                    }
                 }
             }
             $descName.val(descName);
@@ -879,6 +890,7 @@ $(function() {
     
     dtlAggregateFunction_<?php echo $this->uniqId; ?>();
     
+    Core.initTextareaAutoHeight(bp_window_<?php echo $this->uniqId; ?>);
 });
 
 function addRowKpiIndicatorTemplate(elem) {

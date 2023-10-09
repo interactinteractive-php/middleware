@@ -5378,6 +5378,10 @@ class Mdpos_Model extends Model {
                 return $response;
             }
             
+            if (Config::getFromCache('POS_PAY_LEFT_SIDE_SHOW_LEAD')) {
+                self::createSejim($invoiceId, $headerParams, $paymentData);
+            }
+
             $serviceResult = self::createToService($invoiceId, $headerParams, $paymentData, $serviceDtl);
             
             if ($serviceResult['status'] != 'success') {
@@ -9343,6 +9347,26 @@ class Mdpos_Model extends Model {
             
         } else {
             return array('status' => 'success');
+        }
+    }
+    
+    public function createSejim($invoiceId, $headerParams, $paymentData) {
+        $params = array(
+            'lastName'     => $paymentData['sejimLastName'], 
+            'firstName'    => $paymentData['sejimFirstName'], 
+            'phoneNumber'  => $paymentData['sejimPhoneNumber'], 
+            'email'        => $paymentData['sejimEmail'], 
+            'stLeadAndSalesMap_DV' => array(
+                'srcRecordId ' => $invoiceId
+            )
+        );
+
+        $result = $this->ws->runSerializeResponse(self::$gfServiceAddress, Config::getFromCache('POS_PAY_LEFT_SIDE_SHOW_LEAD'), $params);
+
+        if ($result['status'] == 'success') {
+            return array('status' => 'success');
+        } else {
+            return array('status' => 'error', 'message' => $this->ws->getResponseMessage($result));
         }
     }
     

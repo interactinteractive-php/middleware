@@ -2162,7 +2162,7 @@ function bpFillGroupAndDtlByData(mainSelector, elem, dataObj, groupPath, mapping
     return;
 }
 function bpFillGroupByIndicator(mainSelector, elem, dataViewCode, groupPath, inputParams, mappingParams, fillType) {
-    
+
     var $getTable = mainSelector.find("[data-table-path='"+groupPath+"']:eq(0)");
     
     if ($getTable.length) {
@@ -10126,6 +10126,11 @@ function bpGetLookupFieldValue(mainSelector, elem, lookupfield, column) {
                 
                 if (lowerColumn in Object(jsonObj)) {
                     return jsonObj[lowerColumn];
+                } else {
+                    var upperColumn = column.toUpperCase(); 
+                    if (upperColumn in Object(jsonObj)) {
+                        return jsonObj[upperColumn];
+                    }
                 }
             }
         }

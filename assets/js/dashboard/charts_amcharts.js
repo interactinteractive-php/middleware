@@ -905,7 +905,11 @@ var ChartsAmcharts = function () {
         categoryAxis.dataFields.category = config.xAxisName;
         categoryAxis.renderer.minGridDistance = 40;
         categoryAxis.fontSize = 11;
+
         var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+        if (typeof config.valueAxisMin !== 'undefined') {
+            valueAxis.min = valueAxisMin;
+        }
 
         var series = chart.series.push(new am4charts.ColumnSeries());
         series.dataFields.categoryX = config.xAxisName;
@@ -1975,6 +1979,8 @@ var ChartsAmcharts = function () {
         chart.legend = new am4charts.Legend();
         chart.legend.position = 'right';
         chart.legend.maxWidth = 400;        
+        chart.legend.scrollable = true;
+        
         chart.data = data;        
         if (config.addonSettings && config.addonSettings.labelfontsize) {
             chart.legend.fontSize = config.addonSettings.labelfontsize;

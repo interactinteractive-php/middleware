@@ -1232,6 +1232,39 @@
                     </div>
                 </div>   
                 <?php } ?>
+
+
+                <div class="card mb5 <?php echo Config::getFromCache('POS_PAY_LEFT_SIDE_SHOW_LEAD') ? '' : 'hidden' ?>">
+                    <div class="card-header" style="padding-left: 5px !important;">
+                        <h6 class="card-title">
+                            <a data-toggle="collapse" class="text-default" href="#pos-payment-account-sejim">
+                                Сэжим бүртгэх
+                            </a>
+                        </h6>
+                    </div>
+                    <div id="pos-payment-account-sejim" class="collapse<?php echo Config::getFromCache('POS_CONFIG_LOTTERY_SENT_EMAIL') == '1' || Session::get(SESSION_PREFIX.'posTypeCode') == '3' ? '' : ' show' ?>" data-parent="#pos-payment-accordion">
+                        <div class="card-body">
+                            <div class="col">
+                                <div class="form-group row fom-row">
+                                    <label class="col-form-label panel-title" for="sejimLastName">Овог:</label>
+                                    <input type="text" name="sejimLastName" id="sejimLastName" class="form-control invInfoField invInfoFieldAll" placeholder="Овог" autocomplete="off" value="">
+                                </div>
+                                <div class="form-group row fom-row">
+                                    <label class="col-form-label panel-title" for="sejimFirstName">Нэр:</label>
+                                    <input type="text" name="sejimFirstName" id="sejimFirstName" class="form-control invInfoField invInfoFieldAll" placeholder="Нэр" autocomplete="off" value="">
+                                </div>
+                                <div class="form-group row fom-row">
+                                    <label class="col-form-label panel-title" for="sejimPhoneNumber">Утасны дугаар:</label>
+                                    <input type="text" name="sejimPhoneNumber" id="sejimPhoneNumber" class="form-control invInfoField invInfoFieldAll" placeholder="Утасны дугаар" autocomplete="off" data-inputmask-regex="^[0-9]{1,8}$" value="">
+                                </div>
+                                <div class="form-group row fom-row">
+                                    <label class="col-form-label panel-title" for="sejimEmail">Имэйл:</label>
+                                    <input type="text" name="sejimEmail" id="sejimEmail" class="form-control invInfoField invInfoFieldAll" placeholder="Имэйл" autocomplete="off" value="">
+                                </div>
+                            </div>
+                        </div>    
+                    </div>
+                </div>                
                 
                 <?php if (Config::get('CONFIG_POS_IS_SHOW_ADDITIONAL_NUMBER')) { ?>
                 <div class="card mb5">

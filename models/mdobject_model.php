@@ -5054,32 +5054,22 @@ class Mdobject_Model extends Model {
         
         $join = $andWhere = '';
         
-        if (Input::isEmpty('workSpaceId') == false) {
-            
-            $workSpaceId = Input::numeric('workSpaceId');
-            
-            if ($workSpaceId) {
+        if (Input::isEmpty('workSpaceId') == false && $workSpaceId = Input::numeric('workSpaceId')) {
                 
-                $join = "LEFT JOIN META_DM_PROCESS_IGNORE DPI ON DPI.MAIN_META_DATA_ID = PRO.MAIN_META_DATA_ID 
-                    AND DPI.TRG_META_DATA_ID = $workSpaceId 
-                    AND DPI.PROCESS_META_DATA_ID = PRO.PROCESS_META_DATA_ID ";
-                
-                $andWhere .= ' AND DPI.ID IS NULL ';
-            }
+            $join = "LEFT JOIN META_DM_PROCESS_IGNORE DPI ON DPI.MAIN_META_DATA_ID = PRO.MAIN_META_DATA_ID 
+                AND DPI.TRG_META_DATA_ID = $workSpaceId 
+                AND DPI.PROCESS_META_DATA_ID = PRO.PROCESS_META_DATA_ID ";
+
+            $andWhere .= ' AND DPI.ID IS NULL ';
         }
         
-        if (Input::isEmpty('runSrcMetaId') == false) {
-            
-            $runSrcMetaId = Input::numeric('runSrcMetaId');
-            
-            if ($runSrcMetaId) {
+        if (Input::isEmpty('runSrcMetaId') == false && $runSrcMetaId = Input::numeric('runSrcMetaId')) {
                 
-                $join .= "LEFT JOIN META_DM_PROCESS_IGNORE DPIS ON DPIS.MAIN_META_DATA_ID = PRO.MAIN_META_DATA_ID 
-                    AND DPIS.TRG_META_DATA_ID = $runSrcMetaId 
-                    AND DPIS.PROCESS_META_DATA_ID = PRO.PROCESS_META_DATA_ID ";
-                
-                $andWhere .= ' AND DPIS.ID IS NULL ';
-            }
+            $join .= "LEFT JOIN META_DM_PROCESS_IGNORE DPIS ON DPIS.MAIN_META_DATA_ID = PRO.MAIN_META_DATA_ID 
+                AND DPIS.TRG_META_DATA_ID = $runSrcMetaId 
+                AND DPIS.PROCESS_META_DATA_ID = PRO.PROCESS_META_DATA_ID ";
+
+            $andWhere .= ' AND DPIS.ID IS NULL ';
         }
         
         $join .= "LEFT JOIN META_DM_PROCESS_IGNORE DPISN ON DPISN.MAIN_META_DATA_ID = PRO.MAIN_META_DATA_ID 
@@ -5893,32 +5883,22 @@ class Mdobject_Model extends Model {
         
         $join = '';
         
-        if (Input::isEmpty('workSpaceId') == false) {
-            
-            $workSpaceId = Input::numeric('workSpaceId');
-            
-            if ($workSpaceId) {
+        if (Input::isEmpty('workSpaceId') == false && $workSpaceId = Input::numeric('workSpaceId')) {
                 
-                $join = "LEFT JOIN META_DM_PROCESS_IGNORE DPI ON DPI.MAIN_META_DATA_ID = PRO.MAIN_META_DATA_ID 
-                    AND DPI.TRG_META_DATA_ID = $workSpaceId 
-                    AND DPI.PROCESS_META_DATA_ID = PRO.PROCESS_META_DATA_ID ";
-                
-                $andWhere .= ' AND DPI.ID IS NULL ';
-            }
+            $join = "LEFT JOIN META_DM_PROCESS_IGNORE DPI ON DPI.MAIN_META_DATA_ID = PRO.MAIN_META_DATA_ID 
+                AND DPI.TRG_META_DATA_ID = $workSpaceId 
+                AND DPI.PROCESS_META_DATA_ID = PRO.PROCESS_META_DATA_ID ";
+
+            $andWhere .= ' AND DPI.ID IS NULL ';
         }
         
-        if (Input::isEmpty('runSrcMetaId') == false) {
-            
-            $runSrcMetaId = Input::numeric('runSrcMetaId');
-            
-            if ($runSrcMetaId) {
+        if (Input::isEmpty('runSrcMetaId') == false && $runSrcMetaId = Input::numeric('runSrcMetaId')) {
                 
-                $join .= "LEFT JOIN META_DM_PROCESS_IGNORE DPIS ON DPIS.MAIN_META_DATA_ID = PRO.MAIN_META_DATA_ID 
-                    AND DPIS.TRG_META_DATA_ID = $runSrcMetaId 
-                    AND DPIS.PROCESS_META_DATA_ID = PRO.PROCESS_META_DATA_ID ";
-                
-                $andWhere .= ' AND DPIS.ID IS NULL ';
-            }
+            $join .= "LEFT JOIN META_DM_PROCESS_IGNORE DPIS ON DPIS.MAIN_META_DATA_ID = PRO.MAIN_META_DATA_ID 
+                AND DPIS.TRG_META_DATA_ID = $runSrcMetaId 
+                AND DPIS.PROCESS_META_DATA_ID = PRO.PROCESS_META_DATA_ID ";
+
+            $andWhere .= ' AND DPIS.ID IS NULL ';
         }
         
         $join .= "LEFT JOIN META_DM_PROCESS_IGNORE DPISN ON DPISN.MAIN_META_DATA_ID = PRO.MAIN_META_DATA_ID 
@@ -10099,32 +10079,22 @@ class Mdobject_Model extends Model {
         
         $join = '';
         
-        if (Input::isEmpty('workSpaceId') == false) {
-            
-            $workSpaceId = Input::numeric('workSpaceId');
-            
-            if (is_numeric($workSpaceId)) {
+        if (Input::isEmpty('workSpaceId') == false && $workSpaceId = Input::numeric('workSpaceId')) {
                 
-                $join = "LEFT JOIN META_DM_PROCESS_IGNORE DPI ON DPI.MAIN_META_DATA_ID = PRO.MAIN_META_DATA_ID 
-                    AND DPI.TRG_META_DATA_ID = $workSpaceId 
-                    AND DPI.PROCESS_META_DATA_ID = PRO.PROCESS_META_DATA_ID ";
-                
-                $andWhere .= ' AND DPI.ID IS NULL ';
-            }
+            $join = "LEFT JOIN META_DM_PROCESS_IGNORE DPI ON DPI.MAIN_META_DATA_ID = PRO.MAIN_META_DATA_ID 
+                AND DPI.TRG_META_DATA_ID = $workSpaceId 
+                AND DPI.PROCESS_META_DATA_ID = PRO.PROCESS_META_DATA_ID ";
+
+            $andWhere .= ' AND DPI.ID IS NULL ';
         }
         
-        if (Input::isEmpty('runSrcMetaId') == false) {
-            
-            $runSrcMetaId = Input::post('runSrcMetaId');
-            
-            if (is_numeric($runSrcMetaId)) {
+        if (Input::isEmpty('runSrcMetaId') == false && $runSrcMetaId = Input::post('runSrcMetaId')) {
                 
-                $join .= "LEFT JOIN META_DM_PROCESS_IGNORE DPIS ON DPIS.MAIN_META_DATA_ID = PRO.MAIN_META_DATA_ID 
-                    AND DPIS.TRG_META_DATA_ID = $runSrcMetaId 
-                    AND DPIS.PROCESS_META_DATA_ID = PRO.PROCESS_META_DATA_ID ";
-                
-                $andWhere .= ' AND DPIS.ID IS NULL ';
-            }
+            $join .= "LEFT JOIN META_DM_PROCESS_IGNORE DPIS ON DPIS.MAIN_META_DATA_ID = PRO.MAIN_META_DATA_ID 
+                AND DPIS.TRG_META_DATA_ID = $runSrcMetaId 
+                AND DPIS.PROCESS_META_DATA_ID = PRO.PROCESS_META_DATA_ID ";
+
+            $andWhere .= ' AND DPIS.ID IS NULL ';
         }
         
         $processIds = Arr::implode_key(',', $accessProcess, 'processid', true);

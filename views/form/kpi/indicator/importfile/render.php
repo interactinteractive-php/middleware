@@ -1,24 +1,47 @@
 <form id="createmvstructurefromfile-form" method="post" enctype="multipart/form-data">
     <div class="row">
         <div class="col-md-12">
+            <?php
+            if (isset($this->isCreateIndicator)) {
+            ?>
             <div class="form-group row">
                 <?php 
                 echo Form::label(array(
-                    'text' => 'Файл /txt/',  
-                    'class' => 'col-form-label col-md-3 text-right pr0 pt5', 
+                    'text' => $this->lang->line('info_name'),  
+                    'class' => 'col-form-label col-md-2 text-right pr0 pt5', 
                     'required' => 'required'
                 )); 
                 ?>
-                <div class="col-md-9">
+                <div class="col-md-6">
                     <?php 
-                    //application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, text/csv, application/csv, 
-                    //xls, xlsx, csv,
+                    echo Form::text(array(
+                        'class' => 'form-control form-control-sm stringInit', 
+                        'name' => 'name', 
+                        'required' => 'required', 
+                        'placeholder' => $this->lang->line('info_name')
+                    ));
+                    ?> 
+                </div>
+            </div>
+            <?php
+            }
+            ?>
+            <div class="form-group row">
+                <?php 
+                echo Form::label(array(
+                    'text' => $this->lang->line('file').' /txt, xls, xlsx, csv/',  
+                    'class' => 'col-form-label col-md-2 text-right pr0 pt5', 
+                    'required' => 'required'
+                )); 
+                ?>
+                <div class="col-md-6">
+                    <?php 
                     echo Form::file(array(
                         'class' => 'form-control form-control-sm fileInit', 
                         'name' => 'importStructureFile', 
                         'required' => 'required', 
-                        'data-valid-extension' => 'txt', 
-                        'accept' => 'text/comma-separated-values, text/plain'
+                        'data-valid-extension' => 'xls, xlsx, csv, txt', 
+                        'accept' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, text/csv, application/csv, text/comma-separated-values, text/plain'
                     ));
                     ?> 
                 </div>
@@ -29,18 +52,18 @@
             <fieldset class="collapsible border-fieldset mt-2 mb-3">
                 <legend>File format</legend>
                 <div class="row">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         
                         <div class="form-group row">
                             <?php 
                             $headerCheckBox = Form::checkbox(array('class' => 'form-control form-control-sm', 'id' => 'headerCheckBox', 'value' => '1', 'saved_val' => '1'));
                             echo Form::label(array(
                                 'text' => $headerCheckBox . ' Header',  
-                                'class' => 'col-form-label col-md-3 text-right pr0 pt5', 
+                                'class' => 'col-form-label col-md-4 text-right pr0 pt5', 
                                 'for' => 'headerCheckBox'
                             )); 
                             ?>
-                            <div class="col-md-7">
+                            <div class="col-md-6">
                                 <?php 
                                 echo Form::select(array(
                                     'class' => 'form-control form-control-sm', 
@@ -64,21 +87,26 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-7">
+                    <div class="col-md-2">
                         <div class="form-group row">
                             <?php 
-                            echo Form::label(array(
-                                'text' => 'Skip rows',  
-                                'class' => 'col-form-label col-md-2 text-right pr0 pt5'
-                            )); 
+                            echo Form::label(array('text' => 'Skip rows', 'class' => 'col-form-label col-md-7 text-right pr0 pt5')); 
                             ?>
-                            <div class="col-md-4">
+                            <div class="col-md-5">
                                 <?php 
-                                echo Form::text(array(
-                                    'class' => 'form-control form-control-sm longInit', 
-                                    'name' => 'skipRows',
-                                    'value' => 0
-                                ));
+                                echo Form::number(array('class' => 'form-control form-control-sm longInit', 'name' => 'skipRows', 'value' => 0, 'min' => 0));
+                                ?> 
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group row">
+                            <?php 
+                            echo Form::label(array('text' => 'Skip columns', 'class' => 'col-form-label col-md-7 text-right pr0 pt5')); 
+                            ?>
+                            <div class="col-md-5">
+                                <?php 
+                                echo Form::number(array('class' => 'form-control form-control-sm longInit', 'name' => 'skipColumns', 'value' => 0, 'min' => 0));
                                 ?> 
                             </div>
                         </div>
@@ -86,16 +114,16 @@
                 </div>    
                 
                 <div class="row mt10">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         
-                        <div class="form-group row">
+                        <div class="form-group row" id="mv-file-import-delimiter">
                             <?php 
                             echo Form::label(array(
                                 'text' => 'Delimiter',  
-                                'class' => 'col-form-label col-md-3 text-right pr0 pt5'
+                                'class' => 'col-form-label col-md-4 text-right pr0 pt5'
                             )); 
                             ?>
-                            <div class="col-md-7">
+                            <div class="col-md-6">
                                 <?php 
                                 echo Form::select(array(
                                     'class' => 'form-control form-control-sm', 
@@ -125,22 +153,33 @@
                                 ?> 
                             </div>
                         </div>
-                    </div>
-                    <div class="col-md-7">
-                        <div class="form-group row">
+                        <div class="form-group row" id="mv-file-import-sheetnames" style="display: none">
                             <?php 
                             echo Form::label(array(
-                                'text' => 'Preview row limit',  
-                                'class' => 'col-form-label col-md-2 text-right pr0 pt5'
+                                'text' => 'Sheet',  
+                                'class' => 'col-form-label col-md-4 text-right pr0 pt5'
                             )); 
                             ?>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <?php 
-                                echo Form::text(array(
-                                    'class' => 'form-control form-control-sm longInit', 
-                                    'name' => 'previewRowLimit',
-                                    'value' => 100
+                                echo Form::select(array(
+                                    'class' => 'form-control form-control-sm', 
+                                    'name' => 'sheetNames', 
+                                    'data' => array(),
+                                    'text' => 'notext'
                                 ));
+                                ?> 
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group row">
+                            <?php 
+                            echo Form::label(array('text' => 'Preview row limit', 'class' => 'col-form-label col-md-7 text-right pr0 pt5')); 
+                            ?>
+                            <div class="col-md-5">
+                                <?php 
+                                echo Form::number(array('class' => 'form-control form-control-sm longInit', 'name' => 'previewRowLimit', 'value' => 100));
                                 ?> 
                             </div>
                         </div>
@@ -160,7 +199,10 @@
 <script type="text/javascript">
 var $form = $('#createmvstructurefromfile-form');
 var $formDialog = $('#dialog-mvrows-createstructure');
-var mvReader = new FileReader();
+var mvFileReader = new FileReader();
+var mvFileReaderExtention = '';
+var mvFileWorkbook;
+var mvFileRowsdata;
     
 $(function() {
     
@@ -168,14 +210,17 @@ $(function() {
         
         var $fileInput = $(this);
         var file = $fileInput[0].files[0];
+        mvFileReaderExtention = ((file.name).split('.').pop()).toLowerCase();
+        
+        if (mvFileReaderExtention == 'txt') {
+            mvFileReader.readAsText(file, 'UTF-8');
+        }
 
-        mvReader.readAsText(file, 'UTF-8');
-
-        mvReader.onload = function () {
-            mvFileToHtmlTable();
+        mvFileReader.onload = function () {
+            mvFileToHtmlTable(false);
         };
 
-        mvReader.onerror = function (err) {
+        mvFileReader.onerror = function (err) {
             var errorMsg = err.target.error.message;
 
             if (errorMsg.indexOf('file could not be read') !== -1 || errorMsg.indexOf('ERR_UPLOAD_FILE_CHANGED') !== -1) {
@@ -194,19 +239,62 @@ $(function() {
                 Core.unblockUI();
             }
         };
+        
+        if (mvFileReaderExtention == 'xls' || mvFileReaderExtention == 'xlsx') {
+            mvFileReader.readAsBinaryString(file);
+        }
     });
     
-    $form.on('change', 'select[name="delimiter"], input[name="previewRowLimit"], input#headerCheckBox, input[name="skipRows"]', function() {
-        mvFileToHtmlTable();
+    $form.on('change', 'select[name="delimiter"], select[name="sheetNames"], input[name="previewRowLimit"], input#headerCheckBox, input[name="skipRows"], input[name="skipColumns"]', function() {
+        mvFileToHtmlTable(true);
     });
 });    
 
-function mvFileToHtmlTable() {
+function mvFileToHtmlTable(isInputRead) {
     Core.blockUI({message: 'Loading...', boxed: true});
             
     setTimeout(function() {
         
-        var rowsData = (mvReader.result).split("\r\n");
+        var skipColumns = Number($form.find('input[name="skipColumns"]').val());
+        
+        if (mvFileReaderExtention == 'txt') {
+            
+            $form.find('#mv-file-import-sheetnames').hide();
+            $form.find('#mv-file-import-delimiter').show();
+                
+            mvFileRowsdata = (mvFileReader.result).split("\r\n");
+            
+        } else {
+            
+            if (isInputRead == false) {
+                
+                $.cachedScript('assets/custom/addon/plugins/sheetjs/xlsx.full.min.js?v=1', {async: false});
+
+                mvFileWorkbook = XLSX.read(mvFileReader.result, {type: 'binary', cellDates: true, cellText: false});
+                var sheetNames = mvFileWorkbook.SheetNames;
+                var $sheetCombo = $form.find('select[name="sheetNames"]');
+
+                $sheetCombo.empty();
+
+                $form.find('#mv-file-import-delimiter').hide();
+                $form.find('#mv-file-import-sheetnames').show();
+
+                for (var s in sheetNames) {
+                    $sheetCombo.append('<option value="'+sheetNames[s]+'">'+sheetNames[s]+'</option>');
+                }
+            }
+            
+            var getSheet = mvFileWorkbook.Sheets[$form.find('select[name="sheetNames"]').val()];
+            var sheetRange = XLSX.utils.decode_range(getSheet['!ref']);
+            
+            sheetRange.s.r = 0; //start row
+            sheetRange.s.c = skipColumns; //start column
+            getSheet['!ref'] = XLSX.utils.encode_range(sheetRange);
+            
+            mvFileRowsdata = XLSX.utils.sheet_to_json(getSheet, {header: 1, raw: false, dateNF: 'YYYY-MM-DD'});
+        }
+        
+        var rowsData = mvFileRowsdata;
         var rowsLength = rowsData.length;
 
         if (rowsLength > 0) {
@@ -225,7 +313,11 @@ function mvFileToHtmlTable() {
                 rowsData = rowsData.slice(skipRows);
             }
             
-            var firstRow = (rowsData[firstKey]).split(delimiter);
+            if (mvFileReaderExtention == 'txt') {
+                var firstRow = (rowsData[firstKey]).split(delimiter);
+            } else {
+                var firstRow = rowsData[firstKey];
+            }
 
             htmlTbl.push('<table class="table table-bordered table-hover">');
                 htmlTbl.push('<thead>');
@@ -251,7 +343,12 @@ function mvFileToHtmlTable() {
                 htmlTbl.push('<tbody>');
 
                 for (var r in rowsData) {
-                    rowData = (rowsData[r]).split(delimiter);
+                    
+                    if (mvFileReaderExtention == 'txt') {
+                        rowData = (rowsData[r]).split(delimiter);
+                    } else {
+                        rowData = rowsData[r];
+                    }
 
                     htmlTbl.push('<tr>');
                         for (var v in rowData) {

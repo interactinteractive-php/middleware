@@ -1,9 +1,8 @@
 <div class="row">
     <?php 
-    if(!empty($this->getPhoto['region'])) {
+    if (!empty($this->getPhoto['region'])) {
         foreach ($this->getPhoto['region'] as $row) {
             $row = json_decode(html_entity_decode($row['REGION']), true);
-            //echo "<div style='position: absolute;z-index: 1000;background-color: rgba(152, 85, 195, 0.71);left:".($row['x']+23)."px;top:".($row['y']+38)."px;height:".$row['h']."px;width:".$row['w']."px;'></div>";
             echo "<div style='position: absolute;z-index: 1000;background-color: rgba(152, 85, 195, 0.71);left:".($row['x']+9)."px;top:".($row['y']+10)."px;height:".$row['h']."px;width:".$row['w']."px;'></div>";
         }
     }
@@ -12,11 +11,15 @@
 </div>
 
 <script type="text/javascript">
-    var j = <?php echo isset($this->data) ? json_encode($this->data) : ''; ?>;
-    if(j != '') {
-        var jsStr = JSON.parse(<?php echo isset($this->data) ? json_encode($this->data) : json_encode(array()); ?>);
-        j = [jsStr.x, jsStr.y, jsStr.x + jsStr.w, jsStr.y + jsStr.h];
+    var j = '';
+    <?php
+    if (isset($this->data) && Json::isJson($this->data)) {
+    ?>
+    var jsStr = JSON.parse(<?php echo json_encode($this->data); ?>);
+    j = [jsStr.x, jsStr.y, jsStr.x + jsStr.w, jsStr.y + jsStr.h];
+    <?php
     }
+    ?>
     
     $(function(){
         if(!$().Jcrop){

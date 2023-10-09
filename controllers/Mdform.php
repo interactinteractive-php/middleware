@@ -79,6 +79,7 @@ class Mdform extends Controller {
     public static $topTabRenderShow = array();
     public static $gridStyler = array();
     public static $typeIds = array('100', '101', '102', '103', '104', '105');
+    public static $headerInlineFields = array();
     private static $viewPath = 'middleware/views/form/';
     private $spreadsheet = null;
     private $spreadsheetArr = array();
@@ -1167,11 +1168,12 @@ class Mdform extends Controller {
             Mdform::$recordId = issetVar($paramData['id']);
             Mdform::$defaultTplSavedId = issetVar($paramData['dynamicRecordId']);
             Mdform::$inputId = issetVar($paramData['idField']);
-            $defaultTplSavedId = Mdform::$defaultTplSavedId;
             
             $this->view->indicatorId = $paramData['indicatorId'];
             $this->view->crudIndicatorId = issetParam($paramData['crudIndicatorId']);
+            
             $structureIndicatorId = $this->view->indicatorId;
+            $defaultTplSavedId = Mdform::$defaultTplSavedId;
             $isResponseArray = Input::numeric('isResponseArray');
             
             $checkMethodAccess = $this->model->checkMethodAccessModel(issetVar($paramData['mainIndicatorId']), $this->view->crudIndicatorId);
@@ -1321,6 +1323,13 @@ class Mdform extends Controller {
                 if ($dataFirstRow['RENDER_THEME'] != '') {
                     $this->view->bgImage = $dataFirstRow['PROFILE_PICTURE'];
                     $this->view->form = $this->view->renderPrint('kpi/indicator/theme/' . $dataFirstRow['RENDER_THEME'], self::$viewPath);
+                }
+                
+                if (Mdform::$headerInlineFields) {
+                    foreach (Mdform::$headerInlineFields as $inlineFields) {
+                        $replaceControl = '<div class="mv-inline-field">'.$inlineFields['control'] . $inlineFields['label'].'</div>';
+                        $this->view->form = str_replace('<!--rows_'.$inlineFields['rowsPath'].'-->', $replaceControl.'<!--rows_'.$inlineFields['rowsPath'].'-->', $this->view->form);
+                    }
                 }
                         
                 $response = array(
@@ -1690,8 +1699,10 @@ class Mdform extends Controller {
         $this->view->isDataMart = $this->view->row['KPI_TYPE_ID'] == '1040' ? true : false; 
         $this->view->isCallWebService = ($this->view->row['KPI_TYPE_ID'] == '1080' || $this->view->row['KPI_TYPE_ID'] == '1160' || $this->view->row['KPI_TYPE_ID'] == '1161');
         $this->view->isRawDataMart = $this->view->row['KPI_TYPE_ID'] == '1044' ? true : false;
+        $this->view->isCheckQuery = $this->view->row['KPI_TYPE_ID'] == '1200' ? true : false;
         $this->view->drillDownCriteria = Input::post('drillDownCriteria');
         $this->view->postHiddenParams = '';
+        $this->view->filter = '';
         
         if ($this->view->idField && $this->view->nameField && $this->view->parentField) {
             $this->view->isGridType = 'treegrid';
@@ -1704,6 +1715,11 @@ class Mdform extends Controller {
             $this->view->renderGrid = self::renderCustomView($this->view->row['KPI_TYPE_ID']);
         } else {
             $this->model->mvGridStylerModel($this->view->indicatorId);
+            
+            if ($filter = Input::get('filter')) {
+                $this->view->filter = $this->model->validateFilters($this->view->indicatorId, $filter);
+            }
+        
             $this->view->columns = $this->model->renderKpiIndicatorColumnsModel($this->view->indicatorId, $this->view->row['isCheckSystemTable'], $this->view->columnsData);
             $this->view->renderGrid = $this->view->renderPrint('kpi/indicator/renderGrid', self::$viewPath);
         }
@@ -1880,6 +1896,7 @@ class Mdform extends Controller {
         $this->view->isCallWebService = ($this->view->row['KPI_TYPE_ID'] == '1080' || $this->view->row['KPI_TYPE_ID'] == '1160' || $this->view->row['KPI_TYPE_ID'] == '1161');
         $this->view->isFilterShowData = $this->view->row['IS_FILTER_SHOW_DATA'];
         $this->view->postHiddenParams = '';
+        $this->view->filter = '';
         
         if ($this->view->idField && $this->view->nameField && $this->view->parentField) {
             $this->view->isGridType = 'treegrid';
@@ -5163,15 +5180,25 @@ class Mdform extends Controller {
     
     public function createMvStructureFromFileForm() {
         $this->view->indicatorId = Input::numeric('indicatorId');
-        $configRow = $this->model->getKpiIndicatorRowModel($this->view->indicatorId);
         
-        if ($configRow) {
+        if ($this->view->indicatorId) {
+            $configRow = $this->model->getKpiIndicatorRowModel($this->view->indicatorId);
+            
+            if ($configRow) {
+                $response = array(
+                    'status' => 'success', 
+                    'html' => $this->view->renderPrint('kpi/indicator/importfile/render', self::$viewPath)
+                );
+            } else {
+                $response = array('status' => 'info', 'message' => 'Indicator олдсонгүй!');
+            }
+        } else {
+            $this->view->isCreateIndicator = true;
             $response = array(
                 'status' => 'success', 
+                'indicatorId' => getUID(),
                 'html' => $this->view->renderPrint('kpi/indicator/importfile/render', self::$viewPath)
             );
-        } else {
-            $response = array('status' => 'info', 'message' => 'Indicator олдсонгүй!');
         }
         
         echo json_encode($response, JSON_UNESCAPED_UNICODE);
@@ -5179,6 +5206,11 @@ class Mdform extends Controller {
     
     public function createMvStructureFromFile() {
         $response = $this->model->createMvStructureFromFileModel();
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+    }
+    
+    public function removeTempIndicator() {
+        $response = $this->model->removeTempIndicatorModel();
         echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
@@ -5815,7 +5847,7 @@ class Mdform extends Controller {
                 break;
             
             default:
-            $this->view->kpiTypeIndicatorData = array();
+                $this->view->kpiTypeIndicatorData = array();
                 break;
         }        
 
@@ -5833,7 +5865,7 @@ class Mdform extends Controller {
     }
     
     public function runPivotDataMartTest() {
-        $rs = $this->model->runPivotDataMartModel('184157908');
+        $rs = $this->model->runPivotDataMartModel('184186803');
         var_dump($rs);die;
     }
     

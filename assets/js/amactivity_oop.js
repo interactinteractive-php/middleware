@@ -3369,7 +3369,7 @@ Amactivity.prototype.amactivityColumnConfig2 = function() {
         });
         
         data = '<div class="row">'+
-            '<form>'+
+            '<form class="w-100">'+
             '<div class="col-md-6">'+
                 '<table class="table table-sm table-bordered table-hover bprocess-table-dtl mb10">'+
                     '<thead>'+
@@ -3395,8 +3395,8 @@ Amactivity.prototype.amactivityColumnConfig2 = function() {
                 '</table>'+
             '</div>'+
             '<div class="col-md-6">'+
-                '<form>'+
-                '<table class="table table-sm table-bordered table-hover bprocess-table-dtl mb10">'+
+                '<form class="w-100">'+
+                '<table class="table table-sm table-bordered table-hover bprocess-table-dtl mb10 hidden">'+
                     '<thead>'+
                         '<tr>'+
                             '<th class="rowNumber">№</th>'+

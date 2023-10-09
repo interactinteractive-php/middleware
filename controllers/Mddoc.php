@@ -891,8 +891,8 @@ class Mddoc extends Controller {
     }
     
     public function confirmNtrServicePdf() {
-        if (Input::post('bookDateCustome')) {
-            $this->db->AutoExecute('NTR_SERVICE_BOOK', array('BOOK_DATE' => Input::post('bookDateCustome')), 'UPDATE', "ID = " . Input::post('id'));
+        if (Input::post('bookDateCustome') && $id = Input::numeric('id')) {
+            $this->db->AutoExecute('NTR_SERVICE_BOOK', array('BOOK_DATE' => Input::post('bookDateCustome')), 'UPDATE', "ID = " . $id);
         }
         $response = $this->model->confirmNtrServicePdfModel();
         echo json_encode($response);

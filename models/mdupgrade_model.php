@@ -22,6 +22,7 @@ class Mdupgrade_Model extends Model {
     private static $childCreateTable = array();
     private static $exportCreateTables = array();
     private static $metaFolderId = null;
+    private static $insertDataFilter = null;
     private static $isIgnoreMetaFolder = false;
     private static $isIgnoreTranslate = false;
     private static $isIdReplace = false;
@@ -29,6 +30,8 @@ class Mdupgrade_Model extends Model {
     private static $ignoreDeleteScript = false;
     private static $ignoreDbCommitTrans = false;
     private static $isMetaImportCopy = false;
+    private static $isCreateTable = false;
+    private static $isInsertData = true;
 
     public function __construct() {
         parent::__construct();
@@ -1734,6 +1737,7 @@ class Mdupgrade_Model extends Model {
                         'childCreateTable' => array(
                             array(
                                 'isCreateTable'   => true, 
+                                'isInsertData'    => self::$isInsertData, 
                                 'tableColumnName' => 'TEMPLATE_TABLE_NAME'
                             )
                         ), 
@@ -1934,6 +1938,9 @@ class Mdupgrade_Model extends Model {
         $arr = array(
             'KPI_INDICATOR' => array(
                 'PROFILE_PICTURE' => 'imageFile'
+            ), 
+            'KPI_INDICATOR_INDICATOR_MAP' => array(
+                'DEFAULT_FILE' => 'contentFile'
             )
         );
         return issetParamArray($arr[$tableName]);
@@ -1944,7 +1951,7 @@ class Mdupgrade_Model extends Model {
         $arr = array(
             'KPI_INDICATOR' => array(
                 array(
-                    'isCreateTable'   => false, 
+                    'isCreateTable'   => self::$isCreateTable, 
                     'tableColumnName' => 'TABLE_NAME'
                 )
             )
@@ -2224,7 +2231,8 @@ class Mdupgrade_Model extends Model {
                         MD.META_DATA_CODE, 
                         ".$this->db->IfNull('UD.USERNAME', 'UM.USERNAME')." AS USER_NAME, 
                         ".$this->db->IfNull('MD.MODIFIED_DATE', 'MD.CREATED_DATE')." AS MODIFIED_DATE, 
-                        HDR.CREATED_DATE 
+                        HDR.CREATED_DATE, 
+                        NULL AS SRC_RECORD_ID 
                     FROM META_BUG_FIXING HDR 
                         INNER JOIN META_BUG_FIXING_DTL DTL ON DTL.META_BUG_FIXING_ID = HDR.ID 
                         INNER JOIN META_DATA MD ON MD.META_DATA_ID = DTL.META_DATA_ID 
@@ -2241,7 +2249,8 @@ class Mdupgrade_Model extends Model {
                         TO_CHAR(MD.ID) AS META_DATA_CODE, 
                         ".$this->db->IfNull('UD.USERNAME', 'UM.USERNAME')." AS USER_NAME, 
                         ".$this->db->IfNull('MD.MODIFIED_DATE', 'MD.CREATED_DATE')." AS MODIFIED_DATE, 
-                        HDR.CREATED_DATE 
+                        HDR.CREATED_DATE, 
+                        NULL AS SRC_RECORD_ID
                     FROM META_BUG_FIXING HDR 
                         INNER JOIN META_BUG_FIXING_DTL DTL ON DTL.META_BUG_FIXING_ID = HDR.ID 
                         INNER JOIN META_WFM_FIELD MD ON MD.REF_STRUCTURE_ID = DTL.REF_STRUCTURE_ID 
@@ -2258,7 +2267,8 @@ class Mdupgrade_Model extends Model {
                         MD.BOOK_TYPE_CODE AS META_DATA_CODE, 
                         ".$this->db->IfNull('UD.USERNAME', 'UM.USERNAME')." AS USER_NAME, 
                         ".$this->db->IfNull('MD.MODIFIED_DATE', 'MD.CREATED_DATE')." AS MODIFIED_DATE, 
-                        HDR.CREATED_DATE 
+                        HDR.CREATED_DATE, 
+                        NULL AS SRC_RECORD_ID 
                     FROM META_BUG_FIXING HDR 
                         INNER JOIN META_BUG_FIXING_DTL DTL ON DTL.META_BUG_FIXING_ID = HDR.ID 
                         INNER JOIN BOOK_TYPE MD ON MD.BOOK_TYPE_ID = DTL.BOOK_TYPE_ID 
@@ -2275,7 +2285,8 @@ class Mdupgrade_Model extends Model {
                         MD.CODE AS META_DATA_CODE, 
                         NULL AS USER_NAME, 
                         NULL AS MODIFIED_DATE, 
-                        HDR.CREATED_DATE 
+                        HDR.CREATED_DATE, 
+                        NULL AS SRC_RECORD_ID
                     FROM META_BUG_FIXING HDR 
                         INNER JOIN META_BUG_FIXING_DTL DTL ON DTL.META_BUG_FIXING_ID = HDR.ID 
                         INNER JOIN CONFIG MD ON MD.ID = DTL.CONFIG_ID 
@@ -2289,7 +2300,8 @@ class Mdupgrade_Model extends Model {
                         TO_CHAR(MD.NOTIFICATION_ID) AS META_DATA_CODE, 
                         ".$this->db->IfNull('UD.USERNAME', 'UM.USERNAME')." AS USER_NAME, 
                         ".$this->db->IfNull('MD.MODIFIED_DATE', 'MD.CREATED_DATE')." AS MODIFIED_DATE, 
-                        HDR.CREATED_DATE 
+                        HDR.CREATED_DATE, 
+                        NULL AS SRC_RECORD_ID
                     FROM META_BUG_FIXING HDR 
                         INNER JOIN META_BUG_FIXING_DTL DTL ON DTL.META_BUG_FIXING_ID = HDR.ID 
                         INNER JOIN NTF_NOTIFICATION MD ON MD.NOTIFICATION_ID = DTL.NOTIFICATION_ID   
@@ -2306,7 +2318,8 @@ class Mdupgrade_Model extends Model {
                         MD.CODE AS META_DATA_CODE, 
                         ".$this->db->IfNull('UD.USERNAME', 'UM.USERNAME')." AS USER_NAME, 
                         ".$this->db->IfNull('MD.MODIFIED_DATE', 'MD.CREATED_DATE')." AS MODIFIED_DATE, 
-                        HDR.CREATED_DATE 
+                        HDR.CREATED_DATE, 
+                        NULL AS SRC_RECORD_ID
                     FROM META_BUG_FIXING HDR 
                         INNER JOIN META_BUG_FIXING_DTL DTL ON DTL.META_BUG_FIXING_ID = HDR.ID 
                         INNER JOIN UM_OBJECT MD ON MD.OBJECT_ID = DTL.OBJECT_ID 
@@ -2323,7 +2336,8 @@ class Mdupgrade_Model extends Model {
                         MD.CODE AS META_DATA_CODE, 
                         ".$this->db->IfNull('UD.USERNAME', 'UM.USERNAME')." AS USER_NAME, 
                         ".$this->db->IfNull('MD.MODIFIED_DATE', 'MD.CREATED_DATE')." AS MODIFIED_DATE, 
-                        HDR.CREATED_DATE 
+                        HDR.CREATED_DATE, 
+                        NULL AS SRC_RECORD_ID
                     FROM META_BUG_FIXING HDR 
                         INNER JOIN META_BUG_FIXING_DTL DTL ON DTL.META_BUG_FIXING_ID = HDR.ID 
                         INNER JOIN IMP_EXCEL_TEMPLATE MD ON MD.ID = DTL.EXCEL_TEMPLATE_ID 
@@ -2340,7 +2354,8 @@ class Mdupgrade_Model extends Model {
                         MD.CODE AS META_DATA_CODE, 
                         ".$this->db->IfNull('UD.USERNAME', 'UM.USERNAME')." AS USER_NAME, 
                         ".$this->db->IfNull('MD.MODIFIED_DATE', 'MD.CREATED_DATE')." AS MODIFIED_DATE, 
-                        HDR.CREATED_DATE 
+                        HDR.CREATED_DATE, 
+                        NULL AS SRC_RECORD_ID
                     FROM META_BUG_FIXING HDR 
                         INNER JOIN META_BUG_FIXING_DTL DTL ON DTL.META_BUG_FIXING_ID = HDR.ID 
                         INNER JOIN KPI_TEMPLATE MD ON MD.ID = DTL.KPI_TEMPLATE_ID 
@@ -2357,7 +2372,8 @@ class Mdupgrade_Model extends Model {
                         MD.CODE AS META_DATA_CODE, 
                         ".$this->db->IfNull('UD.USERNAME', 'UM.USERNAME')." AS USER_NAME, 
                         ".$this->db->IfNull('MD.MODIFIED_DATE', 'MD.CREATED_DATE')." AS MODIFIED_DATE, 
-                        MD.CREATED_DATE 
+                        MD.CREATED_DATE, 
+                        NULL AS SRC_RECORD_ID
                     FROM 
                         (
                             SELECT 
@@ -2386,13 +2402,14 @@ class Mdupgrade_Model extends Model {
                         TMP.META_DATA_CODE, 
                         ".$this->db->IfNull('UD.USERNAME', 'UM.USERNAME')." AS USER_NAME, 
                         ".$this->db->IfNull('MD.MODIFIED_DATE', 'MD.CREATED_DATE')." AS MODIFIED_DATE, 
-                        MD.CREATED_DATE 
-                        
+                        MD.CREATED_DATE, 
+                        TMP.SRC_RECORD_ID 
                     FROM (
                             SELECT
                                 ID AS META_DATA_ID, 
                                 'kpiindicator' AS META_TYPE_ID, 
-                                CODE AS META_DATA_CODE 
+                                CODE AS META_DATA_CODE, 
+                                NULL AS SRC_RECORD_ID 
                             FROM KPI_INDICATOR
                             START WITH 
                                 ID IN (
@@ -2409,7 +2426,8 @@ class Mdupgrade_Model extends Model {
                             SELECT
                                 ID AS META_DATA_ID, 
                                 'kpiindicator' AS META_TYPE_ID, 
-                                CODE AS META_DATA_CODE 
+                                CODE AS META_DATA_CODE, 
+                                NULL AS SRC_RECORD_ID 
                             FROM KPI_INDICATOR
                                 START WITH ID IN (
                                     SELECT 
@@ -2430,7 +2448,8 @@ class Mdupgrade_Model extends Model {
                             SELECT 
                                 KI.ID AS META_DATA_ID, 
                                 'kpiindicator' AS META_TYPE_ID, 
-                                KI.CODE AS META_DATA_CODE 
+                                KI.CODE AS META_DATA_CODE, 
+                                NULL AS SRC_RECORD_ID 
                             FROM KPI_INDICATOR_INDICATOR_MAP M 
                                 INNER JOIN KPI_INDICATOR KI ON M.TRG_INDICATOR_ID = KI.ID 
                             WHERE M.SEMANTIC_TYPE_ID = 10000009 
@@ -2441,6 +2460,25 @@ class Mdupgrade_Model extends Model {
                                     WHERE META_BUG_FIXING_ID IN ($ids) 
                                         AND INDICATOR_ID IS NOT NULL
                                 )  
+                            
+                            UNION 
+                            
+                            SELECT 
+                                T2.ID AS META_DATA_ID, 
+                                'kpiindicatorbydata' AS META_TYPE_ID, 
+                                T2.CODE AS META_DATA_CODE, 
+                                T0.ID AS SRC_RECORD_ID 
+                            FROM KPI_INDICATOR T0 
+                                INNER JOIN KPI_TYPE T1 ON T1.ID = T0.KPI_TYPE_ID 
+                                INNER JOIN KPI_INDICATOR T2 ON T2.ID = T1.RELATED_INDICATOR_ID 
+                            WHERE T0.ID IN ( 
+                                SELECT 
+                                    INDICATOR_ID 
+                                FROM META_BUG_FIXING_DTL 
+                                WHERE META_BUG_FIXING_ID IN ($ids) 
+                                    AND INDICATOR_ID IS NOT NULL
+                            )   
+                                
                         ) TMP 
                         INNER JOIN KPI_INDICATOR MD ON MD.ID = TMP.META_DATA_ID 
                         LEFT JOIN UM_USER US ON US.USER_ID = MD.CREATED_USER_ID 
@@ -2456,7 +2494,8 @@ class Mdupgrade_Model extends Model {
                         TMP.META_DATA_CODE, 
                         ".$this->db->IfNull('UD.USERNAME', 'UM.USERNAME')." AS USER_NAME, 
                         ".$this->db->IfNull('MD.MODIFIED_DATE', 'MD.CREATED_DATE')." AS MODIFIED_DATE, 
-                        MD.CREATED_DATE 
+                        MD.CREATED_DATE, 
+                        NULL AS SRC_RECORD_ID 
                         
                     FROM (
                             SELECT 
@@ -2513,7 +2552,8 @@ class Mdupgrade_Model extends Model {
                         MD.CODE AS META_DATA_CODE, 
                         NULL AS USER_NAME, 
                         NULL AS MODIFIED_DATE, 
-                        HDR.CREATED_DATE 
+                        HDR.CREATED_DATE, 
+                        NULL AS SRC_RECORD_ID 
                     FROM META_BUG_FIXING HDR 
                         INNER JOIN META_BUG_FIXING_DTL DTL ON DTL.META_BUG_FIXING_ID = HDR.ID 
                         INNER JOIN META_WIDGET MD ON MD.ID = DTL.WIDGET_ID 
@@ -2527,7 +2567,8 @@ class Mdupgrade_Model extends Model {
                         TO_CHAR(MD.ID) AS META_DATA_CODE, 
                         ".$this->db->IfNull('UD.USERNAME', 'UM.USERNAME')." AS USER_NAME, 
                         ".$this->db->IfNull('MD.MODIFIED_DATE', 'MD.CREATED_DATE')." AS MODIFIED_DATE, 
-                        HDR.CREATED_DATE 
+                        HDR.CREATED_DATE, 
+                        NULL AS SRC_RECORD_ID 
                     FROM META_BUG_FIXING HDR 
                         INNER JOIN META_BUG_FIXING_DTL DTL ON DTL.META_BUG_FIXING_ID = HDR.ID 
                         INNER JOIN META_PROCESS_RULE MD ON MD.ID = DTL.PROCESS_RULE_ID  
@@ -2544,7 +2585,8 @@ class Mdupgrade_Model extends Model {
                         MD.CODE AS META_DATA_CODE, 
                         ".$this->db->IfNull('UD.USERNAME', 'UM.USERNAME')." AS USER_NAME, 
                         ".$this->db->IfNull('MD.MODIFIED_DATE', 'MD.CREATED_DATE')." AS MODIFIED_DATE, 
-                        HDR.CREATED_DATE 
+                        HDR.CREATED_DATE, 
+                        NULL AS SRC_RECORD_ID 
                     FROM META_BUG_FIXING HDR 
                         INNER JOIN META_BUG_FIXING_DTL DTL ON DTL.META_BUG_FIXING_ID = HDR.ID 
                         INNER JOIN GLOBE_DICTIONARY MD ON MD.ID = DTL.GLOBE_ID   
@@ -2560,7 +2602,8 @@ class Mdupgrade_Model extends Model {
                     TMP.META_DATA_CODE, 
                     TMP.USER_NAME, 
                     TMP.MODIFIED_DATE, 
-                    TMP.CREATED_DATE 
+                    TMP.CREATED_DATE, 
+                    TMP.SRC_RECORD_ID 
                 ORDER BY 
                     TMP.META_TYPE_ID DESC, 
                     TMP.CREATED_DATE ASC");
@@ -2608,6 +2651,19 @@ class Mdupgrade_Model extends Model {
                         } else {
                             self::$ignoreDeleteScript = true;
                         }
+                        
+                        self::$isCreateTable = false;
+                        self::$isInsertData = true;
+                        self::$insertDataFilter = null;
+
+                        if ($meta['META_TYPE_ID'] == 'kpiindicatorbydata') { 
+
+                            self::$isCreateTable = true;
+                            self::$isInsertData = false;
+                            self::$insertDataFilter = 'SRC_RECORD_ID='.$meta['SRC_RECORD_ID'];
+
+                            $meta['META_TYPE_ID'] = 'kpiindicator';
+                        } 
                         
                         $objectResult = self::oneObjectModel($meta['META_DATA_ID'], $meta['META_TYPE_ID'], $meta['META_DATA_CODE']);
 
@@ -2917,27 +2973,28 @@ class Mdupgrade_Model extends Model {
                     
                     $script    = '';
                     $relations = $objectTableRelation[$metaTypeId];
+                    
+                    if (Input::isEmpty('dataTableName') == false) {
+                        $dataTableNames = Input::post('dataTableName');
+                    }
 
                     foreach ($relations as $tblName => $rel) {
                         
                         self::$fileColumn = self::tableFileColumns($tblName);
                         
-                        if (Input::isEmpty('dataTableName') == false) {
-                            $dataTableNames = Input::post('dataTableName');
-                            
-                            if (is_array($dataTableNames)) {
+                        if (isset($dataTableNames) && is_array($dataTableNames)) {
                                 
-                                foreach ($dataTableNames as $dataTableName) {
-                                    
-                                    if ($dataTableName == $tblName && $tblName == 'KPI_INDICATOR') {
-                                        
-                                        self::$childCreateTable = array(
-                                            array(
-                                                'isCreateTable'   => true, 
-                                                'tableColumnName' => 'TABLE_NAME'
-                                            )
-                                        );
-                                    }
+                            foreach ($dataTableNames as $dataTableName) {
+
+                                if ($dataTableName == $tblName && $tblName == 'KPI_INDICATOR') {
+
+                                    self::$childCreateTable = array(
+                                        array(
+                                            'isCreateTable'   => true, 
+                                            'isInsertData'    => true, 
+                                            'tableColumnName' => 'TABLE_NAME'
+                                        )
+                                    );
                                 }
                             }
                             
@@ -2961,13 +3018,13 @@ class Mdupgrade_Model extends Model {
                         } 
                     } 
 
-                    $deleteScript = self::generateObjectDeleteScript($separator); 
+                    $deleteScript      = self::generateObjectDeleteScript($separator); 
                     $createTableScript = self::exportCreateTableAppendXml();
-                    $clobBlobScript = self::clobBlobAppendXml();
+                    $clobBlobScript    = self::clobBlobAppendXml();
                     
                     if (self::$exportCreateTables) {
                             
-                        $kpiDbSchemaName = Config::getFromCache('kpiDbSchemaName');
+                        $kpiDbSchemaName   = Config::getFromCache('kpiDbSchemaName');
                         
                         $script            = str_replace(", '$kpiDbSchemaName.", ", '[kpiDbSchemaName].", $script);
                         $createTableScript = str_replace('tblName="'.$kpiDbSchemaName.'.', 'tblName="[kpiDbSchemaName].', $createTableScript);
@@ -3022,8 +3079,12 @@ class Mdupgrade_Model extends Model {
                 try {
                     
                     if ($columns = $this->db->MetaColumns($createTableName)) {
-                    
-                        $fields = '';
+                        
+                        $tmpCreateTableName = $createTableName;
+                        $createTableName    = str_replace($kpiDbSchemaName . '.', '', $createTableName);
+                        $dbTableName        = "[kpiDbSchemaName].$createTableName";
+                        
+                        $fields = $createColumns = '';
 
                         foreach ($columns as $column) {
 
@@ -3031,28 +3092,33 @@ class Mdupgrade_Model extends Model {
                             $max_length    = $column->max_length;
                             $type          = $column->type;
                             $scale         = $column->scale;
-                            $not_null      = $column->not_null;
+                            $not_null      = $column->not_null ? ' NOT NULL ENABLE' : '';
                             $default_value = $column->default_value;
 
-                            $not_null      = $not_null ? ' NOT NULL ENABLE' : '';
-
                             if ($type == 'INT' || $type == 'NUMBER') {
+                                
                                 $fields .= "$name NUMBER($max_length, $scale)$not_null, ";
+                                $createColumns .= "ALTER TABLE $dbTableName ADD ($name NUMBER($max_length, $scale))". Mdcommon::$separator . "\n";
+                                
                             } elseif ($type == 'VARCHAR2') {
+                                
                                 $fields .= "$name VARCHAR2($max_length CHAR)$not_null, ";
+                                $createColumns .= "ALTER TABLE $dbTableName ADD ($name VARCHAR2($max_length CHAR))". Mdcommon::$separator . "\n";
+                                
                             } elseif ($type == 'DATE') {
+                                
                                 $fields .= "$name DATE$not_null, ";
+                                $createColumns .= "ALTER TABLE $dbTableName ADD ($name DATE)". Mdcommon::$separator . "\n";
+                                
                             } elseif ($type == 'CLOB') {
+                                
                                 $fields .= "$name CLOB$not_null, ";
+                                $createColumns .= "ALTER TABLE $dbTableName ADD ($name CLOB)". Mdcommon::$separator . "\n";
                             }
                         }
 
                         $fields             = rtrim(trim($fields), ',');
-
-                        $tmpCreateTableName = $createTableName;
-                        $createTableName    = str_replace($kpiDbSchemaName . '.', '', $createTableName);
-
-                        $createTableScripts = "CREATE TABLE [kpiDbSchemaName].$createTableName ($fields)". Mdcommon::$separator . "\n";
+                        $createTableScripts = "CREATE TABLE $dbTableName ($fields)". Mdcommon::$separator . "\n";
 
                         $tableOwner = $deleteScripts = $indexScripts = '';
 
@@ -3075,30 +3141,36 @@ class Mdupgrade_Model extends Model {
 
                                 if ($primaryKeys && isset($indexRow['columns'][0]) == $primaryKeys[0]) {
 
-                                    $indexScripts .= "ALTER TABLE [kpiDbSchemaName].$createTableName ADD CONSTRAINT $indexName PRIMARY KEY (ID) ENABLE" . Mdcommon::$separator . "\n";
+                                    $indexScripts .= "ALTER TABLE $dbTableName ADD CONSTRAINT $indexName PRIMARY KEY (ID) ENABLE" . Mdcommon::$separator . "\n";
 
                                 } else {
 
                                     $unique  = $indexRow['unique'] ? 'UNIQUE ' : '';
                                     $columns = Arr::implode_r(',', $indexRow['columns'], true);
 
-                                    $indexScripts .= "CREATE ".$unique."INDEX [kpiDbSchemaName].$indexName ON [kpiDbSchemaName].$createTableName ($columns)" . Mdcommon::$separator . "\n";
+                                    $indexScripts .= "CREATE ".$unique."INDEX [kpiDbSchemaName].$indexName ON $dbTableName ($columns)" . Mdcommon::$separator . "\n";
                                 }
                             }
                         }
-
-                        $insertScripts = self::generateInsertQuery($tmpCreateTableName, '1=1', Mdcommon::$separator);
+                        
+                        if (self::$isInsertData) {
+                            $insertScripts = self::generateInsertQuery($tmpCreateTableName, '1=1', Mdcommon::$separator);
+                        } elseif (self::$insertDataFilter) {
+                            $insertScripts = self::generateInsertQuery($tmpCreateTableName, self::$insertDataFilter, Mdcommon::$separator);
+                        }
+                        
                         $insertScripts = str_replace('INTO '.$kpiDbSchemaName . '.', 'INTO [kpiDbSchemaName].', $insertScripts);
                         $columnName    = $row['columnName'];
 
                         if ($columnName == 'TEMPLATE_TABLE_NAME') {
-                            $deleteScripts = "DELETE FROM [kpiDbSchemaName].$createTableName" . Mdcommon::$separator . "\n";
+                            $deleteScripts = "DELETE FROM $dbTableName" . Mdcommon::$separator . "\n";
                         }
 
                         $rowXml .= '<createTable tblName="'.$createTableName.'" skipError="1">' . "\n";
                             $rowXml .= '<![CDATA[' . "\n";
                                 $rowXml .= $createTableScripts;
                                 $rowXml .= $deleteScripts;
+                                $rowXml .= $createColumns;
                                 $rowXml .= $indexScripts;
                                 $rowXml .= $insertScripts;
                             $rowXml .= ']]>' . "\n";
@@ -4119,137 +4191,94 @@ class Mdupgrade_Model extends Model {
             
             $ids = Arr::implode_key(',', $selectedRows, $id, true);
             
-            if ($objectCode == 'kpi') {
+            try {
                 
-                $objects = $this->db->GetAll("
-                    SELECT 
-                        ID AS META_DATA_ID, 
-                        'kpi' AS META_TYPE_ID, 
-                        CODE AS META_DATA_CODE 
-                    FROM KPI_TEMPLATE 
-                    WHERE ID IN ($ids) 
-
-                    UNION 
-
-                    SELECT 
-                        KP.ID AS META_DATA_ID, 
-                        'kpi' AS META_TYPE_ID, 
-                        KP.CODE AS META_DATA_CODE 
-                    FROM 
-                        (
-                            SELECT 
-                                TRG_TEMPLATE_ID 
-                            FROM KPI_TEMPLATE_MAP 
-                            START WITH SRC_TEMPLATE_ID IN ($ids) 
-                            CONNECT BY NOCYCLE SRC_TEMPLATE_ID = PRIOR TRG_TEMPLATE_ID 
-                        ) KM 
-                        INNER JOIN KPI_TEMPLATE KP ON KP.ID = KM.TRG_TEMPLATE_ID"
-                );
+                if ($objectCode == 'kpi') {
                 
-            } elseif ($objectCode == 'ntf') {
-                
-                $objects = $this->db->GetAll("
-                    SELECT 
-                        NOTIFICATION_ID AS META_DATA_ID, 
-                        'ntf' AS META_TYPE_ID, 
-                        NOTIFICATION_TYPE_ID AS META_DATA_CODE 
-                    FROM NTF_NOTIFICATION 
-                    WHERE NOTIFICATION_ID IN ($ids)"
-                );
-                
-            } elseif ($objectCode == 'testcase') {
-                
-                $objects = $this->db->GetAll("
-                    SELECT 
-                        TC.ID AS META_DATA_ID, 
-                        'testcase' AS META_TYPE_ID, 
-                        TC.TEST_MODE AS META_DATA_CODE, 
-                        MD.META_DATA_ID AS PROCESS_META_DATA_ID, 
-                        MD.META_TYPE_ID AS PROCESS_META_TYPE_ID, 
-                        MD.META_DATA_CODE AS PROCESS_META_DATA_CODE 
-                    FROM TEST_CASE TC
-                        INNER JOIN META_DATA MD ON MD.META_DATA_ID = TC.PROCESS_META_DATA_ID  
-                    WHERE TC.ID IN ($ids)" 
-                );
-                
-            } elseif ($objectCode == 'umobject') {
-                
-                $objects = $this->db->GetAll("
-                    SELECT 
-                        OBJECT_ID AS META_DATA_ID, 
-                        'umobject' AS META_TYPE_ID, 
-                        OBJECT_CODE_ID AS META_DATA_CODE 
-                    FROM UM_OBJECT_CODE 
-                    WHERE OBJECT_CODE_ID IN ($ids)"
-                );
-                
-            } elseif ($objectCode == 'bugfix') {
-                
-                $objects = $this->db->GetAll("
-                    SELECT 
-                        ID AS META_DATA_ID, 
-                        'bugfix' AS META_TYPE_ID, 
-                        ID AS META_DATA_CODE 
-                    FROM META_BUG_FIXING 
-                    WHERE ID IN ($ids)"
-                );
-                
-            } elseif ($objectCode == 'kpiindicator') {
-                
-                $objects = $this->db->GetAll("
-                    SELECT 
-                        TMP.* 
-                    FROM (
-                        SELECT
-                            ID AS META_DATA_ID, 
-                            'kpiindicator' AS META_TYPE_ID, 
-                            CODE AS META_DATA_CODE 
-                        FROM KPI_INDICATOR
-                        START WITH 
-                            ID IN ($ids) 
-                        CONNECT BY NOCYCLE PRIOR PARENT_ID = ID 
-
-                        UNION 
-
-                        SELECT
-                            ID AS META_DATA_ID, 
-                            'kpiindicator' AS META_TYPE_ID, 
-                            CODE AS META_DATA_CODE 
-                        FROM KPI_INDICATOR
-                            START WITH ID IN (
-                                SELECT 
-                                    CATEGORY_ID 
-                                FROM KPI_INDICATOR_CATEGORY
-                                WHERE INDICATOR_ID IN ($ids) 
-                            )
-                            CONNECT BY NOCYCLE PRIOR PARENT_ID = ID 
-                            
-                        UNION 
-                        
+                    $objects = $this->db->GetAll("
                         SELECT 
-                            KI.ID AS META_DATA_ID, 
-                            'kpiindicator' AS META_TYPE_ID, 
-                            KI.CODE AS META_DATA_CODE 
-                        FROM KPI_INDICATOR_INDICATOR_MAP M 
-                            INNER JOIN KPI_INDICATOR KI ON M.TRG_INDICATOR_ID = KI.ID 
-                        WHERE M.SEMANTIC_TYPE_ID = 10000009 
-                            AND M.SRC_INDICATOR_ID IN ($ids) 
-                    ) TMP 
-                    GROUP BY TMP.META_DATA_ID, TMP.META_TYPE_ID, TMP.META_DATA_CODE"
-                );
-                
-            } elseif ($objectCode == 'kpiindicatorall') {
-                
-                $objects = $this->db->GetAll("
-                    SELECT 
-                        TMP.* 
-                    FROM (
-                        WITH TMP_IND AS (
-                        
+                            ID AS META_DATA_ID, 
+                            'kpi' AS META_TYPE_ID, 
+                            CODE AS META_DATA_CODE 
+                        FROM KPI_TEMPLATE 
+                        WHERE ID IN ($ids) 
+
+                        UNION 
+
+                        SELECT 
+                            KP.ID AS META_DATA_ID, 
+                            'kpi' AS META_TYPE_ID, 
+                            KP.CODE AS META_DATA_CODE 
+                        FROM 
+                            (
+                                SELECT 
+                                    TRG_TEMPLATE_ID 
+                                FROM KPI_TEMPLATE_MAP 
+                                START WITH SRC_TEMPLATE_ID IN ($ids) 
+                                CONNECT BY NOCYCLE SRC_TEMPLATE_ID = PRIOR TRG_TEMPLATE_ID 
+                            ) KM 
+                            INNER JOIN KPI_TEMPLATE KP ON KP.ID = KM.TRG_TEMPLATE_ID"
+                    );
+
+                } elseif ($objectCode == 'ntf') {
+
+                    $objects = $this->db->GetAll("
+                        SELECT 
+                            NOTIFICATION_ID AS META_DATA_ID, 
+                            'ntf' AS META_TYPE_ID, 
+                            NOTIFICATION_TYPE_ID AS META_DATA_CODE 
+                        FROM NTF_NOTIFICATION 
+                        WHERE NOTIFICATION_ID IN ($ids)"
+                    );
+
+                } elseif ($objectCode == 'testcase') {
+
+                    $objects = $this->db->GetAll("
+                        SELECT 
+                            TC.ID AS META_DATA_ID, 
+                            'testcase' AS META_TYPE_ID, 
+                            TC.TEST_MODE AS META_DATA_CODE, 
+                            MD.META_DATA_ID AS PROCESS_META_DATA_ID, 
+                            MD.META_TYPE_ID AS PROCESS_META_TYPE_ID, 
+                            MD.META_DATA_CODE AS PROCESS_META_DATA_CODE 
+                        FROM TEST_CASE TC
+                            INNER JOIN META_DATA MD ON MD.META_DATA_ID = TC.PROCESS_META_DATA_ID  
+                        WHERE TC.ID IN ($ids)" 
+                    );
+
+                } elseif ($objectCode == 'umobject') {
+
+                    $objects = $this->db->GetAll("
+                        SELECT 
+                            OBJECT_ID AS META_DATA_ID, 
+                            'umobject' AS META_TYPE_ID, 
+                            OBJECT_CODE_ID AS META_DATA_CODE 
+                        FROM UM_OBJECT_CODE 
+                        WHERE OBJECT_CODE_ID IN ($ids)"
+                    );
+
+                } elseif ($objectCode == 'bugfix') {
+
+                    $objects = $this->db->GetAll("
+                        SELECT 
+                            ID AS META_DATA_ID, 
+                            'bugfix' AS META_TYPE_ID, 
+                            ID AS META_DATA_CODE 
+                        FROM META_BUG_FIXING 
+                        WHERE ID IN ($ids)"
+                    );
+
+                } elseif ($objectCode == 'kpiindicator') {
+
+                    $objects = $this->db->GetAll("
+                        SELECT 
+                            TMP.* 
+                        FROM (
                             SELECT
                                 ID AS META_DATA_ID, 
                                 'kpiindicator' AS META_TYPE_ID, 
-                                CODE AS META_DATA_CODE 
+                                CODE AS META_DATA_CODE, 
+                                NULL AS SRC_RECORD_ID 
                             FROM KPI_INDICATOR
                             START WITH 
                                 ID IN ($ids) 
@@ -4260,7 +4289,8 @@ class Mdupgrade_Model extends Model {
                             SELECT
                                 ID AS META_DATA_ID, 
                                 'kpiindicator' AS META_TYPE_ID, 
-                                CODE AS META_DATA_CODE 
+                                CODE AS META_DATA_CODE, 
+                                NULL AS SRC_RECORD_ID 
                             FROM KPI_INDICATOR
                                 START WITH ID IN (
                                     SELECT 
@@ -4272,133 +4302,197 @@ class Mdupgrade_Model extends Model {
 
                             UNION 
 
-                            SELECT
-                                ID AS META_DATA_ID, 
+                            SELECT 
+                                KI.ID AS META_DATA_ID, 
                                 'kpiindicator' AS META_TYPE_ID, 
-                                CODE AS META_DATA_CODE 
-                            FROM KPI_INDICATOR
-                            START WITH 
-                                ID IN ($ids) 
-                            CONNECT BY NOCYCLE PRIOR ID = PARENT_ID  
+                                KI.CODE AS META_DATA_CODE, 
+                                NULL AS SRC_RECORD_ID 
+                            FROM KPI_INDICATOR_INDICATOR_MAP M 
+                                INNER JOIN KPI_INDICATOR KI ON M.TRG_INDICATOR_ID = KI.ID 
+                            WHERE M.SEMANTIC_TYPE_ID = 10000009 
+                                AND M.SRC_INDICATOR_ID IN ($ids) 
+                            
+                            UNION 
+    
+                            SELECT 
+                                T2.ID AS META_DATA_ID, 
+                                'kpiindicatorbydata' AS META_TYPE_ID, 
+                                T2.CODE AS META_DATA_CODE, 
+                                T0.ID AS SRC_RECORD_ID 
+                            FROM KPI_INDICATOR T0 
+                                INNER JOIN KPI_TYPE T1 ON T1.ID = T0.KPI_TYPE_ID 
+                                INNER JOIN KPI_INDICATOR T2 ON T2.ID = T1.RELATED_INDICATOR_ID 
+                            WHERE T0.ID IN ($ids) 
+                        ) TMP 
+                        GROUP BY TMP.META_DATA_ID, TMP.META_TYPE_ID, TMP.META_DATA_CODE, TMP.SRC_RECORD_ID  
+                        ORDER BY TMP.META_TYPE_ID DESC"
+                    );
+
+                } elseif ($objectCode == 'kpiindicatorall') {
+
+                    $objects = $this->db->GetAll("
+                        SELECT 
+                            TMP.* 
+                        FROM (
+                            WITH TMP_IND AS (
+
+                                SELECT
+                                    ID AS META_DATA_ID, 
+                                    'kpiindicator' AS META_TYPE_ID, 
+                                    CODE AS META_DATA_CODE 
+                                FROM KPI_INDICATOR
+                                START WITH 
+                                    ID IN ($ids) 
+                                CONNECT BY NOCYCLE PRIOR PARENT_ID = ID 
+
+                                UNION 
+
+                                SELECT
+                                    ID AS META_DATA_ID, 
+                                    'kpiindicator' AS META_TYPE_ID, 
+                                    CODE AS META_DATA_CODE 
+                                FROM KPI_INDICATOR
+                                    START WITH ID IN (
+                                        SELECT 
+                                            CATEGORY_ID 
+                                        FROM KPI_INDICATOR_CATEGORY
+                                        WHERE INDICATOR_ID IN ($ids) 
+                                    )
+                                    CONNECT BY NOCYCLE PRIOR PARENT_ID = ID 
+
+                                UNION 
+
+                                SELECT
+                                    ID AS META_DATA_ID, 
+                                    'kpiindicator' AS META_TYPE_ID, 
+                                    CODE AS META_DATA_CODE 
+                                FROM KPI_INDICATOR
+                                START WITH 
+                                    ID IN ($ids) 
+                                CONNECT BY NOCYCLE PRIOR ID = PARENT_ID  
+
+                                UNION 
+
+                                SELECT
+                                    ID AS META_DATA_ID, 
+                                    'kpiindicator' AS META_TYPE_ID, 
+                                    CODE AS META_DATA_CODE 
+                                FROM KPI_INDICATOR
+                                    START WITH ID IN (
+                                        SELECT 
+                                            CATEGORY_ID 
+                                        FROM KPI_INDICATOR_CATEGORY
+                                        WHERE INDICATOR_ID IN ($ids) 
+                                    )
+                                    CONNECT BY NOCYCLE PRIOR ID = PARENT_ID
+                            ) 
+
+                            SELECT 
+                                KI.ID AS META_DATA_ID, 
+                                'kpiindicator' AS META_TYPE_ID, 
+                                KI.CODE AS META_DATA_CODE 
+                            FROM KPI_INDICATOR_INDICATOR_MAP M 
+                                INNER JOIN KPI_INDICATOR KI ON M.TRG_INDICATOR_ID = KI.ID 
+                                INNER JOIN TMP_IND TI ON M.SRC_INDICATOR_ID = TI.META_DATA_ID 
+                            WHERE M.SEMANTIC_TYPE_ID = 10000009 
 
                             UNION 
 
-                            SELECT
-                                ID AS META_DATA_ID, 
-                                'kpiindicator' AS META_TYPE_ID, 
-                                CODE AS META_DATA_CODE 
-                            FROM KPI_INDICATOR
-                                START WITH ID IN (
-                                    SELECT 
-                                        CATEGORY_ID 
-                                    FROM KPI_INDICATOR_CATEGORY
-                                    WHERE INDICATOR_ID IN ($ids) 
-                                )
-                                CONNECT BY NOCYCLE PRIOR ID = PARENT_ID
-                        ) 
+                            SELECT 
+                                META_DATA_ID, 
+                                META_TYPE_ID, 
+                                META_DATA_CODE
+                            FROM TMP_IND 
+                        ) TMP 
+                        GROUP BY TMP.META_DATA_ID, TMP.META_TYPE_ID, TMP.META_DATA_CODE"
+                    );
 
+                } elseif ($objectCode == 'impexcel') {
+
+                    $objects = $this->db->GetAll("
                         SELECT 
-                            KI.ID AS META_DATA_ID, 
-                            'kpiindicator' AS META_TYPE_ID, 
-                            KI.CODE AS META_DATA_CODE 
-                        FROM KPI_INDICATOR_INDICATOR_MAP M 
-                            INNER JOIN KPI_INDICATOR KI ON M.TRG_INDICATOR_ID = KI.ID 
-                            INNER JOIN TMP_IND TI ON M.SRC_INDICATOR_ID = TI.META_DATA_ID 
-                        WHERE M.SEMANTIC_TYPE_ID = 10000009 
-                        
-                        UNION 
-                            
+                            ID AS META_DATA_ID, 
+                            'impexcel' AS META_TYPE_ID, 
+                            CODE AS META_DATA_CODE 
+                        FROM IMP_EXCEL_TEMPLATE 
+                        WHERE ID IN ($ids)"
+                    );
+
+                } elseif ($objectCode == 'kpitype') {
+
+                    $objects = $this->db->GetAll("
                         SELECT 
-                            META_DATA_ID, 
-                            META_TYPE_ID, 
-                            META_DATA_CODE
-                        FROM TMP_IND 
-                    ) TMP 
-                    GROUP BY TMP.META_DATA_ID, TMP.META_TYPE_ID, TMP.META_DATA_CODE"
-                );
-                
-            } elseif ($objectCode == 'impexcel') {
-                
-                $objects = $this->db->GetAll("
-                    SELECT 
-                        ID AS META_DATA_ID, 
-                        'impexcel' AS META_TYPE_ID, 
-                        CODE AS META_DATA_CODE 
-                    FROM IMP_EXCEL_TEMPLATE 
-                    WHERE ID IN ($ids)"
-                );
-                
-            } elseif ($objectCode == 'kpitype') {
-                
-                $objects = $this->db->GetAll("
-                    SELECT 
-                        T0.* 
-                    FROM (   
-                        SELECT 
-                            KT.ID AS META_DATA_ID, 
-                            'kpitype' AS META_TYPE_ID, 
-                            KT.CODE AS META_DATA_CODE 
-                        FROM 
-                            (
+                            T0.* 
+                        FROM (   
+                            SELECT 
+                                KT.ID AS META_DATA_ID, 
+                                'kpitype' AS META_TYPE_ID, 
+                                KT.CODE AS META_DATA_CODE 
+                            FROM 
+                                (
+                                    SELECT 
+                                        ID 
+                                    FROM KPI_TYPE 
+                                    START WITH ID IN ($ids) 
+                                    CONNECT BY NOCYCLE ID = PRIOR PARENT_ID
+                                ) KM 
+                                INNER JOIN KPI_TYPE KT ON KT.ID = KM.ID 
+
+                            UNION 
+
+                            SELECT 
+                                KI.ID AS META_DATA_ID, 
+                                'kpiindicator' AS META_TYPE_ID, 
+                                KI.CODE AS META_DATA_CODE 
+                            FROM (
                                 SELECT 
-                                    ID 
+                                    RELATED_INDICATOR_ID 
                                 FROM KPI_TYPE 
                                 START WITH ID IN ($ids) 
-                                CONNECT BY NOCYCLE ID = PRIOR PARENT_ID
-                            ) KM 
-                            INNER JOIN KPI_TYPE KT ON KT.ID = KM.ID 
+                                CONNECT BY NOCYCLE ID = PRIOR PARENT_ID 
+                            ) KT 
+                            INNER JOIN KPI_INDICATOR KI ON KI.ID = KT.RELATED_INDICATOR_ID 
+                        ) T0 
+                        ORDER BY T0.META_TYPE_ID DESC"
+                    );
 
-                        UNION 
+                } elseif ($objectCode == 'metawidget') {
 
+                    $objects = $this->db->GetAll("
                         SELECT 
-                            KI.ID AS META_DATA_ID, 
-                            'kpiindicator' AS META_TYPE_ID, 
-                            KI.CODE AS META_DATA_CODE 
-                        FROM (
-                            SELECT 
-                                RELATED_INDICATOR_ID 
-                            FROM KPI_TYPE 
-                            START WITH ID IN ($ids) 
-                            CONNECT BY NOCYCLE ID = PRIOR PARENT_ID 
-                        ) KT 
-                        INNER JOIN KPI_INDICATOR KI ON KI.ID = KT.RELATED_INDICATOR_ID 
-                    ) T0 
-                    ORDER BY T0.META_TYPE_ID DESC"
-                );
-                
-            } elseif ($objectCode == 'metawidget') {
-                
-                $objects = $this->db->GetAll("
-                    SELECT 
-                        ID AS META_DATA_ID, 
-                        'metawidget' AS META_TYPE_ID, 
-                        CODE AS META_DATA_CODE 
-                    FROM META_WIDGET 
-                    WHERE ID IN ($ids)"
-                );
-                
-            } elseif ($objectCode == 'processrule') {
-                
-                $objects = $this->db->GetAll("
-                    SELECT 
-                        ID AS META_DATA_ID, 
-                        'processrule' AS META_TYPE_ID, 
-                        ID AS META_DATA_CODE 
-                    FROM META_PROCESS_RULE 
-                    WHERE ID IN ($ids)"
-                );
-                
-            } elseif ($objectCode == 'globedictionary') {
-                
-                $objects = $this->db->GetAll("
-                    SELECT 
-                        ID AS META_DATA_ID, 
-                        'globedictionary' AS META_TYPE_ID, 
-                        CODE AS META_DATA_CODE 
-                    FROM GLOBE_DICTIONARY 
-                    WHERE ID IN ($ids)"
-                );
-                
+                            ID AS META_DATA_ID, 
+                            'metawidget' AS META_TYPE_ID, 
+                            CODE AS META_DATA_CODE 
+                        FROM META_WIDGET 
+                        WHERE ID IN ($ids)"
+                    );
+
+                } elseif ($objectCode == 'processrule') {
+
+                    $objects = $this->db->GetAll("
+                        SELECT 
+                            ID AS META_DATA_ID, 
+                            'processrule' AS META_TYPE_ID, 
+                            ID AS META_DATA_CODE 
+                        FROM META_PROCESS_RULE 
+                        WHERE ID IN ($ids)"
+                    );
+
+                } elseif ($objectCode == 'globedictionary') {
+
+                    $objects = $this->db->GetAll("
+                        SELECT 
+                            ID AS META_DATA_ID, 
+                            'globedictionary' AS META_TYPE_ID, 
+                            CODE AS META_DATA_CODE 
+                        FROM GLOBE_DICTIONARY 
+                        WHERE ID IN ($ids)"
+                    );
+
+                }
+            
+            } catch (Exception $ex) { 
+                return array('status' => 'error', 'message' => $ex->getMessage());
             }
         }
         
@@ -4407,6 +4501,19 @@ class Mdupgrade_Model extends Model {
         if (isset($objects) && $objects) {
             
             foreach ($objects as $object) {
+                
+                self::$isCreateTable = false;
+                self::$isInsertData = true;
+                self::$insertDataFilter = null;
+                
+                if ($object['META_TYPE_ID'] == 'kpiindicatorbydata') { 
+                    
+                    self::$isCreateTable = true;
+                    self::$isInsertData = false;
+                    self::$insertDataFilter = 'SRC_RECORD_ID='.$object['SRC_RECORD_ID'];
+                    
+                    $object['META_TYPE_ID'] = 'kpiindicator';
+                } 
 
                 $objectResult = self::oneObjectModel($object['META_DATA_ID'], $object['META_TYPE_ID'], $object['META_DATA_CODE']);
 
@@ -4521,7 +4628,10 @@ class Mdupgrade_Model extends Model {
     public function executeUpgradeScript($fileSources) {
         
         $isCustomerServer = Config::getFromCache('isCustomerServer');
+        $isIgnoreCheckLock = Config::getFromCache('CONFIG_IGNORE_CHECK_LOCK');
         $kpiDbSchemaName = Config::getFromCache('kpiDbSchemaName');
+        
+        $sessionUserId = Ue::sessionUserId();
         $kpiDbSchemaName = $kpiDbSchemaName ? $kpiDbSchemaName . '.' : '';
         $metaCount = $metaLockedCount = 0;
         $successMetas = $translateList = array();
@@ -4598,9 +4708,7 @@ class Mdupgrade_Model extends Model {
                     
                     ++$metaCount;
 
-                    if (!Config::getFromCache('CONFIG_IGNORE_CHECK_LOCK')) {
-
-                        $sessionUserId = Ue::sessionUserId();
+                    if (!$isIgnoreCheckLock) {
 
                         $response = $this->ws->getJsonByCurl(Mdmeta::getLockServerAddr().'checkLock/'.$metaDataId.'/'.$sessionUserId);
 
@@ -4685,9 +4793,7 @@ class Mdupgrade_Model extends Model {
 
                                         $this->db->Execute($createTableScript);
 
-                                    } catch (Exception $ex) { 
-                                        
-                                    }
+                                    } catch (Exception $ex) { }
                                 }
                             }
                         }
@@ -4817,7 +4923,7 @@ class Mdupgrade_Model extends Model {
 
                         (new Mdmeta())->dvCacheClearByMetaId($keyMeta['metaDataId'], true);
 
-                    } elseif ($keyMeta['metaTypeId'] == 'kpi') {
+                    } elseif ($keyMeta['metaTypeId'] == 'kpi' || $keyMeta['metaTypeId'] == 'kpiindicator') {
 
                         (new Mdmeta())->clearCacheKpiTemplateById($keyMeta['metaDataId']);
                     }
@@ -4843,7 +4949,6 @@ class Mdupgrade_Model extends Model {
             }
             
         } else {
-            
             $response = array('status' => 'success', 'metaDataId' => $metaDataId);
         }
 
@@ -5476,7 +5581,7 @@ class Mdupgrade_Model extends Model {
                                 
                                 (new Mdmeta())->dvCacheClearByMetaId($keyMetaId, true);
                                 
-                            } elseif ($keyMeta['metaTypeId'] == 'kpi') {
+                            } elseif ($keyMeta['metaTypeId'] == 'kpi' || $keyMeta['metaTypeId'] == 'kpiindicator') {
 
                                 (new Mdmeta())->clearCacheKpiTemplateById($keyMetaId);
                             }

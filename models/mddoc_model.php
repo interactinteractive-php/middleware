@@ -1512,7 +1512,7 @@ class Mddoc_Model extends Model {
     public function viewWordTemplatePdfModel($selectedRow) {
         try {
             $getContent = $this->getEcmContentModel($selectedRow['templateid']);
-            $getProcessCommand = $this->getRunProcessCommandModel(Input::post('dataViewId'), Input::post('webLinkId'));
+            $getProcessCommand = $this->getRunProcessCommandModel(Input::numeric('dataViewId'), Input::numeric('webLinkId'));
 
             if (!$getContent) {
                 throw new Exception("Контентоос бичлэг олдсонгүй!"); 
@@ -1626,6 +1626,8 @@ class Mddoc_Model extends Model {
                 );
             }
 
+        } catch (ADODB_Exception $ex) {
+            return array('status' => 'warning', 'message' => 'Error - viewWordTemplatePdfModel');
         } catch (Exception $e) {
             return array('status' => 'warning', 'message' => $e->getMessage());
         }
@@ -1776,21 +1778,27 @@ class Mddoc_Model extends Model {
     }
 
     public function getEcmContentModel($templateId) {
-        $row = $this->db->GetRow("
-            SELECT 
-                EC.CONTENT_ID,
-                EC.FILE_NAME,
-                EC.PHYSICAL_PATH,
-                EC.THUMB_PHYSICAL_PATH,
-                EC.FILE_SIZE,
-                EC.FILE_EXTENSION
-            FROM META_BUSINESS_PROCESS_TEMPLATE BT
-                INNER JOIN ECM_CONTENT EC ON EC.CONTENT_ID = BT.CONTENT_ID
-            WHERE BT.ID = $templateId");
+        try {
+            $row = $this->db->GetRow("
+                SELECT 
+                    EC.CONTENT_ID,
+                    EC.FILE_NAME,
+                    EC.PHYSICAL_PATH,
+                    EC.THUMB_PHYSICAL_PATH,
+                    EC.FILE_SIZE,
+                    EC.FILE_EXTENSION
+                FROM META_BUSINESS_PROCESS_TEMPLATE BT
+                    INNER JOIN ECM_CONTENT EC ON EC.CONTENT_ID = BT.CONTENT_ID
+                WHERE BT.ID = ".$this->db->Param(0), 
+                array($templateId)
+            );
 
-        if ($row) {
-            return $row;
-        }
+            if ($row) {
+                return $row;
+            }
+            
+        } catch (Exception $ex) {}
+        
         return false;
     }   
 
@@ -2374,12 +2382,13 @@ class Mddoc_Model extends Model {
                 }
             }
 
+        } catch (ADODB_Exception $ex) {
+            return array('status' => 'warning', 'message' => 'Error - confirmNtrServicePdfModel');
         } catch (Exception $e) {
             return array('status' => 'warning', 'message' => $e->getMessage());
         }
 
         return array('status' => 'error', 'message' => 'Error');
-        
     }
     
     public function getServiceBookContentModel($serviceBookId) {

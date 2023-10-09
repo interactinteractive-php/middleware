@@ -38,7 +38,59 @@ class Mdpki_Model extends Model {
         
         if ($ecmContentId) {
             try {
-                $this->db->AutoExecute('ECM_CONTENT', array('IS_SIGNED' => 1, 'THUMB_PHYSICAL_PATH' => $filePath), 'UPDATE', 'CONTENT_ID = ' . $ecmContentId);
+                if (Config::getFromCache('createMapSignedFiles')) {
+                    $qry = "SELECT 
+                                ID ,
+                                CONTENT_ID,
+                                REF_STRUCTURE_ID,
+                                RECORD_ID,
+                                ". $this->db->IfNull('ORDER_NUM', '0') ."+1 AS ORDER_NUM
+                            FROM ECM_CONTENT_MAP WHERE CONTENT_ID = " . $this->db->Param(0);
+                    $contentMap = $this->db->GetRow($qry, array($ecmContentId));
+                    if ($contentMap) {
+                        $qry = "SELECT 
+                                    CONTENT_ID,
+                                    FILE_NAME,
+                                    PHYSICAL_PATH,
+                                    FILE_SIZE,
+                                    FILE_EXTENSION,
+                                    CREATED_DATE,
+                                    CREATED_USER_ID,
+                                    IS_SIGNED
+                                FROM ECM_CONTENT WHERE CONTENT_ID = " . $this->db->Param(0);
+                        $contentData = $this->db->GetRow($qry, array($ecmContentId));
+                        
+                        $userId = Ue::sessionUserKeyId();
+                        $currentDate = Date::currentDate();
+    
+                        $insertContent = array(
+                            'CONTENT_ID' => getUID(),
+                            'FILE_NAME' => $contentData['FILE_NAME'],
+                            'PHYSICAL_PATH' => $filePath,
+                            'FILE_EXTENSION' => 'pdf',
+                            'FILE_SIZE' => filesize($filePath),
+                            'CREATED_DATE' => $currentDate,
+                            'CREATED_USER_ID' => $userId,
+                            'IS_SIGNED' => '1',
+                        );
+    
+                        $result = $this->db->AutoExecute('ECM_CONTENT', $insertContent);
+                        if ($result) {
+                            
+                            $map = array(
+                                'ID' => getUID(),
+                                'CONTENT_ID' => $insertContent['CONTENT_ID'],
+                                'REF_STRUCTURE_ID' => $contentMap['REF_STRUCTURE_ID'],
+                                'RECORD_ID' => $contentMap['RECORD_ID'],
+                                'ORDER_NUM' => $contentMap['ORDER_NUM'],
+                            );
+    
+                            $result = $this->db->AutoExecute('ECM_CONTENT_MAP', $map);
+                        }
+                    }
+                } else {
+                    $this->db->AutoExecute('ECM_CONTENT', array('IS_SIGNED' => 1, 'THUMB_PHYSICAL_PATH' => $filePath), 'UPDATE', 'CONTENT_ID = ' . $ecmContentId);
+                }
                 return true;
             } catch(Exception $e) {
                 return false;

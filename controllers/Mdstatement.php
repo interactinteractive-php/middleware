@@ -3910,7 +3910,7 @@ class Mdstatement extends Controller {
         
         $title = $contentHtml = '';
         
-        $statementId = Input::post('statementId');
+        $statementId = Input::numeric('statementId');
         $columnName  = Input::post('columnName');
         $rId         = Input::post('rId');
         
@@ -4064,6 +4064,8 @@ class Mdstatement extends Controller {
                 if ($postArr) {
                     $_POST['drillDownDefaultCriteria'] = http_build_query($postArr);
                 }
+                
+                $_POST['runSrcMetaId'] = $statementId;
                 
                 $contentDecode = (new Mdobject())->dataview($linkMetaId, '0', 'array');
                 

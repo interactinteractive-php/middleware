@@ -1,4 +1,4 @@
-<form method="post" class="dv-paneltype-filter-form">
+<form method="post" class="dv-paneltype-filter-form" autocomplete="off">
     <?php
     if ($this->filterParams) {
         foreach ($this->filterParams as $param) {

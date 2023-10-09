@@ -265,7 +265,7 @@ function CheckOut(fileUrl) {
     }
 }*/
 
-function hardSign(fileName, contentId, server, funcName, funcArguments) {
+function hardSign(fileName, contentId, server, funcName, funcArguments, row) {
     var pdfPath = fileName.replace(URL_APP, '');
     $.ajax({
         type: 'post',
@@ -273,7 +273,15 @@ function hardSign(fileName, contentId, server, funcName, funcArguments) {
         data: {filePath: pdfPath},
         dataType: 'json',
         success: function (data) {
-            console.log(data);
+            if (typeof row !== 'undefined') {
+                if (typeof row['signx'] !== 'undefined' && row['signx']) 
+                    signX = row['signx'];
+                if (typeof row['signy'] !== 'undefined' && row['signy']) 
+                    signY = row['signy'];
+                if (typeof row['pagenumber'] !== 'undefined' && row['pagenumber']) 
+                    pageNumber = row['pagenumber'];
+            }
+
             signPdfAndTextRun(data, pdfPath, contentId, function (t) {
                 if (t.status === 'success') {
                     /*var getUrl = window.location;
@@ -283,7 +291,7 @@ function hardSign(fileName, contentId, server, funcName, funcArguments) {
                     console.log(t);
                     window[funcName].apply(null, funcArguments);
                 }   
-            });
+            }, signX, signY, pageNumber);
         }
     });
 }
@@ -456,13 +464,16 @@ function signPdfAndText(dataViewId, refStructureId, selectedRow, fileUploadUrl) 
     $.ajax({
         type: 'post',
         url: 'mdpki/getInformationForDocumentSign',
-        data: {ecmContentId: selectedRow.id, filePath: fileUploadUrl},
+        data: {
+            ecmContentId: selectedRow.id, 
+            filePath: fileUploadUrl
+        },
         dataType: 'json',
         success: function(data){
             if (data.status === 'success') {
                 var contentId = null;
                 if (typeof selectedRow.contentid !== 'undefined') {
-                        contentId = selectedRow.contentid;
+                    contentId = selectedRow.contentid;
                 }
                 signPdfAndTextRun(data, fileUploadUrl, contentId);
             }
@@ -475,13 +486,14 @@ function signPdfAndText(dataViewId, refStructureId, selectedRow, fileUploadUrl) 
 
 function signPdfAndTextRun(dataForDocumentSign, fileUploadUrl, ecmContentId, callback, signX = 300, signY = 20, pageNum = 1, picBase64 = null, imgType = 2) {    
     // clear form
+    var monpassServerAddress = getConfigValue('MONPASS_SERVER');
     RemoveSignForm();
     
     //create form
     var mapForm = document.createElement("form");
     mapForm.target = "Monpass";
     mapForm.method = "POST"; // or "post" if appropriate
-    mapForm.action = dataForDocumentSign.serverAddress + "PdfSign/SignPdfAndPlantext";
+    mapForm.action = monpassServerAddress + "PdfSign/SignPdfAndPlantext"; //dataForDocumentSign.serverAddress +
     mapForm.id = "eSignForm";
     
     var mapInput = document.createElement("input");
@@ -490,6 +502,15 @@ function signPdfAndTextRun(dataForDocumentSign, fileUploadUrl, ecmContentId, cal
     mapInput.value = URL_APP + fileUploadUrl;
     mapInput.type = "hidden";
     mapForm.appendChild(mapInput);
+    
+    if (typeof dataForDocumentSign.newFileName !== 'undefined') {
+        var mapInput = document.createElement("input");
+        mapInput.type = "text";
+        mapInput.name = "NewFileName";
+        mapInput.value = dataForDocumentSign.newFileName;
+        mapInput.type = "hidden";
+        mapForm.appendChild(mapInput);
+    }
 
     var mapInput = document.createElement("input");
     mapInput.type = "text";
@@ -539,13 +560,21 @@ function signPdfAndTextRun(dataForDocumentSign, fileUploadUrl, ecmContentId, cal
         console.log(e);
         if (e.data) {
             var obj = JSON.parse(e.data);
+            console.log(obj);
             if (obj.Status !== undefined) {
                 if (obj.Status.toLowerCase() === 'success') {             
                     // ajax authentication
                     $.ajax({
                         type: 'post',
                         url: 'mdpki/fileAuthentication',
-                        data: {certificateSerialNumber: obj.CertificateSerialNumber, cyphertext: obj.Cyphertext, fileName: obj.NewFileName, plainText: obj.PlainText, ecmContentId: ecmContentId},                        
+                        data: {
+                            certificateSerialNumber: obj.CertificateSerialNumber, 
+                            cyphertext: obj.Cyphertext, 
+                            fileName: obj.NewFileName, 
+                            plainText: obj.PlainText, 
+                            filePath: dataForDocumentSign.filePath, 
+                            ecmContentId: ecmContentId
+                        },                        
                         dataType: 'json',
                         success: function(data){
 
@@ -607,11 +636,13 @@ function signPdfAndTextRun(dataForDocumentSign, fileUploadUrl, ecmContentId, cal
 }
 
 function signMultiPdf(dataForDocumentSign, inputMultiSignArr, callback) {
+    var monpassServerAddress = getConfigValue('MONPASS_SERVER');
+    
     RemoveSignForm();
     var mapForm = document.createElement("form");
     mapForm.target = "Monpass";
     mapForm.method = "POST"; // or "post" if appropriate
-    mapForm.action = dataForDocumentSign.serverAddress + "PdfSign/SignMultiPdf";
+    mapForm.action = monpassServerAddress + "PdfSign/SignMultiPdf"; //dataForDocumentSign.serverAddress +
 
     pdfMultiSignArr = [];
 
@@ -705,7 +736,10 @@ function getInformationForDocumentSign(ecmContentId, filePath) {
     $.ajax({
         type: 'post',
         url: 'mdpki/getInformationForDocumentSign',
-        data: {ecmContentId: ecmContentId, filePath: filePath},
+        data: {
+            ecmContentId: ecmContentId, 
+            filePath: filePath
+        },
         dataType: 'json',
         success: function(data){
             if(data.status === 'success'){

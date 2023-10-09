@@ -991,8 +991,9 @@ class Mdmetadata_Model extends Model {
         if ($metaTypeId == Mdmetadata::$businessProcessMetaTypeId) {
             
             $methodName = Input::post('methodName');
+            $sessionUserId = Ue::sessionUserId();
             
-            if (in_array(strtolower($methodName), Mdmetadata::$ignoreMethodNames) && Ue::sessionUserId() != '144617860666271') {
+            if (in_array(strtolower($methodName), Mdmetadata::$ignoreMethodNames) && $sessionUserId != '144617860666271' && $sessionUserId != '1453998999913') {
                 return array('status' => 'error', 'message' => 'Үүсэх боломжгүй процесс байна! Та бүтээгдэхүүн хөгжүүлэлтийн хэлтэсийн захиралд хандана уу.');
             }
         }
@@ -1795,7 +1796,7 @@ class Mdmetadata_Model extends Model {
             $methodName = Input::post('methodName');
             $oldMethodName = Input::post('oldMethodName');
             
-            if (!in_array(strtolower($oldMethodName), Mdmetadata::$ignoreMethodNames) && in_array(strtolower($methodName), Mdmetadata::$ignoreMethodNames) && $sessionUserId != '144617860666271') {
+            if (!in_array(strtolower($oldMethodName), Mdmetadata::$ignoreMethodNames) && in_array(strtolower($methodName), Mdmetadata::$ignoreMethodNames) && $sessionUserId != '144617860666271' && $sessionUserId != '1453998999913') {
                 return array('status' => 'error', 'message' => 'Засах боломжгүй процесс байна! Та бүтээгдэхүүн хөгжүүлэлтийн хэлтэсийн захиралд хандана уу.');
             }
         }

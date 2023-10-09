@@ -856,45 +856,64 @@ class Amactivity extends Controller {
         $headerData = $result['getRows']['header'];
         $detailData = $result['getRows']['detail']['rows'];
         
-        require_once(BASEPATH.LIBS."PDF/dompdf/dompdf_config.inc.php");
-        require_once(BASEPATH.LIBS."PDF/dompdf/include/autoload.inc.php");
-        require_once(BASEPATH.LIBS."PDF/dompdf/vendor/autoload.php"); 
-        
-        $html = '';
+        $htmlContent = '';
         if(!empty($detailData)) {
-            $html = '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/></head><body><table style="border-collapse: collapse">
+            $htmlContent = '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/></head><body><table style="border-collapse: collapse">
                     <thead>
                         <tr>
-                            <th style="width: 20px; border: 1px solid black;">№</th>';
+                            <th style="width: 20px; border: 1px solid black;">№</th>
+                            <th style="border: 1px solid black;">Тайлбар</th>';
                             foreach ($headerData as $k => $item) {
-                                $html .= "<th style='border: 1px solid black;'>".$item['title']."</th>";
+                                $htmlContent .= "<th style='border: 1px solid black;'>".$item['title']."</th>";
                             }                            
-                    $html .= '</tr>
+                    $htmlContent .= '</tr>
                     </thead>
                     <tbody>';
                     foreach ($detailData as $key => $value) {
-                        $html .= "<tr>";
-                        $html .= "<td style='border: 1px solid black;'>".++$key."</td>";
+                        $htmlContent .= "<tr>";
+                        $htmlContent .= "<td style='border: 1px solid black;'>".++$key."</td>";
+                        $cellValue = isset($value[$result['getRows']['freeze'][0]['field']]) ? $value[$result['getRows']['freeze'][0]['field']] : '';
+                        $cellValue = strip_tags(str_replace('#', '     ', $cellValue));                       
+                        $htmlContent .= "<td style='border: 1px solid black;'>".$cellValue."</td>";
                         foreach ($headerData as $k => $item) {
                             if(isset($value[$item['field']])) {
-                                $html .= "<td style='border: 1px solid black;'>".$value[$item['field']]."</td>";
+                                $htmlContent .= "<td style='border: 1px solid black;'>".(is_numeric($value[$item['field']]) ? sprintf('%.2f', $value[$item['field']]) : $value[$item['field']])."</td>";
                             } else
-                                $html .= "<td style='border: 1px solid black;'></td>";
+                                $htmlContent .= "<td style='border: 1px solid black;'></td>";
                         }
-                        $html .= "</tr>";              
+                        $htmlContent .= "</tr>";              
                     }
-            $html .= '</tbody>
+            $htmlContent .= '</tbody>
                 </table></body></html>';
         }        
-        $dompdf = new DOMPDF();
-        $dompdf->load_html($html);
-        $dompdf->render();
+
+        includeLib('PDF/Pdf');
         
-        header('Pragma: no-cache');
-        header('Expires: 0');
-        header('Set-Cookie: fileDownload=true; path=/');
+        $orientation        = Input::post('orientation');
+        $size               = Input::post('size');
+
+        $_POST['isSmartShrinking'] = '1';
         
-        $dompdf->stream('Төлөвлөлтийн нэгтгэл - ' . Date::currentDate('YmdHi').'.pdf');
+        $htmlContent = str_replace("\xE2\x80\x8B", '', $htmlContent);   
+        $htmlContent = preg_replace('#<script(.*?)>(.*?)</script>#is', '', $htmlContent);
+        $htmlContent = preg_replace('#<iframe(.*?)>(.*?)</iframe>#is', '', $htmlContent);
+        $htmlContent = str_replace('  ', '<span style="display: inline-block; width: 30px;"></span>', $htmlContent);
+        $htmlContent = str_replace(array('<nobr>', '</nobr>'), '', $htmlContent);
+        
+        preg_match_all('/([A-Za-zА-Яа-яӨҮөү0-9])(&nbsp;)([A-Za-zА-Яа-яӨҮөү0-9])/u', $htmlContent, $replaceMatches);
+        
+        if (isset($replaceMatches[0][0])) {
+            foreach ($replaceMatches[0] as $replaceMatch) {
+                $htmlContent = str_replace($replaceMatch, str_replace('&nbsp;', ' ', $replaceMatch), $htmlContent);
+            }
+        }
+        
+        $css = '';
+        $_POST['isIgnoreFooter'] = 1;
+        
+        $reportName       = 'Төлөвлөлтийн нэгтгэл - ' . Date::currentDate('YmdHi');
+        $pdf = Pdf::createSnappyPdf(($orientation == 'portrait' ? 'Portrait' : 'Landscape'), ($size != 'custom' ? strtoupper($size) : 'A4'));
+        Pdf::setSnappyOutput($pdf, $css . $htmlContent, $reportName);        
     }    
     
     public function amactivityduplicate() {        

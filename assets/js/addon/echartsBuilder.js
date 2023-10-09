@@ -701,7 +701,7 @@ var EchartBuilder = function() {
                 });
             });
         }
-        
+
         $mainSelector.find('textarea[name="addintionalConfig"]').val(JSON.stringify(option));
 
         if (typeof obj.isLayoutBuilder !== 'undefined' && obj.isLayoutBuilder) {
@@ -812,6 +812,24 @@ var EchartBuilder = function() {
         }
     
         console.log(option);
+        switch (type) {
+            case 'pie': 
+                break;
+            default:
+                
+                option.series.data =  [150, 230, 224, 218, 135, 147, 260];
+                option = {
+                    xAxis: {
+                        type: 'category',
+                        data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+                    },
+                    yAxis: {
+                      type: 'value'
+                    },
+                    ...option
+                }
+                break;
+        }
         if (typeof option.series !== 'undefined') {
             var series = {
                 type: type,
@@ -833,7 +851,21 @@ var EchartBuilder = function() {
 
         console.log(option);
         option && myChart.setOption(option);
-        $mainSelector.find('textarea[name="addintionalConfig"]').val(JSON.stringify(option));
+
+        if (typeof $('#' + elemId).attr('data-block-uniqid') !== 'undefined') {
+            
+            var $parentSelector = $('#' + elemId).closest('div.layout-builder-v0');
+            blockUniqId = $('#' + elemId).attr('data-block-uniqid'),
+            configrationSelector = $parentSelector.find('div.item-config[data-item-cf="'+ blockUniqId +'"]');
+            configrationSelector.find('textarea[data-path="addintionalConfig"]').val(JSON.stringify(option));
+            
+            console.log(configrationSelector.find('textarea[data-path="secNemgoo"]').val());
+
+            var secNemgoo = configrationSelector.find('textarea[data-path="secNemgoo"]').val() ? JSON.parse(configrationSelector.find('textarea[data-path="secNemgoo"]').val()) : [];
+            secNemgoo = {...secNemgoo, ...option};
+            configrationSelector.find('textarea[data-path="secNemgoo"]').val(JSON.stringify(secNemgoo));
+            
+        }
 
         if (typeof obj.isLayoutBuilder !== 'undefined' && obj.isLayoutBuilder) {
             obj.chartConfig = option;

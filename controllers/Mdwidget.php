@@ -81,7 +81,11 @@ class Mdwidget extends Controller {
             'pfprocesscommentwidget' => array(
                 'topAddRow' => true, 
                 'topAddOneRow' => false
-            )
+            ),
+            'detail_frame_paper_tree' => array(
+                'topAddRow' => false, 
+                'topAddOneRow' => false
+            )            
         );
         
         if (isset($availableWidgets[$widgetCode])) {
@@ -97,7 +101,11 @@ class Mdwidget extends Controller {
             'detail_frame_paper_001' => array(
                 'topAddRow' => true, 
                 'topAddOneRow' => true
-            )
+            ),
+            'detail_frame_paper_tree' => array(
+                'topAddRow' => true, 
+                'topAddOneRow' => false
+            ),
         );
         
         if (isset($availableWidgets[$widgetCode])) {
@@ -106,7 +114,7 @@ class Mdwidget extends Controller {
             $this->view->paramConfig = $row;
             $this->view->fillParamData = $fillParamData;
             
-            return $this->view->renderPrint('sub/' . $widgetCode, self::$viewPath);
+            return $this->view->renderPrint('sub/frame/' . $widgetCode, self::$viewPath);
         }
         
         return null;
@@ -143,7 +151,7 @@ class Mdwidget extends Controller {
         
         $widgetCode = issetParam($this->view->row['widgetCode']);
         
-        $topCustomAddRow = $bottomCustomAddRow = '';
+        $topCustomAddRow = $bottomCustomAddRow = $customLocationAddBtn = '';
         
         if ($widgetCode == 'detail_circle_photo' || $widgetCode == 'detail_colorable_tag' 
             || $widgetCode == 'detail_attachments' || $widgetCode == 'detail_attachments2' 
@@ -151,7 +159,11 @@ class Mdwidget extends Controller {
             $bottomCustomAddRow = $this->view->renderPrint('sub/addrow/' . $widgetCode, self::$viewPath);
         }
 
-        return array('topCustomAddRow' => $topCustomAddRow, 'bottomCustomAddRow' => $bottomCustomAddRow);
+        if ($widgetCode == 'detail_frame_paper_tree') {
+            $customLocationAddBtn = $this->view->renderPrint('sub/addrow/' . $widgetCode, self::$viewPath);
+        }
+
+        return array('topCustomAddRow' => $topCustomAddRow, 'bottomCustomAddRow' => $bottomCustomAddRow, 'customLocationAddBtn' => $customLocationAddBtn);
     }
     
     public function widgetDataTemplate($widgetCode) {
@@ -3771,6 +3783,7 @@ class Mdwidget extends Controller {
 
             $this->view->datasrc = $dummyData[$widgetCode]['data'];
             $this->view->positionConfig = $dummyData[$widgetCode]['positionConfig'];
+            
             if ($type === 'widget') {
                 $this->view->title = 'Widget';  
                 $this->view->css = array_unique(array_merge(array('custom/css/vr-card-menu.css'), AssetNew::metaCss()));

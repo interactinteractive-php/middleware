@@ -195,12 +195,28 @@ var Builder = function() {
                 page = layoutSelector.find('ul#page' + uniqId);
             
             $.each(grapJson, function (key, rowData) {
+                
                 if (typeof rowData['html'] !== 'undefined' && rowData['html']) {
                     page.find('div[data-block-uniqid="'+ key +'"]').append(rowData['html']);
                 }
                 
                 if (typeof rowData['widgetId'] !== 'undefined' && rowData['widgetId']) {
                     page.find('div[data-block-uniqid="'+ key +'"]').append('<iframe src="'+URL_APP + 'mdwidget/playWidgetStandart/' + rowData['widgetId'] +'/widget" scrolling="no" style="height: 100%; width: 100%;" frameborder="0"><iframe>');
+                }
+
+                switch (rowData['blockType']) {
+                    case 'chart':
+                        layoutSelector.find('div[data-block-uniqid="'+ key +'"]').append('<div id="itemDragin-'+key +'" class="row w-100 h-100"></div>').promise().done(function () {
+                            var chartOption = JSON.parse(rowData['addintionalConfig']);
+                            var chartDom = document.getElementById(chartOption['elemId']);
+                            echarts.dispose(chartDom);
+                            var myChart = echarts.init(chartDom);
+                            chartOption && myChart.setOption(chartOption);
+                        });
+                        break;
+                
+                    default:
+                        break;
                 }
             });
         }

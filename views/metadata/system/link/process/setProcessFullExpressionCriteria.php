@@ -50,9 +50,15 @@
                 <li class="nav-item">
                     <a href="#set-fullexp-tab6" class="nav-link" data-toggle="tab">After Save</a>
                 </li>
+                <?php
+                if (!isset($this->ignoreCacheForm)) {
+                ?>
                 <li class="nav-item">
                     <a href="#set-fullexp-tab7" class="nav-link" data-toggle="tab">Cache</a>
                 </li>
+                <?php
+                }
+                ?>
             </ul>
             <div class="tab-content pb0">
                 <?php
@@ -201,9 +207,15 @@
                         </div>
                     </div>
                 </div>
+                <?php
+                if (!isset($this->ignoreCacheForm)) {
+                ?>
                 <div class="tab-pane" id="set-fullexp-tab7">
                     <?php echo $this->cacheExpressionForm; ?>
                 </div>
+                <?php
+                }
+                ?>
             </div>
         </div>
     </div>

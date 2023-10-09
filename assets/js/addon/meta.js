@@ -4785,7 +4785,7 @@ function checkSubProportion(windowId) {
     }
     return array;
 }
-function bpFullExpression(metaDataId) {
+function bpFullExpression(metaDataId, isTempSave) {
     var $dialogName = 'dialog-fullExpcriteria-' + metaDataId;
     if (!$("#" + $dialogName).length) {
         $('<div id="' + $dialogName + '"></div>').appendTo('body');
@@ -4794,8 +4794,8 @@ function bpFullExpression(metaDataId) {
 
     $.ajax({
         type: 'post',
-        url: 'mdmeta/setProcessFullExpressionCriteria',
-        data: { metaDataId: metaDataId },
+        url: isTempSave ? 'mdmeta/tempProcessFullExpressionForm' : 'mdmeta/setProcessFullExpressionCriteria',
+        data: {metaDataId: metaDataId},
         dataType: 'json',
         beforeSend: function() {
             Core.blockUI({message: 'Loading...', boxed: true});
@@ -4804,6 +4804,166 @@ function bpFullExpression(metaDataId) {
             $.cachedScript('assets/custom/addon/plugins/codemirror/lib/codemirror.min.js').done(function() {
                 if ($("link[href='assets/custom/addon/plugins/codemirror/lib/codemirror.v1.css']").length == 0) {
                     $("head").append('<link rel="stylesheet" type="text/css" href="assets/custom/addon/plugins/codemirror/lib/codemirror.v1.css"/>');
+                }
+                
+                var buttons = [{
+                        text: data.create_version_btn,
+                        class: 'btn btn-sm green-meadow',
+                        click: function() {
+
+                            var $subDialogName = 'dialog-fullexp-sub-' + getUniqueId(1);
+                            if (!$("#" + $subDialogName).length) {
+                                $('<div id="' + $subDialogName + '"></div>').appendTo('body');
+                            }
+                            var $subDialog = $("#" + $subDialogName);
+
+                            $.ajax({
+                                type: 'post',
+                                url: 'mdmeta/fullExpNewVersion',
+                                dataType: 'json',
+                                beforeSend: function() {
+                                    Core.blockUI({message: 'Loading...', boxed: true});
+                                },
+                                success: function(dataSub) {
+                                    $subDialog.empty().append(dataSub.html);
+                                    $subDialog.dialog({
+                                        cache: false,
+                                        resizable: true,
+                                        bgiframe: true,
+                                        autoOpen: false,
+                                        title: dataSub.title,
+                                        width: 550,
+                                        height: 'auto',
+                                        modal: true,
+                                        close: function() {
+                                            $subDialog.empty().dialog('destroy').remove();
+                                        },
+                                        buttons: [{
+                                                text: dataSub.save_btn,
+                                                class: 'btn green-meadow btn-sm',
+                                                click: function() {
+
+                                                    $("#new-version-form").validate({ errorPlacement: function() {} });
+
+                                                    if ($("#new-version-form").valid()) {
+
+                                                        fullExpressionEditor.save();
+                                                        fullExpressionOpenEditor.save();
+                                                        fullExpressionVarFncEditor.save();
+                                                        fullExpressionSaveEditor.save();
+                                                        fullExpressionAfterSaveEditor.save();
+
+                                                        $.ajax({
+                                                            type: 'post',
+                                                            url: 'mdmeta/saveNewVersionFullExpression',
+                                                            dataType: 'json',
+                                                            data: $dialog.find("form#fullExpression-form").serialize() + '&' + $subDialog.find("form#new-version-form").serialize(),
+                                                            beforeSend: function() {
+                                                                Core.blockUI({animate: true});
+                                                            },
+                                                            success: function(data) {
+                                                                PNotify.removeAll();
+                                                                if (data.status === 'success') {
+                                                                    new PNotify({
+                                                                        title: 'Success',
+                                                                        text: data.message,
+                                                                        type: 'success',
+                                                                        sticker: false
+                                                                    });
+                                                                    $subDialog.dialog('close');
+                                                                } else {
+                                                                    if (data.status === 'locked') {
+                                                                        lockedRequestMeta(data);
+                                                                    } else {
+                                                                        new PNotify({
+                                                                            title: 'Error',
+                                                                            text: data.message,
+                                                                            type: 'error',
+                                                                            sticker: false
+                                                                        });
+                                                                    }
+                                                                }
+                                                                Core.unblockUI();
+                                                            }
+                                                        });
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                text: dataSub.close_btn,
+                                                class: 'btn blue-hoki btn-sm',
+                                                click: function() {
+                                                    $subDialog.dialog('close');
+                                                }
+                                            }
+                                        ]
+                                    });
+                                    $subDialog.dialog('open');
+
+                                    Core.unblockUI();
+                                }
+                            }).done(function() {
+                                Core.initAjax($subDialog);
+                            });
+                        }
+                    },
+                    {
+                        text: data.save_btn,
+                        class: 'btn btn-sm green bp-btn-subsave',
+                        click: function() {
+
+                            fullExpressionEditor.save();
+                            fullExpressionOpenEditor.save();
+                            fullExpressionVarFncEditor.save();
+                            fullExpressionSaveEditor.save();
+                            fullExpressionAfterSaveEditor.save();
+
+                            $.ajax({
+                                type: 'post',
+                                url: isTempSave ? 'mdmeta/tempSaveFullExpression' : 'mdmeta/saveFullExpression',
+                                dataType: 'json',
+                                data: $dialog.find("form#fullExpression-form").serialize(),
+                                beforeSend: function() {
+                                    Core.blockUI({animate: true});
+                                },
+                                success: function(data) {
+                                    PNotify.removeAll();
+                                    if (data.status === 'success') {
+                                        new PNotify({
+                                            title: 'Success',
+                                            text: data.message,
+                                            type: 'success',
+                                            sticker: false
+                                        });
+                                        $dialog.dialog('close');
+                                    } else {
+                                        if (data.status === 'locked') {
+                                            lockedRequestMeta(data);
+                                        } else {
+                                            new PNotify({
+                                                title: 'Error',
+                                                text: data.message,
+                                                type: 'error',
+                                                sticker: false
+                                            });
+                                        }
+                                    }
+                                    Core.unblockUI();
+                                }
+                            });
+                        }
+                    },
+                    {
+                        text: data.close_btn,
+                        class: 'btn btn-sm blue-hoki',
+                        click: function() {
+                            $dialog.dialog('close');
+                        }
+                    }
+                ];
+                
+                if (isTempSave) {
+                    buttons.shift();
                 }
                     
                 $dialog.empty().append('<form id="fullExpression-form" method="post">' + data.Html + '</form>');
@@ -4820,161 +4980,7 @@ function bpFullExpression(metaDataId) {
                     close: function() {
                         $dialog.empty().dialog('destroy').remove();
                     },
-                    buttons: [{
-                            text: data.create_version_btn,
-                            class: 'btn btn-sm green-meadow',
-                            click: function() {
-
-                                var $subDialogName = 'dialog-fullexp-sub-' + getUniqueId(1);
-                                if (!$("#" + $subDialogName).length) {
-                                    $('<div id="' + $subDialogName + '"></div>').appendTo('body');
-                                }
-                                var $subDialog = $("#" + $subDialogName);
-
-                                $.ajax({
-                                    type: 'post',
-                                    url: 'mdmeta/fullExpNewVersion',
-                                    dataType: 'json',
-                                    beforeSend: function() {
-                                        Core.blockUI({message: 'Loading...', boxed: true});
-                                    },
-                                    success: function(dataSub) {
-                                        $subDialog.empty().append(dataSub.html);
-                                        $subDialog.dialog({
-                                            cache: false,
-                                            resizable: true,
-                                            bgiframe: true,
-                                            autoOpen: false,
-                                            title: dataSub.title,
-                                            width: 550,
-                                            height: 'auto',
-                                            modal: true,
-                                            close: function() {
-                                                $subDialog.empty().dialog('destroy').remove();
-                                            },
-                                            buttons: [{
-                                                    text: dataSub.save_btn,
-                                                    class: 'btn green-meadow btn-sm',
-                                                    click: function() {
-
-                                                        $("#new-version-form").validate({ errorPlacement: function() {} });
-
-                                                        if ($("#new-version-form").valid()) {
-
-                                                            fullExpressionEditor.save();
-                                                            fullExpressionOpenEditor.save();
-                                                            fullExpressionVarFncEditor.save();
-                                                            fullExpressionSaveEditor.save();
-                                                            fullExpressionAfterSaveEditor.save();
-
-                                                            $.ajax({
-                                                                type: 'post',
-                                                                url: 'mdmeta/saveNewVersionFullExpression',
-                                                                dataType: 'json',
-                                                                data: $dialog.find("form#fullExpression-form").serialize() + '&' + $subDialog.find("form#new-version-form").serialize(),
-                                                                beforeSend: function() {
-                                                                    Core.blockUI({animate: true});
-                                                                },
-                                                                success: function(data) {
-                                                                    PNotify.removeAll();
-                                                                    if (data.status === 'success') {
-                                                                        new PNotify({
-                                                                            title: 'Success',
-                                                                            text: data.message,
-                                                                            type: 'success',
-                                                                            sticker: false
-                                                                        });
-                                                                        $subDialog.dialog('close');
-                                                                    } else {
-                                                                        if (data.status === 'locked') {
-                                                                            lockedRequestMeta(data);
-                                                                        } else {
-                                                                            new PNotify({
-                                                                                title: 'Error',
-                                                                                text: data.message,
-                                                                                type: 'error',
-                                                                                sticker: false
-                                                                            });
-                                                                        }
-                                                                    }
-                                                                    Core.unblockUI();
-                                                                }
-                                                            });
-                                                        }
-                                                    }
-                                                },
-                                                {
-                                                    text: dataSub.close_btn,
-                                                    class: 'btn blue-hoki btn-sm',
-                                                    click: function() {
-                                                        $subDialog.dialog('close');
-                                                    }
-                                                }
-                                            ]
-                                        });
-                                        $subDialog.dialog('open');
-
-                                        Core.unblockUI();
-                                    }
-                                }).done(function() {
-                                    Core.initAjax($subDialog);
-                                });
-                            }
-                        },
-                        {
-                            text: data.save_btn,
-                            class: 'btn btn-sm green bp-btn-subsave',
-                            click: function() {
-
-                                fullExpressionEditor.save();
-                                fullExpressionOpenEditor.save();
-                                fullExpressionVarFncEditor.save();
-                                fullExpressionSaveEditor.save();
-                                fullExpressionAfterSaveEditor.save();
-
-                                $.ajax({
-                                    type: 'post',
-                                    url: 'mdmeta/saveFullExpression',
-                                    dataType: 'json',
-                                    data: $dialog.find("form#fullExpression-form").serialize(),
-                                    beforeSend: function() {
-                                        Core.blockUI({animate: true});
-                                    },
-                                    success: function(data) {
-                                        PNotify.removeAll();
-                                        if (data.status === 'success') {
-                                            new PNotify({
-                                                title: 'Success',
-                                                text: data.message,
-                                                type: 'success',
-                                                sticker: false
-                                            });
-                                            $dialog.dialog('close');
-                                        } else {
-                                            if (data.status === 'locked') {
-                                                lockedRequestMeta(data);
-                                            } else {
-                                                new PNotify({
-                                                    title: 'Error',
-                                                    text: data.message,
-                                                    type: 'error',
-                                                    sticker: false
-                                                });
-                                            }
-                                        }
-                                        Core.unblockUI();
-                                    }
-                                });
-                            }
-                        },
-                        {
-                            text: data.close_btn,
-                            class: 'btn btn-sm blue-hoki',
-                            click: function() {
-                                $dialog.dialog('close');
-                            }
-                        }
-                    ]
+                    buttons: buttons
                 }).dialogExtend({
                     "closable": true,
                     "maximizable": true,
@@ -5052,7 +5058,7 @@ function bpFullExpressionCP(metaDataId) {
 
             } else {
                 Core.unblockUI();
-                bpFullExpression(metaDataId);
+                bpFullExpression(metaDataId, false);
             }
         },
         error: function() { alert('Error'); }
@@ -8060,7 +8066,7 @@ $(function() {
                         if (fiscalStartDate.getTime() < fiscalEndDate.getTime()) {
                             $thisFFStartDate.datepicker('update', responseStartDate);
 
-                            var parentContainer = $thisFFStartDate.closest('.main-dataview-container:visible');
+                            var parentContainer = $thisFFStartDate.closest('.main-dataview-container:visible, .pack_default_criteria:visible');
                             if (parentContainer.length) {
                                 $dvElementBtns = $dvElementBtns.add(parentContainer.find('.dataview-default-filter-btn:eq(0)'));
                             }
@@ -8085,7 +8091,7 @@ $(function() {
                             
                             $thisFFEndDate.datepicker('update', responseEndDate);
 
-                            var parentContainer = $thisFFEndDate.closest('.main-dataview-container:visible');
+                            var parentContainer = $thisFFEndDate.closest('.main-dataview-container:visible, .pack_default_criteria:visible');
                             if (parentContainer.length) {
                                 $dvElementBtns = $dvElementBtns.add(parentContainer.find('.dataview-default-filter-btn:eq(0)'));
                             }
@@ -8408,6 +8414,10 @@ $(function() {
             var fncArguments = [$processElement.attr('data-process-id'), $processElement.attr('data-meta-type')];
             checkUrlAuthLoginByFnc('isLockMeta', fncArguments);
         }
+    });
+    $(document).bind('keydown', 'Ctrl+Shift+f1', function() {
+        checkUrlAuthLoginByFnc('tempBpFullExpressionSave');
+        clearConsole();
     });
     
     $(document.body).on("keydown", 'input.md-code-autocomplete', function(e) {
@@ -9408,4 +9418,13 @@ function mvFlowChartExecuteInit(elem, url, indicatorId) {
     } else {
         mvFlowChartExecute(elem, url, indicatorId);
     } 
+}
+function tempBpFullExpressionSave() {
+    if ($('.shift-p-ignore:visible').length == 0 && $('body').find("div[id*='bp-window-']").length > 0 && $('body').find("div[id*='bp-window-']").is(':visible')) {
+
+        PNotify.removeAll();
+
+        var $processElement = $('body').find("div[id*='bp-window-']:visible");
+        bpFullExpression($processElement.attr('data-process-id'), true);
+    }
 }

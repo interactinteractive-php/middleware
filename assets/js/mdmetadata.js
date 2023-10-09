@@ -3320,13 +3320,22 @@ function urlRedirectByDataView(elem, processMetaDataId, url, target, dataViewId,
                 kpiIndicatorExcelImport(elem, processMetaDataId, dataViewId, selectedRow, paramData);
             } 
             return;
+        } else if (urlLower == 'mvstructureexcelimport') {
+            if (typeof isKpiIndicatorScript === 'undefined') {
+                $.getScript('middleware/assets/js/addon/indicator.js').done(function() {
+                    createMvStructureFromFileInit(elem, processMetaDataId, dataViewId, selectedRow, paramData);
+                });
+            } else {
+                createMvStructureFromFileInit(elem, processMetaDataId, dataViewId, selectedRow, paramData);
+            } 
+            return;
         } else if (urlLower == 'createmvstructurefromfile') {
             if (typeof isKpiIndicatorScript === 'undefined') {
                 $.getScript('middleware/assets/js/addon/indicator.js').done(function() {
-                    createMvStructureFromFile(elem, dataViewId);
+                    createMvStructureFromFile(elem, dataViewId, false);
                 });
             } else {
-                createMvStructureFromFile(elem, dataViewId);
+                createMvStructureFromFile(elem, dataViewId, false);
             } 
             return;
         } else if (urlLower == 'downloadfile') {
@@ -11387,7 +11396,7 @@ function runBusinessProcessGetDataWithDataView(dataGrid, mainMetaDataId, process
 
     if (typeof row !== 'undefined' && (typeof dataviewUniqid === 'undefined' || dataviewUniqid == '' || dataviewUniqid == null)) {
         if (row !== '' && typeof row === 'string') {
-            rows = JSON.parse(decodeURIComponent(row));
+            rows = JSON.parse((decodeURIComponent(row)).replace(/(\r\n|\n|\r)/gm, ' '));
         } else {
             rows = row;
         }
@@ -16917,7 +16926,8 @@ function gridDrillDownLink(elem, metaDataCode, metaTypeCode, clinkMetaData, crit
                     drillDownDefaultCriteria: drillDownDefaultCriteria,
                     addonJsonParam: JSON.stringify(mandatoryCriteriaParams),
                     uriParams: JSON.stringify(mandatoryCriteriaParams),
-                    rowData: (!isElemRowData) ? getDataViewSelectedRowByIndex(metaDataId) : rows[0]
+                    rowData: (!isElemRowData) ? getDataViewSelectedRowByIndex(metaDataId) : rows[0], 
+                    runSrcMetaId: metaDataId
                 };
                 
                 if (typeof isNewTab !== 'undefined' && (isNewTab === true || isNewTab == 'newrender')) {
@@ -17803,7 +17813,7 @@ function beforeSignChangeWfmStatusId(elem, wfmStatusId, metaDataId, refStructure
                             contentId = row.contentid;
                         }
                         
-                        hardSign(URL_APP + row.physicalpath, contentId, URL_APP + 'mddoceditor/fileUpload', 'changeWfmStatusId', funcArguments);
+                        hardSign(URL_APP + row.physicalpath, contentId, URL_APP + 'mddoceditor/fileUpload', 'changeWfmStatusId', funcArguments, row);
                     } else {
                         callSign(responseData.hash, responseData.guid, elem, 'changeWfmStatusId', funcArguments);
                     }
@@ -17874,7 +17884,6 @@ function beforeHardSignChangeWfmStatusId(elem, wfmStatusId, metaDataId, refStruc
                                         data: {filePath: pdfPath},
                                         dataType: 'json',
                                         success: function (data) {
-                                            console.log(data);
                                             signPdfAndTextRun(data, pdfPath, contentId, function (t) {
                                                 if (t.status === 'success') {
                                                     setTimeout(function(){ window[funcName].apply(null, funcArguments); }, 2000);

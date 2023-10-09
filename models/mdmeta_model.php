@@ -3653,7 +3653,7 @@ class Mdmeta_Model extends Model {
         
         $this->load->model('mdmetadata', 'middleware/models/');
         
-        $metaDataId = Input::post('bpExpKeyMetaId');
+        $metaDataId = Input::numeric('bpExpKeyMetaId');
         $checkLock = $this->model->checkMetaLock($metaDataId);
 
         if ($checkLock) {
@@ -3736,7 +3736,7 @@ class Mdmeta_Model extends Model {
 
                 return array('status' => 'success', 'message' => Lang::line('msg_save_success'));
 
-            } catch (ADODB_Exception $ex) {
+            } catch (Exception $ex) {
                 return array('status' => 'error', 'message' => $ex->getMessage());
             }
 
@@ -3816,7 +3816,7 @@ class Mdmeta_Model extends Model {
 
                 return array('status' => 'success', 'message' => Lang::line('msg_save_success'));
 
-            } catch (ADODB_Exception $ex) {
+            } catch (Exception $ex) {
                 return array('status' => 'error', 'message' => $ex->getMessage());
             }
         }
@@ -4066,6 +4066,52 @@ class Mdmeta_Model extends Model {
         }
 
         return array('status' => 'error', 'message' => Lang::line('msg_save_error'));
+    }
+    
+    public function tempSaveFullExpressionModel() {
+        
+        try {
+            
+            $sessionId = Ue::appUserSessionId();
+            $metaDataId = Input::numeric('bpExpKeyMetaId');
+            
+            $eventExp = Input::paramWithDoubleSpace($_POST['fullExpressionString_set']); 
+            $withoutEventExp = Input::paramWithDoubleSpace($_POST['fullExpressionOpenCriteria_set']); 
+            $varFncExp = Input::paramWithDoubleSpace($_POST['fullExpressionStringVarFnc_set']);
+            $beforeSaveExp = Input::paramWithDoubleSpace($_POST['fullExpressionStringSave_set']);
+            $afterSaveExp = Input::paramWithDoubleSpace($_POST['fullExpressionStringAfterSave_set']);
+            
+            $cache = phpFastCache();
+            $fullExp = new Mdexpression();
+            
+            $cache->set('bp_'.$metaDataId.'_ExpVarFnc_'.$sessionId, $varFncExp, Mdwebservice::$expressionCacheTime);
+            $cache->set('bp_'.$metaDataId.'_ExpEvent_'.$sessionId, $eventExp, Mdwebservice::$expressionCacheTime);
+            $cache->set('bp_'.$metaDataId.'_ExpLoad_'.$sessionId, $withoutEventExp, Mdwebservice::$expressionCacheTime);
+            $cache->set('bp_'.$metaDataId.'_ExpBeforeSave_'.$sessionId, $beforeSaveExp, Mdwebservice::$expressionCacheTime);
+            $cache->set('bp_'.$metaDataId.'_ExpAfterSave_'.$sessionId, $afterSaveExp, Mdwebservice::$expressionCacheTime);
+            
+            $bpFullScriptsVarFnc = $fullExp->fullExpressionConvertWithoutEvent($varFncExp, $metaDataId, '', true);
+            $cache->set('bp_'.$metaDataId.'_ExpVarFncRun_'.$sessionId, $bpFullScriptsVarFnc, Mdwebservice::$expressionCacheTime);
+
+            $bpFullScriptsEvent = $fullExp->fullExpressionConvertEvent($eventExp, $metaDataId, '');
+            $cache->set('bp_'.$metaDataId.'_ExpEventRun_'.$sessionId, $bpFullScriptsEvent, Mdwebservice::$expressionCacheTime);
+
+            $bpFullScriptsWithoutEvent = $fullExp->fullExpressionConvertWithoutEvent($withoutEventExp, $metaDataId, '', false);
+            $cache->set('bp_'.$metaDataId.'_ExpLoadRun_'.$sessionId, $bpFullScriptsWithoutEvent, Mdwebservice::$expressionCacheTime);
+
+            $bpFullScriptsBeforeSave = $fullExp->fullExpressionConvertWithoutEvent($beforeSaveExp, $metaDataId, '', false, 'before_save');
+            $cache->set('bp_'.$metaDataId.'_ExpBeforeSaveRun_'.$sessionId, $bpFullScriptsBeforeSave, Mdwebservice::$expressionCacheTime);
+            
+            $bpFullScriptsAfterSave = $fullExp->fullExpressionConvertWithoutEvent($afterSaveExp, $metaDataId, '', false, 'before_save');
+            $cache->set('bp_'.$metaDataId.'_ExpAfterSaveRun_'.$sessionId, $bpFullScriptsAfterSave, Mdwebservice::$expressionCacheTime);
+            
+            $result = array('status' => 'success', 'message' => Lang::line('msg_save_success'));
+            
+        } catch (Exception $ex) {
+            $result = array('status' => 'error', 'message' => $ex->getMessage());
+        }
+        
+        return $result;
     }
 
     public function deleteBpFullExpressionVersionModel() {
@@ -4462,55 +4508,51 @@ class Mdmeta_Model extends Model {
     }
 
     public function getWhLocationPhotoModel($id) {
-        $r = $this->db->GetRow("
-            SELECT WH.PARENT_ID
-            FROM WH_LOCATION WH
-            WHERE WH.LOCATION_ID = $id"
-        );                   
+        
+        if ($id && is_numeric($id)) {
+            
+            $r = $this->db->GetRow("
+                SELECT WH.PARENT_ID
+                FROM WH_LOCATION WH
+                WHERE WH.LOCATION_ID = $id"
+            );                   
 
-        if ($r) {
-            if (empty($r['PARENT_ID'])) 
-                $rr = false;
-            else
-                $rr = $this->db->GetRow("
-                    SELECT FA.ATTACH, WH.PARENT_ID
-                    FROM WH_LOCATION WH
-                    INNER JOIN WH_LOCATION_IMAGE WHI ON WHI.LOCATION_ID = WH.LOCATION_ID
-                    INNER JOIN FILE_ATTACH FA ON FA.ATTACH_ID = WHI.ATTACH_ID
-                    WHERE WH.LOCATION_ID = " . $r['PARENT_ID']);
+            if ($r) {
+                if (empty($r['PARENT_ID'])) 
+                    $rr = false;
+                else
+                    $rr = $this->db->GetRow("
+                        SELECT FA.ATTACH, WH.PARENT_ID
+                        FROM WH_LOCATION WH
+                        INNER JOIN WH_LOCATION_IMAGE WHI ON WHI.LOCATION_ID = WH.LOCATION_ID
+                        INNER JOIN FILE_ATTACH FA ON FA.ATTACH_ID = WHI.ATTACH_ID
+                        WHERE WH.LOCATION_ID = " . $r['PARENT_ID']);
 
-            if ($rr) {
-                
-                $childRegions = $this->db->GetAll("
-                    SELECT WH.REGION 
-                    FROM WH_LOCATION WH       
-                    WHERE WH.PARENT_ID = ".$r['PARENT_ID']." AND WH.LOCATION_ID != $id"
-                );       
-                
-                return array(
-                    'url' => $rr['ATTACH'],
-                    'region' => $childRegions 
-                );
+                if ($rr) {
 
-            } else {
-                $r = $this->db->GetRow("
-                    SELECT FA.ATTACH, WH.PARENT_ID 
-                    FROM WH_LOCATION WH
-                    INNER JOIN WH_LOCATION_IMAGE WHI ON WHI.LOCATION_ID = WH.LOCATION_ID
-                    INNER JOIN FILE_ATTACH FA ON FA.ATTACH_ID = WHI.ATTACH_ID
-                    WHERE WH.LOCATION_ID = $id"
-                );
+                    $childRegions = $this->db->GetAll("
+                        SELECT WH.REGION 
+                        FROM WH_LOCATION WH       
+                        WHERE WH.PARENT_ID = ".$r['PARENT_ID']." AND WH.LOCATION_ID != $id"
+                    );       
 
-                return array(
-                    'url' => issetVar($r['ATTACH']),
-                    'region' => ''
-                );
+                    return array('url' => $rr['ATTACH'], 'region' => $childRegions);
+
+                } else {
+                    $r = $this->db->GetRow("
+                        SELECT FA.ATTACH, WH.PARENT_ID 
+                        FROM WH_LOCATION WH
+                        INNER JOIN WH_LOCATION_IMAGE WHI ON WHI.LOCATION_ID = WH.LOCATION_ID
+                        INNER JOIN FILE_ATTACH FA ON FA.ATTACH_ID = WHI.ATTACH_ID
+                        WHERE WH.LOCATION_ID = $id"
+                    );
+
+                    return array('url' => issetVar($r['ATTACH']), 'region' => '');
+                }
             }
         }
-        return array(
-            'url' => '',
-            'region' => ''
-        );
+        
+        return array('url' => '', 'region' => '');
     }     
 
     public function getWhLocationPhotoModel2($id = null, $deviceId = null) {
@@ -4543,48 +4585,47 @@ class Mdmeta_Model extends Model {
     }     
 
     public function getWhLocationPhotoModel3($id) {
-        $r = $this->db->GetRow("
-            SELECT FA.ATTACH
-            FROM WH_LOCATION WH
-            INNER JOIN WH_LOCATION_IMAGE WHI ON WHI.LOCATION_ID = WH.LOCATION_ID
-            INNER JOIN FILE_ATTACH FA ON FA.ATTACH_ID = WHI.ATTACH_ID
-            WHERE WH.WAREHOUSE_ID = $id AND WH.PARENT_ID IS NULL
-            ORDER BY WH.CREATED_DATE"
-        );      
+        
+        if ($id && is_numeric($id)) {
+            $r = $this->db->GetRow("
+                SELECT FA.ATTACH
+                FROM WH_LOCATION WH
+                INNER JOIN WH_LOCATION_IMAGE WHI ON WHI.LOCATION_ID = WH.LOCATION_ID
+                INNER JOIN FILE_ATTACH FA ON FA.ATTACH_ID = WHI.ATTACH_ID
+                WHERE WH.WAREHOUSE_ID = $id AND WH.PARENT_ID IS NULL
+                ORDER BY WH.CREATED_DATE"
+            );      
 
-        if($r) {
-            $rrr = array();
-            $childRegions = $this->db->GetAll("
-               SELECT WHD.COORDINATE as REGION, '' AS LOCATIONID, '' AS LOCATIONNAME, IO.CODE AS LOCATIONCODE, '' AS ITEMKEYID, '' AS OBJECTPHOTO
-               FROM IO_DEVICE IO
-               INNER JOIN WH_LOCATION_DEVICE WHD ON WHD.DEVICE_ID = IO.ID
-               WHERE WHD.WAREHOUSE_ID = $id AND WHD.COORDINATE IS NOT NULL"
-            );
-            foreach($childRegions as $row) {
-                array_push($rrr, array(
-                    'REGION' => $row['REGION'],
-                    'LOCATION_ID' => $row['LOCATIONID'],
-                    'LOCATION_NAME' => $row['LOCATIONNAME'],
-                    'LOCATION_CODE' => $row['LOCATIONCODE'],
-                    'ITEM_KEY_ID' => $row['ITEMKEYID'],
-                    'PHOTO' => $row['OBJECTPHOTO'],
-                ));
+            if ($r) {
+                $rrr = array();
+                $childRegions = $this->db->GetAll("
+                   SELECT WHD.COORDINATE as REGION, '' AS LOCATIONID, '' AS LOCATIONNAME, IO.CODE AS LOCATIONCODE, '' AS ITEMKEYID, '' AS OBJECTPHOTO
+                   FROM IO_DEVICE IO
+                   INNER JOIN WH_LOCATION_DEVICE WHD ON WHD.DEVICE_ID = IO.ID
+                   WHERE WHD.WAREHOUSE_ID = $id AND WHD.COORDINATE IS NOT NULL"
+                );
+                foreach($childRegions as $row) {
+                    array_push($rrr, array(
+                        'REGION' => $row['REGION'],
+                        'LOCATION_ID' => $row['LOCATIONID'],
+                        'LOCATION_NAME' => $row['LOCATIONNAME'],
+                        'LOCATION_CODE' => $row['LOCATIONCODE'],
+                        'ITEM_KEY_ID' => $row['ITEMKEYID'],
+                        'PHOTO' => $row['OBJECTPHOTO'],
+                    ));
+                }
+
+                return array('url' => $r['ATTACH'], 'region' => $rrr);
             }
-
-            return array(
-                'url' => $r['ATTACH'],
-                'region' => $rrr
-            );
         }
-        return array(
-            'url' => '',
-            'region' => ''
-        );
+        
+        return array('url' => '', 'region' => '');
     }     
 
     public function getWhLocationPhotoViewReferenceModel($id) {
         
-        if ($id) {
+        if ($id && is_numeric($id)) {
+            
             $r = $this->db->GetAll("
                 SELECT 
                     WH.REGION, 

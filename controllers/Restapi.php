@@ -290,6 +290,7 @@ class Restapi extends Controller {
                                 $this->load->model('mdform', 'middleware/models/');
                                 
                                 $_POST['indicatorId'] = $kpiMainIndicatorId;
+                                $_POST['crudIndicatorId'] = issetVar($parameters['crudIndicatorId']);
                                 $_POST['selectedRows'] = Arr::changeKeyUpper($selectedRows);
                                 
                                 $response = $this->model->removeKpiDynamicDataModel();

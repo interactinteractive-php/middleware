@@ -2978,6 +2978,7 @@ class Mdwebservice_Model extends Model {
                 PAL.IS_SHOW_DELETE, 
                 PAL.IS_SHOW_MULTIPLE, 
                 PAL.DTL_THEME, 
+                PAL.JSON_CONFIG,
                 MW.CODE AS WIDGET_CODE 
             FROM META_PROCESS_PARAM_ATTR_LINK PAL 
                 LEFT JOIN META_WIDGET MW ON MW.ID = PAL.DTL_THEME 
@@ -4453,15 +4454,15 @@ class Mdwebservice_Model extends Model {
 
                 $isEmpty = false;
                 $paramCriteria = array();
-
+                
                 foreach ($postData['paramData'] as $inputField) {
                     if ($inputField['value'] != '') {
                         $paramCriteria[$inputField['inputPath']][] = array(
                             'operator' => '=',
-                            'operand' => $inputField['value']
+                            'operand' => is_array($inputField['value']) ? Arr::implode_r(',', $inputField['value'], true) : $inputField['value']
                         );
                         $isEmpty = true;
-                    }
+                    } 
                 }
 
                 if ($isEmpty) {
@@ -6371,44 +6372,55 @@ class Mdwebservice_Model extends Model {
     }
     
     public function getChildBpFileFolderModel() {
-        $postData = Input::postData();
-        $folderData = $this->db->GetAll("SELECT ID, NAME FROM ECM_DIRECTORY WHERE PARENT_ID = '". Input::post('id') ."'");
-        $itemList = array();
         
-        if (issetParam($postData['sourceId']) !== '') {
-            $itemList = $this->db->GetAll("SELECT 
-                                                CO.CONTENT_ID AS ATTACH_ID, 
-                                                CO.FILE_NAME AS ATTACH_NAME, 
-                                                CO.PHYSICAL_PATH AS ATTACH, 
-                                                CO.THUMB_PHYSICAL_PATH AS ATTACH_THUMB, 
-                                                CO.FILE_EXTENSION, 
-                                                CO.FILE_SIZE,
-                                                CO.IS_EMAIL,
-                                                '' AS SYSTEM_URL, 
-                                                '' AS TRG_TAG_ID,
-                                                '' AS TRG_TAG_IDC,
-                                                MP.IS_MAIN,
-                                                T0.FOLDER_NAME,
-                                                T0.FOLDER_ID
-                                            FROM ECM_CONTENT CO 
-                                                INNER JOIN ECM_CONTENT_MAP MP ON MP.CONTENT_ID = CO.CONTENT_ID 
-                                                INNER JOIN (
-                                                    SELECT 
-                                                        DISTINCT
-                                                        T2.NAME AS FOLDER_NAME,
-                                                        T2.ID AS FOLDER_ID,
-                                                        T2.PARENT_ID,
-                                                        T1.CONTENT_ID
-                                                    FROM ECM_DIRECTORY_MAP T0 
-                                                    INNER JOIN ECM_CONTENT_DIRECTORY T1 ON T0.DIRECTORY_ID = T1.DIRECTORY_ID
-                                                    INNER JOIN ECM_DIRECTORY T2 ON T1.DIRECTORY_ID = T2.ID
-                                                    WHERE T0.RECORD_ID = '". $postData['sourceId'] ."'   AND T0.REF_STRUCTURE_ID = '". $postData['refStructureId'] ."'  
-                                                ) T0 ON CO.CONTENT_ID = T0.CONTENT_ID
-                                            WHERE MP.REF_STRUCTURE_ID = '". $postData['refStructureId'] ."'    
-                                                AND MP.RECORD_ID = '". $postData['sourceId'] ."'  
-                                                AND t0.FOLDER_ID = '". $postData['id'] ."'  
-                                                AND IS_PHOTO = 1");
-        }
+        $folderData = $itemList = array();
+        
+        try {
+            
+            $id = Input::numeric('id');
+            $folderData = $this->db->GetAll("SELECT ID, NAME FROM ECM_DIRECTORY WHERE PARENT_ID = ".$this->db->Param(0), array($id));
+
+            if ($sourceId = Input::numeric('sourceId')) {
+                
+                $refStructureId = Input::numeric('refStructureId');
+                
+                $itemList = $this->db->GetAll("
+                    SELECT 
+                        CO.CONTENT_ID AS ATTACH_ID, 
+                        CO.FILE_NAME AS ATTACH_NAME, 
+                        CO.PHYSICAL_PATH AS ATTACH, 
+                        CO.THUMB_PHYSICAL_PATH AS ATTACH_THUMB, 
+                        CO.FILE_EXTENSION, 
+                        CO.FILE_SIZE,
+                        CO.IS_EMAIL,
+                        '' AS SYSTEM_URL, 
+                        '' AS TRG_TAG_ID,
+                        '' AS TRG_TAG_IDC,
+                        MP.IS_MAIN,
+                        T0.FOLDER_NAME,
+                        T0.FOLDER_ID
+                    FROM ECM_CONTENT CO 
+                        INNER JOIN ECM_CONTENT_MAP MP ON MP.CONTENT_ID = CO.CONTENT_ID 
+                        INNER JOIN (
+                            SELECT 
+                                DISTINCT
+                                T2.NAME AS FOLDER_NAME,
+                                T2.ID AS FOLDER_ID,
+                                T2.PARENT_ID,
+                                T1.CONTENT_ID
+                            FROM ECM_DIRECTORY_MAP T0 
+                                INNER JOIN ECM_CONTENT_DIRECTORY T1 ON T0.DIRECTORY_ID = T1.DIRECTORY_ID
+                                INNER JOIN ECM_DIRECTORY T2 ON T1.DIRECTORY_ID = T2.ID
+                            WHERE T0.RECORD_ID = $sourceId 
+                                AND T0.REF_STRUCTURE_ID = $refStructureId 
+                        ) T0 ON CO.CONTENT_ID = T0.CONTENT_ID
+                    WHERE MP.REF_STRUCTURE_ID = $refStructureId 
+                        AND MP.RECORD_ID = $sourceId  
+                        AND t0.FOLDER_ID = $id  
+                        AND IS_PHOTO = 1");
+            }
+        
+        } catch (Exception $ex) {}
         
         return array('folderData' => $folderData, 'item' => $itemList);
     }

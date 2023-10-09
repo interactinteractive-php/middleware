@@ -4649,6 +4649,8 @@ class Mdwebservice extends Controller {
                     $this->view->cache->set('processFullExpressionAfterSave_' . $this->view->methodId, $this->view->bpFullScriptsAfterSave, self::$expressionCacheTime);
                 }
                 
+                self::getTempFullExpression($this->view->cache, $this->view->methodId);
+                
             } else {
                 
                 $this->view->bpFullScriptsEvent = null;
@@ -4935,6 +4937,22 @@ class Mdwebservice extends Controller {
         } else {
             return $methodHtml;
         }
+    }
+    
+    public function getTempFullExpression($cache, $metaDataId) {
+        
+        $sessionId = Ue::appUserSessionId();
+        $bpFullScriptsEvent = $cache->get('bp_'.$metaDataId.'_ExpEventRun_'.$sessionId);
+        
+        if ($bpFullScriptsEvent) {
+            $this->view->bpFullScriptsEvent = $bpFullScriptsEvent;
+            $this->view->bpFullScriptsWithoutEvent = $cache->get('bp_'.$metaDataId.'_ExpLoadRun_'.$sessionId);
+            $this->view->bpFullScriptsVarFnc = $cache->get('bp_'.$metaDataId.'_ExpVarFncRun_'.$sessionId);
+            $this->view->bpFullScriptsSave = $cache->get('bp_'.$metaDataId.'_ExpBeforeSaveRun_'.$sessionId);
+            $this->view->bpFullScriptsAfterSave = $cache->get('bp_'.$metaDataId.'_ExpAfterSaveRun_'.$sessionId);
+        }
+        
+        return true;
     }
     
     public function renderProcessCheckList($methodRow, $isEditMode, $sourceId) {
@@ -9157,34 +9175,40 @@ class Mdwebservice extends Controller {
                                     $value = $prevFilePath;
                                 }
                                 
-                            } elseif ($factType == 'multi_file' && isset($fileParamData['name']['kpiDmDtl.fact1'][$k][0])) {
+                            } elseif ($factType == 'multi_file') {
                                 
-                                $prevPaths = $value;
-                                $concatPaths = array();
-                                $multiFiles = $fileParamData['name']['kpiDmDtl.fact1'][$k];
-
-                                foreach ($multiFiles as $mk => $multiFileName) {
+                                if (isset($fileParamData['name']['kpiDmDtl.fact1'][$k][0])) {
                                     
-                                    $fileAttr['name'] = $fileParamData['name']['kpiDmDtl.fact1'][$k][$mk];
-                                    $fileAttr['tmp_name'] = $fileParamData['tmp_name']['kpiDmDtl.fact1'][$k][$mk];
-                                    $fileAttr['size'] = $fileParamData['size']['kpiDmDtl.fact1'][$k][$mk];
-                                    $fileAttr['type'] = $fileParamData['type']['kpiDmDtl.fact1'][$k][$mk];
+                                    $prevPaths = $value;
+                                    $concatPaths = array();
+                                    $multiFiles = $fileParamData['name']['kpiDmDtl.fact1'][$k];
 
-                                    $uploadResult = self::bpFileUpload(array('ID' => $k), $fileAttr, $mk);
+                                    foreach ($multiFiles as $mk => $multiFileName) {
 
-                                    if ($uploadResult) {
+                                        $fileAttr['name'] = $fileParamData['name']['kpiDmDtl.fact1'][$k][$mk];
+                                        $fileAttr['tmp_name'] = $fileParamData['tmp_name']['kpiDmDtl.fact1'][$k][$mk];
+                                        $fileAttr['size'] = $fileParamData['size']['kpiDmDtl.fact1'][$k][$mk];
+                                        $fileAttr['type'] = $fileParamData['type']['kpiDmDtl.fact1'][$k][$mk];
 
-                                        $physicalPath = $uploadResult['path'] . $uploadResult['newname'];
-                                        $concatPaths[] = $physicalPath;
+                                        $uploadResult = self::bpFileUpload(array('ID' => $k), $fileAttr, $mk);
 
-                                        array_push(FileUpload::$uploadedFiles, $physicalPath);
-                                    } 
-                                }
+                                        if ($uploadResult) {
 
-                                if ($prevPaths) {
-                                    $value = $prevPaths.','.implode(',', $concatPaths);
-                                } else {
-                                    $value = implode(',', $concatPaths);
+                                            $physicalPath = $uploadResult['path'] . $uploadResult['newname'];
+                                            $concatPaths[] = $physicalPath;
+
+                                            array_push(FileUpload::$uploadedFiles, $physicalPath);
+                                        } 
+                                    }
+
+                                    if ($prevPaths) {
+                                        $value = $prevPaths.','.implode(',', $concatPaths);
+                                    } else {
+                                        $value = implode(',', $concatPaths);
+                                    }
+                                    
+                                } elseif (isset($kpiFact[$k][0]) && isset($kpiFact[$k][1])) {
+                                    $value = Input::param($kpiFact[$k][1]);
                                 }
                             }
                             
@@ -10036,6 +10060,7 @@ class Mdwebservice extends Controller {
                 'isShowDelete' => $parentProcessRow['IS_SHOW_DELETE'],
                 'isShowMultiple' => $parentProcessRow['IS_SHOW_MULTIPLE'],
                 'widgetCode' => $parentProcessRow['WIDGET_CODE'],
+                'jsonConfig' => $parentProcessRow['JSON_CONFIG'],
                 'data' => $childData
             );
 
@@ -18743,6 +18768,8 @@ class Mdwebservice extends Controller {
                 || $dtlThemeCode == 'detail_circle_icon' 
                 || $dtlThemeCode == 'detail_circle_file' 
                 || $dtlThemeCode == 'detail_notes' 
+                || $dtlThemeCode == 'detail_frame_paper_001' 
+                || $dtlThemeCode == 'detail_frame_paper_tree' 
                 || $dtlThemeCode == 'detail_file_preview_001') {
             
             $gridBodyData = self::widgetBpDetailRender($processMetaDataId, $uniqId, $row, $fillParamData);

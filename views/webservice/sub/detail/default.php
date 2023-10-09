@@ -784,10 +784,14 @@ if ($isMultiRow && !empty($row['sidebarName'])) {
         </div>';
     }
     
-    $frameWidgets = (new Mdwidget())->bpDetailFrameWidgets($widgetCode, $this->methodId, $row, $this->fillParamData);
+}
+
+$frameWidgets = (new Mdwidget())->bpDetailFrameWidgets($widgetCode, $this->methodId, $row, $this->fillParamData);
     
-    if ($frameWidgets) {
-        $content = str_replace('{content}', $content, $frameWidgets);
+if ($frameWidgets) {
+    $content = str_replace('{content}', $content, $frameWidgets);
+    if (isset($addRowResult['customLocationAddBtn'])) {
+        $content = str_replace('{customLocationAddBtn}', $addRowResult['customLocationAddBtn'], $content);
     }
 }
 

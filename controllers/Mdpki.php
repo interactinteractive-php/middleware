@@ -234,12 +234,23 @@ class Mdpki extends Controller {
         $filePath = Input::post('filePath');
         $hash = $this->genereateHashForDocumentSign($filePath, $ecmContentId);
         $userCertificateArray = $this->model->getCertificateInformation();
+        $filePathInfo = pathinfo($filePath);
+
         if($userCertificateArray) {
-            $result = array(
+            
+            $date = Date::currentDate('Ym');
+            $newPath = UPLOADPATH . 'signed_file/' . $date . '/';
+            if (!is_dir($newPath)) {
+                mkdir($newPath, 0777, true);
+            }
+            
+            $result = array (
                 'certificateSerialNumber' => $userCertificateArray['CERTIFICATE_SERIAL_NUMBER'],
                 'userId' => $userCertificateArray['MONPASS_USER_ID'],
                 'serverAddress' => Config::getFromCache('MONPASS_SERVER'),
                 'uploadUrl' => URL . self::$signFileUploadUrlAddress . '/' . $hash,
+                'newFileName' => 'signed_v_' . getUID() . '.' . $filePathInfo['extension'],
+                'filePath' => $newPath,
                 'status' => 'success'
             );
         }else{
@@ -271,7 +282,8 @@ class Mdpki extends Controller {
         $fileName = Input::post('fileName');
         $plainText = Input::post('plainText');
         $ecmContentId = Input::post('ecmContentId');
-        $filePath = UPLOADPATH . 'signedDocument/' . $fileName;
+
+        $filePath = Input::post('filePath', UPLOADPATH . 'signedDocument/') . $fileName;
         
         if (file_exists($filePath)) {
             

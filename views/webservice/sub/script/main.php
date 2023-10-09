@@ -1176,6 +1176,21 @@
                 }
             });
         <?php } ?>
+        
+        var $disablePopup = bp_window_<?php echo $this->methodId; ?>.find('input[type="text"][readonly].lookup-code-autocomplete');
+        if ($disablePopup.length) {
+            $disablePopup.each(function() {
+                var $this = $(this), $parent = $this.closest('.input-group'), 
+                    $hidden = $parent.find('input.popupInit[data-in-param]');
+                if ($hidden.length) {
+                    var relationInParam = $hidden.attr('data-in-param'), 
+                        relationInParamVal = bp_window_<?php echo $this->methodId; ?>.find('[data-path="'+relationInParam+'"]').val();
+                    if (relationInParamVal != '' && typeof relationInParamVal != 'undefined') {
+                        $parent.find('.lookup-code-autocomplete, .lookup-name-autocomplete').removeAttr('readonly');
+                    }    
+                }    
+            });
+        }
     });
     
     function bpGroupLinkedDtl_<?php echo $this->methodId; ?>(elem, isTriggered) {
@@ -3196,7 +3211,7 @@
                             if (countBasketList > 0) {
                                 var rows = $('#commonSelectableBasketDataGrid_'+lookupMetaDataId).datagrid('getRows'); /*dataViewSelectedRowsResolver($('#commonSelectableBasketDataGrid_'+lookupMetaDataId).datagrid('getRows'))*/
                                 if (typeof callback !== 'function') {
-                                    if (callback && callback === 'detail_frame_paper_001_basket_function') {
+                                    if (callback && (callback === 'detail_frame_paper_001_basket_function' || callback === 'detail_frame_paper_tree_basket_function')) {
                                         window[callback](rows);
                                     } else {
                                         selectedRowsBpAddRow_<?php echo $this->methodId; ?>(elem, processMetaDataId, paramRealPath, lookupMetaDataId, rows, type);

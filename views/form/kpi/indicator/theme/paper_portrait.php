@@ -198,4 +198,29 @@ input.kpi-notfocus-readonly-input::placeholder {
 .kpi-form-paper-portrait table.table td.stretchInput textarea:not(.error):focus {
     border: 1px solid #e9a22f !important;
 }
+.mv-rows-title .label-colon {
+    display: none;
+}
+.mv-inline-field {
+    display: inline-block;
+    padding-left: 10px;
+}
+<?php
+if ($this->kpiTypeId == '2013' && Config::getFromCache('IS_MV_ACTIVE_INPUT_COLOR')) {
+?>
+.kpi-form-paper-portrait input[name][type="text"][data-path]:not(:read-only), 
+.kpi-form-paper-portrait input.bigdecimalInit[type="text"][data-path]:not(:read-only), 
+.kpi-form-paper-portrait input.lookup-code-autocomplete[name][type="text"]:not(:read-only), 
+.kpi-form-paper-portrait input.lookup-name-autocomplete[name][type="text"]:not(:read-only), 
+.kpi-form-paper-portrait textarea[name][data-path]:not(:read-only), 
+.kpi-form-paper-portrait .mv-ind-combo:not(.select2-container-disabled) .select2-choice, 
+.kpi-form-paper-portrait .mv-ind-combo:not(.select2-container-disabled) .select2-choices {
+    border: 2px #179d81 solid!important;
+}
+.kpi-form-paper-portrait textarea.description_autoInit {
+    min-height: 28px!important;
+}
+<?php
+}
+?>
 </style>

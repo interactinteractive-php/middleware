@@ -1040,6 +1040,86 @@ function callWebServiceKpiIndicatorValue(elem, indicatorId) {
         }
     });
 }
+function mvExecuteCheckQuery(elem, indicatorId) {
+    PNotify.removeAll();
+    
+    var paramData = [];
+    paramData.push({fieldPath: 'indicatorId', inputPath: 'indicatorId', value: indicatorId});
+    
+    $.ajax({
+        type: 'post',
+        url: 'mdform/callWebservice',
+        data: {processCode: 'executeCheckQuery', paramData: paramData},
+        dataType: 'json',
+        beforeSend: function() {
+            Core.blockUI({message: 'Loading...', boxed: true});
+        },
+        success: function(data) {
+            
+            if (data.status == 'success') {
+                new PNotify({
+                    title: data.status,
+                    text: 'Successfuly',
+                    type: data.status,
+                    addclass: pnotifyPosition,
+                    sticker: false
+                });
+                dataViewReload(indicatorId);
+                bpVisiblePanelDataViewReload('secondList');
+            } else {
+                new PNotify({
+                    title: data.status,
+                    text: data.text,
+                    type: data.status,
+                    addclass: pnotifyPosition,
+                    sticker: false
+                });
+            }
+            
+            Core.unblockUI();
+        }
+    });
+}
+function mvExecuteFixQuery(elem, indicatorId) {
+    PNotify.removeAll();
+    
+    var paramData = [];
+    paramData.push({fieldPath: 'indicatorId', inputPath: 'indicatorId', value: indicatorId});
+    
+    $.ajax({
+        type: 'post',
+        url: 'mdform/callWebservice',
+        data: {processCode: 'executeFixQuery', paramData: paramData},
+        dataType: 'json',
+        beforeSend: function() {
+            Core.blockUI({message: 'Loading...', boxed: true});
+        },
+        success: function(data) {
+            
+            if (data.status == 'success') {
+                new PNotify({
+                    title: data.status,
+                    text: 'Successfuly',
+                    type: data.status,
+                    addclass: pnotifyPosition,
+                    sticker: false
+                });
+                dataViewReload(indicatorId);
+                bpVisiblePanelDataViewReload('secondList');
+            } else {
+                new PNotify({
+                    title: data.status,
+                    text: data.text,
+                    type: data.status,
+                    addclass: pnotifyPosition,
+                    sticker: false
+                });
+            }
+            
+            Core.unblockUI();
+        }
+    });
+}
 function pivotKpiIndicatorValue(elem, indicatorId) {
 
     var $dvParent = $('div#object-value-list-' + indicatorId);
@@ -3303,16 +3383,25 @@ function mvFieldFillSelectedRows(elem, indicatorId, rows, idField, codeField, na
     
     if (chooseType === 'single' || chooseType === 'singlealways') {
         $parentCell.find("input[id*='_valueField'], input[id*='_displayField'], input[id*='_nameField']").val('').attr('title', '').removeClass('error');
-
-        var codeFieldValue = rows[0][codeField];
+        
+        idField = idField.toLowerCase();
+        codeField = codeField.toLowerCase();
+        nameField = nameField.toLowerCase();
+        
+        var rowData = Object.fromEntries(
+            Object.entries(rows[0]).map(([key, val]) => [key.toLowerCase(), val])
+        );
+        var codeFieldValue = rowData[codeField];
+        
         if (typeof codeFieldValue !== 'undefined') {
             $parentCell.find("input[id*='_displayField']").val(codeFieldValue).attr('title', codeFieldValue);
         } else {
-            $parentCell.find("input[id*='_displayField']").val(rows[0][nameField]).attr('title', rows[0][nameField]);
+            $parentCell.find("input[id*='_displayField']").val(rowData[nameField]).attr('title', rowData[nameField]);
         }
-        $parentCell.find("input[id*='_nameField']").val(rows[0][nameField]).attr('title', rows[0][nameField]);
-        $parentCell.find("input[id*='_valueField']").attr('data-row-data', JSON.stringify(rows[0]).replace(/&quot;/g, '\\&quot;'));
-        $parentCell.find("input[id*='_valueField']").val(rows[0][idField]).trigger('change');
+        
+        $parentCell.find("input[id*='_nameField']").val(rowData[nameField]).attr('title', rowData[nameField]);
+        $parentCell.find("input[id*='_valueField']").attr('data-row-data', JSON.stringify(rowData).replace(/&quot;/g, '\\&quot;'));
+        $parentCell.find("input[id*='_valueField']").val(rowData[idField]).trigger('change');
     }
 }
 function kpiIndicatorRelationFillRows(elem, indicatorId, rows, idField, codeField, nameField, chooseType) {
@@ -4950,228 +5039,294 @@ function mvRowsGetValueFromDataMart(elem, indicatorId, rowId, columnPath) {
         }
     });
 }
-function createMvStructureFromFile(elem, dataViewId) {
-    var rows = getRowsDataView(dataViewId);
-    if (rows.length > 0 && rows.hasOwnProperty(0) && (rows[0]).hasOwnProperty('id')) {
-        var indicatorId = rows[0]['id'];
-        $.ajax({
-            type: 'post',
-            url: 'mdform/createMvStructureFromFileForm',
-            data: {indicatorId: indicatorId}, 
-            dataType: 'json',
-            beforeSend: function() {
-                Core.blockUI({message: 'Loading...', boxed: true});
-            },
-            success: function(data) {
-                if (data.status == 'success') {
-                    
-                    var dialogName = '#dialog-mvrows-createstructure';
-                    if (!$(dialogName).length) {
-                        $('<div id="' + dialogName.replace('#', '') + '"></div>').appendTo('body');
-                    }
-                    var $dialog = $(dialogName);
+function createMvStructureFromFile(elem, dataViewId, isContentMenu) {
+    
+    var postData = {};
+    
+    if (!isContentMenu) {
+        var rows = getRowsDataView(dataViewId);
+        if (rows.length > 0 && rows.hasOwnProperty(0) && (rows[0]).hasOwnProperty('id')) {
+            var indicatorId = rows[0]['id'];
+            postData.indicatorId = indicatorId;
+        } else {
+            PNotify.removeAll();
+            new PNotify({
+                title: 'Info',
+                text: 'Дата олдсонгүй!',
+                type: 'info',
+                sticker: false, 
+                addclass: 'pnotify-center'
+            });
+            return;
+        }
+    } 
+        
+    $.ajax({
+        type: 'post',
+        url: 'mdform/createMvStructureFromFileForm',
+        data: postData, 
+        dataType: 'json',
+        beforeSend: function() {
+            Core.blockUI({message: 'Loading...', boxed: true});
+        },
+        success: function(data) {
+            if (data.status == 'success') {
 
-                    $dialog.empty().append(data.html);
+                var dialogName = '#dialog-mvrows-createstructure';
+                if (!$(dialogName).length) {
+                    $('<div id="' + dialogName.replace('#', '') + '"></div>').appendTo('body');
+                }
+                var $dialog = $(dialogName);
+                
+                if (data.hasOwnProperty('indicatorId')) {
+                    var indicatorId = data.indicatorId;
+                }
 
-                    $dialog.dialog({
-                        cache: false,
-                        resizable: true,
-                        bgiframe: true,
-                        autoOpen: false,
-                        title: plang.get('Файлаас бүтэц үүсгэх'), 
-                        width: 1200,
-                        height: 'auto',
-                        modal: true,
-                        close: function() {
-                            $dialog.empty().dialog('destroy').remove();
-                        },
-                        buttons: [
-                            {text: plang.get('import_btn'), class: 'btn green-meadow btn-sm', click: function() {
-                                PNotify.removeAll();
+                $dialog.empty().append(data.html);
+                $dialog.dialog({
+                    cache: false,
+                    resizable: true,
+                    bgiframe: true,
+                    autoOpen: false,
+                    title: plang.get('Файлаас бүтэц үүсгэх'), 
+                    width: 1200,
+                    height: 'auto',
+                    modal: true,
+                    close: function() {
+                        $dialog.empty().dialog('destroy').remove();
+                    },
+                    buttons: [
+                        {text: plang.get('import_btn'), class: 'btn green-meadow btn-sm', click: function() {
+                            PNotify.removeAll();
 
-                                var $form = $dialog.find('form');
-                                $form.validate({ errorPlacement: function() {} });
+                            var $form = $dialog.find('form');
+                            $form.validate({ errorPlacement: function() {} });
 
-                                if ($form.valid()) {
-                                    
-                                    Core.blockUI({message: 'Loading...', boxed: true});
-                                    
-                                    setTimeout(function() {
-                                        
-                                        var delimiter = $form.find('select[name="delimiter"]').val(), 
-                                            isHeader = $form.find('#headerCheckBox').is(':checked'), 
-                                            skipRows = Number($form.find('input[name="skipRows"]').val()), 
-                                            firstKey = 0;
-                                        
-                                        var rowsData = (mvReader.result).split("\r\n");
-                                        var rowsLength = rowsData.length;
+                            if ($form.valid()) {
 
-                                        if (rowsLength > 0) {
-                                            
-                                            if (delimiter == 'tab') {
-                                                delimiter = "　";
-                                            }  
-                                            
-                                            if (skipRows > 0) {
-                                                rowsData = rowsData.slice(skipRows);
-                                                rowsLength = rowsData.length;
-                                            }
+                                Core.blockUI({message: 'Loading...', boxed: true});
 
-                                            var pageSize = 1000;
-                                            var total = Number(rowsLength);
+                                setTimeout(function() {
+
+                                    var delimiter = $form.find('select[name="delimiter"]').val(), 
+                                        isHeader = $form.find('#headerCheckBox').is(':checked'), 
+                                        skipRows = Number($form.find('input[name="skipRows"]').val()), 
+                                        skipColumns = Number($form.find('input[name="skipColumns"]').val()), 
+                                        firstKey = 0;
+
+                                    if (mvFileReaderExtention == 'txt') {
+                                        var rowsData = (mvFileReader.result).split("\r\n");
+                                    } else {
+                                        var excelFileWorkbook = XLSX.read(mvFileReader.result, {type: 'binary', cellDates: true, cellText: false});
+                                        var getSheet = excelFileWorkbook.Sheets[$form.find('select[name="sheetNames"]').val()];
+                                        var sheetRange = XLSX.utils.decode_range(getSheet['!ref']);
+
+                                        sheetRange.s.r = 0; //start row
+                                        sheetRange.s.c = skipColumns; //start column
+                                        getSheet['!ref'] = XLSX.utils.encode_range(sheetRange);
+
+                                        var rowsData = XLSX.utils.sheet_to_json(getSheet, {header: 1, raw: false, dateNF: 'YYYY-MM-DD'});
+                                    }
+
+                                    var rowsLength = rowsData.length;
+
+                                    if (rowsLength > 0) {
+
+                                        if (delimiter == 'tab') {
+                                            delimiter = "　";
+                                        }  
+
+                                        if (skipRows > 0) {
+                                            rowsData = rowsData.slice(skipRows);
+                                            rowsLength = rowsData.length;
+                                        }
+
+                                        var pageSize = 1000;
+                                        var total = Number(rowsLength);
+
+                                        if (mvFileReaderExtention == 'txt') {
                                             var firstRow = (rowsData[firstKey]).split(delimiter);
-                                            var headerData = [];
+                                        } else {
+                                            var firstRow = rowsData[firstKey];
+                                        }
 
-                                            if (isHeader) {
-                                                var pages = Math.ceil((total - 1) / pageSize) || 1;
+                                        var headerData = [];
+
+                                        if (isHeader) {
+                                            var pages = Math.ceil((total - 1) / pageSize) || 1;
+
+                                            if (mvFileReaderExtention == 'txt') {
                                                 var secondRow = (rowsData[1]).split(delimiter);
-
-                                                for (var f in firstRow) {
-                                                    var cellValue = (secondRow[f]).trim();
-                                                    var showType = 'text';
-
-                                                    if (cellValue != '') {
-                                                        if (moment(cellValue, 'YYYY-MM-DD', true).isValid()) {
-                                                            showType = 'date';
-                                                        } else if (Number(cellValue) >= 0 || Number(cellValue) < 0) {
-                                                            showType = 'bigdecimal';
-                                                        }
-                                                    }
-
-                                                    headerData.push({'labelName': firstRow[f], 'showType': showType});
-                                                }
-
-                                                delete rowsData[firstKey];
-
                                             } else {
-                                                var pages = Math.ceil(total / pageSize) || 1;
-
-                                                for (var f in firstRow) {
-
-                                                    var cellValue = (firstRow[f]).trim();
-                                                    var showType = 'text';
-
-                                                    if (cellValue != '') {
-                                                        if (moment(cellValue, 'YYYY-MM-DD', true).isValid()) {
-                                                            showType = 'date';
-                                                        } else if (Number(cellValue) >= 0 || Number(cellValue) < 0) {
-                                                            showType = 'bigdecimal';
-                                                        }
-                                                    }
-
-                                                    headerData.push({'labelName': 'Column'+(Number(f) + 1), 'showType': showType});
-                                                }
+                                                var secondRow = rowsData[1];
                                             }
-                                            
-                                            $.ajax({
-                                                type: 'post',
-                                                url: 'mdform/createMvStructureFromFile',
-                                                data: {indicatorId: indicatorId, headerData: headerData, isOnlyTableCreate: 1},
-                                                dataType: 'json', 
-                                                async: false, 
-                                                success: function(data) {
-                                                    
-                                                    if (data.status == 'success') {
-                                                        
-                                                        var isSuccess = true;
-                                                        
-                                                        for (var p = 1; p <= pages; p++) {
-                                                            
-                                                            var response = $.ajax({
-                                                                type: 'post',
-                                                                url: 'mdform/createMvStructureFromFile',
-                                                                data: {
-                                                                    indicatorId: indicatorId,
-                                                                    delimiter: delimiter, 
-                                                                    headerData: headerData, 
-                                                                    rowsData: rowsData.slice((p - 1) * pageSize, p * pageSize)
-                                                                },
-                                                                dataType: 'json',
-                                                                async: false
-                                                            });
-                                                            
-                                                            var responseValue = response.responseJSON;
-                                                            
-                                                            if (responseValue.status != 'success') {
-                                                                PNotify.removeAll();
-                                                                new PNotify({
-                                                                    title: responseValue.status,
-                                                                    text: responseValue.message,
-                                                                    type: responseValue.status,
-                                                                    sticker: false, 
-                                                                    delay: 1000000000, 
-                                                                    addclass: 'pnotify-center'
-                                                                }); 
-                                                                isSuccess = false;
-                                                                break;
-                                                            }
-                                                        }
-                                                        
-                                                        if (isSuccess) {
+
+                                            for (var f in firstRow) {
+                                                var cellValue = (secondRow.hasOwnProperty(f)) ? (secondRow[f]).trim() : '';
+                                                var showType = 'text';
+
+                                                if (cellValue != '') {
+                                                    if (moment(cellValue, 'YYYY-MM-DD', true).isValid()) {
+                                                        showType = 'date';
+                                                    } else if (Number(cellValue) >= 0 || Number(cellValue) < 0) {
+                                                        showType = 'bigdecimal';
+                                                    }
+                                                }
+
+                                                headerData.push({'labelName': firstRow[f], 'showType': showType});
+                                            }
+
+                                            delete rowsData[firstKey];
+
+                                        } else {
+                                            var pages = Math.ceil(total / pageSize) || 1;
+
+                                            for (var f in firstRow) {
+
+                                                var cellValue = (firstRow[f]).trim();
+                                                var showType = 'text';
+
+                                                if (cellValue != '') {
+                                                    if (moment(cellValue, 'YYYY-MM-DD', true).isValid()) {
+                                                        showType = 'date';
+                                                    } else if (Number(cellValue) >= 0 || Number(cellValue) < 0) {
+                                                        showType = 'bigdecimal';
+                                                    }
+                                                }
+
+                                                headerData.push({'labelName': 'Column'+(Number(f) + 1), 'showType': showType});
+                                            }
+                                        }
+                                        
+                                        var createPostData = {indicatorId: indicatorId, headerData: headerData, isOnlyTableCreate: 1};
+                                        
+                                        if (isContentMenu) {
+                                            createPostData.name = $form.find('input[name="name"]').val();
+                                            createPostData.parentId = bpGetVisiblePanelSelectedRowVal('secondList', 'id');
+                                            createPostData.categoryId = bpGetVisiblePanelSelectedRowVal('firstList', 'id');
+                                        }
+
+                                        $.ajax({
+                                            type: 'post',
+                                            url: 'mdform/createMvStructureFromFile',
+                                            data: createPostData,
+                                            dataType: 'json', 
+                                            async: false, 
+                                            success: function(data) {
+
+                                                if (data.status == 'success') {
+
+                                                    var isSuccess = true;
+
+                                                    for (var p = 1; p <= pages; p++) {
+
+                                                        var response = $.ajax({
+                                                            type: 'post',
+                                                            url: 'mdform/createMvStructureFromFile',
+                                                            data: {
+                                                                indicatorId: indicatorId,
+                                                                fileExtention: mvFileReaderExtention, 
+                                                                delimiter: delimiter, 
+                                                                headerData: headerData, 
+                                                                rowsData: rowsData.slice((p - 1) * pageSize, p * pageSize)
+                                                            },
+                                                            dataType: 'json',
+                                                            async: false
+                                                        });
+
+                                                        var responseValue = response.responseJSON;
+
+                                                        if (responseValue.status != 'success') {
                                                             PNotify.removeAll();
                                                             new PNotify({
-                                                                title: 'Success',
-                                                                text: plang.get('msg_save_success'),
-                                                                type: 'success',
+                                                                title: responseValue.status,
+                                                                text: responseValue.message,
+                                                                type: responseValue.status,
                                                                 sticker: false, 
                                                                 delay: 1000000000, 
                                                                 addclass: 'pnotify-center'
                                                             }); 
-                                                            $dialog.dialog('close');
-                                                            dataViewReload(dataViewId);
+                                                            isSuccess = false;
+                                                            
+                                                            if (isContentMenu) {
+                                                                removeTempIndicatorById(indicatorId);
+                                                            }
+                                                            break;
                                                         }
-                                            
-                                                    } else {
+                                                    }
+
+                                                    if (isSuccess) {
                                                         PNotify.removeAll();
                                                         new PNotify({
-                                                            title: data.status,
-                                                            text: data.message,
-                                                            type: data.status,
+                                                            title: 'Success',
+                                                            text: plang.get('msg_save_success'),
+                                                            type: 'success',
                                                             sticker: false, 
+                                                            delay: 1000000000, 
                                                             addclass: 'pnotify-center'
                                                         }); 
+                                                        $dialog.dialog('close');
+                                                        
+                                                        if (isContentMenu) {
+                                                            bpVisiblePanelDataViewReload('secondList');
+                                                        } else {
+                                                            dataViewReload(dataViewId);
+                                                        }
                                                     }
+
+                                                } else {
+                                                    PNotify.removeAll();
+                                                    new PNotify({
+                                                        title: data.status,
+                                                        text: data.message,
+                                                        type: data.status,
+                                                        sticker: false, 
+                                                        addclass: 'pnotify-center'
+                                                    }); 
                                                 }
-                                            });
-                                        }
-                                        
-                                        Core.unblockUI();
-                                    }, 100);
-                                }
-                            }},
-                            {text: plang.get('close_btn'), class: 'btn blue-madison btn-sm', click: function () {
-                                $dialog.dialog('close');
-                            }}
-                        ]
-                    });
-                    Core.initUniform($dialog);
-                    Core.initLongInput($dialog);
-                    $dialog.dialog('open');
-                    
-                } else {
-                    PNotify.removeAll();
-                    new PNotify({
-                        title: data.status,
-                        text: data.message,
-                        type: data.status,
-                        sticker: false, 
-                        addclass: 'pnotify-center'
-                    }); 
-                }
-                Core.unblockUI();
+                                            }
+                                        });
+                                    }
+
+                                    Core.unblockUI();
+                                }, 100);
+                            }
+                        }},
+                        {text: plang.get('close_btn'), class: 'btn blue-madison btn-sm', click: function () {
+                            $dialog.dialog('close');
+                        }}
+                    ]
+                });
+                Core.initUniform($dialog);
+                Core.initLongInput($dialog);
+                $dialog.dialog('open');
+
+            } else {
+                PNotify.removeAll();
+                new PNotify({
+                    title: data.status,
+                    text: data.message,
+                    type: data.status,
+                    sticker: false, 
+                    addclass: 'pnotify-center'
+                }); 
             }
-        });
-                    
-    } else {
-        PNotify.removeAll();
-        new PNotify({
-            title: 'Info',
-            text: 'Дата олдсонгүй!',
-            type: 'info',
-            sticker: false, 
-            addclass: 'pnotify-center'
-        });
-    }
+            Core.unblockUI();
+        }
+    });
+}
+function removeTempIndicatorById(id) {
+    $.ajax({
+        type: 'post',
+        url: 'mdform/removeTempIndicator',
+        data: {id: id},
+        dataType: 'json',
+        success: function(data) {}
+    });
+}
+
+function createMvStructureFromFileInit(elem, processMetaDataId, dataViewId, selectedRow, paramData) {
+    createMvStructureFromFile(elem, dataViewId, true);
 }
 function reportTemplateKpiIndicatorValue(elem, indicatorId) {
     var rows = getDataViewSelectedRows(indicatorId);
