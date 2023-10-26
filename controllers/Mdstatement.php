@@ -2363,7 +2363,7 @@ class Mdstatement extends Controller {
         return $html;
     }
 
-    public function findNumberFormatting($str) {
+    public static function findNumberFormatting($str) {
 
         $htmlObj = phpQuery::newDocumentHTML($str);      
         $matches = $htmlObj->find('span:not(:empty)');
