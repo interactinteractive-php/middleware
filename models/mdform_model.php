@@ -4771,7 +4771,7 @@ class Mdform_Model extends Model {
         }
         
         $cache = phpFastCache();
-        $cacheName = 'kpiIndicatorParams_'.$indicatorId.'_'.md5($langCode.'_'.$where);
+        $cacheName = 'kpi_'.$indicatorId.'_params_'.md5($langCode.'_'.$where);
         $data = $cache->get($cacheName);
         
         if ($data == null) {

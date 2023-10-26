@@ -3777,6 +3777,11 @@ class Mdmeta extends Controller {
             @unlink($indicatorParam);
         } 
         
+        $indicators = glob($tmp_dir."/*/kp/kpi_".$templateId."_*.txt");
+        foreach ($indicators as $indicator) {
+            @unlink($indicator);
+        } 
+        
         $kpiUserConfigsMerges = glob($tmp_dir."/*/dv/dvUserConfigMergeCols2_".$templateId."_*.txt");
         foreach ($kpiUserConfigsMerges as $kpiUserConfigsMerge) {
             @unlink($kpiUserConfigsMerge);
