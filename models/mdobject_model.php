@@ -1488,7 +1488,7 @@ class Mdobject_Model extends Model {
                 
                 if ($getInlineEditMapData) {
                     $getInlineEditMapDataGroup = Arr::groupByArrayOnlyRow($getInlineEditMapData, 'SRC_PARAM_PATH', 'TRG_PARAM_PATH');
-                    $getProcessParamsGroup = Arr::groupByArrayLower(Mdwebservice::groupParamsData($getInlineEditMapData[0]['PROCESS_META_DATA_ID']), 'META_DATA_CODE');
+                    $getProcessParamsGroup = Arr::groupByArrayLower((new Mdwebservice())->groupParamsData($getInlineEditMapData[0]['PROCESS_META_DATA_ID']), 'META_DATA_CODE');
                     $this->load->model('mdobject', 'middleware/models/');
                 }
             }
@@ -5161,6 +5161,7 @@ class Mdobject_Model extends Model {
                 $dataViewBatch = self::getDataViewBatchGroupBy($metaDataId, $getAccessProcess);
 
                 if ($dataViewBatch && !$isBasket) {
+
                     foreach ($dataViewBatch as $batch) {
 
                         $batchBtn = '';
@@ -5351,8 +5352,8 @@ class Mdobject_Model extends Model {
                                 $batchTopBtn .= '</ul>';
                                 $batchTopBtn .= '</div>';
 
-                                $commandSort[$batch['BATCH_NUMBER']] = $batchBtn;
-                                $commandPositionSort[$batch['BATCH_NUMBER']] = array(
+                                $commandSort[$batch['BATCH_NUMBER'].'.0'] = $batchBtn;
+                                $commandPositionSort[$batch['BATCH_NUMBER'].'.0'] = array(
                                     'position' => 'top',
                                     'html' => $batchTopBtn
                                 );
@@ -5433,30 +5434,30 @@ class Mdobject_Model extends Model {
                                     )
                                 );
 
-                                $commandSort[$batch['BATCH_NUMBER']] = $batchBtn;
+                                $commandSort[$batch['BATCH_NUMBER'].'.0'] = $batchBtn;
                             }
                         }
                     }
                 }
                          
-                foreach ($dataViewProcess as $row) {
+                foreach ($dataViewProcess as $k => $row) {
                     
                     if (!in_array($row['PROCESS_META_DATA_ID'], $batchProcess)) {
                         
                         if (!($checkPopup && $row['IS_SHOW_POPUP'] != '1')) {
                             
                             if ($row['META_DATA_CODE'] == 'pfChangeWfmStatus') {
-                                $commandSort[$row['ORDER_NUM']] = '<!--changewfmstatus-->';
+                                $commandSort[$k] = '<!--changewfmstatus-->';
                                 continue;
                             }
                             
                             if ($row['META_DATA_CODE'] == 'pfExcelExportButton') {
-                                $commandSort[$row['ORDER_NUM']] = '<!--excelexportbutton-->';
+                                $commandSort[$k] = '<!--excelexportbutton-->';
                                 continue;
                             }
                             
                             if ($row['META_DATA_CODE'] == 'pfInvoicePrintButton') {
-                                $commandSort[$row['ORDER_NUM']] = '<!--invoiceprintbutton-->';
+                                $commandSort[$k] = '<!--invoiceprintbutton-->';
                                 continue;
                             }
                             
@@ -5467,7 +5468,7 @@ class Mdobject_Model extends Model {
                                 $commandSort[$row['META_DATA_CODE']] = '<!--'.$lowerCode.'-->';
 
                                 if ($row['SHOW_POSITION']) {
-                                    $commandPositionSort[$row['ORDER_NUM']] = array(
+                                    $commandPositionSort[$k] = array(
                                         'position' => $row['SHOW_POSITION'],
                                         'html' => '<!--'.$lowerCode.'-->',
                                     );      
@@ -5549,7 +5550,7 @@ class Mdobject_Model extends Model {
                                     $dropdownBtn .= '</ul>';
                                 $dropdownBtn .= '</div>';
                                 
-                                $commandSort[$row['ORDER_NUM']] = $dropdownBtn;
+                                $commandSort[$k] = $dropdownBtn;
                                 
                                 continue;
                             }
@@ -5589,11 +5590,11 @@ class Mdobject_Model extends Model {
                                     ), true
                                 );
                                 
-                                $commandSort[$row['ORDER_NUM']] = $commandAnchor;
+                                $commandSort[$k] = $commandAnchor;
 
                                 if (!empty($row['SHOW_POSITION'])) {
 
-                                    $commandPositionSort[$row['ORDER_NUM']] = array(
+                                    $commandPositionSort[$k] = array(
                                         'position' => $row['SHOW_POSITION'],
                                         'html' => $commandAnchor
                                     );
@@ -5651,7 +5652,7 @@ class Mdobject_Model extends Model {
 
                             } elseif ($row['ICON_NAME'] != '' || $row['PROCESS_NAME'] != '') {
                                 
-                                $commandSort[$row['ORDER_NUM']] = Html::anchor(
+                                $commandSort[$k] = Html::anchor(
                                     'javascript:;', (($row['ICON_NAME'] != '') ? '<i class="far ' . $row['ICON_NAME'] . '"></i> ' : '') . Lang::line($row['PROCESS_NAME']), array(
                                         'class' => 'btn ' . (isset($row['BUTTON_STYLE']) ? $row['BUTTON_STYLE'] : 'btn-secondary') . ' btn-circle btn-sm' . $addonClass,
                                         'title' => !empty($row['ICON_PROCESS_NAME']) ? Lang::line($row['ICON_PROCESS_NAME']) : Lang::line($row['META_DATA_NAME']),
@@ -5666,7 +5667,7 @@ class Mdobject_Model extends Model {
                                 );
                                 if (!empty($row['SHOW_POSITION'])) {
 
-                                    $commandPositionSort[$row['ORDER_NUM']] = array(
+                                    $commandPositionSort[$k] = array(
                                         'position' => $row['SHOW_POSITION'],
                                         'html' => Html::anchor(
                                             'javascript:;', (($row['ICON_NAME'] != '') ? '<i class="far ' . $row['ICON_NAME'] . '"></i> ' : '') . Lang::line($row['PROCESS_NAME']), array(
@@ -5738,8 +5739,8 @@ class Mdobject_Model extends Model {
                     }
                 }
                 
-                ksort($commandSort);
-                ksort($commandPositionSort);
+                ksort($commandSort, SORT_NATURAL);
+                ksort($commandPositionSort, SORT_NATURAL);
                 
                 if (!empty($commandSort)) {
                     
@@ -8496,7 +8497,8 @@ class Mdobject_Model extends Model {
                 $response = array(
                     'status'     => 'success',
                     'data'       => $result['result'],
-                    'datastatus' => true
+                    'datastatus' => true, 
+                    'isShowMsgNotNextStatus' => 1
                 );
                 
                 if ($operation == 'GET_ROWS_WFM_STATUS') {

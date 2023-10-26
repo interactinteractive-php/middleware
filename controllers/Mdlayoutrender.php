@@ -42,6 +42,7 @@ class Mdlayoutrender extends Controller {
             $this->view->workSpaceId = Input::postCheck('workSpaceId') ? Input::post('workSpaceId') : '';
             $this->view->workSpaceParams = Input::postCheck('workSpaceParams') ? Input::post('workSpaceParams') : '';     
             $this->view->executeType = Input::postCheck('executeType') ? Input::post('executeType') : '';
+            $this->view->isWorkAlone = Input::numeric('isWorkAlone');
             $this->view->layoutLink = $this->model->getLayoutLinkModel($this->view->metaDataId);
             $this->view->isAjax = is_ajax_request();
             $this->view->defaultCriteria = $this->view->defaultCriteriaExtra = $this->view->advancedCriteria = '';
@@ -68,9 +69,19 @@ class Mdlayoutrender extends Controller {
                     $this->view->defaultCriteria = $this->view->renderPrint('search/defaultCriteria', 'middleware/views/metadata/dataview/');
                 }
                 $this->view->defaultCriteria .= $this->view->renderPrint('viewer/detail/main/criteriaScripts', 'middleware/views/metadata/dataview/');
-            }                               
+            } 
 
             if ($this->view->layoutLink) {
+                
+                if ($this->view->isWorkAlone) {
+                    $this->view->filterParams = '';
+                    if (Input::postCheck('filterParams')) {
+                        $this->view->filterParams = json_encode($_POST['filterParams'], JSON_UNESCAPED_UNICODE);
+                    }
+                    $this->view->defaultCss = $this->view->renderPrint('scripts/css', self::$viewPath);
+                    $this->view->defaultJs = $this->view->renderPrint('scripts/js', self::$viewPath);
+                }
+                
                 switch ($this->view->layoutLink['THEME_CODE']) {
                     case 'dashboardv1':
                         header("location: ".URL.'government/unitdashboard');

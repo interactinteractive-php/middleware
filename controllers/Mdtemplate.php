@@ -32,7 +32,7 @@ class Mdtemplate extends Controller {
         parent::__construct();
     }
     
-    public function getTypeCodeTemplate($dataViewColumnsType, $column) {
+    public static function getTypeCodeTemplate($dataViewColumnsType, $column) {
         
         if (isset($dataViewColumnsType[$column])) {
             return $dataViewColumnsType[$column];
@@ -41,7 +41,7 @@ class Mdtemplate extends Controller {
         return 'string';
     }
     
-    public function valueFormatting($value, $key) {
+    public static function valueFormatting($value, $key) {
         
         $key = strtolower($key);
         $typeCode = self::getTypeCodeTemplate(Mdtemplate::$dataViewColumnsType, $key);
@@ -116,7 +116,7 @@ class Mdtemplate extends Controller {
         }
     }
     
-    public function clobToHtml($array) {
+    public static function clobToHtml($array) {
         $chtml = '<ul>';
         
         foreach ($array as $key => $row) {
@@ -171,7 +171,7 @@ class Mdtemplate extends Controller {
         return $chtml;
     }
 
-    public function detailFormatMoneySetScale($v, $field) {
+    public static function detailFormatMoneySetScale($v, $field) {
         if (empty($v)) {
             return '0';
         } else {
@@ -341,7 +341,7 @@ class Mdtemplate extends Controller {
         return $templateHTML;
     }
     
-    public function absoluteAmount($html) {
+    public static function absoluteAmount($html) {
         if (strpos($html, 'abs(') !== false) {
             
             preg_match_all('/abs\((.*?)\)/i', $html, $htmlAbsoluteAmount);
@@ -364,7 +364,7 @@ class Mdtemplate extends Controller {
         return $html;
     }
     
-    public function setScale($html) {
+    public static function setScale($html) {
         if (strpos($html, 'setScale(') !== false) {
             
             preg_match_all('/setScale\((.*?)\)/i', $html, $htmlScaleAmount);
@@ -387,7 +387,7 @@ class Mdtemplate extends Controller {
         return $html;
     }
     
-    public function countDtlGroup($templateHTML, $dataElement) {
+    public static function countDtlGroup($templateHTML, $dataElement) {
         if (strpos($templateHTML, 'count(') !== false) {
             preg_match_all('/count\((.*?)\)/i', $templateHTML, $htmlCount);
 
@@ -410,7 +410,7 @@ class Mdtemplate extends Controller {
         return $templateHTML;
     }
     
-    public function aggregateDtlGroup($templateHTML, $dataElement, $dataModelId) {
+    public static function aggregateDtlGroup($templateHTML, $dataElement, $dataModelId) {
         
         if (strpos($templateHTML, 'sum(') !== false) {
             preg_match_all('/sum\(#(.*?)#\)/i', $templateHTML, $htmlSum);
@@ -621,7 +621,7 @@ class Mdtemplate extends Controller {
         return $templateHTML;
     }
     
-    public function generateQrCode($data) {
+    public static function generateQrCode($data) {
         require_once BASEPATH.'libs/QRCode/custom/QRGenerator.php';
         $qrcode = new QRGenerator($data, 150, 'UTF-8', 'L', 0); 
         return '<img src="'.$qrcode->generate().'">';
@@ -649,7 +649,7 @@ class Mdtemplate extends Controller {
         return $html;
     }
     
-    public function printPivotDetail($html) {
+    public static function printPivotDetail($html) {
         if (strpos($html, 'printPivotDetail(') !== false) {
             preg_match_all('/printPivotDetail\((.*?)\)/i', $html, $htmlPivots);
             
@@ -1063,7 +1063,7 @@ class Mdtemplate extends Controller {
         return $table;
     }
     
-    function getContentBetween($html, $startDelimiter, $endDelimiter) {
+    public static function getContentBetween($html, $startDelimiter, $endDelimiter) {
         $html = ' ' . $html;
         $ini = strpos($html, $startDelimiter);
         if ($ini == 0)
@@ -1073,7 +1073,7 @@ class Mdtemplate extends Controller {
         return substr($html, $ini, $len);
     }
 
-    function getContents($str, $startDelimiter, $endDelimiter) {
+    public static function getContents($str, $startDelimiter, $endDelimiter) {
         $contents = array();
         $startDelimiterLength = strlen($startDelimiter);
         $endDelimiterLength = strlen($endDelimiter);
@@ -1273,6 +1273,7 @@ class Mdtemplate extends Controller {
                 
                 $dataModelId = $rtRow['DATA_MODEL_ID'];
                 
+                $this->view->reportMetaDataId = $rtRow['META_DATA_ID'];
                 $this->view->isTableLayoutFixed = false;
                 
                 if ($rtRow['IS_TABLE_LAYOUT_FIXED'] == '1') {
@@ -1777,7 +1778,8 @@ class Mdtemplate extends Controller {
             
             $rtRow = $this->model->getDataModelByTemplate($templateId, $isTemplateMetaId);
             $configPrintOption = issetParam($rtRow['CONFIG_STR']) !== '' ? Str::htmlCharToDoubleQuote($rtRow['CONFIG_STR']) : '';
-
+            
+            $this->view->reportMetaDataId = $rtRow['META_DATA_ID'];
             $this->view->isTableLayoutFixed = false;
             
             if ($rtRow['IS_TABLE_LAYOUT_FIXED'] == '1') {
@@ -2037,7 +2039,7 @@ class Mdtemplate extends Controller {
             'choose_btn' => $this->lang->line('choose_btn'),
             'close_btn' => $this->lang->line('close_btn')
         );
-        echo json_encode($response); exit;
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
     public function getReportTemplates($metadataId, $isProcess) {
@@ -2304,7 +2306,7 @@ class Mdtemplate extends Controller {
         return $appendTableRow;
     }
 
-    public function getConstantValues() {
+    public static function getConstantValues() {
         return array(
             'sysdatetime' => Date::currentDate('Y-m-d H:i:s'), 
             'sysdate' => Date::currentDate('Y-m-d'), 
@@ -2320,7 +2322,7 @@ class Mdtemplate extends Controller {
         );
     }
     
-    public function constantKeys() {
+    public static function constantKeys() {
         return array(
             '#sysdatetime#' => Date::currentDate('Y-m-d H:i:s'), 
             '#sysdate#' => Date::currentDate('Y-m-d'), 
@@ -2336,7 +2338,7 @@ class Mdtemplate extends Controller {
         );
     }
     
-    public function configValueReplacer($content) {
+    public static function configValueReplacer($content) {
         $configValue = explode('_', $content);
         
         if (isset(Mdtemplate::$responseData['filterdepartmentid'])) {
@@ -2351,7 +2353,7 @@ class Mdtemplate extends Controller {
         return $content;
     }
     
-    public function dottedConfigValueReplacer($content) {
+    public static function dottedConfigValueReplacer($content) {
 
         preg_match_all('/\*config_(.*?)\*/', $content, $parseContent);
 
@@ -2372,7 +2374,7 @@ class Mdtemplate extends Controller {
         return $content;
     }
     
-    public function sysKeywordReplacer($content) {
+    public static function sysKeywordReplacer($content) {
         
         foreach (self::constantKeys() as $constantKey => $constantKeyValue) {
             $content = str_ireplace($constantKey, $constantKeyValue, $content);
@@ -2381,15 +2383,11 @@ class Mdtemplate extends Controller {
         return $content;
     }
 
-    public function getFooterMethods() {
+    public static function getFooterMethods() {
         return array('sum', 'avg', 'min', 'max', 'first', 'last', 'count');
     }
-    
-    public function footerAggregateMethods() {
-        return array('#sum#', '#avg#', '#min#', '#max#', '#first#', '#last#', '#count#');
-    }
 
-    public function getTable($tableId, $html) {
+    public static function getTable($tableId, $html) {
         $specAllTable = self::getContents($html, '<table', '</table>');
         foreach ($specAllTable as $value) {
             if (strpos($value, 'id="' . $tableId . '"') !== false) {
@@ -2414,7 +2412,7 @@ class Mdtemplate extends Controller {
         return $templateHtml;
     }
 
-    public function parseFooterMethods($arg, $tableContent, $columnIndex) {
+    public static function parseFooterMethods($arg, $tableContent, $columnIndex) {
         $array = array();
         
         $tableTr = self::getContents($tableContent, '<tr', '</tr>');
@@ -2464,39 +2462,6 @@ class Mdtemplate extends Controller {
         }
         
         return $aggrigateValue;
-    }
-    
-    public function calculateAggregateFnc($arg, $array){
-        $aggrigateValue = '';
-        
-        switch ($arg) {
-            case 'sum':
-                $aggrigateValue = count($array) > 0 ? array_sum($array) : '0';
-                break;
-            case 'avg':
-                $aggrigateValue = count($array) > 0 ? array_sum($array) / count($array) : '0';
-                break;
-            case 'min':
-                $aggrigateValue = count($array) > 0 ? min($array) : '0';
-                break;
-            case 'max':
-                $aggrigateValue = count($array) > 0 ? max($array) : '0';
-                break;
-            case 'first':
-                $aggrigateValue = count($array) > 0 ? current($array) : '0';
-                break;
-            case 'last':
-                $aggrigateValue = count($array) > 0 ? end($array) : '0';
-                break;
-            case 'count':
-                $aggrigateValue = count($array);
-                break;
-            default:
-                $aggrigateValue = 'error';
-                break;
-        }
-        
-        return $aggrigateValue;        
     }
     
     public function pdfToTemp() {
@@ -2737,7 +2702,7 @@ class Mdtemplate extends Controller {
                 header('Expires: 0');
                 header('Set-Cookie: fileDownload=false; path=/');
 
-                echo 'Could not create file!'; exit();
+                echo 'Could not create file!'; exit;
             }
 
         } else {
@@ -2745,7 +2710,7 @@ class Mdtemplate extends Controller {
             header('Expires: 0');
             header('Set-Cookie: fileDownload=false; path=/');
 
-            echo 'Could not create file!'; exit();
+            echo 'Could not create file!'; exit;
         }
     }
     
@@ -3064,7 +3029,7 @@ class Mdtemplate extends Controller {
         echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
-    public function convertToCriteria($criteria, $dataRow) {
+    public static function convertToCriteria($criteria, $dataRow) {
         
         $criteria = Str::lower(html_entity_decode($criteria, ENT_QUOTES, 'UTF-8'));
         
@@ -3191,7 +3156,7 @@ class Mdtemplate extends Controller {
             'send_btn' => $this->lang->line('send_btn'),
             'close_btn' => $this->lang->line('close_btn')
         );
-        echo json_encode($response); exit;
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
     public function sendMail() {
@@ -3472,7 +3437,7 @@ class Mdtemplate extends Controller {
             'save_btn' => $this->lang->line('save_btn'), 
             'close_btn' => $this->lang->line('close_btn')
         );
-        echo json_encode($response); exit;
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
     public function editTemplateFile() {
@@ -3514,7 +3479,7 @@ class Mdtemplate extends Controller {
             'save_btn' => $this->lang->line('save_btn'),
             'close_btn' => $this->lang->line('close_btn')
         );
-        echo json_encode($response); exit;
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
 
     public function iframeReportDesigner() {
@@ -3578,7 +3543,7 @@ class Mdtemplate extends Controller {
             );
         }
         
-        echo json_encode($response); exit;
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
     public function editTemplateFolder() {
@@ -3602,35 +3567,35 @@ class Mdtemplate extends Controller {
             'save_btn' => $this->lang->line('save_btn'), 
             'close_btn' => $this->lang->line('close_btn')
         );
-        echo json_encode($response); exit;
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
     } 
     
     public function editTemplateFolderSave() {
         Auth::handleLogin();
         
         $response = $this->model->editTemplateFolderSaveModel(); 
-        echo json_encode($response); exit;
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
     public function deleteTemplateFolder() {
         Auth::handleLogin();
         
         $response = $this->model->deleteTemplateFolderModel(); 
-        echo json_encode($response); exit;
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
     public function editTemplateSave() {
         Auth::handleLogin();
         
         $response = $this->model->editTemplateSaveModel(); 
-        echo json_encode($response); exit;
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
     public function editTemplateFileSave() {
         Auth::handleLogin();
         
         $response = $this->model->editTemplateFileSaveModel(); 
-        echo json_encode($response); exit;
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
     public function copyTemplate() {
@@ -3651,21 +3616,21 @@ class Mdtemplate extends Controller {
             'save_btn' => $this->lang->line('save_btn'), 
             'close_btn' => $this->lang->line('close_btn')
         );
-        echo json_encode($response); exit;
+        echo json_encode($response, JSON_UNESCAPED_UNICODE); 
     }
     
     public function copyTemplateSave() {
         Auth::handleLogin();
         
         $response = $this->model->copyTemplateSaveModel(); 
-        echo json_encode($response); exit;
+        echo json_encode($response, JSON_UNESCAPED_UNICODE); 
     }
     
     public function deleteDataViewTemplate() {
         Auth::handleLogin();
         
         $response = $this->model->deleteDataViewTemplateModel(); 
-        echo json_encode($response); exit;
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
     public function previewTemplateFile() {
@@ -3690,10 +3655,10 @@ class Mdtemplate extends Controller {
             'title' => 'Template preview', 
             'html' => $this->view->htmlContent
         );
-        echo json_encode($response); exit;
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
-    public function printCss($mode = null) {
+    public static function printCss($mode = null) {
         
         $orientation = Input::post('orientation');
         $size = strtoupper(Input::post('size'));
@@ -3897,7 +3862,7 @@ class Mdtemplate extends Controller {
         return array('header' => $templateHTML, 'footer' => $templateFooterHTML);
     }    
     
-    public function htmlKeyValueReplacer($templateHTML, $dataElement) {
+    public static function htmlKeyValueReplacer($templateHTML, $dataElement) {
         
         $templateHTML = str_replace('background-color: #', 'background-color: colorCode', $templateHTML);
             
@@ -4123,6 +4088,7 @@ class Mdtemplate extends Controller {
         $params      = Input::post('params');
         $contentName = Input::param($params['archiveName']);
         $directoryId = Input::param($params['defaultDirectoryId']);
+        $fileType    = Input::param(issetDefaultVal($params['fileType'], 'pdf'));
         $orientation = Input::post('orientation');
         $size        = Input::post('size');
         
@@ -4169,15 +4135,19 @@ class Mdtemplate extends Controller {
             }
             
         } else {
-            $_POST['isIgnoreFooter'] = 1;
-            $_POST['isSmartShrinking'] = 1;
             
-            $pdfHtmlContent = str_replace('  ', '<span style="display: inline-block; width: 30px;"></span>', $htmlContent);
+            if ($fileType == 'pdf') {
+                
+                $_POST['isIgnoreFooter'] = 1;
+                $_POST['isSmartShrinking'] = 1;
 
-            $pdf = Pdf::createSnappyPdf(($orientation == 'portrait' ? 'Portrait' : 'Landscape'), ($size != 'custom' ? $size : 'letter'));
-            Pdf::generateFromHtml($pdf, $css . $pdfHtmlContent, $fileToSave);
-            
-            $fileToSave = $fileToSave.'.pdf';
+                $pdfHtmlContent = str_replace('  ', '<span style="display: inline-block; width: 30px;"></span>', $htmlContent);
+
+                $pdf = Pdf::createSnappyPdf(($orientation == 'portrait' ? 'Portrait' : 'Landscape'), ($size != 'custom' ? $size : 'letter'));
+                Pdf::generateFromHtml($pdf, $css . $pdfHtmlContent, $fileToSave);
+
+                $fileToSave = $fileToSave.'.pdf';
+            }
         }
         
         if (file_exists(BASEPATH.$fileToSave)) {
@@ -4196,10 +4166,51 @@ class Mdtemplate extends Controller {
             $response = array('status' => 'error', 'message' => 'File write error');
         }
         
-        echo json_encode($response); exit;
+        echo json_encode($response, JSON_UNESCAPED_UNICODE); 
     }
     
-    public function clearPdfTempFile() {
+    public function saveEcmContentReportTemplateToFile() {
+        
+        try {
+            $processMetaDataId = Input::numeric('processMetaDataId');
+            
+            if (!$processMetaDataId) {
+                throw new Exception('Invalid processMetaDataId!'); 
+            }
+            
+            $this->load->model('mdwebservice', 'middleware/models/');
+            $bpRow = $this->model->getMethodIdByMetaDataModel($processMetaDataId);
+            
+            if (!$bpRow) {
+                throw new Exception('No process config!'); 
+            }
+            
+            $refStructureId = $bpRow['REF_META_GROUP_ID'];
+            
+            if (!$refStructureId) {
+                throw new Exception('No structure!'); 
+            }
+            
+            $selectedRow = Input::post('selectedRow');
+            $recordId = issetParam($selectedRow['id']);
+            
+            if (!$recordId) {
+                throw new Exception('No recordId!'); 
+            }
+            
+            $_POST['ignoreSetWfmStatusParams'] = 1;
+            $_POST['refStructureId'] = $refStructureId;
+            
+            self::toArchiveWfm(); exit;
+            
+        } catch (Exception $ex) {
+            $response = array('status' => 'error', 'message' => $ex->getMessage());
+        }
+        
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+    }
+    
+    public static function clearPdfTempFile() {
         
         $cacheTmpDir = Mdcommon::getCacheDirectory();
         $cacheDir    = $cacheTmpDir . '/report_template_pdf/';        
@@ -4246,7 +4257,7 @@ class Mdtemplate extends Controller {
             'close_btn' => $this->lang->line('close_btn')
         );
         
-        echo json_encode($response); exit;
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }    
     
     public function getTemplateByArguments($templateId, $dataViewId, $rowData) {
@@ -4311,7 +4322,7 @@ class Mdtemplate extends Controller {
     public function changeUserPrintOption() {
         Auth::handleLogin();
         $response = $this->model->changeUserPrintOptionModel();
-        echo json_encode($response); exit;
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
     public function getTemplateByRowData() {
@@ -4351,7 +4362,7 @@ class Mdtemplate extends Controller {
         echo json_encode($response); exit;
     }
 
-    public function printKpiForm($html) {
+    public static function printKpiForm($html) {
         if (strpos($html, 'printKpiForm(') !== false) {
             preg_match_all('/printKpiForm\((.*?)\)/i', $html, $htmlKpiForms);
             

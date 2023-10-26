@@ -273,6 +273,10 @@ function hardSign(fileName, contentId, server, funcName, funcArguments, row) {
         data: {filePath: pdfPath},
         dataType: 'json',
         success: function (data) {
+            var signX = 300,
+            signY = 20,
+            pageNumber = 1;
+
             if (typeof row !== 'undefined') {
                 if (typeof row['signx'] !== 'undefined' && row['signx']) 
                     signX = row['signx'];
@@ -288,7 +292,6 @@ function hardSign(fileName, contentId, server, funcName, funcArguments, row) {
                     var filename = pdfpath.replace(/^.*[\\\/]/, '');
                     var baseUrl = getUrl .protocol + "//" + getUrl.host + "/";
                     var pathStr = baseUrl + '/storage/signedDocument/' + filename;*/
-                    console.log(t);
                     window[funcName].apply(null, funcArguments);
                 }   
             }, signX, signY, pageNumber);

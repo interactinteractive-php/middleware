@@ -613,5 +613,50 @@ class Dashboard extends Controller {
         );
         echo json_encode($response);
     }
+    
+    public function renderByQryStr($dashboardId = '') {
+        
+        if (!$dashboardId) {
+            echo 'statementId parameter todorhoi bus bna'; exit;
+        }
+        
+        Session::init();
+        $logged = Session::isCheck(SESSION_PREFIX.'LoggedIn');
+
+        if ($logged == false) {
+            Session::set(SESSION_PREFIX . 'LoggedIn', true);
+            Session::set(SESSION_PREFIX . 'lastTime', time());
+        }
+
+        $_POST['nult'] = true;
+        $_POST['isWorkAlone'] = 1;
+        
+        $getData = Input::getData();
+            
+        if (isset($getData['param'])) {
+            $params = $getData['param'];
+
+            foreach ($params as $key => $val) {
+                $isCorrectVal = (boolean) preg_match("/^[0-9a-zA-ZФЦУЖЭНГШҮЗКЪЙЫБӨАХРОЛДПЯЧЁСМИТЬВЮЕЩфцужэнгшүзкъйыбөахролдпячёсмитьвюещ_\(\)\>\<\=\-'\:\[\]\s]{1,500}$/i", $val);
+                    
+                if ($isCorrectVal) {
+                    $params[$key] = Mdmetadata::setDefaultValue($val);
+                }
+            }
+            
+            if ($params) {
+                $_POST['filterParams'] = $params;
+            }
+        }
+        
+        (new Mdlayoutrender())->layout($dashboardId, 1);
+    }
+    
+    public function delayUrl() {
+        sleep(20);
+        header('Content-Type: application/javascript');
+        
+        echo 'console.log(\'dashboard done\');';
+    }
         
 }

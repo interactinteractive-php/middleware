@@ -9,6 +9,7 @@
     var $counter_remove_<?php echo $this->methodId; ?> = 1;
     var isTouch = (typeof isTouchEnabled === 'undefined') ? false : isTouchEnabled;
     pfFullExpSetFieldValue = true;
+    var textEditorDefaultStyle = "<?php echo html_entity_decode(Config::getFromCacheDefault('textEditorDefaultStyle', null, ''), ENT_QUOTES, 'UTF-8'); ?>";
     
     <?php 
     if (isset($this->cacheId)) {
@@ -1190,6 +1191,35 @@
                     }    
                 }    
             });
+        }
+
+        if (bp_window_<?php echo $this->methodId; ?>.find('input[name="processSubType"]').val() === 'endtoend') {
+            var taskFlowSelectedRow = <?php echo json_encode($this->selectedRowData); ?>;
+            bp_window_<?php echo $this->methodId; ?>.closest('.ui-dialog').find('.ui-dialog-buttonset').prepend('<button type="button" class="btn green-meadow btn-sm bp-continue-taskflow-btn">Үргэлжлүүлэх</button>')
+            <?php if (Input::post('isTaskFlowView') != '1') { ?>
+                $(document.body).on("click", ".bp-continue-taskflow-btn", function (e) {
+                    var $this = $(this);
+                    $this.hide();
+
+                    // bp_window_<?php echo $this->methodId; ?>.find('.bp-header-param').closest('.center-sidebar').addClass('hidden');                
+                    if (typeof _taskFlowSelectedRow === 'undefined') {                
+                        $.getScript(URL_APP + 'assets/custom/addon/plugins/jsplumb/jsplumb.min.js', function() {
+                            if ($("link[href='assets/custom/addon/plugins/jsplumb/css/style.v3.css']").length == 0) {
+                                $("head").append('<link rel="stylesheet" type="text/css" href="assets/custom/addon/plugins/jsplumb/css/style.v3.css"/>');
+                            }            
+                            $.getScript(URL_APP + 'middleware/assets/js/mdprocessflowview.js', function() {      
+                                _taskFlowSelectedRow = taskFlowSelectedRow[0];
+                                runTaskFlowInsideBpRender('<?php echo $this->methodId; ?>', _taskFlowSelectedRow, bp_window_<?php echo $this->methodId; ?>);             
+                            });
+                        });            
+                    } else {
+                        _taskFlowSelectedRow = taskFlowSelectedRow[0];
+                        runTaskFlowInsideBpRender('<?php echo $this->methodId; ?>', _taskFlowSelectedRow, bp_window_<?php echo $this->methodId; ?>);
+                    }       
+
+                    $this.closest('.ui-dialog').find('.center-sidebar').addClass('hidden');
+                });                             
+            <?php } ?>
         }
     });
     
@@ -3210,6 +3240,7 @@
                             var countBasketList = $('#commonSelectableBasketDataGrid_'+lookupMetaDataId).datagrid('getData').total;
                             if (countBasketList > 0) {
                                 var rows = $('#commonSelectableBasketDataGrid_'+lookupMetaDataId).datagrid('getRows'); /*dataViewSelectedRowsResolver($('#commonSelectableBasketDataGrid_'+lookupMetaDataId).datagrid('getRows'))*/
+                                rows = rows.map(({action, ...item}) => item);
                                 if (typeof callback !== 'function') {
                                     if (callback && (callback === 'detail_frame_paper_001_basket_function' || callback === 'detail_frame_paper_tree_basket_function')) {
                                         window[callback](rows);

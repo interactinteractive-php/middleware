@@ -316,7 +316,7 @@ class Mdmeta extends Controller {
         echo json_encode($response); exit;
     }
     
-    public function menuServiceAnchor($row, $moduleId = '', $menuId = '', $isTab = '', $uniqId = '', $metaDataId = '') {
+    public static function menuServiceAnchor($row, $moduleId = '', $menuId = '', $isTab = '', $uniqId = '', $metaDataId = '') {
         $array = array();
 
         if (!empty($row['weburl'])) {
@@ -397,6 +397,10 @@ class Mdmeta extends Controller {
             $array['linkHref'] = 'mdlayout/v2/'.$row['actionmetadataid'].($moduleId !== '' ? '?mmid='.$moduleId : '').($menuId !== '' ? '&mid='.$menuId : '');
             $array['linkTarget'] = '_self';
             $array['linkOnClick'] = '';
+        } elseif ($row['actionmetatypeid'] == Mdmetadata::$taskFlowMetaTypeId) {
+            $array['linkHref'] = 'mdprocessflow/metaProcessWorkflow/'.$row['actionmetadataid'].($moduleId !== '' ? '?mmid='.$moduleId : '').($menuId !== '' ? '&mid='.$menuId : '');
+            $array['linkTarget'] = '_self';
+            $array['linkOnClick'] = '';
         } else {
             $array['linkHref'] = 'javascript:;';
             $array['linkTarget'] = '_self';
@@ -406,7 +410,7 @@ class Mdmeta extends Controller {
         return $array;
     }
     
-    public function menuServiceAnchorByTab($row, $moduleId = '', $menuId = '', $moduleName = '') {
+    public static function menuServiceAnchorByTab($row, $moduleId = '', $menuId = '', $moduleName = '') {
         $array = array();
         $moduleName = Lang::line($moduleName);
 
@@ -560,6 +564,11 @@ class Mdmeta extends Controller {
             $array['linkHref'] = 'javascript:;';
             $array['linkTarget'] = '_self';
             $array['linkOnClick'] = "appMultiTab({metaDataId: '".$row['actionmetadataid']."', title: '".Lang::line($row['name'])."', dataTitle: '".Lang::line($row['name'])." - ".$moduleName."', type: 'kpi', kpitypeid: '".$row['actionkpitypeid']."'}, this);";
+
+        } elseif ($row['actionmetatypeid'] == Mdmetadata::$taskFlowMetaTypeId) {
+            $array['linkHref'] = 'javascript:;';
+            $array['linkTarget'] = '_self';
+            $array['linkOnClick'] = "appMultiTab({metaDataId: '".$row['actionmetadataid']."', title: '".Lang::line($row['name'])."', dataTitle: '".Lang::line($row['name'])." - ".$moduleName."', type: 'taskflow'}, this);";
             
         } else {
             $array['linkHref'] = 'javascript:;';
@@ -570,7 +579,7 @@ class Mdmeta extends Controller {
         return $array;
     }
     
-    public function menuAnchor($row) {
+    public static function menuAnchor($row) {
         $array = array();
 
         if (!empty($row['WEB_URL'])) {            
@@ -788,11 +797,9 @@ class Mdmeta extends Controller {
                 
                 try {
                     $count = $this->db->GetOne("SELECT COUNT(*) FROM ".$this->view->card['VIEW_NAME']);
-                } catch (Exception $ex) {
-
-                }
-                
+                } catch (Exception $ex) {}
             }
+            
             $this->view->card['ROW_COUNT'] = $count;    
             
             if ($this->view->card['CHART_DATA_VIEW_ID']) {
@@ -2635,7 +2642,7 @@ class Mdmeta extends Controller {
         return true;
     }
     
-    public function bpOnlyExpressionClearCache($processMetaDataId, $tmp_dir = null) {
+    public static function bpOnlyExpressionClearCache($processMetaDataId, $tmp_dir = null) {
         
         if (!$tmp_dir) {
             $tmp_dir = Mdcommon::getCacheDirectory();
@@ -3052,7 +3059,7 @@ class Mdmeta extends Controller {
         return $this->db->AutoExecute('META_DATA', array('MODIFIED_DATE' => Date::currentDate('Y-m-d H:i:s')), 'UPDATE', 'META_DATA_ID = '.$metaDataId);
     }
    
-    public function getAfterSave($exp) {
+    public static function getAfterSave($exp) {
         if (empty($exp)) {
             return null;
         }
@@ -3066,7 +3073,7 @@ class Mdmeta extends Controller {
         return null;
     }
     
-    public function removeAfterSave($exp) {
+    public static function removeAfterSave($exp) {
         if (empty($exp)) {
             return null;
         }
@@ -4410,7 +4417,7 @@ class Mdmeta extends Controller {
         return $this->model->getDMRowProcessModel($mainMetaDataId, $processMetaDataId, $basket);
     }    
     
-    public function getLockServerAddr() {
+    public static function getLockServerAddr() {
 
         $configLockServerAddr = Config::getFromCache('lockServerAddress');
         
@@ -4442,22 +4449,22 @@ class Mdmeta extends Controller {
         jsonResponse($response);
     }
     
-    public function isAccessMetaImport() {
+    public static function isAccessMetaImport() {
         $sessionUserId = Ue::sessionUserId();
-        return ((defined('CONFIG_META_IMPORT') && CONFIG_META_IMPORT) || $sessionUserId == '144617860666271' || $sessionUserId == '1479354350613' || $sessionUserId == '1453998999913');
+        return ((defined('CONFIG_META_IMPORT') && CONFIG_META_IMPORT) || $sessionUserId == '144617860666271' || $sessionUserId == '1479354350613' || $sessionUserId == '1453998999913' || $sessionUserId == '1479354372402');
     }
     
-    public function isAccessMetaImportCopy() {
+    public static function isAccessMetaImportCopy() {
         $sessionUserId = Ue::sessionUserId();
-        return ($sessionUserId == '144617860666271');
+        return ($sessionUserId == '144617860666271' || $sessionUserId == '1479354372402');
     }
     
-    public function isAddMetaAccess() {
+    public static function isAddMetaAccess() {
         $hash = Hash::createMD5reverse(Uri::domain());
         return Config::getFromCache($hash) ? true : false;
     }
     
-    public function isAccessMetaSendTo() {
+    public static function isAccessMetaSendTo() {
         return Config::getFromCache('metaSendToDomains');
     }
     

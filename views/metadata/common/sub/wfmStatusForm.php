@@ -246,13 +246,13 @@
 
                                                                                         $button = '<a href="'.$physicalpath.'" class="fancybox-img" data-rel="fancybox-button">';
 
-                                                                                    } elseif (in_array($fileExtension, array('pdf')) === true) {
+                                                                                    } elseif (in_array($fileExtension, array('pdf', 'xls', 'xlsx', 'doc', 'docx')) === true) {
 
                                                                                         $button = '<a href="javascript:;" onclick="dataViewFileViewer(this, \'\', \''.$fileExtension.'\', \''.$fileName.'\', \''.URL.$physicalpath.'\');">';
 
                                                                                     } else {
 
-                                                                                        $button = '<a href="mdobject/downloadFile?file=' . $frow['physicalpath'] . '" title="Файл татах">';
+                                                                                        $button = '<a href="mdobject/downloadFile?file=' . $frow['physicalpath'] . '" target="_blank" title="Файл татах">';
                                                                                     }
 
                                                                                     echo '<li>';
@@ -276,17 +276,17 @@
                                                                                 $fileName = $wfmLog['attachedfiles'][0]['filename'];
                                                                                 $fileExtension = strtolower(substr($physicalpath, strrpos($physicalpath, '.') + 1));
                                                                                 
-                                                                                if (in_array($fileExtension, array('jpg', 'jpeg', 'png', 'gif')) === true) {
+                                                                                if (in_array($fileExtension, array('jpg', 'jpeg', 'png', 'gif', 'bmp')) === true) {
 
-                                                                                    $button = '<a class="mr3" href="'.$physicalpath.'" class="fancybox-img" data-rel="fancybox-button">';
+                                                                                    $button = '<a href="'.$physicalpath.'" class="fancybox-img mr3" data-rel="fancybox-button">';
 
-                                                                                } elseif (in_array($fileExtension, array('pdf')) === true) {
+                                                                                } elseif (in_array($fileExtension, array('pdf', 'xls', 'xlsx', 'doc', 'docx')) === true) {
 
                                                                                     $button = '<a class="mr3" href="javascript:;" onclick="dataViewFileViewer(this, \'\', \''.$fileExtension.'\', \''.$fileName.'\', \''.URL.$physicalpath.'\');">';
 
                                                                                 } else {
                                                                                     
-                                                                                    $button = '<a class="mr3" href="mdobject/downloadFile?file=' . $wfmLog['attachedfiles'][0]['physicalpath'] . '" title="Файл татах">';
+                                                                                    $button = '<a class="mr3" href="mdobject/downloadFile?file=' . $wfmLog['attachedfiles'][0]['physicalpath'] . '" target="_blank" title="Файл татах">';
                                                                                 }                                                                        
                                                                                 
                                                                                 echo $button;
@@ -657,8 +657,8 @@
                     echo "</div>";
                 } 
             echo "</div>";
-            
-            if (isset($this->getWfmStatus) 
+
+            if (isset($this->getWfmStatus['IS_FILE_PREVIEW']) 
                 && $this->getWfmStatus['IS_FILE_PREVIEW'] == '1' 
                 && $this->isSee === 'false' 
                 && isset($this->isFilePreview) 

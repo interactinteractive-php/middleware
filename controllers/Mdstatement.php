@@ -296,7 +296,7 @@ class Mdstatement extends Controller {
         $this->view->render('dataview/index', self::$viewPath);
     }    
     
-    public function constantKeys() {
+    public static function constantKeys() {
         
         if (!self::$constantKeys) {
             self::$constantKeys = array(
@@ -373,7 +373,7 @@ class Mdstatement extends Controller {
         return $content;
     }
     
-    public function onlyGroupRowReplacer($content, $paramValues) { 
+    public static function onlyGroupRowReplacer($content, $paramValues) { 
         
         foreach ($paramValues as $paramKey => $paramValue) {              
             $content = str_ireplace('#'.$paramKey.'#', $paramValue, $content);
@@ -504,7 +504,7 @@ class Mdstatement extends Controller {
                 
                 if (strpos($expressionArr['gloExp'], 'self::getOneDataView') === false 
                     && strpos($expressionArr['gloExp'], 'self::runProcessValue') === false) {
-                    $html .= Mdstatement::paramKeywordReplacer($groupHeader, $params);
+                    $html .= self::paramKeywordReplacer($groupHeader, $params);
                 } else {
                     self::$data['prevGroupHtml'] .= $groupHeader;
                 }
@@ -513,7 +513,7 @@ class Mdstatement extends Controller {
                     
                     eval($expressionArr['gloExp']);
                     
-                    $prevGroupHtmlReplace = Mdstatement::paramKeywordReplacer(self::$data['prevGroupHtml'], '');
+                    $prevGroupHtmlReplace = self::paramKeywordReplacer(self::$data['prevGroupHtml'], '');
                     $html .= Mdstatement::onlyGroupRowReplacer($prevGroupHtmlReplace, $params);
                     
                     self::$data['prevGroupHtml'] = '';
@@ -529,7 +529,7 @@ class Mdstatement extends Controller {
                         $html .= $htmlDetail;
                         
                         if ($tableFoot) {
-                            $tableFoot = Mdstatement::paramKeywordReplacer($tableFoot, $params);
+                            $tableFoot = self::paramKeywordReplacer($tableFoot, $params);
                             $html .= $tableFoot;
                         }
                         
@@ -538,7 +538,7 @@ class Mdstatement extends Controller {
                         $tableHtml['tbody']->html($htmlDetail);
                         
                         if ($tableFoot) {
-                            $tableFoot = Mdstatement::paramKeywordReplacer($tableFoot, $params);
+                            $tableFoot = self::paramKeywordReplacer($tableFoot, $params);
                             $tableHtml['tfoot']->html($tableFoot);
                         }
 
@@ -579,7 +579,7 @@ class Mdstatement extends Controller {
                     $html .= self::reportGrouping($renderType, $statementId, $dataViewId, $groupingData, $groupedRow['rows'], $params, $rowDepth, $reportDetail, $tableHtml, $tableBody, $tableFootHtml, $constantKeys, $expressionArr, $isGroupMerge);
                 }
 
-                $html .= Mdstatement::paramKeywordReplacer($groupFooter, $params);
+                $html .= self::paramKeywordReplacer($groupFooter, $params);
                 
                 if (isset(self::$data['rownum_'.($rowDepth - 1)])) {
                     self::$data['rownum_'.($rowDepth - 1)] += 1;
@@ -1149,9 +1149,9 @@ class Mdstatement extends Controller {
                 
                 $params = $this->model->setParamsValueModel($dataViewColumnsType, $params);
                 
-                $reportHeader = Mdstatement::paramKeywordReplacer($getHtmlRow['REPORT_HEADER'], $params);
-                $pageHeader   = Mdstatement::paramKeywordReplacer($getHtmlRow['PAGE_HEADER'], $params);
-                $pageFooter   = Mdstatement::paramKeywordReplacer($getHtmlRow['PAGE_FOOTER'], $params);
+                $reportHeader = self::paramKeywordReplacer($getHtmlRow['REPORT_HEADER'], $params);
+                $pageHeader   = self::paramKeywordReplacer($getHtmlRow['PAGE_HEADER'], $params);
+                $pageFooter   = self::paramKeywordReplacer($getHtmlRow['PAGE_FOOTER'], $params);
                 $reportFooter = $getHtmlRow['REPORT_FOOTER'];
                 
                 $constantKeys = Arr::changeKeyLower(self::constantKeys());        
@@ -1220,12 +1220,16 @@ class Mdstatement extends Controller {
                             }
                         }
                         
+                        $colGroup  = $tableHtml['colgroup']->html();
                         $tableHead = $tableHtml['thead']->html();
                         $tableBody = $tableHtml['tbody']->html();
                         $tableFoot = $tableHtml['tfoot']->html();
                         
                         $tableHtml->empty();
-
+                        
+                        if ($colGroup) {
+                            $tableHtml->append('<colgroup>'.$colGroup.'</colgroup>');
+                        }
                         if ($tableHead) {
                             $tableHtml->append('<thead>'.$tableHead.'</thead>');
                         }
@@ -1445,17 +1449,16 @@ class Mdstatement extends Controller {
                             }
                         }
                         
-                        $tableColgroup = $tableHtml['colgroup']->html();
+                        $colGroup  = $tableHtml['colgroup']->html();
                         $tableHead = $tableHtml['thead']->html();
                         $tableBody = $tableHtml['tbody']->html();
                         $tableFoot = $tableHtml['tfoot']->html();
 
                         $tableHtml->empty();
                         
-                        if ($tableColgroup) {
-                            $tableHtml->append('<colgroup>'.$tableColgroup.'</colgroup>');
+                        if ($colGroup) {
+                            $tableHtml->append('<colgroup>'.$colGroup.'</colgroup>');
                         }
-                        
                         if ($tableHead) {
                             $tableHtml->append('<thead>'.$tableHead.'</thead>');
                         }
@@ -1872,7 +1875,7 @@ class Mdstatement extends Controller {
                     }
                 }
                 
-                $html = Mdstatement::paramKeywordReplacer($html, $params);
+                $html = self::paramKeywordReplacer($html, $params);
                 $html = Mdstatement::formatDate($html, $realParams);
                 $html = Mdstatement::prevDate($html, $realParams);
                 $html = Mdstatement::matchDefaultValue($html);
@@ -2176,7 +2179,7 @@ class Mdstatement extends Controller {
         $this->view->render('print/pagesource', self::$viewPath);
     }
     
-    public function detailFormatMoney($v) {
+    public static function detailFormatMoney($v) {
         return empty($v) ? '0' : number_format($v, 2, '.', ',');
     }
     
@@ -2215,7 +2218,7 @@ class Mdstatement extends Controller {
         return empty($v) ? '0' : Number::trimTrailingZeroes(number_format($v, 2, '.', ','));
     }
     
-    public function getval($html, $dataRows) {
+    public static function getval($html, $dataRows) {
         if (strpos($html, 'getval(') !== false) {
             preg_match_all('/getval\((.*?)\)/i', $html, $getValues);
 
@@ -2274,7 +2277,7 @@ class Mdstatement extends Controller {
         return $returnValue;
     }
 
-    public function runExpression($html) {
+    public static function runExpression($html) {
         if (strpos($html, 'runExp[') !== false) {
             
             $html = str_replace(array('sum()', 'min()', 'max()', 'avg()'), '0', $html);
@@ -2305,7 +2308,7 @@ class Mdstatement extends Controller {
         return $html;
     }
     
-    public function runExpressionTag($html) {
+    public static function runExpressionTag($html) {
         if (strpos($html, 'runExpTag[') !== false) {
             
             $html = str_replace(array('sum()', 'min()', 'max()', 'avg()'), '0', $html);
@@ -2338,7 +2341,7 @@ class Mdstatement extends Controller {
         return $html;
     }
     
-    public function runExpressionStr($html) {
+    public static function runExpressionStr($html) {
         if (strpos($html, 'runExpStr[') !== false) {
             
             $html = str_replace(array('sum()', 'min()', 'max()', 'avg()'), '0', $html);
@@ -2390,7 +2393,7 @@ class Mdstatement extends Controller {
         }
     }
 
-    public function calculateExpression($html) {
+    public static function calculateExpression($html) {
         if (strpos($html, 'calExp[') !== false) {
             
             $html = str_replace(array('sum()', 'min()', 'max()', 'avg()'), '0', $html);
@@ -2474,12 +2477,12 @@ class Mdstatement extends Controller {
         //return '<div style="display: inline-block; background: url(\'api/svg_barcode.php?v='.$value.'\') no-repeat; background-size: cover;'.$styles.'"></div>';
     }
 
-    public function assetsReplacer($html) {
+    public static function assetsReplacer($html) {
         $html = str_replace(array('"storage/uploads/', "'storage/uploads/"), array('"'.URL.'storage/uploads/', "'".URL."storage/uploads/"), $html);
         return $html;
     }
     
-    public function numberToWords($html) {
+    public static function numberToWords($html) {
         if (strpos($html, 'n2w(') !== false) {
             preg_match_all('/n2w\((.*?)\)/i', $html, $htmlNumberToWords);
 
@@ -2512,7 +2515,7 @@ class Mdstatement extends Controller {
         return $html;
     }
     
-    public function numberToTime($html) {
+    public static function numberToTime($html) {
         if (strpos($html, 'n2time(') !== false) {
             preg_match_all('/n2time\((.*?)\)/i', $html, $htmlNumberToTime);
             
@@ -2533,7 +2536,7 @@ class Mdstatement extends Controller {
         return $html;
     }
     
-    public function matchDefaultValue($html) {
+    public static function matchDefaultValue($html) {
         
         if (strpos($html, 'defaultValue(') !== false) {
             preg_match_all('/defaultValue\(([\w\W]*?)\)/i', $html, $defaulValues);
@@ -2559,7 +2562,7 @@ class Mdstatement extends Controller {
         return $html;
     }
     
-    public function pathReplaceByFirstRow($row, $html) {
+    public static function pathReplaceByFirstRow($row, $html) {
         if (strpos($html, 'pathReplace(') !== false) {
             preg_match_all('/pathReplace\((.*?)\)/i', $html, $pathReplace);
             
@@ -2586,7 +2589,7 @@ class Mdstatement extends Controller {
         return $html;
     }
     
-    public function reportDateDiff($html) {
+    public static function reportDateDiff($html) {
         if (strpos($html, 'dateDiff(') !== false) {
             preg_match_all('/dateDiff\((.*?)\)/i', $html, $htmlDateDiffs);
 
@@ -2605,7 +2608,7 @@ class Mdstatement extends Controller {
         return $html;
     }
     
-    public function prevDate($html, $params) {
+    public static function prevDate($html, $params) {
         if (strpos($html, 'prevDate(') !== false) {
             
             preg_match_all('/prevDate\((.*?)\)/i', $html, $htmlPrevDates);
@@ -2640,7 +2643,7 @@ class Mdstatement extends Controller {
         return $html;
     }
     
-    public function formatDate($html, $params) {
+    public static function formatDate($html, $params) {
         if (strpos($html, 'formatDate(') !== false) {
             
             preg_match_all('/formatDate\((.*?)\)/i', $html, $htmlFormatDates);
@@ -2709,7 +2712,7 @@ class Mdstatement extends Controller {
         return $html;
     }
     
-    public function barcode($html) {
+    public static function barcode($html) {
         if (strpos($html, 'barcode(') !== false) {
             preg_match_all('/barcode\((.*?)\)/i', $html, $htmlBarcodes);
             
@@ -2751,7 +2754,7 @@ class Mdstatement extends Controller {
         return $html;
     }
     
-    public function qrcode($html) {
+    public static function qrcode($html) {
         if (strpos($html, 'qrcode(') !== false) {
             preg_match_all('/qrcode\((.*?)\)/i', $html, $htmlQrCodes);
             
@@ -2801,7 +2804,7 @@ class Mdstatement extends Controller {
         return $html;
     }
     
-    public function editable($html) {
+    public static function editable($html) {
         if (strpos($html, 'editable(') !== false) {
             preg_match_all('/editable\(([\w\W]*?)\)/i', $html, $htmlEdits);
             
@@ -2825,7 +2828,7 @@ class Mdstatement extends Controller {
         return $html;
     }
     
-    public function textStyler($html) {
+    public static function textStyler($html) {
         if (strpos($html, 'l-r(') !== false) {
             preg_match_all('/l-r\(([\w\W]*?)\)/i', $html, $LeftRotateStyles);
             
@@ -2848,7 +2851,7 @@ class Mdstatement extends Controller {
         return $html;
     }
     
-    public function reportSubstr($html) {
+    public static function reportSubstr($html) {
         if (strpos($html, 'substr(') !== false) {
             preg_match_all('/substr\((.*?)\)/i', $html, $htmlSubstr);
 
@@ -2870,7 +2873,7 @@ class Mdstatement extends Controller {
         return $html;
     } 
     
-    public function reportCase($html) {
+    public static function reportCase($html) {
         if (strpos($html, 'upper(') !== false) {
             preg_match_all('/upper\((.*?)\)/i', $html, $htmlUpper);
 
@@ -2896,12 +2899,12 @@ class Mdstatement extends Controller {
         return $html;
     }
     
-    public function reportPageBreak($html) {
+    public static function reportPageBreak($html) {
         $html = str_replace('<!-- pagebreak -->', '<div style="page-break-after: always;"></div>', $html);
         return $html;
     }
     
-    public function configValueReplacer($content, $params = array()) {
+    public static function configValueReplacer($content, $params = array()) {
 
         preg_match_all('/#config_(.*?)#/', $content, $parseContent);
 
@@ -2951,7 +2954,7 @@ class Mdstatement extends Controller {
         return $name;
     }
     
-    public function langLine($html) {
+    public static function langLine($html) {
         if (strpos($html, 'lang(') !== false) {
             preg_match_all('/lang\((.*?)\)/i', $html, $langCodes);
             
@@ -2969,7 +2972,7 @@ class Mdstatement extends Controller {
         return $html;
     }
     
-    public function moneyFormat($html) {
+    public static function moneyFormat($html) {
         if (strpos($html, 'm(') !== false) {
             preg_match_all('/m\((.*?)\)/i', $html, $moneys);
             
@@ -2985,7 +2988,7 @@ class Mdstatement extends Controller {
         return $html;
     }
     
-    public function scaleMoneyFormat($html) {
+    public static function scaleMoneyFormat($html) {
         
         if (strpos($html, 'ms(') !== false) {
             preg_match_all('/ms\((.*?)\)/i', $html, $moneys);
@@ -3011,7 +3014,7 @@ class Mdstatement extends Controller {
         return $html;
     }
     
-    public function dropZeroMoneyFormat($html) {
+    public static function dropZeroMoneyFormat($html) {
         if (strpos($html, 'dzm(') !== false) {
             preg_match_all('/dzm\((.*?)\)/i', $html, $moneys);
             
@@ -3029,7 +3032,7 @@ class Mdstatement extends Controller {
         return $html;
     }
     
-    public function replaceCyrillicToLatin($html) {
+    public static function replaceCyrillicToLatin($html) {
         if (strpos($html, 'c2l(') !== false) {
             preg_match_all('/c2l\((.*?)\)/i', $html, $moneys);
             
@@ -3052,7 +3055,7 @@ class Mdstatement extends Controller {
         return $html;
     }
     
-    public function drillLinkReplacer($statementId, $html) {
+    public static function drillLinkReplacer($statementId, $html) {
         if (strpos($html, 'drill(') !== false) {
             preg_match_all('/drill\((.*?)\)/i', $html, $drills);
             if (count($drills[0]) > 0) {
@@ -3075,7 +3078,7 @@ class Mdstatement extends Controller {
         return $html;
     }
     
-    public function dropZeroFormatMoney($m) {
+    public static function dropZeroFormatMoney($m) {
         
         if (is_numeric($m)) {
             $m = number_format($m, 2, '.', ',');

@@ -1410,7 +1410,7 @@ class Mdworkspace_Model extends Model {
             )
         );
 
-        $data = $this->ws->runJsonResponse(self::$gfServiceAddress, Mddatamodel::$getDataViewCommand, $param);
+        $data = $this->ws->runSerializeResponse(self::$gfServiceAddress, Mddatamodel::$getDataViewCommand, $param);
 
         if ($data['status'] == 'success' && isset($data['result'])) {
 

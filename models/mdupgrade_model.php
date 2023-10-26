@@ -653,37 +653,6 @@ class Mdupgrade_Model extends Model {
                         )
                     ),
                     array(
-                        'table' => 'META_THEME_LINK', 
-                        'link' => array(
-                            array(
-                                'src' => 'META_DATA_ID', 
-                                'trg' => 'META_DATA_ID'
-                            )
-                        ), 
-                        'child' => array(
-                            array(
-                                'table' => 'META_THEME_LINK_SECTION', 
-                                'link' => array(
-                                    array(
-                                        'src' => 'ID', 
-                                        'trg' => 'META_THEME_LINK_ID'
-                                    )
-                                ), 
-                                'child' => array(
-                                    array(
-                                        'table' => 'META_THEME_LINK_SECTION_DETAIL', 
-                                        'link' => array(
-                                            array(
-                                                'src' => 'ID', 
-                                                'trg' => 'THEME_SECTION_ID'
-                                            )
-                                        )
-                                    )
-                                )
-                            )
-                        )
-                    ),
-                    array(
                         'table' => 'META_BP_LAYOUT_HDR', 
                         'link' => array(
                             array(
@@ -2467,7 +2436,7 @@ class Mdupgrade_Model extends Model {
                                 T2.ID AS META_DATA_ID, 
                                 'kpiindicatorbydata' AS META_TYPE_ID, 
                                 T2.CODE AS META_DATA_CODE, 
-                                T0.ID AS SRC_RECORD_ID 
+                                ".$this->db->listAgg('T0.ID', ',', 'T0.ID')." AS SRC_RECORD_ID 
                             FROM KPI_INDICATOR T0 
                                 INNER JOIN KPI_TYPE T1 ON T1.ID = T0.KPI_TYPE_ID 
                                 INNER JOIN KPI_INDICATOR T2 ON T2.ID = T1.RELATED_INDICATOR_ID 
@@ -2478,6 +2447,9 @@ class Mdupgrade_Model extends Model {
                                 WHERE META_BUG_FIXING_ID IN ($ids) 
                                     AND INDICATOR_ID IS NOT NULL
                             )   
+                            GROUP BY 
+                                T2.ID, 
+                                T2.CODE
                                 
                         ) TMP 
                         INNER JOIN KPI_INDICATOR MD ON MD.ID = TMP.META_DATA_ID 
@@ -3368,13 +3340,22 @@ class Mdupgrade_Model extends Model {
             $bindParams = array();
             
             foreach ($recordIdArr as $fieldName => $fieldVal) {
-                $where .= "$fieldName = ".$this->db->Param($fieldName)." AND ";
-                $bindParams = array($fieldName => $fieldVal) + $bindParams;
+                
+                if (strpos($fieldVal, ',') !== false) {
+                    $where .= "$fieldName IN ($fieldVal) AND ";
+                } else {
+                    $where .= "$fieldName = ".$this->db->Param($fieldName).' AND ';
+                    $bindParams = array($fieldName => $fieldVal) + $bindParams;
+                }
             }
 
             $where = mb_substr($where, 0, -5);
-
-            $data = $this->db->GetAll("SELECT * FROM $tblName WHERE $where", $bindParams);
+            
+            if ($bindParams) {
+                $data = $this->db->GetAll("SELECT * FROM $tblName WHERE $where", $bindParams);
+            } else {
+                $data = $this->db->GetAll("SELECT * FROM $tblName WHERE $where");
+            }
         }
         
         if ($data) {
@@ -4942,7 +4923,7 @@ class Mdupgrade_Model extends Model {
 
                 if ($metaLockedCount > 0) {
                     $doneMetaCount = $metaCount - $metaLockedCount;
-                    $response = array('status' => 'error', 'message' => "Нийт $metaCount үзүүлэлтээс $doneMetaCount шинэчлэгдлээ. Түгжигдсэн үзүүлэлт: " . rtrim($lockedMetaMessage, ', '), 'logs' => $logs);
+                    $response = array('status' => 'success', 'message' => "Нийт $metaCount үзүүлэлтээс $doneMetaCount шинэчлэгдлээ. Түгжигдсэн үзүүлэлт: " . rtrim($lockedMetaMessage, ', '), 'logs' => $logs);
                 } else {
                     $response = array('status' => 'success', 'message' => 'Амжилттай', 'logs' => $logs);
                 }
@@ -6268,7 +6249,8 @@ class Mdupgrade_Model extends Model {
                     if ($isMetaImportCopy) {
                         
                         if (strpos($fileContent, 'typeId="'.Mdmetadata::$businessProcessMetaTypeId.'"') !== false 
-                            || strpos($fileContent, 'typeId="'.Mdmetadata::$metaGroupMetaTypeId.'"') !== false) {
+                            || strpos($fileContent, 'typeId="'.Mdmetadata::$metaGroupMetaTypeId.'"') !== false 
+                            || strpos($fileContent, 'typeId="'.Mdmetadata::$statementMetaTypeId.'"') !== false) {
 
                             $fileSources[$_FILES['import_file']['name'][$i]] = $fileContent;
                         }
@@ -6317,14 +6299,45 @@ class Mdupgrade_Model extends Model {
                         $metaCode     = $metaAttributes['code'];
                         $userName     = issetParam($metaAttributes['userName']);
                         $modifiedDate = issetParam($metaAttributes['modifiedDate']);
+                        $metaName = $folderId = $folderCode = $folderName = '';
                         
-                        $isMetaCreated = $this->db->GetOne("SELECT META_DATA_ID FROM META_DATA WHERE META_DATA_ID = ".$idPh, array($metaDataId));
+                        if ($isMetaImportCopy) {
+                            
+                            $metaRow = $this->db->GetRow("
+                                SELECT 
+                                    MD.META_DATA_ID, 
+                                    MD.META_DATA_NAME, 
+                                    FF.FOLDER_ID, 
+                                    FF.FOLDER_CODE, 
+                                    FF.FOLDER_NAME 
+                                FROM META_DATA MD 
+                                    LEFT JOIN META_DATA_FOLDER_MAP FM ON FM.META_DATA_ID = MD.META_DATA_ID 
+                                    LEFT JOIN FVM_FOLDER FF ON FF.FOLDER_ID = FM.FOLDER_ID 
+                                WHERE MD.META_DATA_ID = ".$idPh, array($metaDataId));
+                            
+                            if ($metaRow) {
+                                $isMetaCreated = true;
+                                $metaName = $metaRow['META_DATA_NAME'];
+                                $folderId = $metaRow['FOLDER_ID'];
+                                $folderCode = $metaRow['FOLDER_NAME'];
+                                $folderName = $metaRow['FOLDER_NAME'];
+                            } else {
+                                $isMetaCreated = false;
+                            }
+                            
+                        } else {
+                            $isMetaCreated = $this->db->GetOne("SELECT META_DATA_ID FROM META_DATA WHERE META_DATA_ID = ".$idPh, array($metaDataId));
+                        }
                         
                         $data[] = array(
                             'fileName'      => $fileName, 
                             'metaId'        => $metaDataId, 
                             'metaCode'      => $metaCode, 
+                            'metaName'      => $metaName, 
                             'metaType'      => issetDefaultVal($metaTypes[$metaTypeId], $metaTypeId), 
+                            'folderId'      => $folderId, 
+                            'folderCode'    => $folderCode, 
+                            'folderName'    => $folderName, 
                             'userName'      => $userName, 
                             'modifiedDate'  => $modifiedDate, 
                             'isMetaCreated' => $isMetaCreated ? true : false
@@ -6377,12 +6390,18 @@ class Mdupgrade_Model extends Model {
                 if ($bugFixExport['status'] == 'success') {
                     
                     $url = 'https://qa.veritech.mn/mdupgrade/encryptedFileImport';
-                    $this->ws->curlRequest($url, array('encryptedSource' => $bugFixExport['result']));
+                    $response = $this->ws->curlRequest($url, array('encryptedSource' => $bugFixExport['result']));
+                    
+                } else {
+                    $response = $bugFixExport;
                 }
+                
+            } else {
+                $response = array('status' => 'error', 'message' => 'Шинэчлэх өгөгдөл олдсонгүй! /005/');
             }
         }
         
-        return true;
+        return $response;
     }
     
     public function importPatchMetaBugFixModel($rows) {
@@ -6395,7 +6414,7 @@ class Mdupgrade_Model extends Model {
             ini_set('memory_limit', '-1');
         
             $n = 1;
-            $alreadyBugFix = array();
+            $alreadyBugFix = $customerBugFixedIds = array();
             
             foreach ($rows as $row) {
                 
@@ -6421,6 +6440,8 @@ class Mdupgrade_Model extends Model {
 
                         $this->db->AutoExecute('CUSTOMER_BUG_FIXED', $fixedData);
                         $this->db->UpdateClob('CUSTOMER_BUG_FIXED', 'OLD_PATCH', $result['result'], 'ID = '.$fixedData['ID']);
+                        
+                        $customerBugFixedIds[] = $fixedData['ID'];
                     }
                     
                     $alreadyBugFix[$bugFixId] = $bugFixId;
@@ -6448,12 +6469,21 @@ class Mdupgrade_Model extends Model {
                 }
                 
                 if ($updateSources) {
-                    self::executeUpgradeScript($updateSources);
+                    $response = self::executeUpgradeScript($updateSources);
+                } else {
+                    $response = array('status' => 'error', 'message' => 'Шинэчлэх өгөгдөл олдсонгүй! /006/');
                 }
             }
+            
+        } else {
+            $response = array('status' => 'error', 'message' => 'Шинэчлэх тохиргоо олдсонгүй! /007/');
         }
         
-        return true;
+        if ($customerBugFixedIds && $response['status'] != 'success') {
+            $this->db->Execute("DELETE FROM CUSTOMER_BUG_FIXED WHERE ID IN (".Arr::implode_r(',', $customerBugFixedIds, true).")");
+        }
+        
+        return $response;
     }
     
     public function metaPatchRollbackModel() {
@@ -6545,13 +6575,26 @@ class Mdupgrade_Model extends Model {
                                         )
                                     );
                                 }
+                                
+                                $response = array('status' => 'success');
+                            } else {
+                                $response = $bugFixExport;
                             }
                         }
 
                         $alreadyBugFix[$bugFixId] = $bugFixId;
                     }
                 }
+                
+                if (!$alreadyBugFix) {
+                    $response = array('status' => 'error', 'message' => 'Шинэчлэх өгөгдөл олдсонгүй! /002/');
+                }
+                
+            } else {
+                $response = array('status' => 'error', 'message' => 'Шинэчлэх тохиргоо олдсонгүй! /003/');
             }
+        } else {
+            $response = array('status' => 'error', 'message' => 'Шинэчлэх тохиргоо олдсонгүй! /004/');
         }
         
         return true;
@@ -6595,8 +6638,13 @@ class Mdupgrade_Model extends Model {
                     if ($dbResult) {
 
                         $result = self::downloadBugFixingModel($bugFixId);
-
-                        $clobResult = $this->db->UpdateClob('CUSTOMER_BUG_FIXED', 'OLD_PATCH', $result['result'], 'ID = '.$fixedData['ID']);
+                        $oldPatch = $result['result'];
+                        
+                        if ($oldPatch) {
+                            $clobResult = $this->db->UpdateClob('CUSTOMER_BUG_FIXED', 'OLD_PATCH', $oldPatch, 'ID = '.$fixedData['ID']);
+                        } else {
+                            $clobResult = true;
+                        }
 
                         if ($clobResult) {
 
@@ -6660,7 +6708,8 @@ class Mdupgrade_Model extends Model {
                 if ($fileContent && strpos($fileContent, '<meta id="') !== false) {
                     
                     if (strpos($fileContent, 'typeId="'.Mdmetadata::$businessProcessMetaTypeId.'"') !== false 
-                        || strpos($fileContent, 'typeId="'.Mdmetadata::$metaGroupMetaTypeId.'"') !== false) {
+                        || strpos($fileContent, 'typeId="'.Mdmetadata::$metaGroupMetaTypeId.'"') !== false 
+                        || strpos($fileContent, 'typeId="'.Mdmetadata::$statementMetaTypeId.'"') !== false) {
                         
                         $fileSources[] = $fileContent;
                     }

@@ -1212,7 +1212,7 @@ class Mdmetadata extends Controller {
         return $data;
     }
 
-    public function setDefaultValue($value) {
+    public static function setDefaultValue($value) {
 
         if ($value == '') {
             return null;
@@ -1225,7 +1225,7 @@ class Mdmetadata extends Controller {
         return self::$pathDefaultValues[$value];
     }
     
-    public function getDefaultValue($value) {
+    public static function getDefaultValue($value) {
         
         $lowerValue = strtolower($value);
         
@@ -1394,7 +1394,7 @@ class Mdmetadata extends Controller {
         return $value;
     }
 
-    public function defaultKeywordReplacer($content) {
+    public static function defaultKeywordReplacer($content) {
         
         $content = Str::lower($content);
         
@@ -1423,7 +1423,7 @@ class Mdmetadata extends Controller {
         return $content;
     }
     
-    public function criteriaMethodReplacer($rules) {
+    public static function criteriaMethodReplacer($rules) {
         $rules = str_replace('isclosedfiscalperiod', '(new Mdcommon())->isClosedFiscalPeriod', $rules);
         $rules = str_replace('checkdatapermission', '(new Mdcommon())->checkDataPermission', $rules);
         return $rules;        
@@ -2245,7 +2245,7 @@ class Mdmetadata extends Controller {
         return $objectName;
     }
 
-    public function objectNameDeCompress($objectName) {
+    public static function objectNameDeCompress($objectName) {
         
         if (strlen(trim($objectName)) > 30) {    
             includeLib('Compress/Compression');
@@ -2255,7 +2255,7 @@ class Mdmetadata extends Controller {
         return $objectName;
     }
     
-    public function objectDeCompress($objectName) {
+    public static function objectDeCompress($objectName) {
         
         if (strlen(trim($objectName)) > 30) {    
             includeLib('Compress/Compression');
@@ -2341,61 +2341,6 @@ class Mdmetadata extends Controller {
         }
         
         echo json_encode($response); exit;
-    }
-
-    public function getThemeManageDialog() {
-        $this->load->model('mdtheme', 'middleware/models/');
-        
-        $this->view->metaDataId = Input::numeric('metaDataId');
-        
-        if (!empty($this->view->metaDataId)) {
-            
-            $this->view->metaThemeList = $this->model->getMetaThemeListModel();
-            $this->view->metaInputParamList = $this->model->getInputParamList($this->view->metaDataId);
-            $this->view->styleList = $this->model->generateStyleListModel();
-            
-             //edit mode
-            if (!is_null($this->view->metaDataId)) {
-                $this->view->themeLinkData = $this->model->getThemeLinkDataModel($this->view->metaDataId);
-                
-                if ($this->view->themeLinkData) {
-                    $themePath = BASEPATH . '/middleware/assets/theme/layout/process/theme/' . $this->view->themeLinkData['FILE_NAME'];
-                    
-                    if (file_exists($themePath)) {
-                        
-                        $themeSectionDetailData = $this->model->getThemeSectionDetailDataModel($this->view->themeLinkData['ID']);
-                        
-                        if ($themeSectionDetailData) {
-                            
-                            $tmpThemeSectionDetailData = array();
-                            
-                            foreach ($themeSectionDetailData as $themeSectionDetail) {
-                                $tmpThemeSectionDetailData[$themeSectionDetail['ID']][] = $themeSectionDetail;
-                            }
-                            
-                            $this->view->themeSectionDetailData = $tmpThemeSectionDetailData;
-                        }
-
-                        $this->view->themeHtmlContent = file_get_contents($themePath);
-                        $this->view->themeHtmlContent = str_replace('[uniqId]', getUID(), $this->view->themeHtmlContent);
-                        
-                        $this->load->model('mdwebservice', 'middleware/models/');
-                        $this->view->themeSectionData = $this->model->getThemeSectionData($this->view->themeLinkData['ID']);
-                    }
-                }
-            }
-        
-            $response = array(
-                'Html' => $this->view->renderPrint('system/link/process/themeManage', self::$viewPath),
-                'Title' => 'Theme',
-                'save_btn' => $this->lang->line('save_btn'),
-                'close_btn' => $this->lang->line('close_btn')
-            );
-            echo json_encode($response);
-        } else {
-            echo json_encode(array('errorMessage' => 'Оролтын параметр хоосон байна. '));
-        }
-        exit;
     }
     
     public function metaDataAutoComplete() {

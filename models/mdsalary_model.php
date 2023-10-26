@@ -3170,7 +3170,8 @@ class Mdsalary_Model extends Model {
             $departmentList = $data['result'];
         }
 
-        (Array) $response = array();
+        $response = array();
+        
         if ($departmentList) {
             $depIds = isset($_GET['depIds']) ? Input::get('depIds') : array();
             $pSelected = isset($_GET['pSelected']) ? Input::get('pSelected') : '0';
@@ -3212,7 +3213,7 @@ class Mdsalary_Model extends Model {
                     'opened'   => false,
                     'parentid' => $row['parentid'],
                 ),
-                'children' => isset($row['children']) ? $this->childDepartmentData($row['children'], $depIds, $pSelected) : isset($row['childrecordcount']) ? true : false
+                'children' => isset($row['children']) ? $this->childDepartmentData($row['children'], $depIds, $pSelected) : (isset($row['childrecordcount']) ? true : false)
             );
         }      
         return $responseChild;

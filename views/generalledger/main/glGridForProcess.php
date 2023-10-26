@@ -154,6 +154,9 @@
                                 <td class="glRowDescr"></td>
                                 <td class="customPartner"></td>
                                 <td class="glRowExpenseCenter"></td>
+                                <?php if (Config::getFromCache('isGLDescrEnglish')) { ?>
+                                    <td></td>
+                                <?php } ?>                                
                                 <td class="glRowCurrency"></td>
                                 <td data-usebase="usebase" class="glRowRate"></td>
                                 <td data-usebase="usebase" class="foot-sum-debitamountbase bigdecimalInit text-right font-weight-bold">0.00</td>
@@ -2297,7 +2300,7 @@
             $glDtl.find("thead#header1").show();
             $glDtl.find("th.usebase, td.usebase, td[data-usebase='usebase']").css({display: 'none'});
         }
-        //checkAccountFilterConfig_<?php echo $this->uniqId; ?>(elem);
+        checkAccountFilterConfig_<?php echo $this->uniqId; ?>(elem);
         calculateFooterSum_<?php echo $this->uniqId; ?>(elem);
         return;
     }
@@ -2401,6 +2404,7 @@
         }
     }
     function checkAccountFilterConfig_<?php echo $this->uniqId; ?>(elem) {
+        return;
         var $rowEl = $(elem);
         if (!$rowEl.find("input[name='gl_subid[]']").length) return;
         
@@ -2467,6 +2471,7 @@
                     for (var cc = 0; cc < $colPath.length; cc++) {
                         obj = accFilter.find(o => o.trim() === $colPath[cc].trim());
                     }
+                    console.log('obj', obj)
                     
                     var $actionCell = $trel.find("td.gl-action-column");
                     if (typeof obj === 'undefined') {
@@ -2529,6 +2534,7 @@
         calculateFooterSum_<?php echo $this->uniqId; ?>(targetBody);
         refreshTrIndex_<?php echo $this->uniqId; ?>();
         bpSetGlMetaRowIndex(glBpMainWindow_<?php echo $this->uniqId; ?>);
+        checkAccountFilterConfig_<?php echo $this->uniqId; ?>(elem);
         return;
     }   
     function addGlDtlWithAccountValue_<?php echo $this->uniqId; ?>(data, elem, fromAutoComplete) {

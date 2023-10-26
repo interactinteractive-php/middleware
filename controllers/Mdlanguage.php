@@ -96,7 +96,7 @@ class Mdlanguage extends Controller {
         echo json_encode($response); exit;
     }
     
-    public function isTranslateOptionByConfig() {
+    public static function isTranslateOptionByConfig() {
         
         if (Config::getFromCache('META_TRANSLATE_BUTTON') == '1' && self::isAccessMetaTranslateButton()) {
             return true;
@@ -104,7 +104,7 @@ class Mdlanguage extends Controller {
         return false;
     }
     
-    public function translateBtnByMetaId($metaId) {
+    public static function translateBtnByMetaId($metaId) {
         
         $button = '';
         
@@ -115,7 +115,7 @@ class Mdlanguage extends Controller {
         return $button;
     }
     
-    public function isAccessMetaTranslateButton() {
+    public static function isAccessMetaTranslateButton() {
         
         if (Session::get(SESSION_PREFIX . 'isTranslateUser')) {
             return true;

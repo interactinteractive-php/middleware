@@ -11,7 +11,7 @@ class Mdwidget extends Controller {
         parent::__construct();
     }
     
-    public function bpDetailAvailableWidgets($widgetCode) {
+    public static function bpDetailAvailableWidgets($widgetCode) {
         
         $availableWidgets = array(
             '14' => array(
@@ -166,7 +166,7 @@ class Mdwidget extends Controller {
         return array('topCustomAddRow' => $topCustomAddRow, 'bottomCustomAddRow' => $bottomCustomAddRow, 'customLocationAddBtn' => $customLocationAddBtn);
     }
     
-    public function widgetDataTemplate($widgetCode) {
+    public static function widgetDataTemplate($widgetCode) {
         
         $widgetDataTmplt = array();
         
@@ -371,7 +371,7 @@ class Mdwidget extends Controller {
         }
     }
     
-    public function positionList() {
+    public static function positionList() {
         $position = array();
                     
         for ($p = 1; $p <= 100; $p++) {

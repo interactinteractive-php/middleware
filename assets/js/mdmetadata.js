@@ -2920,6 +2920,30 @@ function urlRedirectByDataView(elem, processMetaDataId, url, target, dataViewId,
                 posPrintSocialPaySetlement(elem, processMetaDataId, dataViewId, selectedRow, paramData);
             }                 
             return;
+        } else if (urlLower == 'mdprocessflow/metaprocessworkflow') {
+            if (typeof selectedRow === 'undefined') {
+                alert('Мөрөө сонгоно уу!');
+                return;
+            }            
+            if (!selectedRow.taskflowmetaid) {
+                alert('Not found taskflowmetaid path');
+                return;
+            }
+            if (typeof _taskFlowSelectedRow === 'undefined') {                
+                $.getScript(URL_APP + 'assets/custom/addon/plugins/jsplumb/jsplumb.min.js', function() {
+                    if ($("link[href='assets/custom/addon/plugins/jsplumb/css/style.v3.css']").length == 0) {
+                        $("head").append('<link rel="stylesheet" type="text/css" href="assets/custom/addon/plugins/jsplumb/css/style.v3.css"/>');
+                    }            
+                    $.getScript(URL_APP + 'middleware/assets/js/mdprocessflowview.js', function() {      
+                        _taskFlowSelectedRow = selectedRow;
+                        runTaskFlowRender(selectedRow.taskflowmetaid, selectedRow);             
+                    });
+                });            
+            } else {
+                _taskFlowSelectedRow = selectedRow;
+                runTaskFlowRender(selectedRow.taskflowmetaid, selectedRow);
+            }
+            return;
         } else if (urlLower == 'cmssubjectweblink') {
             if (typeof selectedRow === 'undefined') {
                 alert('Мөрөө сонгоно уу!');
@@ -10500,7 +10524,11 @@ function runBusinessProcessWithDataView(dataGrid, mainMetaDataId, processMetaDat
                 $dialog.empty().append(data.Html);
 
                 var processUniqId = data.uniqId;
-                var hidePrintButton = '', runModeButton = '';
+                var hidePrintButton = '', runModeButton = '', dialogPostion = {};
+
+                if ($dialog.find('input[name="processSubType"]').val() === 'endtoend') {
+                    dialogPostion = { my: "top", at: "top+50" };
+                }
 
                 if (typeof data.save_and_print === 'undefined') {
                     hidePrintButton = ' hide';
@@ -10823,6 +10851,7 @@ function runBusinessProcessWithDataView(dataGrid, mainMetaDataId, processMetaDat
                     width: data.dialogWidth,
                     height: data.dialogHeight,
                     modal: true,
+                    position: dialogPostion,
                     closeOnEscape: isCloseOnEscape,
                     open: function(event, ui) {
                         enableScrolling();
@@ -11770,6 +11799,12 @@ function runBusinessProcessGetDataWithDataView(dataGrid, mainMetaDataId, process
                     });
                 }
 
+                var dialogPostion = {};
+
+                if ($dialog.find('input[name="processSubType"]').val() === 'endtoend') {
+                    dialogPostion = { my: "top", at: "top+50" };
+                }                
+
                 $dialog.dialog({
                     cache: false,
                     resizable: true,
@@ -11779,6 +11814,7 @@ function runBusinessProcessGetDataWithDataView(dataGrid, mainMetaDataId, process
                     width: data.dialogWidth,
                     height: data.dialogHeight,
                     modal: true,
+                    position: dialogPostion,
                     closeOnEscape: isCloseOnEscape,
                     open: function() {
                         enableScrolling();
@@ -17704,7 +17740,7 @@ function changeWfmStatusId(element, wfmStatusId, metaDataId, refStructureId, new
 function beforeSignProcess(mainMetaDataId, processMetaDataId, metaTypeId, whereFrom, elem, params, dataGrid, wfmStatusParams, drillDownType) {
 
     var rows = getDataViewSelectedRows(mainMetaDataId);
-
+    var row = rows[0];
     $.ajax({
         type: 'post',
         url: 'mdpki/generateHashFromFileByDataView',
@@ -17715,11 +17751,27 @@ function beforeSignProcess(mainMetaDataId, processMetaDataId, metaTypeId, whereF
         },
         success: function(responseData) {
             PNotify.removeAll();
-
             if (responseData.status === 'success') {
 
                 var funcArguments = [mainMetaDataId, processMetaDataId, metaTypeId, whereFrom, elem, params, dataGrid, wfmStatusParams, drillDownType];
-                callSign(responseData.hash, responseData.guid, elem, 'privateTransferProcessAction', funcArguments);
+
+                if (typeof row.physicalpath !== 'undefined') {
+                    var physicalpath = row.physicalpath;
+
+                    if (physicalpath.split('.').pop().toLowerCase() === 'pdf') {
+                        var contentId = null;
+                        
+                        if (row.hasOwnProperty('contentid')) {
+                            contentId = row.contentid;
+                        }
+                        
+                        hardSign(URL_APP + row.physicalpath, contentId, URL_APP + 'mddoceditor/fileUpload', 'privateTransferProcessAction', funcArguments);
+                    } else {
+                        callSign(responseData.hash, responseData.guid, elem, 'privateTransferProcessAction', funcArguments);
+                    }
+                } else {
+                    callSign(responseData.hash, responseData.guid, elem, 'privateTransferProcessAction', funcArguments);
+                }
 
             } else {
                 new PNotify({
@@ -17729,6 +17781,7 @@ function beforeSignProcess(mainMetaDataId, processMetaDataId, metaTypeId, whereF
                     sticker: false
                 });
             }
+            
             Core.unblockUI();
         }
     });
@@ -17737,6 +17790,116 @@ function beforeSignProcess(mainMetaDataId, processMetaDataId, metaTypeId, whereF
 function beforeHardSignProcess(mainMetaDataId, processMetaDataId, metaTypeId, whereFrom, elem, params, dataGrid, wfmStatusParams, drillDownType) {
     var rows = getDataViewSelectedRows(mainMetaDataId);
     var row = rows[0];
+
+    signPdfWithCoordinate = function signPdfWithCoordinate(coordinate) {
+        $('#callIframeCanvasHardSign').empty().dialog('destroy').remove();
+
+        $.ajax({
+            type: 'post',
+            url: 'mdpki/generateHashFromFileByDataView',
+            data: { selectedRow: row },
+            dataType: 'json',
+            beforeSend: function() {
+                Core.blockUI({message: 'Loading...', boxed: true});
+            },
+            success: function(responseData) {
+                PNotify.removeAll();
+
+                if (responseData.guid !== 'null' && responseData.guid !== null) {
+                    if (responseData.status === 'success') {
+                        var funcArguments = [mainMetaDataId, processMetaDataId, metaTypeId, whereFrom, elem, params, dataGrid, wfmStatusParams, drillDownType];
+
+                        if (typeof row.physicalpath !== 'undefined') {
+                            var physicalpath = row.physicalpath;
+                            if (physicalpath.split('.').pop().toLowerCase() === 'pdf') {
+                                var contentId = null;
+                                if (row.hasOwnProperty('contentid')) {
+                                    contentId = row.contentid;
+                                }
+
+                                var fileName = URL_APP + row.physicalpath;
+                                var server = URL_APP + 'mddoceditor/fileUpload';
+                                var funcName = 'privateTransferProcessAction';
+                                var pdfPath = fileName.replace(URL_APP, '');
+                                
+                                $.ajax({
+                                    type: 'post',
+                                    url: 'mdpki/getInformationForDocumentSign',
+                                    data: {filePath: pdfPath},
+                                    dataType: 'json',
+                                    success: function (data) {
+                                        
+                                        signPdfAndTextRun(data, pdfPath, contentId, function (t) {
+                                            if (t.status === 'success') {
+                                                setTimeout(function(){ window[funcName].apply(null, funcArguments); }, 2000);
+                                            }   
+                                        }, Math.floor(1.33333333* coordinate.x), Math.floor(1.33333333 * (573-coordinate.y)), coordinate.pageNum);
+                                    }
+                                });
+                            } else {
+                                callSign(responseData.hash, responseData.guid, elem, 'privateTransferProcessAction', funcArguments);
+                            }
+                        } else {
+                            callSign(responseData.hash, responseData.guid, elem, 'privateTransferProcessAction', funcArguments);
+                        }
+                        
+
+                    } else {
+                        new PNotify({
+                            title: 'Error',
+                            text: responseData.message,
+                            type: 'error',
+                            sticker: false
+                        });
+                    }
+                    Core.unblockUI();
+                } else {
+                    new PNotify({
+                        title: 'Error',
+                        text: 'Хэрэглэгчид токен бүртгүүлээгүй байна!',
+                        type: 'error',
+                        sticker: false
+                    });
+                }
+            }
+        });
+    };
+
+    var pdfPath = row.physicalpath;
+    iframe = '<iframe id="frameStampPos" src="mddoc/canvasStampPos?uniqid=HardSignWindow&pdfPath='+pdfPath+'" height="100%" width="100%" frameBorder="0" ></iframe>';
+
+    if (!$('#callIframeCanvasHardSign').length ) {
+        var div = document.createElement("div");
+        div.id = 'callIframeCanvasHardSign';
+        div.style = 'display: none';
+        document.body.appendChild(div);
+    }
+
+    $('#callIframeCanvasHardSign').empty().append(iframe);
+    $("#callIframeCanvasHardSign").dialog({
+        cache: false,
+        resizable: false,
+        bgiframe: true,
+        autoOpen: false,
+        title: 'Тамганы байршил',
+        width: 550,
+        height: 750,
+        modal: false,
+        open: function (event, ui) {
+            $('#callIframeCanvasHardSign').css('overflow', 'hidden'); 
+        },
+        close: function () {
+            $('#callIframeCanvasHardSign').empty().dialog('destroy').remove();
+        },
+        buttons: [{text: 'Сонгох', class: 'btn blue-madison btn-sm', click: function () {
+        var frame = $('#frameStampPos')[0];
+        frame.contentWindow.postMessage({call:'canvasClickSendValue_HardSignWindow', 
+            value: {'pdfPath': pdfPath}})
+        }}]
+    });
+
+    $("#callIframeCanvasHardSign").dialog('open');
+    return false;
 
     $.ajax({
         type: 'post',
@@ -17842,7 +18005,6 @@ window.addEventListener('message', function(message) {
 var signPdfWithCoordinate = function (a) { console.log(a); };
 
 function beforeHardSignChangeWfmStatusId(elem, wfmStatusId, metaDataId, refStructureId, newWfmStatusColor, newWfmStatusName) {
-    
     signPdfWithCoordinate = function signPdfWithCoordinate(coordinate){
         $('#callIframeCanvasHardSign').empty().dialog('destroy').remove();
 
@@ -17863,8 +18025,7 @@ function beforeHardSignChangeWfmStatusId(elem, wfmStatusId, metaDataId, refStruc
                     // if (responseData.status === 'success') {
                         if (responseData.status === 'success') {
                             var funcArguments = [elem, wfmStatusId, metaDataId, refStructureId, newWfmStatusColor, newWfmStatusName];
-                            console.log(funcArguments);
-                            console.log(row);
+                            
                             if (typeof row.physicalpath !== 'undefined') {
                                 var physicalpath = row.physicalpath;
                                 if (physicalpath.split('.').pop().toLowerCase() === 'pdf') {
@@ -17878,6 +18039,7 @@ function beforeHardSignChangeWfmStatusId(elem, wfmStatusId, metaDataId, refStruc
                                     var funcName = 'changeWfmStatusId';
                                     // function hardSign(fileName, contentId, server, funcName, funcArguments) {
                                     var pdfPath = fileName.replace(URL_APP, '');
+
                                     $.ajax({
                                         type: 'post',
                                         url: 'mdpki/getInformationForDocumentSign',
@@ -17888,9 +18050,11 @@ function beforeHardSignChangeWfmStatusId(elem, wfmStatusId, metaDataId, refStruc
                                                 if (t.status === 'success') {
                                                     setTimeout(function(){ window[funcName].apply(null, funcArguments); }, 2000);
                                                 }   
-                                            }, Math.floor(1.33333333* coordinate.x), Math.floor(1.33333333 * (573-coordinate.y)), coordinate.pageNum, null, 1);
+                                            }, Math.floor(1.33333333* coordinate.x), Math.floor(1.33333333 * (573-coordinate.y)), coordinate.pageNum);
                                         }
                                     });
+                                    
+                                    Core.unblockUI();
                                 } else {
                                     callSign(responseData.hash, responseData.guid, elem, 'changeWfmStatusId', funcArguments);
                                 }
@@ -17925,40 +18089,38 @@ function beforeHardSignChangeWfmStatusId(elem, wfmStatusId, metaDataId, refStruc
     var pdfPath = row.physicalpath;
 
     var filename = pdfPath.replace(/^.*[\\\/]/, '');
-    iframe = '<iframe id="frameStampPos" src="mddoc/canvasStampPos?uniqid=HardSignWindow&pdfPath='+pdfPath+'" height="100%" width="100%" frameBorder="0" ></iframe>';
-    if(! $('#callIframeCanvasHardSign').length ){
-    var div = document.createElement("div");
-    div.id = 'callIframeCanvasHardSign';
-    div.style = 'display: none';
-    document.body.appendChild(div);
+    iframe = '<iframe id="frameStampPos" src="mddoc/canvasStampPos?uniqid=HardSignWindow&pdfPath='+ pdfPath +'" height="100%" width="100%" frameBorder="0" ></iframe>';
+
+    if (! $('#callIframeCanvasHardSign').length ){
+        var div = document.createElement("div");
+        div.id = 'callIframeCanvasHardSign';
+        div.style = 'display: none';
+        document.body.appendChild(div);
     }
 
-    $('#callIframeCanvasHardSign').empty();
-    $('#callIframeCanvasHardSign').append(iframe);
-
+    $('#callIframeCanvasHardSign').empty().append(iframe);
     $("#callIframeCanvasHardSign").dialog({
-          cache: false,
-          resizable: false,
-          bgiframe: true,
-          autoOpen: false,
-          title: 'Тамганы байршил',
-          width: 500-9,
-          height: 750-40,
-          modal: false,
-            open: function (event, ui) {
-                $('#callIframeCanvasHardSign').css('overflow', 'hidden'); 
-              },
-          close: function () {
-              $('#callIframeCanvasHardSign').empty().dialog('destroy').remove();
-          },
-          buttons: [{text: 'Сонгох', class: 'btn blue-madison btn-sm', click: function () {
-          var frame = $('#frameStampPos')[0];
-          frame.contentWindow.postMessage({call:'canvasClickSendValue_HardSignWindow', 
-            value: {'pdfPath': pdfPath}})
-        }}]
+        cache: false,
+        resizable: false,
+        bgiframe: true,
+        autoOpen: false,
+        title: 'Тамганы байршил',
+        width: 500-9,
+        height: 750-40,
+        modal: false,
+        open: function (event, ui) {
+            $('#callIframeCanvasHardSign').css('overflow', 'hidden'); 
+        },
+        close: function () {
+            $('#callIframeCanvasHardSign').empty().dialog('destroy').remove();
+        },
+        buttons: [{text: 'Сонгох', class: 'btn blue-madison btn-sm', click: function () {
+            var frame = $('#frameStampPos')[0];
+            frame.contentWindow.postMessage({call:'canvasClickSendValue_HardSignWindow', value: {'pdfPath': pdfPath}})}
+        }]
     });
 
-  $("#callIframeCanvasHardSign").dialog('open');
+    $("#callIframeCanvasHardSign").dialog('open');
 }
 
 function dialogOpenFunction(metaDataId, mainMetaDataId, dataHtml, title, closeBtn) {
@@ -18057,15 +18219,13 @@ function seeWfmStatusForm(element, metaDataId) {
                     enableScrolling();
                     $dialog.empty().dialog('destroy').remove();
                 },
-                buttons: [
-                    {
-                        text: data.close_btn,
-                        class: 'btn blue-madison btn-sm',
-                        click: function() {
-                            $dialog.dialog('close');
-                        }
+                buttons: [{
+                    text: data.close_btn,
+                    class: 'btn blue-madison btn-sm',
+                    click: function() {
+                        $dialog.dialog('close');
                     }
-                ]
+                }]
             });
             Core.initFancybox($dialog);
             $dialog.dialog('open');

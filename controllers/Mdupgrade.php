@@ -117,7 +117,7 @@ class Mdupgrade extends Controller {
         
         Auth::handleLogin();
         
-        if (Config::getFromCache('is_dev')) {
+        if (Config::getFromCache('is_dev') && Ue::sessionUserId() != '1453998999913') {
             $exportData = array('status' => 'error', 'message' => 'Метаг экспорт хийх боломжгүй тул Patch ашиглана уу.');
         } else {
             $exportData = $this->model->exportMetaModel();
@@ -261,7 +261,7 @@ class Mdupgrade extends Controller {
     public function encryptedFileImport() {
         
         $result = $this->model->encryptedFileImportModel();
-        echo json_encode($result); exit;
+        echo json_encode($result, JSON_UNESCAPED_UNICODE);
     }
     
     public function exportObject() {
@@ -389,7 +389,7 @@ class Mdupgrade extends Controller {
         var_dump($outputSvn);*/
     }
     
-    public function phpImportServiceAddr() {
+    public static function phpImportServiceAddr() {
         
         $url = Config::getFromCache('bugfixServiceAddress');
                 
@@ -445,10 +445,11 @@ class Mdupgrade extends Controller {
             }
         }
         
-        jsonResponse($response);
+        header('Content-Type: application/json');
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
-    public function getBugfixDataByCommand($command, $param = array()) {
+    public static function getBugfixDataByCommand($command, $param = array()) {
         
         $url = self::phpImportServiceAddr();
 
@@ -564,7 +565,7 @@ class Mdupgrade extends Controller {
         }
     }
     
-    public function metaImportExternalServerAddress() {
+    public static function metaImportExternalServerAddress() {
         $url = Config::getFromCache('metaImportExternalServerAddress');
         
         if ($url) {

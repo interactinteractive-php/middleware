@@ -43,11 +43,11 @@ if ($bpDtlAddHtml == null) {
             $position[$val['THEME_POSITION_NO']] = '<div data-cell-path="' . $val['PARAM_REAL_PATH'] . '" style="width:' . $val['COLUMN_WIDTH'] . '">'.
                 Mdwebservice::{$renderParamControlFnc}($this->methodId, $val, 'param[' . $val['PARAM_REAL_PATH'] . '][0][]', $val['PARAM_REAL_PATH']).
             '</div>';
-        } 
-
-        $controls[] = '<div data-cell-path="' . $val['PARAM_REAL_PATH'] . '" class="d-none">';
-            $controls[] = Mdwebservice::{$renderParamControlFnc}($this->methodId, $val, 'param[' . $val['PARAM_REAL_PATH'] . '][0][]', $val['PARAM_REAL_PATH']);
-        $controls[] = '</div>';
+        } else {
+            $controls[] = '<div data-cell-path="' . $val['PARAM_REAL_PATH'] . '" class="d-none">';
+                $controls[] = Mdwebservice::{$renderParamControlFnc}($this->methodId, $val, 'param[' . $val['PARAM_REAL_PATH'] . '][0][]', $val['PARAM_REAL_PATH']);
+            $controls[] = '</div>';
+        }
     }
 
     $position1 = issetParam($position[1]);

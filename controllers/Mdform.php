@@ -906,7 +906,7 @@ class Mdform extends Controller {
         return $this->view->renderPrint('kpi/grid', self::$viewPath);
     }
     
-    public function eaRenderControl($row, $value, $uniqid) {
+    public static function eaRenderControl($row, $value, $uniqid) {
         
         $showType = $row['showtype'];
         $control  = null;
@@ -2422,7 +2422,7 @@ class Mdform extends Controller {
         echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
-    public function clearCacheData($indicatorId = '') {
+    public static function clearCacheData($indicatorId = '') {
         
         $tmp_dir = Mdcommon::getCacheDirectory();
         $clearFiles = array();
@@ -2676,7 +2676,6 @@ class Mdform extends Controller {
     
     public function indicatorDashboard($indicatorId = '') {
 
-        
         $filterParams = $this->model->getKpiDashboardFilterParamsModel($indicatorId);
         $dashboardConfigs = $this->model->getKpiDashboardChartsModel($indicatorId);
         
@@ -2742,11 +2741,12 @@ class Mdform extends Controller {
 
             $this->view->render('header');
         }
-            $this->view->render('kpi/indicator/dashboard/index', self::$viewPath);
+        
+        $this->view->render('kpi/indicator/dashboard/index', self::$viewPath);
+        
         if ($this->view->isAjax == false) {
             $this->view->render('footer');
         }
-         
     }
     
     public function indicatorOneChart($indicatorId = '') {
@@ -3278,13 +3278,13 @@ class Mdform extends Controller {
             'html' => $this->view->renderPrint('kpi/indicator/excelimport/form', self::$viewPath)
         );
         
-        echo json_encode($response);
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
     public function kpiIndicatorExcelImport() {
         
         $response = $this->model->kpiIndicatorExcelImportModel();
-        echo json_encode($response);
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
     public function indicatorProcessWidget($indicatorId = '') {
@@ -5257,7 +5257,7 @@ class Mdform extends Controller {
         echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
-    public function mvValueRender($type, $value = '') {
+    public static function mvValueRender($type, $value = '') {
         
         if ($type == 'check' || $type == 'boolean') {
             $value = ($value == '1' || $value == 'true') ? 'Тийм' : 'Үгүй';
@@ -5865,7 +5865,7 @@ class Mdform extends Controller {
     }
     
     public function runPivotDataMartTest() {
-        $rs = $this->model->runPivotDataMartModel('184186803');
+        $rs = $this->model->runPivotDataMartModel('16679006894922');
         var_dump($rs);die;
     }
     

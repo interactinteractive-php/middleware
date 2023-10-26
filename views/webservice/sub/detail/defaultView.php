@@ -12,7 +12,7 @@ $isDetailUserConfig = $isTab = $detailView = $isAggregate = false;
 $htmlHeaderCell = $htmlBodyCell = $gridHead = $gridBody = $gridFoot = $gridBodyRow = $gridBodyRowAfter = $gridTabBody = $gridTabContentHeader = $gridTabContentBody = $gridClass = $aggregateClass = '';
 $htmlGridFoot = '<td></td>';
 $gridRowTypePath = $firstLevelRowArr = $getDtlRowsPopup = array();
-$sidebarGroupArr_{$row['id']} = array();
+$sidebarGroupArr_[$row['id']] = array();
 $isMultiRow = ($row['recordtype'] == 'rows') ? true : false;
 
 $widgetCode = issetParam($row['widgetCode']);
@@ -183,13 +183,13 @@ if ($row['recordtype'] == 'rows' && !empty($row['sidebarName'])) {
 
             } else {
 
-                $sidebarShowRowsDtl_{$row['id']} = true;
-                if (!in_array($val['SIDEBAR_NAME'], $sidebarGroupArr_{$row['id']})) {
-                    $sidebarGroupArr_{$row['id']}[$ind] = $val['SIDEBAR_NAME'];
-                    $sidebarDtlRowsContentArr_{$row['id'].$ind} = array();
+                $sidebarShowRowsDtl_[$row['id']] = true;
+                if (!in_array($val['SIDEBAR_NAME'], $sidebarGroupArr_[$row['id']])) {
+                    $sidebarGroupArr_[$row['id']][$ind] = $val['SIDEBAR_NAME'];
+                    $sidebarDtlRowsContentArr_[$row['id'].$ind] = array();
                 }
 
-                $groupKey = array_search($val['SIDEBAR_NAME'], $sidebarGroupArr_{$row['id']});
+                $groupKey = array_search($val['SIDEBAR_NAME'], $sidebarGroupArr_[$row['id']]);
                 $labelAttr = array(
                     'text' => $this->lang->line($val['META_DATA_NAME']),
                     'for' => "param[" . $row['code'] . "." . $val['META_DATA_CODE'] . "][0][]",
@@ -200,11 +200,11 @@ if ($row['recordtype'] == 'rows' && !empty($row['sidebarName'])) {
                 } else {
                     $inHtml = Mdwebservice::renderViewParamControl($this->methodId, $val, "param[" . $row['code'] . "." . $val['META_DATA_CODE'] . "][0][]", $row['code'] . "." . $val['META_DATA_CODE'], array());
                 }
-                $sidebarDtlRowsContentArr_{$row['id'].$groupKey}[] = array(
+                $sidebarDtlRowsContentArr_[$row['id'].$groupKey][] = array(
                     'input_label_txt' => Form::label($labelAttr),
                     'input_html' => $inHtml
                 );
-                $sidebarDtlRowsContentArr_{$row['id']}[$groupKey] = $sidebarDtlRowsContentArr_{$row['id'].$groupKey};                                    
+                $sidebarDtlRowsContentArr_[$row['id']][$groupKey] = $sidebarDtlRowsContentArr_[$row['id'].$groupKey];                                    
             }
         } 
 
@@ -214,24 +214,24 @@ if ($row['recordtype'] == 'rows' && !empty($row['sidebarName'])) {
     if ($isMultiRow) {
 
         $actionWidth = 40;
-        if (isset($sidebarShowRowsDtl_{$row['id']})) {
+        if (isset($sidebarShowRowsDtl_[$row['id']])) {
             $actionWidth = 70;
         }
         $htmlHeaderCell = '<th class="action ' . ($row['isShowDelete'] === '1' ? '' : 'hide') . '" style="width:' . $actionWidth . 'px;"></th>';
         $htmlBodyCell .= '<td class="text-center middle' . ($row['isShowDelete'] === '1' ? '' : ' hide') . '">';
 
-        if (isset($sidebarShowRowsDtl_{$row['id']})) {
+        if (isset($sidebarShowRowsDtl_[$row['id']])) {
             $htmlBodyCell .= '<a href="javascript:;" onclick="proccessRenderPopup(\'div#bp-window-' . $this->methodId . ':visible\', this);" class="btn btn-xs purple-plum" style="width:21px" title="Popup цонхоор харах"><i class="fa fa-external-link"></i></a>';
             $htmlBodyCell .= '<div class="sidebarDetailSection hide">';
 
-            if (!empty($sidebarGroupArr_{$row['id']})) {
-                foreach ($sidebarGroupArr_{$row['id']} as $keyPopGroup => $rowPopGroup) {
+            if (!empty($sidebarGroupArr_[$row['id']])) {
+                foreach ($sidebarGroupArr_[$row['id']] as $keyPopGroup => $rowPopGroup) {
 
                     $htmlBodyCell .= '<p class="property_page_title">' . $this->lang->line($rowPopGroup) . '</p>' .
                     '<div class="panel panel-default bg-inverse grid-row-content">' .
                     '<table class="table sheetTable sidebar_detail">' .
                     '<tbody>';
-                    foreach ($sidebarDtlRowsContentArr_{$row['id']}[$keyPopGroup] as $subrowPopGroup) {
+                    foreach ($sidebarDtlRowsContentArr_[$row['id']][$keyPopGroup] as $subrowPopGroup) {
                         $htmlBodyCell .= "<tr>" .
                         "<td style='width: 229px;' class='left-padding'>" . $this->lang->line($subrowPopGroup['input_label_txt']) . "</td>" .
                         "<td>" . $subrowPopGroup['input_html'] . "</td>" .

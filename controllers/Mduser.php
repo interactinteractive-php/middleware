@@ -390,7 +390,7 @@ class Mduser extends Controller {
         return html_tag('a', $tagAttr, '<i class="icon-arrow-right5"></i> '.Lang::line($menuRow['MENU_NAME']).$rightHotKey);
     }
     
-    public function renderQuickMenuAnchor($row) {
+    public static function renderQuickMenuAnchor($row) {
         
         if ($row['META_TYPE'] == 'dataview') {
             
@@ -457,7 +457,7 @@ class Mduser extends Controller {
         return '';
     }
     
-    public function linkAnchorIconQuickMenu($urlCode, $menuName) {
+    public static function linkAnchorIconQuickMenu($urlCode, $menuName) {
         return '<button type="button" class="btn btn-secondary btn-sm btn-circle default bp-btn-quickmenu" title="Quick menu" onclick="toQuickMenu(\''.$urlCode.'\', \'urlcode\', this, \''.$menuName.'\');" tabindex="-1">'.(new self())->iconQuickMenuByUrlCode($urlCode).'</button>';
     }
     
@@ -608,7 +608,7 @@ class Mduser extends Controller {
         jsonResponse($response);
     }
     
-    public function processToolsButton($methodId, $isEditMode, $runMode, $tabStart, $isLayout = false) {
+    public static function processToolsButton($methodId, $isEditMode, $runMode, $tabStart, $isLayout = false) {
         
         if ($tabStart) {
             $style = 'position: absolute;right: 7px;top: 0;margin-top:-46px;';
@@ -765,7 +765,7 @@ class Mduser extends Controller {
         echo json_encode($response, JSON_UNESCAPED_UNICODE); exit;
     }
     
-    public function systemModeActions() {
+    public static function systemModeActions() {
         
         $result = null;
         

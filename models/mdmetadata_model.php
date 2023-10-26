@@ -335,7 +335,11 @@ class Mdmetadata_Model extends Model {
             array(
                 'code' => 'interface', 
                 'name' => 'Interface'
-            )
+            ),
+            array(
+                'code' => 'endtoend', 
+                'name' => 'End to end'
+            )            
         );
         
         $arrs = self::checkRemoveMetaSubType($arrs);
@@ -547,7 +551,7 @@ class Mdmetadata_Model extends Model {
         return null;
     }
 
-    public function getCrumbs($this_fol_id, $flarn, $keep_fol_id) {
+    public static function getCrumbs($this_fol_id, $flarn, $keep_fol_id) {
         
         global $db;
         
@@ -1178,15 +1182,6 @@ class Mdmetadata_Model extends Model {
                     self::saveBpInputParamsModel($metaDataId);
                     self::saveBpOutputParamsModel($metaDataId);
                 }
-
-                // <editor-fold defaultstate="collapsed" desc="meta theme link">
-                    if(isset($_POST['metaThemeInput'])){
-                        $metaThemeInput =json_decode(utf8_encode($_POST['metaThemeInput']), true);
-                        if ($metaThemeInput && !is_null($metaThemeInput)) {
-                            self::createOrUpdateMetaThemeLink($metaThemeInput, $metaDataId);                            
-                        }
-                    }
-                // </editor-fold>
             }
             
             if ($metaTypeId == Mdmetadata::$taskFlowMetaTypeId) {
@@ -2148,28 +2143,6 @@ class Mdmetadata_Model extends Model {
                         }
                     }
                 }
-
-                // <editor-fold defaultstate="collapsed" desc="meta theme link">
-                if (isset($_POST['metaThemeInput'])) {
-                    $metaThemeInput = json_decode(utf8_encode($_POST['metaThemeInput']), true);
-
-                    if ($metaThemeInput && !is_null($metaThemeInput)) {
-                        $dataMetaThemeLinkUpdate = array(
-                            'IS_ACTIVE' =>'0'
-                        );
-                        $this->db->AutoExecute('META_THEME_LINK', $dataMetaThemeLinkUpdate, 'UPDATE', 'META_DATA_ID = ' . $metaDataId);
-
-                        self::createOrUpdateMetaThemeLink($metaThemeInput, $metaDataId);                            
-                    }
-                }
-
-                if (Input::postCheck('removedMetaThemeId') && Input::post('removedMetaThemeId') != '') {
-                    $dataMetaThemeLinkUpdate = array(
-                        'IS_ACTIVE' =>'0'
-                    );
-                    $this->db->AutoExecute('META_THEME_LINK', $dataMetaThemeLinkUpdate, 'UPDATE', 'ID = ' . Input::post('removedMetaThemeId'));                           
-                }
-                // </editor-fold>
 
                 (new Mdmeta())->bpParamsClearCache($metaDataId, (isset($metaDataCode) ? $metaDataCode : self::getMetaDataCodeModel($metaDataId)), true); 
             } 
@@ -3387,64 +3360,6 @@ class Mdmetadata_Model extends Model {
         } 
         
         return false;
-    }
-
-    public function createOrUpdateMetaThemeLink($metaThemeInput, $metaDataId) {
-        $themeArray = array_keys($metaThemeInput);
-        $themeId = $themeArray[0];
-
-        $themeLinkId = getUID();
-
-        $dataMetaThemeLink = array(
-            'ID' => $themeLinkId,
-            'THEME_ID' => $themeId,
-            'META_DATA_ID' => $metaDataId,
-            'CREATED_USER_ID' => Ue::sessionUserId(),
-            'CREATED_DATE' => Date::currentDate(),
-            'IS_ACTIVE' => '1',
-            'IS_MULTI_LANG' => Input::postCheck('isMultiLang') ? 1 : 0,
-        );
-
-        $meteThemeLink = $this->db->AutoExecute('META_THEME_LINK', $dataMetaThemeLink);
-
-        if ($meteThemeLink) {
-            foreach ($metaThemeInput[$themeId] as $sectionName => $themeInput) {
-                $themeLinkSectionId = getUID();
-
-                $dataMetaThemeLinkSection = array(
-                    'ID' => $themeLinkSectionId,
-                    'META_THEME_LINK_ID' => $themeLinkId,
-                    'PARAM_PATH' => isset($themeInput['paramPath']) ? $themeInput['paramPath'] : NULL,
-                    'SECTION_NAME' => $sectionName,
-                    'STYLE_ID' => isset($themeInput['styleId']) ? $themeInput['styleId'] : NULL,
-                    'SORT_ORDER' => str_replace('section', '', $sectionName),
-                    'CREATED_USER_ID' => Ue::sessionUserId(),
-                    'CREATED_DATE' => Date::currentDate(),
-                );
-
-                $meteThemeLinkSection = $this->db->AutoExecute('META_THEME_LINK_SECTION', $dataMetaThemeLinkSection);
-
-                if (isset($themeInput['sectionDetail']) && $meteThemeLinkSection) {
-                    if (!is_null($themeInput['sectionDetail'])) {
-                        foreach ($themeInput['sectionDetail'] as $positionName => $sectionDetail) {
-                            $dataMetaThemeLinkSectionDetail = array(
-                                'ID' => getUID(),
-                                'THEME_SECTION_ID' => $themeLinkSectionId,
-                                'POSITION_NAME' => $positionName,
-                                'PARAM_PATH' => $sectionDetail['paramPath'],
-                                'PARAM_REAL_PATH' => $sectionDetail['paramRealPath'],
-                                'CREATED_USER_ID' => Ue::sessionUserId(),
-                                'CREATED_DATE' => Date::currentDate(),
-                            );
-
-                            $this->db->AutoExecute('META_THEME_LINK_SECTION_DETAIL', $dataMetaThemeLinkSectionDetail);
-                        }
-                    }
-                }
-            }
-        }
-
-        return true;
     }
 
     public function saveBpInputParamsModel($metaDataId) {
@@ -6972,15 +6887,10 @@ class Mdmetadata_Model extends Model {
                 PL.IS_BPMN_TOOL, 
                 PL.IS_OFFLINE_MODE, 
                 PL.JSON_CONFIG, 
-                PL.IS_SAVE_VIEW_LOG, 
-                MTL.ID AS META_THEME_ID, 
-                MT.NAME AS META_THEME_NAME 
+                PL.IS_SAVE_VIEW_LOG
             FROM META_BUSINESS_PROCESS_LINK PL 
                 LEFT JOIN WEB_SERVICE_LANGUAGE SL ON SL.SERVICE_LANGUAGE_ID = PL.SERVICE_LANGUAGE_ID 
                 LEFT JOIN META_DATA MD ON MD.META_DATA_ID = PL.GETDATA_PROCESS_ID 
-                LEFT JOIN META_THEME_LINK MTL ON PL.META_DATA_ID = MTL.META_DATA_ID 
-                    AND MTL.IS_ACTIVE = 1 
-                LEFT JOIN META_THEME MT ON MTL.THEME_ID = MT.ID 
                 LEFT JOIN META_DATA MDG ON MDG.META_DATA_ID = PL.SYSTEM_META_GROUP_ID 
                 LEFT JOIN META_DATA MDI ON MDI.META_DATA_ID = PL.INPUT_META_DATA_ID 
                 LEFT JOIN META_DATA MDO ON MDO.META_DATA_ID = PL.OUTPUT_META_DATA_ID 
@@ -7027,8 +6937,6 @@ class Mdmetadata_Model extends Model {
             $row['IS_ADDON_RELATION'] = null;
             $row['IS_ADDON_WFM_LOG'] = null;
             $row['IS_ADDON_WFM_LOG_TYPE'] = null;
-            $row['META_THEME_ID'] = null;
-            $row['META_THEME_NAME'] = null;
             $row['IS_WIDGET'] = null;
             $row['IS_TOOLS_BTN'] = null;
             $row['IS_BPMN_TOOL'] = null;
@@ -7305,6 +7213,26 @@ class Mdmetadata_Model extends Model {
                     
                     if ($paramFilter) {
                         $param['criteria'] = $paramFilter;
+                    }
+                }
+                
+                if (!Input::isEmpty('filterJson')) {
+                
+                    $criteria = @json_decode(Str::cp1251_utf8(html_entity_decode($_POST['filterJson'], ENT_QUOTES, 'UTF-8')), true);
+
+                    if (is_array($criteria)) {
+
+                        foreach ($criteria as $key => $value) {
+                            $paramFilter[$key][] = array('operator' => '=', 'operand' => $value);
+                        }
+
+                        if ($paramFilter) {
+                            if (isset($param['criteria'])) {
+                                $param['criteria'] = array_merge($param['criteria'], $paramFilter);
+                            } else {
+                                $param['criteria'] = $paramFilter;
+                            }   
+                        }
                     }
                 }
                 
@@ -8339,7 +8267,7 @@ class Mdmetadata_Model extends Model {
         return $data;
     }
 
-    public function getMetaFolderPath($metaDataId) {
+    public static function getMetaFolderPath($metaDataId) {
         global $db;
         
         $data = $db->GetAll("SELECT FOLDER_ID FROM META_DATA_FOLDER_MAP WHERE META_DATA_ID = ".$db->Param(0), array($metaDataId));
@@ -8353,7 +8281,7 @@ class Mdmetadata_Model extends Model {
         return $path;
     }
 
-    public function getResultPath($this_fol_id, $flarn, $keep_fol_id) {
+    public static function getResultPath($this_fol_id, $flarn, $keep_fol_id) {
         
         global $db;
         
@@ -10256,6 +10184,8 @@ class Mdmetadata_Model extends Model {
                         $response[$pathNotUnderlinePath]['LOOKUP_META_DATA_ID']   = $fieldMetas[$pathNotUnderline]['LOOKUP_META_DATA_ID'];
                         $response[$pathNotUnderlinePath]['LOOKUP_META_DATA_CODE'] = $fieldMetas[$pathNotUnderline]['LOOKUP_META_DATA_CODE'];
                         $response[$pathNotUnderlinePath]['LOOKUP_META_DATA_NAME'] = $fieldMetas[$pathNotUnderline]['LOOKUP_META_DATA_NAME'];
+                    } else {
+                        $response[$pathNotUnderlinePath]['LABEL_NAME']            = $path;
                     }
                 }
             }

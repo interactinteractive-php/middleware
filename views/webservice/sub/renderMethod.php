@@ -303,11 +303,11 @@ if ($this->isDialog == false) {
                                                 if (!empty($tabname)) {
                                                     if (!in_array($tabname, $tabHeaderArr)) {
                                                         $tabHeaderArr[$resetArrIndex] = $tabname;
-                                                        $tabHeaderContentArr{$resetArrIndex} = array();
+                                                        $tabHeaderContentArr[$resetArrIndex] = array();
                                                     }
                                                     $groupKey = array_search($tabname, $tabHeaderArr);
-                                                    $tabHeaderContentArr{$groupKey}[] = $columns[$xxx];
-                                                    $tabHeaderContentArr[$groupKey] = $tabHeaderContentArr{$groupKey};
+                                                    $tabHeaderContentArr[$groupKey][] = $columns[$xxx];
+                                                    $tabHeaderContentArr[$groupKey] = $tabHeaderContentArr[$groupKey];
                                                     unset($buildData['onlyShow'][$resetArrIndex++]);
                                                     $xxx++;
                                                     continue;
@@ -618,6 +618,7 @@ if ($this->isDialog == false) {
                 
                 if (isset($this->fillParamData['_taskflowinfo']) && $this->fillParamData['_taskflowinfo']) {
                     echo Form::hidden(array('name' => 'taskFlowInfo', 'value' => Arr::encode($this->fillParamData['_taskflowinfo'])));
+                    echo Form::hidden(array('name' => 'isTaskFlowView', 'value' => issetParam($_POST['isTaskFlowView'])));
                 }
                 ?>    
             </div>

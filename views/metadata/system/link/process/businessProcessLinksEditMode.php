@@ -38,6 +38,10 @@
                                             array(
                                                 'code' => 'interface', 
                                                 'name' => 'Interface'
+                                            ),
+                                            array(
+                                                'code' => 'endtoend', 
+                                                'name' => 'End to end'
                                             )
                                         ),
                                         'text' => 'notext',
@@ -373,24 +377,6 @@
                                     )
                                 );
                                 ?>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="left-padding">
-                              <label for="methodActionBtn">Тheme:</label>
-                            </td>
-                            <td colspan="2">
-                                <?php 
-                                echo Form::button(array('class'=>'btn btn-sm purple-plum','value'=>'...','onclick'=>'manageTheme(this);')); 
-                                if (!is_null($this->bpRow['META_THEME_ID'])) {
-                                ?>
-                                  <a href="javascript:;" class="btn btn-sm default ml0" onclick="removeMetaTheme(this);"><i class="icon-cross2 font-size-12"></i></a>
-                                <?php
-                                }
-                                echo Form::hidden(array('name' => 'metaThemeEditId', 'id' => 'metaThemeEditId' , 'value'=>  !is_null($this->bpRow['META_THEME_ID'])?$this->bpRow['META_THEME_ID']:'')); 
-                                echo Form::hidden(array('name' => 'removedMetaThemeId', 'id' => 'removedMetaThemeId')); 
-                                ?>
-                                <span id="metaThemeName"><?php echo !is_null($this->bpRow['META_THEME_NAME']) ? $this->bpRow['META_THEME_NAME'] : ''; ?></span>
                             </td>
                         </tr>
                         <tr>
@@ -1284,7 +1270,7 @@ $(function () {
         
         $('label[for="methodName"]').text('<?php echo $this->lang->line('META_00027'); ?>');
         
-        if (val == 'internal') {
+        if (val == 'internal' || val == 'endtoend') {
             $("#className").prop("readonly", true);
             $("#methodName").prop("readonly", true);
             $(".internal_tr, .system-meta-group-id").show();
@@ -1970,12 +1956,6 @@ function manageTheme(elem){
         Core.initAjax($("#" + $dialogName));
         Core.unblockUI();
     });
-}
-
-function removeMetaTheme(elem) {
-    var $parent = $(elem).closest("td");
-    $parent.find("#removedMetaThemeId").val($parent.find("#metaThemeEditId").val());
-    $parent.find("span#metaThemeName").empty();
 }
 
 function manageHelpContent(elem) {

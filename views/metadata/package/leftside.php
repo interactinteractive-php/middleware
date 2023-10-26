@@ -7,7 +7,7 @@ if ($this->packageChildMetas) {
     foreach ($this->packageChildMetas as $k => $row) {
         
         $iconName = null;
-        $activeClass = (issetParam($this->row['DEFAULT_META_ID']) == $row['META_DATA_ID']) ? 'active' : (!issetParam($this->row['DEFAULT_META_ID']) && $k == 0) ? 'active' : '';
+        $activeClass = (issetParam($this->row['DEFAULT_META_ID']) == $row['META_DATA_ID']) ? 'active' : ((!issetParam($this->row['DEFAULT_META_ID']) && $k == 0) ? 'active' : '');
         $counttHtml = issetParam($this->counttDataview[$row['META_DATA_ID']]['countt']) ? '<span class="badge badge-success border-radius-50 float-right">'. $this->counttDataview[$row['META_DATA_ID']]['countt'] .'</span>' : '';
         $icon = 'assets/core/global/img/appmenu.png';
         

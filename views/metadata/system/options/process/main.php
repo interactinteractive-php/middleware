@@ -22,7 +22,11 @@
                                 array(
                                     'code' => 'interface', 
                                     'name' => 'Interface'
-                                )
+                                ),
+                                array(
+                                    'code' => 'endtoend', 
+                                    'name' => 'End to end'
+                                )                                
                             ),
                             'text' => 'notext',
                             'op_value' => 'code',
@@ -538,24 +542,6 @@
                         )
                     );
                     ?>
-                </div>
-            </div>
-        </div>
-        <div class="col-4 mb-2">
-            <div class="form-group">
-                <label class="col-form-label col-lg-4"><?php echo $this->lang->line('setting_theme_manage'); ?></label>
-                <div class="col-lg-8 p-0 mdo-cell">
-                    <?php 
-                    echo Form::button(array('class'=>'btn btn-sm purple-plum','value'=>'...','onclick'=>'manageTheme(this);')); 
-                    if (!is_null($this->bpRow['META_THEME_ID'])) {
-                    ?>
-                      <a href="javascript:;" class="btn btn-sm default ml0" onclick="removeMetaTheme(this);"><i class="icon-cross2 font-size-12"></i></a>
-                    <?php
-                    }
-                    echo Form::hidden(array('name' => 'metaThemeEditId', 'id' => 'metaThemeEditId' , 'value'=>  !is_null($this->bpRow['META_THEME_ID'])?$this->bpRow['META_THEME_ID']:'')); 
-                    echo Form::hidden(array('name' => 'removedMetaThemeId', 'id' => 'removedMetaThemeId')); 
-                    ?>
-                    <span id="metaThemeName"><?php echo !is_null($this->bpRow['META_THEME_NAME']) ? $this->bpRow['META_THEME_NAME'] : ''; ?></span>
                 </div>
             </div>
         </div>
@@ -1090,98 +1076,6 @@ function setGetDataProcessParam(elem) {
             });
         }
     }
-}
-function manageTheme(elem){
-    var $dialogName = 'dialog-manage-theme';
-    if (!$("#" + $dialogName).length) {
-        $('<div id="' + $dialogName + '" class="display-none"></div>').appendTo('body');
-    }
-
-    var inputMetaDataId = $("#inputMetaDataId").val();
-
-    $.ajax({
-        type: 'post',
-        url: 'mdmetadata/getThemeManageDialog',
-        data: {inputMetaDataId: inputMetaDataId, metaDataId: '<?php echo $this->metaDataId; ?>'},
-        dataType: "json",
-        beforeSend: function() {
-            Core.blockUI({
-                message: 'Loading...',
-                boxed: true
-            });
-        },
-        success: function(data) {
-            if (typeof data.errorMessage === 'undefined') {
-
-                var appendToForm = "form#meta-form-v2";
-
-                $("#" + $dialogName).empty().append(data.Html);
-                $("#" + $dialogName).dialog({
-                    cache: false,
-                    resizable: true,
-                    bgiframe: true,
-                    autoOpen: false,
-                    title: data.Title,
-                    width: 1200,
-                    minWidth: 1200,
-                    height: 600,
-                    modal: false,
-                    close: function () {                
-                        $("#"+$dialogName).empty().dialog('destroy').remove();
-                    },
-                    buttons: [
-                        {text: data.save_btn, class: 'btn btn-sm green bp-btn-subsave', click: function() {
-                            var $appendToForm = $(appendToForm);
-                            $appendToForm.find("#metaThemeInput").remove();
-                            $appendToForm.find("#isMultiLang").remove();
-                            $appendToForm.append("<input type='hidden' id='metaThemeInput' name='metaThemeInput' value='" + JSON.stringify(metaThemeArray) + "'>");
-                            $appendToForm.append($("#" + $dialogName).find('#isMultiLang')[0]);
-                            $appendToForm.find("#isMultiLang").addClass('hide');
-                            $("#"+$dialogName).dialog('close');
-                        }},
-                        {text: data.close_btn, class: 'btn btn-sm blue-hoki', click: function() {
-                            $("#"+$dialogName).dialog('close');
-                        }}
-                    ]
-                }).dialogExtend({
-                    "closable": true,
-                    "maximizable": true,
-                    "minimizable": true,
-                    "collapsable": true,
-                    "dblclick": "maximize",
-                    "minimizeLocation": "left", 
-                    "icons": {
-                        "close": "ui-icon-circle-close",
-                        "maximize": "ui-icon-extlink",
-                        "minimize": "ui-icon-minus",
-                        "collapse": "ui-icon-triangle-1-s",
-                        "restore": "ui-icon-newwin"
-                    }
-                });
-                $("#"+$dialogName).dialog('open');
-                $("#"+$dialogName).dialogExtend("maximize");
-
-            } else {
-                PNotify.removeAll();
-                new PNotify({
-                    title: 'Error',
-                    text: data.errorMessage,
-                    type: 'error',
-                    sticker: false
-                });
-            }
-            Core.unblockUI();
-        }
-    }).complete(function(){
-        Core.initAjax($("#" + $dialogName));
-        Core.unblockUI();
-    });
-}
-
-function removeMetaTheme(elem) {
-    var $parent = $(elem).closest('.mdo-cell');
-    $parent.find("#removedMetaThemeId").val($parent.find("#metaThemeEditId").val());
-    $parent.find("span#metaThemeName").empty();
 }
 
 function manageHelpContent(elem) {

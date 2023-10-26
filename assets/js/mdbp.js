@@ -10074,6 +10074,10 @@ function bpFieldTextEditorClickToEdit(elem, triggerChange) {
     $dialog.dialogExtend('maximize');
 }
 function bpFieldTextEditorTinymceClickToEdit(elem) {
+    var textEditorDefaultStyleString = '';
+    if (typeof textEditorDefaultStyle !== 'undefined') {
+        textEditorDefaultStyleString = textEditorDefaultStyle;
+    }
     var $this = $(elem), 
         $parent = $this.closest('.input-group'), 
         $contenteditable = $parent.find('[contenteditable="true"]'), 
@@ -10233,10 +10237,15 @@ function bpFieldTextEditorTinymceClickToEdit(elem) {
                         'addon/hint/css-hint.js'
                     ]
                 },
-                setup: function(editor) {
+                setup: function(editor) {              
                     editor.on('init', function() {
                         
-                        editor.setContent($textarea.val());
+                        var textEdata = $textarea.val();
+                        if (!textEdata.startsWith('<div class="append-textstyle') && textEditorDefaultStyleString) {
+                            editor.setContent('<div class="append-textstyle" style="'+textEditorDefaultStyleString+'">'+$textarea.val()+'</div>');
+                        } else {
+                            editor.setContent($textarea.val());
+                        }
                         
                         $('textarea#text_editorInit').prev('.mce-container').find('.mce-edit-area')
                         .droppable({

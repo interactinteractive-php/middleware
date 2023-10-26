@@ -2817,7 +2817,7 @@ class Mdform_Model extends Model {
                 foreach ($lookupCriteriaArr as $key => $val) {
                     if ($key && $val != '') {
                         $param['criteria'][$key][] = array(
-                            'operator' => '=',
+                            'operator' => (strpos($val, ',') !== false) ? 'IN' : '=',
                             'operand' => $val
                         );
                     }
@@ -7440,7 +7440,7 @@ class Mdform_Model extends Model {
                                                 $savedRow = array();
                                                 
                                                 foreach ($savedDataJson as $savedDataRow) {
-                                                    if ((isset($savedDataRow['ROW_ID']) && $savedDataRow['ROW_ID'] == $id) || $savedDataRow['ID'] == $id) {
+                                                    if ((isset($savedDataRow['ROW_ID']) && $savedDataRow['ROW_ID'] == $id) || (isset($savedDataRow['ID']) && $savedDataRow['ID'] == $id)) {
                                                         $savedRow = $savedDataRow;
                                                         break;
                                                     }
@@ -8258,7 +8258,7 @@ class Mdform_Model extends Model {
                             
                             $dataClob[$columnName] = $val;
                             
-                            if ($fieldType == 'clob' || $fieldType == 'text_editor' || $fieldType == 'html_clicktoedit') {
+                            if ($fieldType == 'clob' || $fieldType == 'text_editor' || $fieldType == 'html_clicktoedit' || $fieldType == 'expression_editor') {
                                 $clobField[$columnName] = $val;
                             } else {
                                 $saveData[$columnName] = $val;
@@ -10045,7 +10045,8 @@ class Mdform_Model extends Model {
                     'SEMANTIC_TYPE_NAME' => '', 
                     'SORT_ORDER' => '', 
                     'SORT_TYPE' => '', 
-                    'COLUMN_AGGREGATE' => ''
+                    'COLUMN_AGGREGATE' => '', 
+                    'ORDER_NUM' => '901'
                 ), 
                 array(
                     'COLUMN_NAME' => 'CREATED_USER_NAME', 
@@ -10058,7 +10059,8 @@ class Mdform_Model extends Model {
                     'SEMANTIC_TYPE_NAME' => '', 
                     'SORT_ORDER' => '', 
                     'SORT_TYPE' => '', 
-                    'COLUMN_AGGREGATE' => ''
+                    'COLUMN_AGGREGATE' => '', 
+                    'ORDER_NUM' => '902'
                 ), 
                 array(
                     'COLUMN_NAME' => 'MODIFIED_DATE', 
@@ -10071,7 +10073,8 @@ class Mdform_Model extends Model {
                     'SEMANTIC_TYPE_NAME' => '', 
                     'SORT_ORDER' => '', 
                     'SORT_TYPE' => '', 
-                    'COLUMN_AGGREGATE' => ''
+                    'COLUMN_AGGREGATE' => '', 
+                    'ORDER_NUM' => '903'
                 ), 
                 array(
                     'COLUMN_NAME' => 'MODIFIED_USER_NAME', 
@@ -10084,7 +10087,8 @@ class Mdform_Model extends Model {
                     'SEMANTIC_TYPE_NAME' => '', 
                     'SORT_ORDER' => '', 
                     'SORT_TYPE' => '', 
-                    'COLUMN_AGGREGATE' => ''
+                    'COLUMN_AGGREGATE' => '', 
+                    'ORDER_NUM' => '903'
                 )
             );
             
@@ -10112,7 +10116,8 @@ class Mdform_Model extends Model {
                         'SEMANTIC_TYPE_NAME' => '', 
                         'SORT_ORDER' => '', 
                         'SORT_TYPE' => '', 
-                        'COLUMN_AGGREGATE' => ''
+                        'COLUMN_AGGREGATE' => '', 
+                        'ORDER_NUM' => '900'
                     );
 
                     $addonFields = array_merge_recursive(array($wfmRow), $addonFields);
@@ -10480,11 +10485,12 @@ class Mdform_Model extends Model {
     
     public function replaceKpiDbSchemaName($qryStr) {
         
-        $schemaName = Config::getFromCache('kpiDbSchemaName');
-        $schemaName = $schemaName ? $schemaName.'.' : '';
+        $configSchemaName = Config::getFromCache('kpiDbSchemaName');
+        $schemaName = $configSchemaName ? $configSchemaName.'.' : '';
+                
         $qryStr = str_ireplace('[kpiDbSchemaName]', $schemaName, $qryStr);
         
-        if (!Config::getFromCache('is_dev')) {
+        if (!Config::getFromCache('is_dev') && !$configSchemaName) {
             $qryStr = str_ireplace('vt_data.', '', $qryStr);
         }
         
@@ -10561,7 +10567,10 @@ class Mdform_Model extends Model {
             $isCheckSystemTable = $isQueryString ? true : self::isCheckSystemTable($tableName);
             $isSubCondition = false;
             
-            $fields = $sortField = $aggregateField = $coordinateField = $polylineField = $polygonField = $polylineFieldGroupBy = $polylineConnectionField = $subCondition = '';
+            $fields = $sortField = $aggregateField = $coordinateField = $polylineField 
+                    = $polygonField = $polylineFieldGroupBy = $polylineConnectionField 
+                    = $subCondition = $groupBy = '';
+            
             $mainCondition = 'DELETED_USER_ID IS NULL';
             
             if ($isShowPivot || $isQueryString) {
@@ -10705,7 +10714,24 @@ class Mdform_Model extends Model {
                 }
             }
             
-            if ($isExportExcel || $isShowPivot || $isQueryString) {
+            if ($selectColumns = Input::post('selectColumns')) {
+                
+                foreach ($selectColumns as $colName => $colType) {
+                    
+                    if ($colName == 'DATA') {
+                        continue;
+                    }
+
+                    if (isset($columnsConfig[$colName]) && $columnsConfig[$colName]['isTranslate']) {
+                        $fields .= "CASE 
+                            WHEN LOWER('$langCode') = 'mn' THEN $colName ELSE FNC_TRANSLATE('$langCode, TRANSLATION_VALUE, '$colName', $colName) 
+                        END AS $colName, ";
+                    } else {
+                        $fields .= $colName . ', ';
+                    }
+                }
+                    
+            } elseif ($isExportExcel || $isShowPivot || $isQueryString) {
                 
                 if ((!$isExportExcel && !$isShowPivot) && isset($dbColumns['ID'])) {
                     $fields .= 'T0.ID, ';
@@ -10733,10 +10759,9 @@ class Mdform_Model extends Model {
                     }
 
                     if (isset($columnsConfig[$colName]) && $columnsConfig[$colName]['isTranslate']) {
-                        $fields .= 'CASE
-                        WHEN LOWER(\''.$langCode.'\') = \'mn\' THEN T0.'.$colName . 
-                        ' ELSE FNC_TRANSLATE(\''.$langCode.'\', T0.TRANSLATION_VALUE, \''.$colName . '\', T0.'.$colName.')
-                       END AS '.$colName . ', ';
+                        $fields .= "CASE 
+                            WHEN LOWER('$langCode') = 'mn' THEN T0.$colName ELSE FNC_TRANSLATE('$langCode, T0.TRANSLATION_VALUE, '$colName', T0.$colName) 
+                        END AS $colName, ";
                     } else {
                         $fields .= 'T0.'.$colName . ', ';
                     }
@@ -10781,10 +10806,12 @@ class Mdform_Model extends Model {
                 }
             }
             
-            if ($sortField) {
-                $sortField .= ", T0.$idField DESC";
-            } else {
-                $sortField = "T0.$idField DESC";
+            if (!Input::numeric('ignoreOrderIdField')) {
+                if ($sortField) {
+                    $sortField .= ", T0.$idField DESC";
+                } else {
+                    $sortField = "T0.$idField DESC";
+                }
             }
             
             if (Input::postCheck('filterRules')) {
@@ -10998,6 +11025,23 @@ class Mdform_Model extends Model {
                 }
             }*/
             
+            if ($groupColumns = Input::post('groupColumns')) {
+                
+                $groupByColumns = '';
+                
+                foreach ($groupColumns as $colName => $colType) {
+                    
+                    if ($colName == 'DATA') {
+                        continue;
+                    }
+
+                    $groupByColumns .= $colName . ', ';
+                }
+                
+                $groupByColumns = substr(trim($groupByColumns), 0, -1);
+                $groupBy = "GROUP BY $groupByColumns";
+            }
+            
             if ($isUseWorkflow) {
                 
                 $structureIndicatorId = $row['STRUCTURE_INDICATOR_ID'] ? $row['STRUCTURE_INDICATOR_ID'] : $indicatorId;
@@ -11087,13 +11131,15 @@ class Mdform_Model extends Model {
                         $aggregateField 
                         COUNT(1) AS ROW_COUNT 
                     FROM $tableName T0 
-                    WHERE $subCondition";
+                    WHERE $subCondition 
+                    $groupBy";
                 
                 $selectList = "
                     SELECT 
                         $fields 
                     FROM $tableName T0 
                     WHERE $subCondition 
+                    $groupBy 
                     ORDER BY $sortField";
             }
             
@@ -11174,6 +11220,10 @@ class Mdform_Model extends Model {
             $this->db->Execute(Ue::createSessionInfo());
 
             $rowCount = $this->db->GetRow($selectCount);
+            
+            if (!$rowCount) {
+                $rowCount['ROW_COUNT'] = 0;
+            }
             
             $result['status'] = 'success';
             $result['total'] = $rowCount['ROW_COUNT'];
@@ -15683,7 +15733,7 @@ class Mdform_Model extends Model {
             $cache = phpFastCache();
             
             $cacheName = 'mvData_'.$indicatorId.'_'.md5($sql);
-            $data = null; $cache->get($cacheName);
+            $data = $cache->get($cacheName);
 
             $cacheXaxisName = 'mvXaxisData_'.$indicatorId.'_'.md5($sql);
             $xAxis = $cache->get($cacheXaxisName);
@@ -16224,6 +16274,8 @@ class Mdform_Model extends Model {
 
                         $schemaName = self::getKpiDbSchemaName($indicatorId);
                         $tblName = $kpiDataTblName ? $kpiDataTblName : $schemaName . 'V_'.$indicatorId;
+                        $isTblCreated = self::table_exists($this->db, $tblName);
+                        $isIgnoreAlter = self::isCheckSystemTable($tblName, $isTblCreated);
 
                         $sessionUserKeyId = Ue::sessionUserKeyId();
                         $sessionValues = Session::get(SESSION_PREFIX . 'sessionValues');
@@ -16355,8 +16407,10 @@ class Mdform_Model extends Model {
                                         if (isset($comboDatas[$lookupMetaDataId][$cellValLower])) {
 
                                             $comboRow = $comboDatas[$lookupMetaDataId][$cellValLower];
-
-                                            $_POST['kpiTbl'][$colName.'_DESC'] = $comboRow['name'];
+                                            
+                                            if ($isIgnoreAlter == false) {
+                                                $_POST['kpiTbl'][$colName.'_DESC'] = $comboRow['name'];
+                                            }
 
                                             $cellVal = $comboRow['id'];
 
@@ -16371,7 +16425,10 @@ class Mdform_Model extends Model {
                                             $evalRow .= 'if ($getLookupRow = issetParam($comboDatas[\''.$lookupMetaDataId.'\'][Str::lower(self::cleanVal($row['.$key.']))])) { ';
                                             
                                                 $evalRow .= '$insertData[\''.$colName.'\'] = $getLookupRow[\'id\']; ';
-                                                $evalRow .= '$insertData[\''.$colName.'_DESC\'] = $getLookupRow[\'name\']; ';
+                                                
+                                                if ($isIgnoreAlter == false) {
+                                                    $evalRow .= '$insertData[\''.$colName.'_DESC\'] = $getLookupRow[\'name\']; ';
+                                                }
                                             
                                             $evalRow .= '} else { ';
                                             
@@ -16399,6 +16456,11 @@ class Mdform_Model extends Model {
                                     eval($evalExp);
                                     $evalRow .= str_replace('$_POST[\'kpiTbl\']', '$insertData', $evalExp);
                                 }
+                                
+                                if ($isIgnoreAlter == false) {
+                                    $evalRow .= '$insertData[\'INDICATOR_ID\'] = $indicatorId; ';
+                                    $evalRow .= '$insertData[\'CREATED_USER_NAME\'] = $sessionName; ';
+                                }
 
                                 self::$uniqIdIndex = $n;
 
@@ -16412,10 +16474,8 @@ class Mdform_Model extends Model {
                             } else {
 
                                 $insertData = array(
-                                    // 'INDICATOR_ID'      => $indicatorId,
-                                    'CREATED_DATE'      => Date::currentDate('Y-m-d H:i:s'), 
-                                    'CREATED_USER_ID'   => $sessionUserKeyId, 
-                                    // 'CREATED_USER_NAME' => $sessionName
+                                    'CREATED_DATE'    => Date::currentDate('Y-m-d H:i:s'), 
+                                    'CREATED_USER_ID' => $sessionUserKeyId
                                 );
 
                                 eval($evalRow);

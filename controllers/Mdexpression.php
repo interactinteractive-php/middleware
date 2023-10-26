@@ -33,7 +33,7 @@ class Mdexpression extends Controller
         parent::__construct();
     }
 
-    public function searchGenerateScripts($dataViewId)
+    public static function searchGenerateScripts($dataViewId)
     {
         return array('scripts' => null);
     }
@@ -2552,6 +2552,7 @@ class Mdexpression extends Controller
         $fullExpression = str_replace('getMetaVerseMethodAction(', 'bpGetMetaVerseMethodAction(' . $mainSelector, $fullExpression);
         $fullExpression = str_replace('getIndicatorParam(', 'bpGetIndicatorParam(' . $mainSelector . ', checkElement, ', $fullExpression);
         $fullExpression = str_replace('generatePassword(', 'bpGeneratePassword(', $fullExpression);
+        $fullExpression = str_replace('getUniqueId(', 'bpGetUid(', $fullExpression);
 
         $fullExpression = str_replace('unsetLookupCriteria(', 'bpUnSetLookupCriteria(' . $mainSelector . ', checkElement, ', $fullExpression);
         $fullExpression = str_replace('setLookupCriteria(', 'bpSetLookupCriteria(' . $mainSelector . ', checkElement, ', $fullExpression);
@@ -2812,6 +2813,7 @@ class Mdexpression extends Controller
         $fullExpression = str_replace('visiblePanelDataViewReload(', 'bpVisiblePanelDataViewReload(', $fullExpression);
         $fullExpression = str_replace('closeProcessIsOpenedBp(', 'bpCloseProcessIsOpenedBp(' . $mainSelector, $fullExpression);
         $fullExpression = str_replace('saveBtnPositionFixed(', 'saveBtnPositionFixed(' . $mainSelector . ', ', $fullExpression);
+        $fullExpression = str_replace('saveReportTemplateToFile(', 'bpSaveReportTemplateToFile(' . $mainSelector . ', ', $fullExpression);
 
         $fullExpression = str_replace('changeColumnName(', 'bpChangeColumnName(' . $mainSelector . ', checkElement, ', $fullExpression);
         $fullExpression = str_replace('changeLabelName(', 'bpChangeLabelName(' . $mainSelector . ', checkElement, ', $fullExpression);
@@ -4748,9 +4750,8 @@ class Mdexpression extends Controller
         return $expressionStr;
     }
 
-    public function statementUIExpression($row, $params = array())
+    public static function statementUIExpression($row, $params = array())
     {
-
         $result = array();
 
         if (!empty($row['UI_EXPRESSION'])) {
@@ -5031,9 +5032,8 @@ class Mdexpression extends Controller
         return $exp;
     }
 
-    public function reportTemplateUIExpression($expressionStr)
+    public static function reportTemplateUIExpression($expressionStr)
     {
-
         $expressionStr = html_entity_decode($expressionStr);
 
         preg_match_all('/\[([^\]]*)\].val\(\)/', $expressionStr, $getValPath);
@@ -5944,24 +5944,6 @@ class Mdexpression extends Controller
             $classString .= '}' . PHP_EOL;
             $classString .= '}' . PHP_EOL;
 
-            // Methods
-            //                foreach ($getObjectMethods as $mrow) {
-            //                    $getMethodProps = $instanceExp->model->getKpiIOIndicatorColumnsModel($mrow['ID'], null);
-            //                    $pstring = '';
-            //                    if ($getMethodProps) {
-            //                        $pstring .= '$empty="",';
-            //                        foreach ($getMethodProps as $prow) {
-            //                            $pstring .= '$'.$prow['COLUMN_NAME'].'="",';
-            //                        }
-            //                        $pstring = rtrim($pstring, ',');
-            //                    }
-            // $classString .= 'public function '.$mrow['NAME'].'('.$pstring.') {'.PHP_EOL;
-            // $methodScript = self::microFlowExpression($mrow['ID']);
-            // $classString .= $methodScript.PHP_EOL;
-            // $classString .= $methodScript.';'.PHP_EOL;
-            // $classString .= '}'.PHP_EOL;            
-            //                }
-
             // Class end
             $classString .= '}' . PHP_EOL;
 
@@ -6168,24 +6150,6 @@ class Mdexpression extends Controller
             $classString .= 'return $this->data[$name];' . PHP_EOL;
             $classString .= '}' . PHP_EOL;
             $classString .= '}' . PHP_EOL;
-
-            // Methods
-            //                foreach ($getObjectMethods as $mrow) {
-            //                    $getMethodProps = $instanceExp->model->getKpiIOIndicatorColumnsModel($mrow['ID'], null);
-            //                    $pstring = '';
-            //                    if ($getMethodProps) {
-            //                        $pstring .= '$empty="",';
-            //                        foreach ($getMethodProps as $prow) {
-            //                            $pstring .= '$'.$prow['COLUMN_NAME'].'="",';
-            //                        }
-            //                        $pstring = rtrim($pstring, ',');
-            //                    }
-            // $classString .= 'public function '.$mrow['NAME'].'('.$pstring.') {'.PHP_EOL;
-            // $methodScript = self::microFlowExpression($mrow['ID']);
-            // $classString .= $methodScript.PHP_EOL;
-            // $classString .= $methodScript.';'.PHP_EOL;
-            // $classString .= '}'.PHP_EOL;            
-            //                }
 
             // Class end
             $classString .= '}' . PHP_EOL;
@@ -6515,21 +6479,6 @@ class Mdexpression extends Controller
             } elseif (Input::postCheck('flowId')) {
                 $flowId = Input::post('flowId');
                 $generateScript = preg_replace('/' . $flowId . '(.*?)' . $flowId . '/', '$isConfirmation=' . Input::post('isConfirmation'), $generateScript);
-                //                eval('$profileCount = 0;
-                //                        $department_id = 1;
-                //                        $resultProfile = 1;
-                //                        $isConfirmation = 1;
-                //                        if ($isConfirmation) {
-                //                            $isBalanceCount = 1;                   
-                //                            $microFlowConfirm12=true;
-                //                        } else {
-                //                            $isBalanceCount = 1;
-                //                        };
-                //                ');
-                //                if (isset($microFlowConfirm12)) {
-                //                    dd($microFlowConfirm12);
-                //                }
-                // pa($generateScript);
             }            
 
             $cache->set('microflow_expression_data_' . $indicatorId . '_'.$sessionUserKeyId, $generateScript, Mdwebservice::$expressionCacheTime);
@@ -6549,7 +6498,6 @@ class Mdexpression extends Controller
                         ];
                         exit;
                     }
-                    //preg_match('/\$[\w\d]+\s*=+(.*)/', 'if($isConfirmation){$isBalanceCount=1', $parseExpressionEqualRegex);
                     preg_match('/\$[\w\d]+\s*=+(.[\S\s]*)/', $row, $parseExpressionEqualRegex);
                     if ($parseExpressionEqualRegex) {
                         preg_match('/\$[\w\d]+\s*=/', $parseExpressionEqualRegex[0], $parseExpressionEqual);
@@ -6570,10 +6518,6 @@ class Mdexpression extends Controller
                         $cache->set('microflow_expression_data_' . $indicatorId . '_'.$sessionUserKeyId, $generateScript, Mdwebservice::$expressionCacheTime);
                     }
                 }
-            //            $cache->set('microflow_runtime', $microRuntimeArr, Mdwebservice::$expressionCacheTime);            
-            //            eval('$profileCount = '.var_export([1,2,3], true).';');
-            //            pa($profileCount);
-            //            pa($microRuntimeArr);
                             
                 $cache->set('microflow_expression_data_' . $indicatorId . '_'.$sessionUserKeyId, $generateScript, Mdwebservice::$expressionCacheTime);
                 echo json_encode(['status' => 'success'], JSON_UNESCAPED_UNICODE);
@@ -6710,9 +6654,8 @@ class Mdexpression extends Controller
         }
     }
 
-    public function viewLogExpression($metaDataId)
+    public static function viewLogExpression($metaDataId)
     {
-
         $exp = 'bpRenderViewLog(bp_window_' . $metaDataId . '); ';
         $exp .= 'bp_window_' . $metaDataId . '.on(\'remove\', function(){ 
                     bpRenderViewLog(bp_window_' . $metaDataId . '); 

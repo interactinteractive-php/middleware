@@ -1021,6 +1021,26 @@ class Mddashboard extends Controller {
                 }
             }
         }
+        if (!Input::isEmpty('filterJson')) {
+                
+            $criteria = @json_decode(Str::cp1251_utf8(html_entity_decode($_POST['filterJson'], ENT_QUOTES, 'UTF-8')), true);
+
+            if (is_array($criteria)) {
+
+                foreach ($criteria as $key => $value) {
+                    $paramFilter[$key][] = array('operator' => '=', 'operand' => $value);
+                }
+
+                if ($paramFilter) {
+                    if (isset($param['criteria'])) {
+                        $param['criteria'] = array_merge($param['criteria'], $paramFilter);
+                    } else {
+                        $param['criteria'] = $paramFilter;
+                    }   
+                }
+            }
+        }
+        
         $this->load->model('mdobject', 'middleware/models/');
         $dataGridOptionData = $this->model->getDVGridOptionsModel($metaDataId);
         switch ($type) {
@@ -1564,6 +1584,26 @@ class Mddashboard extends Controller {
             }
         }
         
+        if (!Input::isEmpty('filterJson')) {
+                
+            $criteria = @json_decode(Str::cp1251_utf8(html_entity_decode($_POST['filterJson'], ENT_QUOTES, 'UTF-8')), true);
+
+            if (is_array($criteria)) {
+
+                foreach ($criteria as $key => $value) {
+                    $paramFilter[$key][] = array('operator' => '=', 'operand' => $value);
+                }
+
+                if ($paramFilter) {
+                    if (isset($param['criteria'])) {
+                        $param['criteria'] = array_merge($param['criteria'], $paramFilter);
+                    } else {
+                        $param['criteria'] = $paramFilter;
+                    }   
+                }
+            }
+        }
+        
         if (Input::isEmpty('workSpaceId') == false && Input::isEmpty('workSpaceParams') == false) {
 
             $this->load->model('mdwebservice', 'middleware/models/');
@@ -1576,7 +1616,7 @@ class Mddashboard extends Controller {
 
             if ($getWorkSpaceParamMap) {
 
-                (Boolean) $isParam = false;
+                $isParam = false;
 
                 foreach ($getWorkSpaceParamMap as $workSpaceParam) {
 
@@ -1659,7 +1699,6 @@ class Mddashboard extends Controller {
                 'pagingWithoutAggregate' => 1, 
                 'criteria' => $criteria
             );
-            
             $data = $this->ws->runResponse(GF_SERVICE_ADDRESS, 'PL_MDVIEW_004', $param);
         }
         
@@ -3136,7 +3175,10 @@ class Mddashboard extends Controller {
                 }
                 
                 $this->load->model('mdobject', 'middleware/models/');
-                $_POST['dashboardDrillDownCriteria'] = $searchCriteria;
+                
+                if (isset($searchCriteria)) {
+                    $_POST['dashboardDrillDownCriteria'] = $searchCriteria;
+                }
 
                 if ($cchartValues['SHOW_TYPE'] === 'tab') {
                     $_POST['uriParams'] = json_encode($searchCriteriaQuery, JSON_UNESCAPED_UNICODE);

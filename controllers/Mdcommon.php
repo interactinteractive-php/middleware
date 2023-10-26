@@ -18,7 +18,7 @@ class Mdcommon extends Controller {
         parent::__construct();
     }
     
-    public function getCacheDirectory() {
+    public static function getCacheDirectory() {
         
         if (defined('CACHE_PATH') && CACHE_PATH != '') {
             $tmp_dir = CACHE_PATH;
@@ -59,7 +59,7 @@ class Mdcommon extends Controller {
         echo json_encode($response); exit;
     }
 
-    public function svgIconByColor($colorCode = 'EE2C24', $icon = 'marker', $header = true) {
+    public static function svgIconByColor($colorCode = 'EE2C24', $icon = 'marker', $header = true) {
         if ($header) {
             header('Content-type: image/svg+xml');
             echo self::svgIconContent($icon, $colorCode);
@@ -72,11 +72,11 @@ class Mdcommon extends Controller {
         echo json_encode(self::svgIconContent($icon, $colorCode)); exit;
     }
     
-    public function svgIconList() {
+    public static function svgIconList() {
         return array('marker', 'vehicle', 'truck');
     }
     
-    public function svgIconContent($icon, $colorCode) {
+    public static function svgIconContent($icon, $colorCode) {
         $string = '<?xml version="1.0" encoding="utf-8"?>';
         switch ($icon) {
             case 'marker': {
@@ -104,7 +104,7 @@ class Mdcommon extends Controller {
         return $string;
     }
     
-    public function getBpDefaultValuesParams($cache, $processId, $rowId) {
+    public static function getBpDefaultValuesParams($cache, $processId, $rowId) {
         
         $defValues = $cache->get('bpDefValues_'.$processId.'_'.$rowId);
 
@@ -150,7 +150,7 @@ class Mdcommon extends Controller {
         return $defValues;
     }
     
-    public function setValueBpDtlRowHtml($cache, $processId, $rowId, $html) {
+    public static function setValueBpDtlRowHtml($cache, $processId, $rowId, $html) {
         
         $valuesParams = self::getBpDefaultValuesParams($cache, $processId, $rowId);
 
@@ -195,7 +195,7 @@ class Mdcommon extends Controller {
         echo $html; exit;
     }
     
-    public function getArrayProcessDetailParamsArray($processId, $rowId, $uniqId, $isPager, $groupPath, $groupFieldPathLower) {
+    public static function getArrayProcessDetailParamsArray($processId, $rowId, $uniqId, $isPager, $groupPath, $groupFieldPathLower) {
         
         loadPhpQuery();
         
@@ -471,7 +471,7 @@ class Mdcommon extends Controller {
         echo json_encode($autoNum); exit;
     }
     
-    public function standartColorClass() {
+    public static function standartColorClass() {
         return array(
             array(
                 'id' => 'btn-secondary',
@@ -786,7 +786,7 @@ class Mdcommon extends Controller {
         echo json_encode($result); exit;
     }      
     
-    public function criteriaCondition($defaultCondition) {
+    public static function criteriaCondition($defaultCondition) {
         $html = '';
         if ($defaultCondition) {
             foreach ($defaultCondition as $key => $row) {
@@ -798,7 +798,7 @@ class Mdcommon extends Controller {
         return $html;
     }
     
-    public function dataviewRenderCriteriaCondition($param, $control, $operandVal = '=', $position = 'left') {
+    public static function dataviewRenderCriteriaCondition($param, $control, $operandVal = '=', $position = 'left') {
         
         if ($param['LOOKUP_META_DATA_ID'] && $param['LOOKUP_TYPE'] && issetParam($param['IS_PASS_FILTER']) == '1') {
                 
@@ -854,7 +854,7 @@ class Mdcommon extends Controller {
         return $html;
     }
     
-    public function dvRenderCriteria($param, $control) {
+    public static function dvRenderCriteria($param, $control) {
         
         $html = '';
         
@@ -874,7 +874,7 @@ class Mdcommon extends Controller {
         return $html;
     }
     
-    public function criteriaCondidion($param, $control) {
+    public static function criteriaCondidion($param, $control) {
         
         $html = '';
         
@@ -1475,7 +1475,7 @@ class Mdcommon extends Controller {
         echo json_encode($response); exit;
     }
     
-    public function comboBoolean() {
+    public static function comboBoolean() {
         $combo = Form::select(
             array(
                 'data' => array(
@@ -1510,7 +1510,7 @@ class Mdcommon extends Controller {
         echo json_encode($response); exit;
     }
     
-    public function clearUserBpDataTmpl($processId) {
+    public static function clearUserBpDataTmpl($processId) {
         
         $tmp_dir = Mdcommon::getCacheDirectory();
         
@@ -1597,7 +1597,7 @@ class Mdcommon extends Controller {
         jsonResponse($response);
     }
     
-    public function addCustomFonts($type) {
+    public static function addCustomFonts($type) {
         
         $fonts = Config::getFromCache('reportCustomFonts');
         $result = '';
@@ -1801,7 +1801,7 @@ class Mdcommon extends Controller {
         return $result;
     }
     
-    public function parseCodeErrorMsg($msg) {
+    public static function parseCodeErrorMsg($msg) {
         
         $result = 'Unknown error';
         
@@ -1837,7 +1837,7 @@ class Mdcommon extends Controller {
         (new Mdwebservice())->callMethodByMeta(); exit;
     }
     
-    public function titleReplacerByVar($title) {
+    public static function titleReplacerByVar($title) {
         
         $constantKeys = array(
             '[sysdatetime]', 

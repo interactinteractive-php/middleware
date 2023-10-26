@@ -1410,6 +1410,7 @@ class Mddoc extends Controller {
         $this->view->hiddenInputs = '';
         $postData = Input::postData();
         $this->view->ishrm = issetParam($postData['paramData']['ishrm']);
+        $this->view->isnotary = checkDefaultVal($postData['paramData']['isNotary'], '0');
 
         if (Input::postCheck('paramData')) {
             
@@ -1438,10 +1439,14 @@ class Mddoc extends Controller {
                 
         $this->view->refStructureId = self::$erlStructureId;
         $this->view->rowJson = json_encode($this->view->row);
+        $htmlPath = 'erl/mainForm';
         
         if (issetParam($postData['paramData']['ishrm']) === '1') {
             $this->view->id = $this->view->row['recordid'];
             $getFileData = $this->model->getErkContentMapModel_HRM($this->view->id);
+        } elseif ($this->view->isnotary === '1') {
+            $htmlPath = 'notary/mainForm';
+            $getFileData = $this->model->getErkContentMapModel_NOTARY($this->view->id);
         } else {
             $getFileData = $this->model->getErkContentMapModel_V2($this->view->id);
         }
@@ -1451,7 +1456,7 @@ class Mddoc extends Controller {
         $this->view->fileRender = $this->view->renderPrint('erl/fileList_v2', self::$viewPath);
         
         $response = array(
-            'html' => $this->view->renderPrint('erl/mainForm', self::$viewPath),
+            'html' => $this->view->renderPrint($htmlPath, self::$viewPath),
             'title' => 'Мета оруулах', 
             'uniqId' => $this->view->uniqid, 
             'close_btn' => $this->lang->line('close_btn')
@@ -1781,6 +1786,8 @@ class Mddoc extends Controller {
         
         if (Input::post('saveProcessCode') === 'ELEC_META_BOOK_DV_001') {
             $getFileData = $this->model->getErkContentMapModel_HRM($this->view->id);
+        } elseif (Input::post('saveProcessCode') === 'NTR_SERVICE_CONTENT_MAP_DV_001') {
+            $getFileData = $this->model->getErkContentMapModel_NOTARY($this->view->id);
         } else {
             $getFileData = $this->model->getErkContentMapModel_V2($this->view->id);
         }

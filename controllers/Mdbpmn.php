@@ -99,14 +99,14 @@ class Mdbpmn extends Controller {
         echo json_encode($response); exit;
     }
     
-    public function graphXmlSpecialCharReplace($graphXml) {
+    public static function graphXmlSpecialCharReplace($graphXml) {
         
         $graphXml = str_replace(self::$tag, self::$replaceTag, $graphXml);
         
         return $graphXml;
     }
     
-    public function graphXmlSpecialCharReplaceReverse($graphXml) {
+    public static function graphXmlSpecialCharReplaceReverse($graphXml) {
         
         $graphXml = str_replace(self::$replaceTag, self::$tag, $graphXml);
         

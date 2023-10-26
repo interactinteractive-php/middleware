@@ -149,27 +149,26 @@ $(function() {
                 var fieldPathArr = _inParamSplit[j].split('@');
                 var fieldPath = fieldPathArr[0];
                 var inputPath = fieldPathArr[1];
-
                 var fieldPathKpi = fieldPath.split('.');
                 
                 if (!fieldPathKpi.hasOwnProperty(1)) {
-                    return;
-                }
-                
-                var dtlCode = fieldPathKpi[0].toLowerCase().trim();
-                var $getRow = bp_window_<?php echo $this->templateId; ?>.find("[data-dtl-code='"+dtlCode+"']");       
-                var $table = $getRow.closest("[data-table-path='kpiDmDtl']");
-                var factName = fieldPathKpi[1].trim();
-                var groupPath = $table.attr('data-group-path');                
-                
-                if (groupPath) {
-                    var $getField = $getRow.find('[data-path="'+groupPath+'kpiDmDtl.'+factName+'"]:eq(0)');
+                    _inParams += inputPath + '=' + encodeURIComponent(fieldPath) + '&';
                 } else {
-                    var $getField = $getRow.find('[data-path="kpiDmDtl.'+factName+'"]:eq(0)');
-                }                
-                
-                if ($getField.length && $getField.val() !== '') {
-                    _inParams += inputPath + '=' + encodeURIComponent($getField.val()) + '&';
+                    var dtlCode = fieldPathKpi[0].toLowerCase().trim();
+                    var $getRow = bp_window_<?php echo $this->templateId; ?>.find("[data-dtl-code='"+dtlCode+"']");       
+                    var $table = $getRow.closest("[data-table-path='kpiDmDtl']");
+                    var factName = fieldPathKpi[1].trim();
+                    var groupPath = $table.attr('data-group-path');                
+
+                    if (groupPath) {
+                        var $getField = $getRow.find('[data-path="'+groupPath+'kpiDmDtl.'+factName+'"]:eq(0)');
+                    } else {
+                        var $getField = $getRow.find('[data-path="kpiDmDtl.'+factName+'"]:eq(0)');
+                    }                
+
+                    if ($getField.length && $getField.val() !== '') {
+                        _inParams += inputPath + '=' + encodeURIComponent($getField.val()) + '&';
+                    }
                 }
             }
         }        

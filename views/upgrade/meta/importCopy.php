@@ -117,6 +117,15 @@ $(function() {
                                 tbl.push('<td>'+metaList[i]['modifiedDate']+'</td>');
                                 tbl.push('<td>'+metaList[i]['userName']+'</td>');
                             tbl.push('</tr>');
+                            
+                            $('#newCopyImportForm').find('input[name="newMetaCode"]').val(metaList[i]['metaCode'] + '_copy');
+                            $('#newCopyImportForm').find('input[name="newMetaName"]').val(metaList[i]['metaName'] + '_copy');
+                            
+                            if (metaList[i]['folderId'] != '' && $('#newCopyImportForm').find('input[name="folderId"]').val() == '') {
+                                $('#newCopyImportForm').find('input[name="folderId"]').val(metaList[i]['folderId']);
+                                $('#newCopyImportForm').find('input.md-folder-code-autocomplete').val(metaList[i]['folderCode']);
+                                $('#newCopyImportForm').find('input.md-folder-name-autocomplete').val(metaList[i]['folderName']);
+                            }
                         }
                     }
 

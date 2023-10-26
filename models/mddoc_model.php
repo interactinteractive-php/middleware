@@ -24,6 +24,7 @@ class Mddoc_Model extends Model {
         $contentId = getUID();
         $sessionUserKeyId = Ue::sessionUserKeyId();
         $currentDate = Date::currentDate('Y-m-d H:i:s');
+        $contentName = $contentName ? $contentName : 'File '.$contentId.'.'.$fileExtension;
         
         $data = array(
             'CONTENT_ID'      => $contentId, 
@@ -109,14 +110,19 @@ class Mddoc_Model extends Model {
                 $this->db->AutoExecute('ECM_CONTENT_DIRECTORY', $dirMap);
             }
 
-            if (Input::isEmpty('dataViewId') == false && Input::isEmpty('recordId') == false) {
+            if (Input::isEmpty('recordId') == false && (Input::isEmpty('dataViewId') == false || Input::isEmpty('refStructureId') == false)) {
+                
+                if (Input::isEmpty('dataViewId') == false) {
+                    $this->load->model('mdobject', 'middleware/models/');
 
-                $this->load->model('mdobject', 'middleware/models/');
+                    $dataViewId = Input::numeric('dataViewId');
+                    $groupRow = $this->model->getDataViewConfigRowModel($dataViewId);
 
-                $dataViewId = Input::post('dataViewId');
-                $groupRow = $this->model->getDataViewConfigRowModel($dataViewId);
-
-                $refStructureId = isset($groupRow['REF_STRUCTURE_ID']) ? $groupRow['REF_STRUCTURE_ID'] : $dataViewId;
+                    $refStructureId = isset($groupRow['REF_STRUCTURE_ID']) ? $groupRow['REF_STRUCTURE_ID'] : $dataViewId;
+                    
+                } else {
+                    $refStructureId = Input::numeric('refStructureId');
+                }
 
                 $map = array(
                     'ID'               => getUID(), 
@@ -196,7 +202,7 @@ class Mddoc_Model extends Model {
                 $GetCertificateResult = $GetCertificateResult['GetCertificateByCertificateSerialNumberResult'];
                 $CertificateSerialNumber = $GetCertificateResult['CertificateSerialNumber'];
 
-                $ownUser = Mduser::getUserRowByCrtSerialNumber($CertificateSerialNumber);
+                $ownUser = (new Mduser())->getUserRowByCrtSerialNumber($CertificateSerialNumber);
 
                 if ($ownUser) {
                     $array[$k]['LAST_NAME'] = $ownUser['LAST_NAME'];
@@ -2555,7 +2561,59 @@ class Mddoc_Model extends Model {
         
         return $this->db->GetRow($sql);
     }
-    
+
+    public function getErkContentMapModel_NOTARY($id, $type = '') {
+        
+        $sql = "
+            SELECT 
+                XMLAGG(XMLELEMENT(e, '<tr data-filepath=\"'||t0.PHYSICAL_PATH||'\" data-hdr-id=\"'||$id||'\" data-book-type-append=\"0\" data-content-type-append=\"0\">'
+                    ||'<td style=\"width: 23px;vertical-align: middle;\">'||t0.ROW_NUMB||'.</td>'
+                    ||'<td style=\"width: 87px;vertical-align: middle\">
+                        <strong>'||t0.FILE_NAME||'</strong>
+                        <input type=\"hidden\" name=\"erlContentId[]\" value=\"'||t0.CONTENT_ID||'\"/>
+                        <input type=\"hidden\" name=\"isnotary\" value=\"1\"/>
+                        <input type=\"hidden\" name=\"erlCompanyBookId[]\" value=\"'||t0.COMPANY_BOOK_ID||'\"/>
+                        <input type=\"hidden\" name=\"erlSemanticId[]\" value=\"'||t0.SEMANTIC_ID||'\"/>
+                    </td>'
+                    ||'<td class=\"stretchInput text-center\" style=\"width:200px\">
+                        <select name=\"contentTypeId[]\" onfocus=\"functionFocusSelect(this)\" class=\"form-control form-control-sm\" data-status=\"no-append\" data-path=\"contentTypeId\" required=\"required\" style=\"width: 100%\" data-oldval=\"'||t0.CONTENT_TYPE_ID||'\">
+                            '||CASE WHEN t0.CONTENT_TYPE_ID IS NULL THEN '<option selected=\"selected\" value=\"\">- Сонгох -</option>' ELSE '<option selected=\"selected\" value=\"'||t0.CONTENT_TYPE_ID||'\">'||t0.CONTENT_TYPE_NAME||'</option>' END||'
+                        </select>
+                    </td>"
+                ."</tr>',' ').EXTRACT('//text()')).GetClobVal() AS SS, 
+                COUNT(*) AS ROW_COUNT     
+            FROM (
+                SELECT
+                    ROW_NUMBER() OVER (ORDER BY CM.ORDER_NUM) AS ROW_NUMB,
+                    EC.CONTENT_ID,
+                    EC.FILE_NAME,
+                    EC.PHYSICAL_PATH,
+                    EC.FILE_EXTENSION,
+                    NULL AS COMPANY_BOOK_ID,
+                    CM.ID AS SEMANTIC_ID,
+                    BT.ITEM_NAME AS BOOK_TYPE_NAME,
+                    BT.ITEM_ID AS BOOK_TYPE_ID, 
+                    CT.NAME AS CONTENT_TYPE_NAME,
+                    EC.TYPE_ID AS CONTENT_TYPE_ID,
+                    COALESCE(TO_CHAR(CM.CREATED_DATE, 'YYYY-MM-DD'), TO_CHAR(SYSDATE, 'YYYY-MM-DD')) AS BOOK_DATE, 
+                    CM.ORDER_NUM, 
+                    CM.ID
+                FROM ECM_CONTENT_MAP CM 
+                INNER JOIN ECM_CONTENT EC ON EC.CONTENT_ID = CM.CONTENT_ID 
+                LEFT JOIN NTR_SERVICE_BOOK SB ON CM.RECORD_ID = SB.ID 
+                LEFT JOIN IM_ITEM BT ON BT.ITEM_ID = SB.ITEM_ID
+                LEFT JOIN ECM_CONTENT_TYPE CT ON CT.ID = EC.TYPE_ID 
+                WHERE 
+                    CM.RECORD_ID = $id
+                    AND CM.REF_STRUCTURE_ID = ".Mddoc::$erlStructureId." 
+                    AND EC.IS_VERSION IS NULL 
+                ORDER BY CM.ORDER_NUM ASC
+            ) t0";
+        
+        
+        return $this->db->GetRow($sql);
+    }
+
     public function getErkContentMapModel_V2($id) {
         
         $xmlAgg = "'<tr data-filepath=\"'||t0.PHYSICAL_PATH||'\" data-hdr-id=\"'||$id||'\" data-book-type-append=\"0\" data-content-type-append=\"0\">'
@@ -2841,7 +2899,9 @@ class Mddoc_Model extends Model {
                     if ($bpResult['status'] != 'success') {
                         $response = array('status' => 'error', 'message' => $this->ws->getResponseMessage($bpResult));
                     } 
-                }  else {
+                }  elseif (Str::lower($saveProcessCode) == 'ers_service_company_book_meta_dv_001') { 
+
+                } else {
                     foreach ($erlContentIds as $k => $erlContentId) {
 
                         $bookDate = issetVar($postData['bookDate'][$k]);
@@ -2910,6 +2970,43 @@ class Mddoc_Model extends Model {
                 if ($bpResult['status'] != 'success') {
                     $response = array('status' => 'error', 'message' => $this->ws->getResponseMessage($bpResult));
                 } 
+            }  elseif ($saveProcessCode && strtolower($saveProcessCode) == 'ntr_service_content_map_dv_001') {
+                $inputParams = array('id' => $recordId);
+
+                (Array) $contentMap = $tempArr = array();
+                /* print_array($erlContentIds); */
+
+                foreach ($erlContentIds as $k => $erlContentId) {
+                    $bookDate = issetParam($postData['bookDate'][$k]);
+                    $bookTypeId = issetParam($postData['bookTypeId'][$k]);
+                    $contentTypeId = issetParam($postData['contentTypeId'][$k]);
+
+                    if ($contentTypeId != '' && !in_array($erlContentId, $tempArr)) {
+                        array_push($tempArr, $erlContentId);
+                        
+                        $contentMapParams =  array ( 
+                            /* 'id' => '',  */
+                            'recordId' => $recordId, 
+                            'contentId' => $erlContentId, 
+                            'tagCode' => $contentTypeId, 
+                        );
+
+                        array_push($contentMap, $contentMapParams);
+                    }
+                }
+                if ($contentMap) {
+                    $inputParams = array ( 
+                        'id' => $recordId, 
+                        'NTR_CONTENT_MAP_FILE_DV' => $contentMap,
+                    );
+                    $bpResult = $this->ws->runSerializeResponse(self::$gfServiceAddress, 'NTR_SERVICE_CONTENT_MAP_DV_001', $inputParams);
+                    /* print_array($bpResult);
+                    die; */
+                    if ($bpResult['status'] != 'success') {
+                        $response = array('status' => 'error', 'message' => $this->ws->getResponseMessage($bpResult));
+                    } 
+                }
+                
             } else {
                 
                 $inputParams = array('id' => $recordId);

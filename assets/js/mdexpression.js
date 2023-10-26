@@ -14878,6 +14878,7 @@ function bpCenterMessage(status, message) {
     return;
 }
 function bpDateFormat(format, dateStr) {
+    console.log(dateStr);
     return date(format, strtotime(dateStr));
 }
 function bpSetDateNoTrigger(mainSelector, elem, fieldPath, val) {
@@ -18083,6 +18084,7 @@ function bankCheckIpTerminal(terminalId, deviceType, callback) {
           dvctype = 'glmt';
         } else if (deviceType == 'tdbank') {
           dvctype = 'tdb_paxs300';
+          callback({status:"success", text:"IPPOS terminal холболт амжилттай хийгдлээ. [" + deviceType + "]"});
         }
   
         if (typeof callback === 'undefined') {
@@ -18644,5 +18646,73 @@ function bpSetMetaVerseFieldValue(mainSelector, elem, field, val) {
             $form.find('[data-path="'+field+'"]').val(val);
         }
     }
+    return;
+}
+function bpSaveReportTemplateToFile(mainSelector, recordId, fileType, fileName) {
+    if (recordId != '' && fileType != '') {
+        var fileTypeLower = fileType.toLowerCase();
+        if (fileTypeLower == 'pdf' || fileTypeLower == 'doc' || fileTypeLower == 'docx') {
+            fileName = (typeof fileName != 'undefined' && fileName != '') ? fileName : '';
+            var $parent = mainSelector.find('.report-preview');
+            if ($parent.length) {
+                var $externalContent = $parent.find('#externalContent');
+                if ($externalContent.length) {
+                    
+                    var divide = Math.ceil(copies / 2);
+                    var reportMetaDataId = $parent.find('.report-preview-container').attr('data-report-metadataid');
+                    var selectedRow = {id: recordId};
+
+                    $parent.find('div#contentRepeat').empty();
+                    
+                    if (copies >= 1) {
+                        var $page = $parent.find('page'), pageLength = $page.length, divideTag = '';
+                        if (pageLength > 1 || divide > 1) {
+                            divideTag = '<div style="page-break-after: always;"></div>'; 
+                        }
+                        $page.each(function() {
+                            var $thisPage = $(this);
+                            if (pageType == '2col') {
+                                $parent.find('#contentRepeat').append($thisPage.find("#exContent").get(0).outerHTML + divideTag);
+                            } else {
+                                for (var i = 0; i < divide; i++) {
+                                    $parent.find('#contentRepeat').append($thisPage.find("#externalContent").get(0).outerHTML + divideTag);
+                                }
+                            }
+                        });
+                    }
+
+                    var postData = {
+                        content: $parent.find('div#contentRepeat').html(),
+                        orientation: pageOrientation,
+                        size: pageSize,
+                        top: pageRtTop,
+                        left: pageRtLeft,
+                        bottom: pageRtBottom,
+                        right: pageRtRight,
+                        wfmStatusId: 'isnull',
+                        typeId: 'isnull',
+                        params: {recordId: recordId, metaDataId: null, archiveName: fileName, defaultDirectoryId: null, fileType: fileType}, 
+                        selectedRow: selectedRow, 
+                        reportMetaDataId: reportMetaDataId, 
+                        processMetaDataId: mainSelector.attr('data-process-id'), 
+                        headerHtml: $parent.find('script[data-template="templateHeader"]').text(),
+                        footerHtml: $parent.find('script[data-template="templateFooter"]').text()       
+                    };
+                    
+                    $.ajax({
+                        type: 'post',
+                        url: 'mdtemplate/saveEcmContentReportTemplateToFile',
+                        data: postData,
+                        dataType: 'json',
+                        async: false, 
+                        success: function(data) {
+                            console.log(data);
+                        }
+                    });
+                }
+            }
+        }
+    }
+    
     return;
 }

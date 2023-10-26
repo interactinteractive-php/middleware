@@ -19,8 +19,8 @@
     <th style='min-width:82px;' rowspan='2'></th>
 </tr>
 <tr>
-    <th class='text-center'>валют<?php echo Lang::lineDefault('FIN_00758', 'валют'); ?></th>
-    <th class='text-center'>төгрөг<?php echo Lang::lineDefault('FIN_00764', 'төгрөг'); ?></th>
-    <th class='text-center'>валют<?php echo Lang::lineDefault('FIN_00758', 'валют'); ?></th>
-    <th class='text-center'>төгрөг<?php echo Lang::lineDefault('FIN_00764', 'төгрөг'); ?></th>
+    <th class='text-center'><?php echo Lang::lineDefault('FIN_00758', 'валют'); ?></th>
+    <th class='text-center'><?php echo Lang::lineDefault('FIN_00764', 'төгрөг'); ?></th>
+    <th class='text-center'><?php echo Lang::lineDefault('FIN_00758', 'валют'); ?></th>
+    <th class='text-center'><?php echo Lang::lineDefault('FIN_00764', 'төгрөг'); ?></th>
 </tr>

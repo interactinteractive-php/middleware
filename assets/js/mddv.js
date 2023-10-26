@@ -1160,14 +1160,11 @@ function databank(element, type, mainMetadataid, processId, $checkUpdate) {
                                                         
                                                         if ($checkUpdate == '1' && typeof response.nextProcess !== 'undefined' && response.nextProcess === '1') {
 
-                                                            //selectedRow.wfmstatusid = '1528784819812';
-                                                            console.log(dataViewSelectedRowsResolver(response.selectedRow));
                                                             var selectedRows = getDataViewSelectedRows(mainMetadataid);
                                                             selectedRow = selectedRows[0];
                                                             setTimeout(function () {
                                                                 transferProcessAction('', '1535617010635', '1532357110034', '200101010000011', 'toolbar', this, {callerType: 'posRequestList_11COPY'}, 'dataViewId=1535617010635&refStructureId=1528784819251&rowId=' + selectedRow.ids, undefined, selectedRow);
                                                             }, 1000);
-
                                                         }
 
                                                         if ($checkUpdate == '2' && typeof response.nextProcess !== 'undefined' && response.nextProcess === '1') {

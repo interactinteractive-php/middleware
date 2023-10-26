@@ -86,13 +86,6 @@ class Mdwebservice_Model extends Model {
                     ) AS COUNT_BANNER,
                     (
                         SELECT 
-                            ID
-                        FROM META_THEME_LINK 
-                        WHERE META_DATA_ID = $metaDataIdPh 
-                            AND IS_ACTIVE = 1
-                    ) AS HAS_THEME,
-                    (
-                        SELECT 
                             COUNT(ID)
                         FROM META_CALENDAR_LINK
                         WHERE LINK_META_DATA_ID = $metaDataIdPh
@@ -3010,6 +3003,7 @@ class Mdwebservice_Model extends Model {
                 PAL.IS_SHOW_DELETE,
                 PAL.IS_SHOW_MULTIPLE, 
                 PAL.DTL_THEME, 
+                PAL.JSON_CONFIG, 
                 MW.CODE AS WIDGET_CODE 
             FROM META_PROCESS_PARAM_ATTR_LINK PAL 
                 LEFT JOIN META_WIDGET MW ON MW.ID = PAL.DTL_THEME 
@@ -4473,10 +4467,8 @@ class Mdwebservice_Model extends Model {
                     if ($result['status'] == 'success' && isset($result['result'])) {
                         if (isset($result['result'][$responsePath])) {
                             return $result['result'][$responsePath];
-                        } else {
-                            if (isset($result[$responsePath])) {
-                                return $result[$responsePath];
-                            }                            
+                        } elseif (isset($result[$responsePath])) {
+                            return $result[$responsePath];                           
                         }
                     }
                 }
@@ -5228,63 +5220,6 @@ class Mdwebservice_Model extends Model {
         $printData = str_replace($searchReplace, $replaced, $htmlContent);
 
         return $printData;
-    }
-
-    public function getDataFromThemeLink($metaDataId) {            
-        $result = $this->db->getRow("
-            SELECT 
-                mtl.ID, 
-                mt.FILE_NAME, 
-                mtl.EDIT_META_DATA_ID, 
-                mtl.IS_MULTI_LANG 
-            FROM META_THEME_LINK mtl 
-                INNER JOIN META_DATA md ON mtl.META_DATA_ID = md.META_DATA_ID 
-                INNER JOIN META_THEME mt ON mtl.THEME_ID = mt.ID 
-            WHERE mtl.META_DATA_ID = ".$this->db->Param(0)." 
-                AND mtl.IS_ACTIVE = 1", array($metaDataId));
-        
-        if ($result) {
-            return $result; 
-        } else {
-            return false;
-        }
-    }
-
-    public function getThemeSectionData($themeLinkId) {
-        $result = $this->db->getAll("
-            SELECT 
-                mtls.*, 
-                mts.FILE_NAME 
-            FROM META_THEME_LINK_SECTION mtls 
-                LEFT JOIN META_THEME_STYLE mts ON mtls.STYLE_ID = mts.ID 
-            WHERE mtls.META_THEME_LINK_ID = ".$this->db->Param(0)." 
-                AND mts.FILE_NAME IS NOT NULL 
-            ORDER BY SORT_ORDER ASC", array($themeLinkId));
-        
-        if ($result) {
-            return $result; 
-        } else {
-            return false;
-        }
-    }
-
-    public function getThemeSectionDetail($themeSectionId) {
-        $result = $this->db->getAll("SELECT * FROM META_THEME_LINK_SECTION_DETAIL WHERE THEME_SECTION_ID = ".$this->db->Param(0), array($themeSectionId));
-        
-        if ($result) {
-            return $result; 
-        } else {
-            return false;
-        }
-    }
-
-    public function findEditMetaDataIdForTheme($inputMetaDataId) {
-        $result = $this->db->getOne("SELECT EDIT_META_DATA_ID FROM META_THEME_LINK WHERE META_DATA_ID = ".$this->db->Param(0), array($inputMetaDataId));
-        if ($result) {
-            return $result; 
-        } else {
-            return false;
-        }
     }
 
     public function getMainWfmProcessModel($dmMetaDataId, $processMetaDataId) {

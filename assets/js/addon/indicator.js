@@ -5041,12 +5041,12 @@ function mvRowsGetValueFromDataMart(elem, indicatorId, rowId, columnPath) {
 }
 function createMvStructureFromFile(elem, dataViewId, isContentMenu) {
     
-    var postData = {};
+    var postData = {}, indicatorId = '';
     
     if (!isContentMenu) {
         var rows = getRowsDataView(dataViewId);
         if (rows.length > 0 && rows.hasOwnProperty(0) && (rows[0]).hasOwnProperty('id')) {
-            var indicatorId = rows[0]['id'];
+            indicatorId = rows[0]['id'];
             postData.indicatorId = indicatorId;
         } else {
             PNotify.removeAll();
@@ -5079,7 +5079,7 @@ function createMvStructureFromFile(elem, dataViewId, isContentMenu) {
                 var $dialog = $(dialogName);
                 
                 if (data.hasOwnProperty('indicatorId')) {
-                    var indicatorId = data.indicatorId;
+                    indicatorId = data.indicatorId;
                 }
 
                 $dialog.empty().append(data.html);

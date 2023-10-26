@@ -55,7 +55,7 @@
                             
                             $lowerPath = strtolower($value['path']);                 
                             
-                            if (Config::getFromCache('IsAccountFilterFinancial')) {
+                            if (Config::getFromCache('IsAccountFilterFinancialRemoved')) {
                                 $dimcheck = '';
                                 $dimensionConfig = issetParam($this->detailvalues['dimensionconfig']) ? json_decode($this->detailvalues['dimensionconfig'], true) : [];
                                 $dimensionConfig = issetParam($dimensionConfig['rows']);

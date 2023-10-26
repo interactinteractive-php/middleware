@@ -1,5 +1,4 @@
-var selectedObj, strokeCommon, drawRowCount = 0, wfIconAddPositionTop = 20, wfIconAddPostionLeft = 20;
-var isViewTaskFlow = true;
+var selectedObj, strokeCommon, drawRowCount = 0, wfIconAddPositionTop = 20, wfIconAddPostionLeft = 20, _taskFlowSelectedRow = [];
 
 $(function() {
 
@@ -11,186 +10,6 @@ $(function() {
     $('#editor').on('click', 'div.wfposition', function () {
         selectedObj = $(this);
         setControlVal(selectedObj);
-    });
-
-    $.contextMenu({
-        selector: '.wfMenu', 
-        build: function($trigger, e) {
-            
-            var mainBpId = $("#mainBpId").val();
-            var doBpId = $trigger.find(".wfIcon").attr('data-dobpid');
-            var pId = $trigger.find(".wfIcon").attr('data-workflowid');
-            var id = $trigger.attr('id');
-                        
-            var contextMenuData = {
-                "configParameter": {
-                    name: 'Parameter config', 
-                    icon: 'cogs', 
-                    callback: function(key, options) {
-                        callMetaParameter(mainBpId, doBpId, pId);
-                    }
-                },
-                "configSchedule": {
-                    name: 'Schedule config', 
-                    icon: 'clock', 
-                    callback: function(key, options) {
-                        
-                        if (mainBpId === doBpId) {
-                            PNotify.removeAll();
-                            new PNotify({
-                                title: 'Warning',
-                                text: 'Үндсэн процэсс дээр тохируулах боломжгүй',
-                                type: 'warning',
-                                sticker: false
-                            });
-                        } else {
-                            callMetaScheduleConfig(mainBpId, doBpId, pId);
-                        }
-                    }
-                },
-                "arrowDelete": {
-                    name: "Remove transition", 
-                    icon: "trash", 
-                    callback: function(key, options) {
-                        jsPlumb.select({source: id}).detach();
-                    }
-                },
-                "delete": {
-                    name: "Remove process", 
-                    icon: "trash", 
-                    callback: function(key, options) {
-                        if ((!isTaskFlow && doBpId == mainBpId) || pId == '0') {
-                            new PNotify({
-                                title: 'Анхаар',
-                                text: 'Устгах боломжгүй',
-                                type: 'warning',
-                                sticker: false
-                            });
-                        } else {
-
-                            var dialogName = '#deleteConfirm';
-                            if (!$(dialogName).length) {
-                                $('<div id="' + dialogName.replace('#', '') + '"></div>').appendTo('body');
-                            }
-                            $(dialogName).html(plang.get('msg_delete_confirm'));
-                            $(dialogName).dialog({
-                                cache: false,
-                                resizable: true,
-                                bgiframe: true,
-                                autoOpen: false,
-                                title: plang.get('msg_title_confirm'),
-                                width: '350',
-                                height: 'auto',
-                                modal: true,
-                                buttons: [
-                                    {text: plang.get('yes_btn'), class: 'btn green-meadow btn-sm', click: function () {
-                                        jsPlumb.detach(id);
-                                        jsPlumb.remove(id);
-                                        $(dialogName).dialog('close');
-                                    }},
-                                    {text: plang.get('no_btn'), class: 'btn blue-madison btn-sm', click: function () {
-                                        $(dialogName).dialog('close');
-                                    }}
-                                ]
-                            });
-                        }
-                        $(dialogName).dialog('open');
-                    }
-                }, 
-                "edit": {
-                    name: "Процесс засах", 
-                    icon: "edit", 
-                    callback: function(key, options) {
-                        window.open('mdmetadata/gotoEditMeta/' + doBpId, '_blank');
-                    }
-                }, 
-                "gotofolder": {
-                    name: "Процессийн фолдер руу очих", 
-                    icon: "folder-open", 
-                    callback: function(key, options) {
-                        window.open('mdmetadata/gotoFolder/' + doBpId, '_blank');
-                    }
-                }
-            };
-            
-            if ($trigger.hasClass('wfcomplexbp')) {
-                contextMenuData.gotoComplexConfig = {
-                    name: "Нийлмэлийн тохиргоо", 
-                    icon: 'sitemap', 
-                    callback: function(key, options) {
-                        window.open('mdprocessflow/metaProcessWorkflow/' + doBpId, '_blank');
-                    }
-                };
-            }
-            
-            if (isTaskFlow) {
-                
-                if ($trigger.hasClass('wf-tf-UI')) {
-                    contextMenuData.changeTaskFlowType = {
-                        name: 'Not UI', 
-                        icon: 'external-link', 
-                        callback: function(key, options) {
-                            PNotify.removeAll();
-                            $.ajax({
-                                type: 'post',
-                                url: 'mdprocessflow/changeTaskFlowType',
-                                data: {mainBpId: mainBpId, doBpId: doBpId, type: ''},
-                                dataType: 'json', 
-                                success: function (data) {
-                                    new PNotify({
-                                        title: data.status,
-                                        text: data.message,
-                                        type: data.status,
-                                        addclass: pnotifyPosition,
-                                        sticker: false
-                                    });
-                                    
-                                    if (data.status == 'success') {
-                                        $trigger.removeClass('wf-tf-UI');
-                                    } 
-                                }
-                            });
-                        }
-                    };
-                } else {
-                    contextMenuData.changeTaskFlowType = {
-                        name: 'UI', 
-                        icon: 'external-link', 
-                        callback: function(key, options) {
-                            PNotify.removeAll();
-                            $.ajax({
-                                type: 'post',
-                                url: 'mdprocessflow/changeTaskFlowType',
-                                data: {mainBpId: mainBpId, doBpId: doBpId, type: 'UI'},
-                                dataType: 'json', 
-                                success: function (data) {
-                                    new PNotify({
-                                        title: data.status,
-                                        text: data.message,
-                                        type: data.status,
-                                        addclass: pnotifyPosition,
-                                        sticker: false
-                                    });
-                                        
-                                    if (data.status == 'success') {
-                                        $trigger.addClass('wf-tf-UI');
-                                    } 
-                                }
-                            });
-                        }
-                    };
-                }
-            }
-            
-            var options =  {
-                callback: function (key, opt) {
-                    eval(key);
-                },
-                items: contextMenuData
-            };
-
-            return options;
-        }
     });
 
     workflowConnectionImport = function (elem) {
@@ -262,26 +81,32 @@ $(function() {
     };
 
     me.arrastrable = function () {
-        jsPlumb.draggable($(".wfposition"), {
-            containment: "workFlowEditor"
-        });
+        // jsPlumb.draggable($(".wfposition"), {
+        //     containment: "workFlowEditor"
+        // });
     };
 
-    setIcon = function (elem) {
+    setIcon = function (elem, elem2) {
         var _left = elem['positionLeft'];
         var _top = elem['positionTop'];
         var linkTitle = elem['title'] + ' (' + elem['metaDataCode'] + ')';
-        var isComplexProcess = '', complexProcessClass = '';
-        if (elem['id'] == 'startObject001') {
+        var isComplexProcess = '', complexProcessClass = ' wfcomplexbpWillWork';
+        if (elem['id'] == '0') {
             linkTitle = 'Эхлэл';
+            complexProcessClass = '';
         }
         if (elem['id'] == 'endObject001') {
             linkTitle = 'Төгсгөл';
+            complexProcessClass = '';
+        }
+
+        if (elem2 == '') {
+            complexProcessClass = '';
         }
         
-        if (elem.hasOwnProperty('isComplexProcess') && elem.isComplexProcess == 1) {
-            isComplexProcess = '<span class="is-complex-bp" title="Нийлмэл процесс"><i class="icon-tree7"></i></span>';
-            complexProcessClass = ' wfcomplexbp';
+        if (elem.hasOwnProperty('isWorked') && elem.isWorked == 1) {
+            isComplexProcess = '<span class="is-complex-bp" title=""><i class="icon-check" style="color: #00c500"></i></span>';
+            complexProcessClass = ' wfcomplexbpWorked';
         }
         
         if (elem.hasOwnProperty('metaTypeId') && elem.metaTypeId == '200101010000043') {
@@ -289,11 +114,11 @@ $(function() {
             complexProcessClass = ' wfcomplexbp';
         }
         
-        var html = '<div id="' + elem['id'] + '" ' +
-                'class="wfposition wfMenu ' + elem['type'] + complexProcessClass + ' wf-tf-'+elem['taskflowType']+'" ondblclick="processDrillDown(this)" ' +
+        var html = '<div id="' + elem['id'] + '" data-taskFlowId="' + (elem.hasOwnProperty('taskFlowId') && elem['taskFlowId'] ? elem['taskFlowId'] : '') + '" ' +
+                'class="wfposition wfMenu ' + elem['type'] + complexProcessClass + ' wf-tf-'+elem['taskflowType']+' wf-tf-view-UI" onclick="runTaskFlowRenderBp(this)" ' +
                 'style=" width: ' + elem['width'] + 'px; height: ' + elem['height'] + 'px; display: inline-block; top: ' + _top + 'px; left: ' + _left + 'px;">' +
                 isComplexProcess + 
-                '<a href="javascript:;" title="' + linkTitle + '">' +
+                '<a href="javascript:;" title="">' +
                 '<div class="wfIcon ' + elem['class'] + ' " data-type="' + elem['type'] + '" data-width="' + elem['width'] + '" data-height="' + elem['height'] + '" ' +
                 'data-top="' + elem['positionTop'] + '" data-left="' + elem['positionLeft'] + '" ' +
                 'data-class="' + elem['class'] + '" data-title="' + elem['title'] + '" ' +
@@ -303,12 +128,12 @@ $(function() {
         
         html += '<span class="iconText">';
         if (elem['type'] == 'rectangle') {
-            html += '<div class="bp-code">' + (elem['type'] != 'circle' ? ' (' + elem['metaDataCode'] + ')' : '') + '</div>';
-            html += '<div class="bp-name">' + elem['title'] + '</div>';
+            html += '<div class="bp-code hidden">' + (elem['type'] != 'circle' ? ' ' + elem['metaDataCode'] + '' : '') + '</div>';
+            html += '<div class="bp-name" style="font-weight: bold;">' + elem['title'] + '</div>';
         }
         
         html += '</span>';
-        html += '<div class="connect"></div>' +
+        html += '<div class=""></div>' +
                 (elem['childProcess'] == '1' ? ' <div class="drill-down-icon"><i class="icon-plus3 font-size-12"></i></div>' : '') +
                 '<input type="hidden" data-boolentrueid="-1" data-boolenfalseid="-1" name="' + elem['id'] + '" id="metaDataBoolen' + elem['id'] + '">' +
                 '</a>';
@@ -453,13 +278,13 @@ $(function() {
                         workflow({'source': value['SOURCE'], 'target': value['TARGET']});
                     });
 
-                    $('.wfposition').draggable({
-                        containment: '#workFlowEditor',
-                        stop: function () {
-                            selectedObj = $(this);
-                            setControlVal(selectedObj);
-                        }
-                    });
+                    // $('.wfposition').draggable({
+                    //     containment: '#workFlowEditor',
+                    //     stop: function () {
+                    //         selectedObj = $(this);
+                    //         setControlVal(selectedObj);
+                    //     }
+                    // });
                     Core.unblockUI();
                 },
                 error: function () {
@@ -499,7 +324,7 @@ $(function() {
     viewVisualHtmlMetaProcessFlowData = function (mainBpId) {
         if (mainBpId != '') {
             
-            var editorHeight = $(window).height() - 288;
+            var editorHeight = 500;
             
             $.ajax({
                 type: 'post',
@@ -514,26 +339,26 @@ $(function() {
                     }
 
                     $('#metaProcessDetial').empty().append(
-                            '<div class="mb10">' +
+                            '<div class="mb10 hidden">' +
                                 '<button type="button" class="btn btn-sm bg-indigo-400 mr-1 saveVisualParam">Хадгалах</button>' +
                                 '<button type="button" class="btn btn-sm bg-success-400 addVisualMetaData">Нэмэх</button>' +
                                 '<button type="button" class="btn btn-sm bg-danger-400 removeAllArrowData ml-1">Бүх сум устгах</button>' +
                             '</div>' +
-                            '<div class="heigh-editor">' +
+                            '<div class="heigh-editor" style="background: none;border: none;">' +
                                 '<div class="css-editor" id="workFlowEditor" style="height: '+editorHeight+'px;"></div>' +
                             '</div>');
-                    $('#workFlowEditor').empty();
+                    $('#workFlowEditor').empty();     
                     
                     $.ajax({
                         type: 'post',
-                        url: 'mdprocessflow/drawProcessHtml',
-                        data: {processData: data, mainBpId: mainBpId},
+                        url: 'mdprocessflow/drawProcessHtmlView',
+                        data: {processData: data, mainBpId: mainBpId, recordId: _taskFlowSelectedRow ? _taskFlowSelectedRow.id : ''},
                         dataType: 'json',
                         success: function (data) {
 
                             $.each(data['object'], function (index, value) {
                                 
-                                $('#workFlowEditor').append(setIcon(value));
+                                $('#workFlowEditor').append(setIcon(value, data.lastRunTaskFlow));
                                 workflow(value);
                                 
                                 $('.heigh-editor', '#metaProcessDetial').append(
@@ -552,17 +377,21 @@ $(function() {
                                 workflow({source: value['SOURCE'], target: value['TARGET']});
                             });
 
-                            $('.wfposition').draggable({
-                                containment: '#workFlowEditor',
-                                start: function () {
-                                    selectedObj = $(this);
-                                    setControlVal(selectedObj);
-                                },
-                                stop: function () {
-                                    selectedObj = $(this);
-                                    setControlVal(selectedObj);
-                                }
-                            });
+                            if (data.lastRunTaskFlow) {
+                                $('div[data-dobpid="'+data.lastRunTaskFlow._taskflowinfo.doprocessid+'"]', '#metaProcessDetial').eq(0).closest('.wfposition').removeClass('wfcomplexbpWillWork');
+                            }
+
+                            // $('.wfposition').draggable({
+                            //     containment: '#workFlowEditor',
+                            //     start: function () {
+                            //         selectedObj = $(this);
+                            //         setControlVal(selectedObj);
+                            //     },
+                            //     stop: function () {
+                            //         selectedObj = $(this);
+                            //         setControlVal(selectedObj);
+                            //     }
+                            // });
                         },
                         error: function () {
                             $('#metaProcessDetial').html('');
@@ -1012,13 +841,13 @@ $(function() {
                         workflow(wfIconArray);
                         wfIconAddPostionLeft = wfIconAddPostionLeft + 180;
 
-                        $('.wfposition').draggable({
-                            containment: '#workFlowEditor',
-                            stop: function () {
-                                selectedObj = $(this);
-                                setControlVal(selectedObj);
-                            }
-                        });
+                        // $('.wfposition').draggable({
+                        //     containment: '#workFlowEditor',
+                        //     stop: function () {
+                        //         selectedObj = $(this);
+                        //         setControlVal(selectedObj);
+                        //     }
+                        // });
 
                     }
                 }
@@ -1075,4 +904,490 @@ function returnDoneProcessListF(doProcessId, connections, getConnections) {
         }
     });
     return connections;
+}
+function runTaskFlowRenderBp(elem) {
+    var $this = $(elem);
+    var workSpaceId = '', workSpaceParams = '';    
+    var $dialogName = "dialog-taskflow-render-bp";
+    var metaDataId = $this.find('[data-dobpid]').attr('data-dobpid');
+
+    if ($this.hasClass('wfcomplexbpWorked')) {
+        runTaskFlowBpLogRender(metaDataId, $this.attr('data-taskflowid'), $this);
+        return '';
+    }
+
+    if ($this.hasClass('wfcomplexbpWillWork')) {
+        PNotify.removeAll();
+        new PNotify({
+            title: 'Warning',
+            text: 'Ажиллах боломжгүй байна!',
+            type: 'warning',
+            sticker: false
+        });        
+        return '';
+    }
+
+    if (!$("#" + $dialogName).length) {
+      $('<div id="' + $dialogName + '" class="display-none"></div>').appendTo(
+        "body"
+      );
+    }
+    var $dialog = $("#" + $dialogName);
+  
+    if ($this.closest("div.ws-area").length > 0) {
+        var wsArea = $this.closest("div.ws-area");
+        var workSpaceIdAttr = wsArea.attr("id").split("-");
+        workSpaceId = workSpaceIdAttr[2];
+        workSpaceParams = $("div.ws-hidden-params", wsArea).find("input[type=hidden]").serialize();
+    }  
+
+    var processForm = $this.closest("form#wsForm"), responseBpJsonData = {};
+    processForm.find('input[name="responseType"]').val('json');
+    processForm.ajaxSubmit({
+        type: "post",
+        url: "mdwebservice/runProcess",
+        dataType: "json",
+        async: false,
+        beforeSend: function () {
+        },
+        success: function (responseData) {
+            if (responseData.status === 'success') {
+                responseBpJsonData = responseData.paramData
+            }
+        },
+        error: function () {
+          alert("Error");
+        },
+    });
+    responseBpJsonData['id'] = _taskFlowSelectedRow ? _taskFlowSelectedRow.id : '';
+  
+    $.ajax({
+      type: "post",
+      url: "mdprocessflow/callTaskFlow",
+      data: {
+        metaDataId: metaDataId,
+        dmMetaDataId: 1603425715727,
+        isDialog: true,
+        isSystemMeta: false,
+        oneSelectedRow: [responseBpJsonData],
+        responseType: "",
+        workSpaceId: workSpaceId,
+        workSpaceParams: workSpaceParams,
+        taskFlowCode: $('input[name="mainBpId_displayField"]').val(),
+        isTaskFlowView: 1
+      },
+      dataType: "json",
+      beforeSend: function () {
+        Core.blockUI({
+          message: "Loading...",
+          boxed: true,
+        });
+      },
+      success: function (data) {
+        if (data.status === 'error') {
+            PNotify.removeAll();
+            new PNotify({
+                title: 'Warning',
+                text: data.message,
+                type: "warning",
+                sticker: false,
+            });            
+            return;
+        }
+        $dialog.empty().append(data.Html);
+  
+        var processForm = $("#wsForm", "#" + $dialogName);
+        var processUniqId = processForm.parent().attr("data-bp-uniq-id");
+  
+        var buttons = [
+          {
+            text: data.run_btn,
+            class: "btn green-meadow btn-sm bp-btn-save",
+            click: function (e) {
+              if (window["processBeforeSave_" + processUniqId]($(e.target))) {
+                processForm.validate({
+                  ignore: "",
+                  highlight: function (element) {
+                    $(element).addClass("error");
+                    $(element).parent().addClass("error");
+                    if (
+                      processForm.find("div.tab-pane:hidden:has(.error)").length
+                    ) {
+                      processForm
+                        .find("div.tab-pane:hidden:has(.error)")
+                        .each(function (index, tab) {
+                          var tabId = $(tab).attr("id");
+                          processForm
+                            .find('a[href="#' + tabId + '"]')
+                            .tab("show");
+                        });
+                    }
+                  },
+                  unhighlight: function (element) {
+                    $(element).removeClass("error");
+                    $(element).parent().removeClass("error");
+                  },
+                  errorPlacement: function () { },
+                });
+  
+                var isValidPattern = initBusinessProcessMaskEvent(processForm);
+  
+                if (processForm.valid() && isValidPattern.length === 0) {
+                  processForm.ajaxSubmit({
+                    type: "post",
+                    url: "mdwebservice/runProcess",
+                    dataType: "json",
+                    beforeSend: function () {
+                      Core.blockUI({
+                        boxed: true,
+                        message: "Loading..."
+                      });
+                    },
+                    success: function (responseData) {
+                      if (responseData.status === "success") {
+                        var responseParam = responseData.paramData;
+  
+                        PNotify.removeAll();
+                        new PNotify({
+                          title: "Амжилттай",
+                          text: responseData.message,
+                          type: "success",
+                          sticker: false,
+                          addclass: "pnotify-center",
+                        });
+                        $dialog.dialog("close");                                                             
+                        viewVisualHtmlMetaProcessFlowData($('#mainBpId').val());
+                      } else {
+                        new PNotify({
+                            title: 'Warning',
+                            text: responseData.message,
+                            type: 'warning',
+                            sticker: false, 
+                            addclass: 'pnotify-center'
+                        });                           
+                      }                    
+                      Core.unblockUI();   
+                    },
+                    error: function () {
+                      alert("Error");
+                    },
+                  });
+                }
+              }
+            },
+          },
+          {
+            text: data.close_btn,
+            class: "btn blue-madison btn-sm",
+            click: function () {
+              $dialog.dialog("close");
+            },
+          },
+        ];
+  
+        var dialogWidth = data.dialogWidth,
+          dialogHeight = data.dialogHeight;
+  
+        if (data.isDialogSize === "auto") {
+          dialogWidth = 1200;
+          dialogHeight = "auto";
+        }
+  
+        $dialog
+          .dialog({
+            cache: false,
+            resizable: true,
+            bgiframe: true,
+            autoOpen: false,
+            title: data.Title,
+            width: dialogWidth,
+            height: dialogHeight,
+            modal: true,
+            closeOnEscape:
+              typeof isCloseOnEscape == "undefined" ? true : isCloseOnEscape,
+            close: function () {
+              $dialog.empty().dialog("destroy").remove();
+            },
+            buttons: buttons,
+          })
+          .dialogExtend({
+            closable: true,
+            maximizable: true,
+            minimizable: true,
+            collapsable: true,
+            dblclick: "maximize",
+            minimizeLocation: "left",
+            icons: {
+              close: "ui-icon-circle-close",
+              maximize: "ui-icon-extlink",
+              minimize: "ui-icon-minus",
+              collapse: "ui-icon-triangle-1-s",
+              restore: "ui-icon-newwin",
+            },
+          });
+        if (data.dialogSize === "fullscreen") {
+          $dialog.dialogExtend("maximize");
+        }
+        $dialog.dialog("open");
+      },
+      error: function () {
+        alert("Error");
+      },
+    }).done(function () {
+      Core.initBPAjax($dialog);
+      Core.unblockUI();
+    });
+}
+function runTaskFlowRender(metaDataId) {
+    var $dialogName = "dialog-taskflow-render";
+
+    if (!$("#" + $dialogName).length) {
+      $('<div id="' + $dialogName + '" class="display-none"></div>').appendTo(
+        "body"
+      );
+    }
+
+    // var getLastTaskFlow = $.ajax({
+    //     type: "post",
+    //     url: "mdprocessflow/lastRunTaskFlow",
+    //     data: {
+    //         mainBpId: $('#mainBpId').val()
+    //     },
+    //     dataType: "json",
+    //     async: false,
+    //     success: function (data) {
+    //         return data.result;
+    //     },
+    // });
+
+    var $dialog = $("#" + $dialogName);
+    // var recordId = getLastTaskFlow.responseJSON ? getLastTaskFlow.responseJSON.RECORD_ID : '';
+
+    $.ajax({
+        type: 'post',
+        url: 'mdprocessflow/metaProcessWorkflow/'+metaDataId,
+        data: {
+            isViewTaskFlow: 1
+        },
+        beforeSend: function() {
+            Core.blockUI({message: 'Loading...', boxed: true});
+        },                        
+        success: function(dataHtml) {
+            $dialog.empty().append(dataHtml);
+            $dialog.find('.taskflow-bp-action-btn').addClass('hidden');
+            $dialog.find('.heigh-editor').css({background: "none", border: "none"});
+
+            var buttons = [
+              {
+                text: plang.get("close_btn"),
+                class: "btn blue-madison btn-sm",
+                click: function () {
+                  $dialog.dialog("close");
+                },
+              },
+            ];
+      
+            $dialog.dialog({
+                cache: false,
+                resizable: true,
+                bgiframe: true,
+                autoOpen: false,
+                title: 'Taskflow',
+                width: 1200,
+                height: 'auto',
+                modal: true,
+                closeOnEscape: true,
+                close: function () {
+                  $dialog.empty().dialog("destroy").remove();
+                },
+                buttons: buttons,
+              })
+              .dialogExtend({
+                closable: true,
+                maximizable: true,
+                minimizable: true,
+                collapsable: true,
+                dblclick: "maximize",
+                minimizeLocation: "left",
+                icons: {
+                  close: "ui-icon-circle-close",
+                  maximize: "ui-icon-extlink",
+                  minimize: "ui-icon-minus",
+                  collapse: "ui-icon-triangle-1-s",
+                  restore: "ui-icon-newwin",
+                },
+              });
+                $dialog.dialogExtend("maximize");
+            $dialog.dialog("open");            
+        }
+    }).done(function() {
+        Core.unblockUI();
+    });    
+}
+function runTaskFlowInsideBpRender(metaDataId, selectedRow, $elem) {
+    $.ajax({
+        type: 'post',
+        url: 'mdprocessflow/metaProcessWorkflow/'+metaDataId,
+        data: {
+            isViewTaskFlow: 1
+        },
+        beforeSend: function() {
+            Core.blockUI({message: 'Loading...', boxed: true});
+        },                        
+        success: function(dataHtml) {
+            $elem.find('form').prepend(dataHtml);
+            $elem.find('form').find('.taskflow-bp-action-btn').addClass('hidden');
+            $elem.find('form').find('.heigh-editor').css({background: "none", border: "none"});     
+        }
+    }).done(function() {
+        $('#dialog-businessprocess-'+metaDataId).on('dialogopen', function(){
+            setTimeout(function() {
+                $('#dialog-businessprocess-'+metaDataId).dialog("option", "position", { my: "center", at: "center", of: window });
+            }, 5000);                
+        });        
+        Core.unblockUI();
+    });    
+}
+function runTaskFlowBpLogRender(metaDataId, logId, elem) {
+    var $dialogName = "dialog-taskflow-bplog-render";
+
+    if (!$("#" + $dialogName).length) {
+      $('<div id="' + $dialogName + '" class="display-none"></div>').appendTo(
+        "body"
+      );
+    }
+    var $dialog = $("#" + $dialogName);
+    var bpName = elem.find('.bp-name').text();
+
+    $.ajax({
+        type: 'post',
+        url: 'mdprocessflow/taskFlowLogBp/'+metaDataId+'/'+logId,
+        beforeSend: function() {
+            Core.blockUI({message: 'Loading...', boxed: true});
+        },                        
+        success: function(dataHtml) {
+            $dialog.empty().append(dataHtml);
+            var processForm = $("#wsForm", "#" + $dialogName);
+            var processUniqId = processForm.parent().attr("data-bp-uniq-id");
+
+            var buttons = [
+                {
+                    text: plang.get("save_btn"),
+                    class: "btn green-meadow btn-sm bp-btn-save",
+                    click: function (e) {
+                      if (window["processBeforeSave_" + processUniqId]($(e.target))) {
+                        processForm.validate({
+                          ignore: "",
+                          highlight: function (element) {
+                            $(element).addClass("error");
+                            $(element).parent().addClass("error");
+                            if (
+                              processForm.find("div.tab-pane:hidden:has(.error)").length
+                            ) {
+                              processForm
+                                .find("div.tab-pane:hidden:has(.error)")
+                                .each(function (index, tab) {
+                                  var tabId = $(tab).attr("id");
+                                  processForm
+                                    .find('a[href="#' + tabId + '"]')
+                                    .tab("show");
+                                });
+                            }
+                          },
+                          unhighlight: function (element) {
+                            $(element).removeClass("error");
+                            $(element).parent().removeClass("error");
+                          },
+                          errorPlacement: function () { },
+                        });
+          
+                        var isValidPattern = initBusinessProcessMaskEvent(processForm);
+          
+                        if (processForm.valid() && isValidPattern.length === 0) {
+                          processForm.ajaxSubmit({
+                            type: "post",
+                            url: "mdwebservice/runProcess",
+                            dataType: "json",
+                            beforeSend: function () {
+                              Core.blockUI({
+                                boxed: true,
+                                message: "Loading..."
+                              });
+                            },
+                            success: function (responseData) {
+                              if (responseData.status === "success") {
+                                var responseParam = responseData.paramData;
+          
+                                PNotify.removeAll();
+                                new PNotify({
+                                  title: "Амжилттай",
+                                  text: responseData.message,
+                                  type: "success",
+                                  sticker: false,
+                                  addclass: "pnotify-center",
+                                });
+                                $dialog.dialog("close");                                
+                              } else {
+                                new PNotify({
+                                    title: 'Warning',
+                                    text: responseData.message,
+                                    type: 'warning',
+                                    sticker: false, 
+                                    addclass: 'pnotify-center'
+                                });                           
+                              }                    
+                              Core.unblockUI();   
+                            },
+                            error: function () {
+                              alert("Error");
+                            },
+                          });
+                        }
+                      }
+                    }
+                },                
+                {
+                    text: plang.get("close_btn"),
+                    class: "btn blue-madison btn-sm",
+                    click: function () {
+                    $dialog.dialog("close");
+                    }
+                }
+            ];
+      
+            $dialog.dialog({
+                cache: false,
+                resizable: true,
+                bgiframe: true,
+                autoOpen: false,
+                title: bpName,
+                width: 1000,
+                height: 'auto',
+                modal: true,
+                closeOnEscape: true,
+                close: function () {
+                  $dialog.empty().dialog("destroy").remove();
+                },
+                buttons: buttons,
+              })
+              .dialogExtend({
+                closable: true,
+                maximizable: true,
+                minimizable: true,
+                collapsable: true,
+                dblclick: "maximize",
+                minimizeLocation: "left",
+                icons: {
+                  close: "ui-icon-circle-close",
+                  maximize: "ui-icon-extlink",
+                  minimize: "ui-icon-minus",
+                  collapse: "ui-icon-triangle-1-s",
+                  restore: "ui-icon-newwin",
+                },
+              });
+            $dialog.dialog("open");            
+        }
+    }).done(function() {
+        Core.unblockUI();
+    });    
 }

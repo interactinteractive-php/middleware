@@ -79,6 +79,10 @@
                                 'name' => 'Desktop Client'
                             ),
                             array(
+                                'id' => '2',
+                                'name' => 'Monpass Client Position'
+                            ),
+                            array(
                                 'id' => '3',
                                 'name' => 'Cloud'
                             ),

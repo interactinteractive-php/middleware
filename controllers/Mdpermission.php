@@ -271,7 +271,7 @@ class Mdpermission extends Controller {
         echo json_encode($response); exit;
     }        
     
-    public function getCriteriaStringToArray($criteriaId) {
+    public static function getCriteriaStringToArray($criteriaId) {
         
         global $db;
         

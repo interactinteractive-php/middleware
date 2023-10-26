@@ -18,7 +18,7 @@ class Mdintegration extends Controller {
         parent::__construct();
     }
     
-    public function getBankId($bankCode) {
+    public static function getBankId($bankCode) {
         
         $id = null;
         

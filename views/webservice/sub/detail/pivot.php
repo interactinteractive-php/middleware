@@ -116,13 +116,13 @@ foreach ($row['data'] as $ind => $val) {
             if (!empty($childRow['sideBarArr'])) {
                 foreach ($childRow['sideBarArr'] as $sdk => $sval) {
 
-                    $sidebarShowRowsDtl_{$row['id']} = true;
-                    if (!in_array($sval['SIDEBAR_NAME'], $sidebarGroupArr_{$row['id']})) {
-                        $sidebarGroupArr_{$row['id']}[$ind.$sdk] = $sval['SIDEBAR_NAME'];
-                        $sidebarDtlRowsContentArr_{$row['id'] . $ind.$sdk} = array();
+                    $sidebarShowRowsDtl_[$row['id']] = true;
+                    if (!in_array($sval['SIDEBAR_NAME'], $sidebarGroupArr_[$row['id']])) {
+                        $sidebarGroupArr_[$row['id']][$ind.$sdk] = $sval['SIDEBAR_NAME'];
+                        $sidebarDtlRowsContentArr_[$row['id'] . $ind.$sdk] = array();
                     }
 
-                    $groupKey = array_search($sval['SIDEBAR_NAME'], $sidebarGroupArr_{$row['id']});
+                    $groupKey = array_search($sval['SIDEBAR_NAME'], $sidebarGroupArr_[$row['id']]);
                     $labelAttr = array(
                         'text' => $this->lang->line($sval['META_DATA_NAME']),
                         'for' => 'param[' . $sval['PARAM_REAL_PATH'] . '][0][]',
@@ -133,12 +133,12 @@ foreach ($row['data'] as $ind => $val) {
                     }
                     $inHtml = Mdwebservice::renderParamControl($this->methodId, $sval, 'param[' . $sval['PARAM_REAL_PATH'] . '][0][]', $sval['PARAM_REAL_PATH'], array());
 
-                    $sidebarDtlRowsContentArr_{$row['id'] . $groupKey}[] = array(
+                    $sidebarDtlRowsContentArr_[$row['id'] . $groupKey][] = array(
                         'input_label_txt' => Form::label($labelAttr),
                         'data_path' => $sval['PARAM_REAL_PATH'],
                         'input_html' => $inHtml
                     );
-                    $sidebarDtlRowsContentArr_{$row['id']}[$groupKey] = $sidebarDtlRowsContentArr_{$row['id'] . $groupKey};
+                    $sidebarDtlRowsContentArr_[$row['id']][$groupKey] = $sidebarDtlRowsContentArr_[$row['id'] . $groupKey];
 
                 }
             }
@@ -183,13 +183,13 @@ foreach ($row['data'] as $ind => $val) {
 
     } else {
         
-        $sidebarShowRowsDtl_{$row['id']} = true;
-        if (!in_array($val['SIDEBAR_NAME'], $sidebarGroupArr_{$row['id']})) {
-            $sidebarGroupArr_{$row['id']}[$ind] = $val['SIDEBAR_NAME'];
-            $sidebarDtlRowsContentArr_{$row['id'] . $ind} = array();
+        $sidebarShowRowsDtl_[$row['id']] = true;
+        if (!in_array($val['SIDEBAR_NAME'], $sidebarGroupArr_[$row['id']])) {
+            $sidebarGroupArr_[$row['id']][$ind] = $val['SIDEBAR_NAME'];
+            $sidebarDtlRowsContentArr_[$row['id'] . $ind] = array();
         }
 
-        $groupKey = array_search($val['SIDEBAR_NAME'], $sidebarGroupArr_{$row['id']});
+        $groupKey = array_search($val['SIDEBAR_NAME'], $sidebarGroupArr_[$row['id']]);
         $labelAttr = array(
             'text' => $globeColumnName,
             'for' => 'param[' . $val['PARAM_REAL_PATH'] . '][0][]',
@@ -199,12 +199,12 @@ foreach ($row['data'] as $ind => $val) {
             $labelAttr = array_merge($labelAttr, array('required' => 'required'));
         }
         $inHtml = Mdwebservice::renderParamControl($this->methodId, $val, "param[" . $val['PARAM_REAL_PATH'] . "][0][]", $val['PARAM_REAL_PATH'], array());
-        $sidebarDtlRowsContentArr_{$row['id'] . $groupKey}[] = array(
+        $sidebarDtlRowsContentArr_[$row['id'] . $groupKey][] = array(
             'input_label_txt' => Form::label($labelAttr),
             'data_path' => $val['PARAM_REAL_PATH'],
             'input_html' => $inHtml
         );
-        $sidebarDtlRowsContentArr_{$row['id']}[$groupKey] = $sidebarDtlRowsContentArr_{$row['id'] . $groupKey};
+        $sidebarDtlRowsContentArr_[$row['id']][$groupKey] = $sidebarDtlRowsContentArr_[$row['id'] . $groupKey];
     }
         
     // end $isMultiRow
@@ -240,19 +240,19 @@ if ($isTab) {
     $gridBody .= '</td>';
 }
 
-if ($isMultiRow && isset($sidebarShowRowsDtl_{$row['id']})) {
+if ($isMultiRow && isset($sidebarShowRowsDtl_[$row['id']])) {
 
     $htmlBodyCell .= '<a href="javascript:;" onclick="proccessRenderPopup(\'div#bp-window-' . $this->methodId . ':visible\', this);" class="btn btn-xs purple-plum bp-btn-sidebar" style="width:21px" title="Popup цонхоор харах"><i class="fa fa-external-link"></i></a>';
     $htmlBodyCell .= '<div class="sidebarDetailSection hide">';
 
-    if (!empty($sidebarGroupArr_{$row['id']})) {
-        foreach ($sidebarGroupArr_{$row['id']} as $keyPopGroup => $rowPopGroup) {
+    if (!empty($sidebarGroupArr_[$row['id']])) {
+        foreach ($sidebarGroupArr_[$row['id']] as $keyPopGroup => $rowPopGroup) {
 
             $htmlBodyCell .= '<p class="property_page_title">' . $this->lang->line($rowPopGroup) . '</p>' .
                     '<div class="panel panel-default bg-inverse grid-row-content">' .
                     '<table class="table sheetTable sidebar_detail">' .
                     '<tbody>';
-            foreach ($sidebarDtlRowsContentArr_{$row['id']}[$keyPopGroup] as $subrowPopGroup) {
+            foreach ($sidebarDtlRowsContentArr_[$row['id']][$keyPopGroup] as $subrowPopGroup) {
                 $htmlBodyCell .= "<tr data-cell-path='" . $subrowPopGroup['data_path'] . "'>" .
                         "<td style='width: 229px;' class='left-padding'>" . $this->lang->line($subrowPopGroup['input_label_txt']) . "</td>" .
                         "<td>" . $subrowPopGroup['input_html'] . "</td>" .

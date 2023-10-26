@@ -378,6 +378,25 @@ class Mdprocessflow extends Controller {
         echo json_encode($object, JSON_UNESCAPED_UNICODE);
     }
 
+    public function lastRunTaskFlow() {
+        $this->load->model('mdprocessflow', 'middleware/models/');
+        $mainBpId = Input::post('mainBpId');
+        $recordId = Input::post('recordId');
+        $object = $this->model->lastRunRecordTaskFlowModel($mainBpId, $recordId);
+        
+        echo json_encode($object, JSON_UNESCAPED_UNICODE);
+    }
+
+    public function drawProcessHtmlView($return = false) {
+        $this->load->model('mdprocessflow', 'middleware/models/');
+        $mainBpId = Input::post('mainBpId');
+        $recordId = Input::post('recordId');
+        $object = $this->model->getObjectPositionListViewModel($mainBpId, $recordId);
+        if ($return) return $object;
+        
+        echo json_encode($object, JSON_UNESCAPED_UNICODE);
+    }
+
     protected function returnVisualBpId($data, $bpOrder) {
         if ($bpOrder != null) {
             foreach ($data as $key => $value) {
@@ -1426,7 +1445,11 @@ class Mdprocessflow extends Controller {
             $_POST['fillDataParams'] = $response['result'];
             $_POST['isDialog'] = 'true';
             
-            unset($_POST['oneSelectedRow']);
+            if ($_POST['isTaskFlowView'] != '1') {
+                unset($_POST['oneSelectedRow']);
+            } else {
+                $_POST['isGetConsolidate'] = 'true';
+            }
 
             (new Mdwebservice())->callMethodByMeta(); exit;
         }

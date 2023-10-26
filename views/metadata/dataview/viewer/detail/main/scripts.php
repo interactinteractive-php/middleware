@@ -5316,7 +5316,7 @@
         if (rows.length === 0) {
             if (typeof isIgnoreAlert == 'undefined') {
                 $workflowDropdown.dropdown('toggle');
-                alert("Та мөр сонгоно уу!");
+                alert(plang.get('msg_pls_list_select'));
             }
             return;
         }
@@ -5332,9 +5332,11 @@
             type: 'post',
             url: 'mdobject/getWorkflowNextStatus',
             data: {metaDataId: '<?php echo $this->metaDataId ?>', dataRow: row, isManyRows: isManyRows},
-            dataType: "json",
+            dataType: 'json',
             async: false,
             success: function(response) {
+                PNotify.removeAll();
+                
                 if (response.status === 'success') {
 
                     if (response.datastatus && response.data) {
@@ -5448,6 +5450,18 @@
                         });    
                         
                         $workflowDropdown.append('<div class="dropdown-divider"></div>');
+                        
+                    } else if (response.hasOwnProperty('isShowMsgNotNextStatus') && response.isShowMsgNotNextStatus == '1') {
+                        $workflowDropdown.dropdown('toggle');
+                        new PNotify({
+                            title: 'Info',
+                            text: plang.get('wfm_permission_info'),
+                            type: 'info',
+                            addclass: pnotifyPosition,
+                            sticker: false
+                        });
+                        Core.unblockUI();
+                        return;
                     } 
                     
                     if (response.hasOwnProperty('getUseAssignRuleId')) {
@@ -5464,7 +5478,6 @@
                     }
 
                 } else {
-                    PNotify.removeAll();
                     new PNotify({
                         title: 'Error',
                         text: response.message,

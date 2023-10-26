@@ -152,11 +152,25 @@ if ($jsonConfig) {
         handle: '.bpdtl-widget-detail_frame_paper_tree-dragicon',
         cancel: "",
         placeholder: "bpdtl-widget-detail_frame_paper_tree-placeholder",
+        start: function(event, ui){
+            var pval = $('div[data-process-id="<?php echo $this->methodId; ?>"]').find('.bp-header-param').find('input[data-field-name="<?php echo $jsonConfig['parentid']; ?>"]').val();
+            var nval = $('div[data-process-id="<?php echo $this->methodId; ?>"]').find('.bp-header-param').find('input[data-field-name="<?php echo $jsonConfig['numberingcolumn']; ?>"]').val();            
+            if (pval == '' && nval == '') {
+                PNotify.removeAll();
+                new PNotify({
+                    title: 'Warning',
+                    text: 'Заалтаа сонгоно уу!',
+                    type: 'warning',
+                    sticker: false
+                });     
+                return false;            
+            } 
+        },        
         stop: function(event, ui) {
             var $currElem = $(ui.item);
             var $prevElem = $currElem.prev();
             var pval = $('div[data-process-id="<?php echo $this->methodId; ?>"]').find('.bp-header-param').find('input[data-field-name="<?php echo $jsonConfig['parentid']; ?>"]').val();
-            var nval = $('div[data-process-id="<?php echo $this->methodId; ?>"]').find('.bp-header-param').find('input[data-field-name="<?php echo $jsonConfig['numberingcolumn']; ?>"]').val();            
+            var nval = $('div[data-process-id="<?php echo $this->methodId; ?>"]').find('.bp-header-param').find('input[data-field-name="<?php echo $jsonConfig['numberingcolumn']; ?>"]').val();                  
             $currElem.find('input[data-field-name="<?php echo $treeParentId; ?>"]').val($prevElem.find('input[data-field-name="<?php echo $treeParentId; ?>"]').val());
             $currElem.closest('.tbody').find('> .bp-detail-row:not(.hidden)').find('input[data-field-name="<?php echo $numberingColumn; ?>"]').val('');
             widget_detail_frame_paper_tree_numbering_fromexp_add(nval, pval);

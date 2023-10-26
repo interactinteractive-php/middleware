@@ -27,7 +27,7 @@ if (!$this->isAjax) {
 ?>
             <div id="metaProcessWindow">
                 <form class="form-horizontal" role="form" method="post" id="metaProcess-form">
-                    <div class="d-flex flex-row mt-2 mb-2">
+                    <div class="d-flex flex-row mt-2 mb-2 taskflow-bp-action-btn">
                         <label class="mr-1"><?php echo $this->lang->line('metadata_businessprocess'); ?>:</label>
                         <div class="mr-1">
                             <div class="input-group double-between-input" data-section-path="META_BUSINESS_PROCESS_LIST">
@@ -62,15 +62,22 @@ if (!$this->isAjax) {
 ?>
 
 <style type="text/css">
-    .wfIconRectangleBackground {
+    /* .wfIconRectangleBackground {
         background: #E67E22 !important;
+    } */
+    .wfcomplexbpWorked .wfIcon {
+        background: #e9e9e973 !important;
+    }
+    .wfcomplexbpWillWork .wfIcon {
+        background: #e9e9e973 !important;
     }
 </style>
 
 <script type="text/javascript">
     var metaProcessWindowId = "#metaProcessWindow";
     var _detachParam = '';
-    var isTaskFlow = <?php echo ($this->mainBpData['META_TYPE_ID'] == Mdmetadata::$taskFlowMetaTypeId ? 'true' : 'false'); ?>;
+    var isTaskFlow = <?php echo ($this->mainBpData['META_TYPE_ID'] == Mdmetadata::$taskFlowMetaTypeId || $this->mainBpData['SUB_TYPE'] == 'endtoend' ? 'true' : 'false'); ?>;   
+    var isViewTaskFlow = '<?php echo Input::post('isViewTaskFlow') ?>'; 
     
     $(function () {
         $('#metaProcessDetial').on('click', '.addVisualMetaData', function () {
@@ -130,27 +137,30 @@ if (!$this->isAjax) {
             viewVisualHtmlMetaProcessFlowData(<?php echo $this->mainBpId; ?>);
         <?php endif; ?>
 
-        jsPlumb.bind("contextmenu", function(connection, originalEvent) {
-            _detachParam = {source: connection.sourceId, target: connection.targetId};
-            $.contextMenu({
-                selector: '._jsPlumb_connector',
-                callback: function (key, opt) {
-                    if (key === '_jsPlumb_connector') {
-                        if (_detachParam != '')
-                            jsPlumb.select(_detachParam).detach();
+        if (isViewTaskFlow == '') {
+            jsPlumb.bind("contextmenu", function(connection, originalEvent) {
+                _detachParam = {source: connection.sourceId, target: connection.targetId};
+                $.contextMenu({
+                    selector: '._jsPlumb_connector',
+                    callback: function (key, opt) {
+                        if (key === '_jsPlumb_connector') {
+                            if (_detachParam != '')
+                                jsPlumb.select(_detachParam).detach();
+                        }
+                        if (key === '_jsPlumb_process') {
+                            console.log('Criteria тохируулах');
+                            return;
+                        }
+                    },
+                    items: {
+                        "_jsPlumb_connector": {name: "Сум устгах", icon: "trash"},
+                        /* "_jsPlumb_process": {name: "Criteria тохируулах", icon: "gears"}*/
                     }
-                    if (key === '_jsPlumb_process') {
-                        console.log('Criteria тохируулах');
-                        return;
-                    }
-                },
-                items: {
-                    "_jsPlumb_connector": {name: "Сум устгах", icon: "trash"},
-                    /* "_jsPlumb_process": {name: "Criteria тохируулах", icon: "gears"}*/
-                }
+                });
             });
-        });
+        }
         jsPlumb.bind("dblclick", function (connection, originalEvent) {
+            if (isViewTaskFlow) return;
 
             var $dialogName = 'dialog-bp-process';
             if (!$("#" + $dialogName).length) {

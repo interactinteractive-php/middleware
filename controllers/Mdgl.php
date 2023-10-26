@@ -443,7 +443,7 @@ class Mdgl extends Controller {
         return $gridDtl;
     }
 
-    public function visibleReplacerForGl($selectedRow, $groupConfig, $editMode, $k = 0) {
+    public static function visibleReplacerForGl($selectedRow, $groupConfig, $editMode, $k = 0) {
         
         $accountId = $selectedRow['accountid'];
         $controlName = 'accountMeta['.$k.']['.$accountId.']['.strtolower($groupConfig['PARAM_REAL_PATH']).']'; 
@@ -1323,8 +1323,8 @@ class Mdgl extends Controller {
                     }
                 }
                 
-                $this->view->detailvalues = isset($paramData['detailvalues']) ? $paramData['detailvalues'] : isset($selectedRow['detailvalues']) ? json_decode(html_entity_decode($selectedRow['detailvalues'], ENT_QUOTES, 'UTF-8'), true) : array();
-                $defaultInvoiceData = isset($paramData['defaultinvoices']) ? $paramData['defaultinvoices'] : isset($selectedRow['defaultinvoices']) ? json_decode(html_entity_decode($selectedRow['defaultinvoices'], ENT_QUOTES, 'UTF-8'), true) : array();
+                $this->view->detailvalues = isset($paramData['detailvalues']) ? $paramData['detailvalues'] : (isset($selectedRow['detailvalues']) ? json_decode(html_entity_decode($selectedRow['detailvalues'], ENT_QUOTES, 'UTF-8'), true) : array());
+                $defaultInvoiceData = isset($paramData['defaultinvoices']) ? $paramData['defaultinvoices'] : (isset($selectedRow['defaultinvoices']) ? json_decode(html_entity_decode($selectedRow['defaultinvoices'], ENT_QUOTES, 'UTF-8'), true) : array());
                 
                 if ($defaultInvoiceData && array_key_exists('receivableBookDtls', $defaultInvoiceData) && array_key_exists('receivableTypeId', $defaultInvoiceData['receivableBookDtls'][0])) {
                     $this->view->detailvalues['receivabletypeid'] = $defaultInvoiceData['receivableBookDtls'][0]['receivableTypeId'];
@@ -2199,7 +2199,7 @@ class Mdgl extends Controller {
         exit;
     }
     
-    public function getAmountScale() {
+    public static function getAmountScale() {
         
         $cache = phpFastCache();
         $conf = $cache->get('sysConfigGlAmountScale');

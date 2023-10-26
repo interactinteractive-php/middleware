@@ -272,11 +272,11 @@ if ($this->isDialog == false) {
                                                 if (!empty($tabname)) {
                                                     if (!in_array($tabname, $tabHeaderArr)) {
                                                         $tabHeaderArr[$resetArrIndex] = $tabname;
-                                                        $tabHeaderContentArr{$resetArrIndex} = array();
+                                                        $tabHeaderContentArr[$resetArrIndex] = array();
                                                     }
                                                     $groupKey = array_search($tabname, $tabHeaderArr);
-                                                    $tabHeaderContentArr{$groupKey}[] = $columns[$xxx];
-                                                    $tabHeaderContentArr[$groupKey] = $tabHeaderContentArr{$groupKey};
+                                                    $tabHeaderContentArr[$groupKey][] = $columns[$xxx];
+                                                    $tabHeaderContentArr[$groupKey] = $tabHeaderContentArr[$groupKey];
                                                     unset($buildData['onlyShow'][$resetArrIndex++]);
                                                     $xxx++;
                                                     continue;
@@ -368,7 +368,7 @@ if ($this->isDialog == false) {
                         (String) $isAggregate = false;
                         (String) $aggregateClass = '';
                         (Array) $firstLevelRowArr = array();
-                        (Array) $sidebarGroupArr_{$row['id']} = array();
+                        (Array) $sidebarGroupArr_[$row['id']] = array();
                         $isDetailUserConfig = false;
 
                         if ($row['dataType'] === 'group' && ($row['isRequired'] === '1' || $row['isFirstRow'] === '1')) {
@@ -551,13 +551,13 @@ if ($this->isDialog == false) {
                                                 if (!empty($childRow['sideBarArr'])) {
                                                     foreach ($childRow['sideBarArr'] as $sdk => $sval) {
 
-                                                        $sidebarShowRowsDtl_{$row['id']} = true;
-                                                        if (!in_array($sval['SIDEBAR_NAME'], $sidebarGroupArr_{$row['id']})) {
-                                                            $sidebarGroupArr_{$row['id']}[$ind.$sdk] = $sval['SIDEBAR_NAME'];
-                                                            $sidebarDtlRowsContentArr_{$row['id'] . $ind.$sdk} = array();
+                                                        $sidebarShowRowsDtl_[$row['id']] = true;
+                                                        if (!in_array($sval['SIDEBAR_NAME'], $sidebarGroupArr_[$row['id']])) {
+                                                            $sidebarGroupArr_[$row['id']][$ind.$sdk] = $sval['SIDEBAR_NAME'];
+                                                            $sidebarDtlRowsContentArr_[$row['id'] . $ind.$sdk] = array();
                                                         }
 
-                                                        $groupKey = array_search($sval['SIDEBAR_NAME'], $sidebarGroupArr_{$row['id']});
+                                                        $groupKey = array_search($sval['SIDEBAR_NAME'], $sidebarGroupArr_[$row['id']]);
                                                         $labelAttr = array(
                                                             'text' => $this->lang->line($sval['META_DATA_NAME']),
                                                             'for' => 'param[' . $sval['PARAM_REAL_PATH'] . '][0][]',
@@ -568,12 +568,12 @@ if ($this->isDialog == false) {
                                                         }
                                                         $inHtml = Mdwebservice::renderParamControl($this->methodId, $sval, 'param[' . $sval['PARAM_REAL_PATH'] . '][0][]', $row['code'] . '.' . $sval['META_DATA_CODE'], array());
 
-                                                        $sidebarDtlRowsContentArr_{$row['id'] . $groupKey}[] = array(
+                                                        $sidebarDtlRowsContentArr_[$row['id'] . $groupKey][] = array(
                                                             'input_label_txt' => Form::label($labelAttr),
                                                             'data_path' => $sval['PARAM_REAL_PATH'],
                                                             'input_html' => $inHtml
                                                         );
-                                                        $sidebarDtlRowsContentArr_{$row['id']}[$groupKey] = $sidebarDtlRowsContentArr_{$row['id'] . $groupKey};
+                                                        $sidebarDtlRowsContentArr_[$row['id']][$groupKey] = $sidebarDtlRowsContentArr_[$row['id'] . $groupKey];
 
                                                     }
                                                 }
@@ -614,13 +614,13 @@ if ($this->isDialog == false) {
                                             $gridBody .= '</td>';
 
                                         } else {
-                                            $sidebarShowRowsDtl_{$row['id']} = true;
-                                            if (!in_array($val['SIDEBAR_NAME'], $sidebarGroupArr_{$row['id']})) {
-                                                $sidebarGroupArr_{$row['id']}[$ind] = $val['SIDEBAR_NAME'];
-                                                $sidebarDtlRowsContentArr_{$row['id'] . $ind} = array();
+                                            $sidebarShowRowsDtl_[$row['id']] = true;
+                                            if (!in_array($val['SIDEBAR_NAME'], $sidebarGroupArr_[$row['id']])) {
+                                                $sidebarGroupArr_[$row['id']][$ind] = $val['SIDEBAR_NAME'];
+                                                $sidebarDtlRowsContentArr_[$row['id'] . $ind] = array();
                                             }
 
-                                            $groupKey = array_search($val['SIDEBAR_NAME'], $sidebarGroupArr_{$row['id']});
+                                            $groupKey = array_search($val['SIDEBAR_NAME'], $sidebarGroupArr_[$row['id']]);
                                             $labelAttr = array(
                                                 'text' => $this->lang->line($val['META_DATA_NAME']),
                                                 'for' => 'param[' . $row['code'] . '.' . $val['META_DATA_CODE'] . '][0][]',
@@ -634,12 +634,12 @@ if ($this->isDialog == false) {
                                             } else {*/
                                                 $inHtml = Mdwebservice::renderParamControl($this->methodId, $val, "param[" . $row['code'] . "." . $val['META_DATA_CODE'] . "][0][]", $row['code'] . "." . $val['META_DATA_CODE'], array());
                                             //}
-                                            $sidebarDtlRowsContentArr_{$row['id'] . $groupKey}[] = array(
+                                            $sidebarDtlRowsContentArr_[$row['id'] . $groupKey][] = array(
                                                 'input_label_txt' => Form::label($labelAttr),
                                                 'data_path' => $row['code'] . "." . $val['META_DATA_CODE'],
                                                 'input_html' => $inHtml
                                             );
-                                            $sidebarDtlRowsContentArr_{$row['id']}[$groupKey] = $sidebarDtlRowsContentArr_{$row['id'] . $groupKey};
+                                            $sidebarDtlRowsContentArr_[$row['id']][$groupKey] = $sidebarDtlRowsContentArr_[$row['id'] . $groupKey];
                                         }
                                     } else {
 
@@ -703,7 +703,7 @@ if ($this->isDialog == false) {
                                             $fillParamData = isset($this->fillParamData[strtolower($row['code'])]) ? $this->fillParamData[strtolower($row['code'])] : null;
                                             if (!in_array($val['SIDEBAR_NAME'], $sidebarDtlRowArr)) {
                                                 $sidebarDtlRowArr[$ind] = $val['SIDEBAR_NAME'];
-                                                $sidebarDtlRowContentArr{$ind} = array();
+                                                $sidebarDtlRowContentArr[$ind] = array();
                                             }
 
                                             $groupKey = array_search($val['SIDEBAR_NAME'], $sidebarDtlRowArr);
@@ -715,12 +715,12 @@ if ($this->isDialog == false) {
                                             if ($val['IS_REQUIRED'] == '1') {
                                                 $labelAttr = array_merge($labelAttr, array('required' => 'required'));
                                             }
-                                            $sidebarDtlRowContentArr{$groupKey}[] = array(
+                                            $sidebarDtlRowContentArr[$groupKey][] = array(
                                                 'input_label_txt' => Form::label($labelAttr),
                                                 'data_path' => $row['code'] . '.' . $val['META_DATA_CODE'],
                                                 'input_html' => Mdwebservice::renderParamControl($this->methodId, $val, "param[" . $row['code'] . "." . $val['META_DATA_CODE'] . "][0][]", $row['code'] . "." . $val['META_DATA_CODE'], $fillParamData)
                                             );
-                                            $sidebarDtlRowContentArr[$groupKey] = $sidebarDtlRowContentArr{$groupKey};
+                                            $sidebarDtlRowContentArr[$groupKey] = $sidebarDtlRowContentArr[$groupKey];
                                         }
                                     }
 
@@ -737,25 +737,25 @@ if ($this->isDialog == false) {
 
                             if ($isMultiRow) {
                                 $actionWidth = 40;
-                                if (isset($sidebarShowRowsDtl_{$row['id']})) {
+                                if (isset($sidebarShowRowsDtl_[$row['id']])) {
                                     $actionWidth = 70;
                                 }
                                 
                                 $htmlHeaderCell = '<th class="action ' . ($row['isShowDelete'] === '1' ? '' : ' hide') . '" style="width:' . $actionWidth . 'px;"></th>';
                                 $htmlBodyCell .= '<td class="text-center stretchInput middle' . ($row['isShowDelete'] === '1' ? '' : ' hide') . '">';
 
-                                if (isset($sidebarShowRowsDtl_{$row['id']})) {
+                                if (isset($sidebarShowRowsDtl_[$row['id']])) {
                                     $htmlBodyCell .= '<a href="javascript:;" onclick="proccessRenderPopup(\'div#bp-window-' . $this->methodId . ':visible\', this);" class="btn btn-xs purple-plum" style="width:21px" title="Popup цонхоор харах"><i class="fa fa-external-link"></i></a>';
                                     $htmlBodyCell .= '<div class="sidebarDetailSection hide">';
 
-                                    if (!empty($sidebarGroupArr_{$row['id']})) {
-                                        foreach ($sidebarGroupArr_{$row['id']} as $keyPopGroup => $rowPopGroup) {
+                                    if (!empty($sidebarGroupArr_[$row['id']])) {
+                                        foreach ($sidebarGroupArr_[$row['id']] as $keyPopGroup => $rowPopGroup) {
 
                                             $htmlBodyCell .= '<p class="property_page_title">' . $this->lang->line($rowPopGroup) . '</p>' .
                                                     '<div class="panel panel-default bg-inverse grid-row-content">' .
                                                     '<table class="table sheetTable sidebar_detail">' .
                                                     '<tbody>';
-                                            foreach ($sidebarDtlRowsContentArr_{$row['id']}[$keyPopGroup] as $subrowPopGroup) {
+                                            foreach ($sidebarDtlRowsContentArr_[$row['id']][$keyPopGroup] as $subrowPopGroup) {
                                                 $htmlBodyCell .= "<tr data-cell-path='" . $subrowPopGroup['data_path'] . "'>" .
                                                         "<td style='width: 229px;' class='left-padding'>" . $this->lang->line($subrowPopGroup['input_label_txt']) . "</td>" .
                                                         "<td>" . $subrowPopGroup['input_html'] . "</td>" .

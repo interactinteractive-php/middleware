@@ -92,7 +92,7 @@ class Mdpreview extends Controller {
         return $this->view->renderPrint('control', self::$viewPath);
     }  
     
-    public function printCss($mode = null) {
+    public static function printCss($mode = null) {
         
         $orientation = Input::post('orientation');
         $size = Input::post('size');

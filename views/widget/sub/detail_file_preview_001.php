@@ -372,14 +372,13 @@ $(function() {
 
 function UrlExists(url, cb) {
     $.ajax({
+        type: 'HEAD',
         url: url,
-        dataType: 'jsonp',
-        type: 'GET',
-        crossDomain: true, 
-        xhrFields: {withCredentials: true},  
-        complete: function(xhr) {
-            if (typeof cb === 'function')
-               cb.apply(this, [xhr.status]);
+        success: function() {
+            cb.apply(this, [200]);
+        },
+        error: function() {
+            cb.apply(this, [404]);
         }
     });
 }

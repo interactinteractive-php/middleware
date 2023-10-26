@@ -109,7 +109,7 @@
             <div class="clearfix w-100"></div>
         </div>
     </div>
-    <div class="report-preview-container" id="report-preview-container-id">
+    <div class="report-preview-container" id="report-preview-container-id" data-report-metadataid="<?php echo $this->reportMetaDataId; ?>">
         <?php require BASEPATH . 'middleware/views/template/previewTemplate.php'; ?>
         <div id="contentRepeat" class="hide"></div>
     </div>

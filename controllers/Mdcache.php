@@ -170,7 +170,7 @@ class Mdcache extends Controller {
         echo json_encode($response); exit;
     }
     
-    public function getDetailRowsFromCache($cacheId) {
+    public static function getDetailRowsFromCache($cacheId) {
         
         $cacheDir = Mdcommon::getCacheDirectory();
         $cachePath = $cacheDir.'/getData/'.$cacheId.'.txt';
@@ -292,7 +292,7 @@ class Mdcache extends Controller {
         return $cacheArray;
     }
     
-    public function modifiedGroupRows($cachePath, $groupRows, $paramsArr, $groupPathLower) {
+    public static function modifiedGroupRows($cachePath, $groupRows, $paramsArr, $groupPathLower) {
         
         if ($dataLoop = issetParam($paramsArr[$groupPathLower.'.mainrowcount'])) {
             
@@ -780,7 +780,7 @@ class Mdcache extends Controller {
         }
     }
     
-    public function createCacheFolder($tempdir, $day = 0.5) {
+    public static function createCacheFolder($tempdir, $day = 0.5) {
         
         if (!is_dir($tempdir)) {
 

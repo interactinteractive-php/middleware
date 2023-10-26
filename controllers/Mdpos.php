@@ -28,7 +28,7 @@ class Mdpos extends Controller {
         Auth::handleLogin();    
     }   
     
-    public function getPosApiServiceAddr() {
+    public static function getPosApiServiceAddr() {
         return CONFIG_POSAPI_SERVICE_ADDRESS;
     }
 
@@ -827,7 +827,7 @@ class Mdpos extends Controller {
         echo json_encode($response); exit;
     }
     
-    public function getPrintCss() {
+    public static function getPrintCss() {
         
         $css = '
         *{transition:none !important} 

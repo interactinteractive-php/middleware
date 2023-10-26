@@ -6608,7 +6608,7 @@ class Mdtimestable_Model extends Model {
                 'WFM_STATUS_ID' => $dataHdrExist['WFM_STATUS_ID'],
                 'EARLY_TIME' => $dataHdrExist['EARLY_TIME'],
                 'LATE_TIME' => $dataHdrExist['LATE_TIME'],
-                'CAUSE4' => isset($params['cause_type_value'][4]) ? $params['cause_type_value'][4] : ($dataHdrExist['CAUSE4'] ? $dataHdrExist['CAUSE4'] : (Config::getFromCache('CONFIG_TNA_HISHIGARVIN') && in_array(issetVar($params['departmentId']), $overTime)) ? '210' : 0)
+                'CAUSE4' => isset($params['cause_type_value'][4]) ? $params['cause_type_value'][4] : ($dataHdrExist['CAUSE4'] ? $dataHdrExist['CAUSE4'] : ((Config::getFromCache('CONFIG_TNA_HISHIGARVIN') && in_array(issetVar($params['departmentId']), $overTime)) ? '210' : 0))
             );
         }
 

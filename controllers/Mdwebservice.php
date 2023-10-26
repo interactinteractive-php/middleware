@@ -51,7 +51,7 @@ class Mdwebservice extends Controller {
         Auth::handleLogin();
     }
     
-    public function findRowKeyValFillData($fillParamData, $key) {
+    public static function findRowKeyValFillData($fillParamData, $key) {
 
         if ($fillParamData && isset($fillParamData[$key])) {
             return $fillParamData[$key];
@@ -60,7 +60,7 @@ class Mdwebservice extends Controller {
         return null;
     }
     
-    public function setLookupValFillData($fillParamData, $key) {
+    public static function setLookupValFillData($fillParamData, $key) {
 
         if ($fillParamData && isset($fillParamData[$key])) {
             return self::setLookupRowVal($fillParamData[$key]);
@@ -69,7 +69,7 @@ class Mdwebservice extends Controller {
         return null;
     }
     
-    public function setLookupRowVal($row) {
+    public static function setLookupRowVal($row) {
         if (is_array($row)) {
             if (isset($row['id'])) {
                 return array(
@@ -435,7 +435,7 @@ class Mdwebservice extends Controller {
         }        
     }
     
-    public function renderButtonControl($processMetaDataId, $param, $controlName, $paramName, $fillParamData) {
+    public static function renderButtonControl($processMetaDataId, $param, $controlName, $paramName, $fillParamData) {
         
         $lookupMetaDataId = $param['LOOKUP_META_DATA_ID'];
         $dataRows = array();
@@ -687,7 +687,7 @@ class Mdwebservice extends Controller {
                     
     }
     
-    public function renderVoiceRecordControl($processMetaDataId, array $param, $controlName, $lowerParamName, $fillParamData = null) {
+    public static function renderVoiceRecordControl($processMetaDataId, array $param, $controlName, $lowerParamName, $fillParamData = null) {
         
         $render = array();
         
@@ -740,7 +740,7 @@ class Mdwebservice extends Controller {
         }
     }
     
-    public function renderCodeWithPhotoControl($processMetaDataId, array $param, $controlName, $lowerParamName, $fillParamData = null) {
+    public static function renderCodeWithPhotoControl($processMetaDataId, array $param, $controlName, $lowerParamName, $fillParamData = null) {
         
         $render = array();
         
@@ -1283,7 +1283,7 @@ class Mdwebservice extends Controller {
         return $formControl;
     }
     
-    public function renderAutocompleteTextControl($processMetaDataId, $param, $controlName, $lowerParamName, $attrArray, $fillParamData, $type = 'text') {
+    public static function renderAutocompleteTextControl($processMetaDataId, $param, $controlName, $lowerParamName, $attrArray, $fillParamData, $type = 'text') {
                 
         $fillParamValue = self::findRowKeyValFillData($fillParamData, $lowerParamName);
 
@@ -1311,7 +1311,7 @@ class Mdwebservice extends Controller {
         return Form::text($attrArray);
     }
     
-    public function renderComboWithButtonPopupControl($processMetaDataId, $param, $controlName, $lowerParamName, $fillParamData) {
+    public static function renderComboWithButtonPopupControl($processMetaDataId, $param, $controlName, $lowerParamName, $fillParamData) {
         
         $paramRealPath = $param['PARAM_REAL_PATH'];
         
@@ -1587,7 +1587,7 @@ class Mdwebservice extends Controller {
         return self::renderVoiceRecordControl($processMetaDataId, $param, 'param['.$paramRealPath.']', $lowerParamName, $arr);
     }
     
-    public function renderParamControl($processMetaDataId, array $param, $controlName, $paramPath = '', $fillParamData = false, $sidebar = '', $isCriteriaOption = false) {
+    public static function renderParamControl($processMetaDataId, array $param, $controlName, $paramPath = '', $fillParamData = false, $sidebar = '', $isCriteriaOption = false) {
             
         $typeCode = $param['META_TYPE_CODE'];
         $paramRealPath = $param['PARAM_REAL_PATH'];
@@ -3341,7 +3341,7 @@ class Mdwebservice extends Controller {
                         
                     } elseif ($lookupTypeLower == 'checkbox') {
                         
-                        return self::renderCheckboxControl($processMetaDataId, $param, $controlName, $lowerParamName, $fillParamData, $isCriteriaOption);
+                        return (new self())->renderCheckboxControl($processMetaDataId, $param, $controlName, $lowerParamName, $fillParamData, $isCriteriaOption);
                         
                     } elseif ($lookupTypeLower == 'button') {
                         
@@ -3353,7 +3353,7 @@ class Mdwebservice extends Controller {
                         
                     } elseif ($lookupTypeLower == 'combo_with_popup') {
                         
-                        return self::renderComboWithButtonPopupControl($processMetaDataId, $param, $controlName, $lowerParamName, $fillParamData);
+                        return (new self())->renderComboWithButtonPopupControl($processMetaDataId, $param, $controlName, $lowerParamName, $fillParamData);
                         
                     }  elseif ($lookupTypeLower == 'range_slider') {
                         
@@ -3492,7 +3492,7 @@ class Mdwebservice extends Controller {
         }
     }
     
-    public function paramRightButtonControl($processMetaDataId, $arr, $control) {
+    public static function paramRightButtonControl($processMetaDataId, $arr, $control) {
         
         return '<div class="input-group">
             '.$control.'
@@ -3502,7 +3502,7 @@ class Mdwebservice extends Controller {
         </div>';
     }
     
-    public function setMultiComboData($arr, $rowData) {
+    public static function setMultiComboData($arr, $rowData) {
         
         if (!$rowData) {
             return null;
@@ -3527,7 +3527,7 @@ class Mdwebservice extends Controller {
         return $array;
     }
     
-    public function renderViewParamControl($processMetaDataId, array $param, $controlName, $paramPath = '', $fillParamData = false, $sidebar = '') {
+    public static function renderViewParamControl($processMetaDataId, array $param, $controlName, $paramPath = '', $fillParamData = false, $sidebar = '') {
         
         if (Mdwebservice::$isLogViewMode) {
             return self::renderLogViewParamControl($processMetaDataId, $param, $controlName, $paramPath, $fillParamData, $sidebar);
@@ -3847,7 +3847,7 @@ class Mdwebservice extends Controller {
         return Form::label($labelAttr);
     }
     
-    public function renderLogViewParamControl($processMetaDataId, array $param, $controlName, $paramPath = '', $fillParamData = false, $sidebar = '') {
+    public static function renderLogViewParamControl($processMetaDataId, array $param, $controlName, $paramPath = '', $fillParamData = false, $sidebar = '') {
         
         $typeCode = $param['META_TYPE_CODE'];
         $paramRealPath = $param['PARAM_REAL_PATH'];
@@ -4788,11 +4788,7 @@ class Mdwebservice extends Controller {
                     $saveAddModeWithGet = 'testcase';
                 }
                 
-                if ($this->view->methodRow['HAS_THEME']) {
-                        
-                    $methodHtml = $this->themeRenderData($this->view->methodId, $this->view->fillParamData, $this->view->paramList, $this->view->bpTab);
-
-                } elseif ($this->view->methodRow['IS_TREEVIEW'] != '1') {
+                if ($this->view->methodRow['IS_TREEVIEW'] != '1') {
                     
                     if (issetParam($this->view->methodRow['LAYOUT_CODE']) && $returnData['isLayout']) {
                         self::$isLayoutRender = true;
@@ -5031,14 +5027,14 @@ class Mdwebservice extends Controller {
         return null;
     }
     
-    public function checkListStartHtml() {
+    public static function checkListStartHtml() {
         return '<div class="bp-template-wrap">
                 <div class="bp-checklist-table">
                 <div class="bp-checklist-table-row">
                 <div class="bp-checklist-table-cell-left">';
     }
     
-    public function checkListEndHtml($html) {
+    public static function checkListEndHtml($html) {
         return '</div>'
                 . '<div class="bp-checklist-table-cell-right">'.$html.'</div>'
                 . '</div></div></div><!-- template wrap -->';
@@ -8237,6 +8233,9 @@ class Mdwebservice extends Controller {
         if (isset($postData['taskFlowInfo']) && $postData['taskFlowInfo']) {
             $param['_taskFlowInfo'] = Arr::decode($postData['taskFlowInfo']);
             $isTaskFlowInfo = true;
+            if (isset($postData['isTaskFlowView']) && $postData['isTaskFlowView']) {
+                $isTaskFlowInfo = false;
+            }
         }
         
         if (isset($postData['isTestCase']) && $postData['isTestCase'] == 1) {
@@ -8268,15 +8267,7 @@ class Mdwebservice extends Controller {
 
         if ($postData['responseType'] == 'json') {
             
-            echo json_encode(
-                array(
-                    'status' => 'success',
-                    'message' => 'Success',
-                    'processId' => $metaDataId, 
-                    'responseMethod' => '',
-                    'paramData' => $param
-                ), JSON_UNESCAPED_UNICODE
-            ); exit;
+            jsonResponse(array('status' => 'success', 'message' => 'Success', 'processId' => $metaDataId, 'responseMethod' => '', 'paramData' => $param));
             
         } elseif ($postData['responseType'] == 'returnRequestParams') {
             
@@ -8334,69 +8325,77 @@ class Mdwebservice extends Controller {
                 }
                 
             } else {
-                           
-                $result = Mdwebservice::call($row, $param);
                 
-                if ($this->ws->isException()) {
-
-                    self::deleteUploadedFiles(FileUpload::$uploadedFiles);
-
-                    $result = array('status' => 'error', 'message' => $this->ws->getErrorMessage());
+                $topRunResponse = self::topRunAdditionalProcess($row['META_DATA_CODE'], $param);
+                
+                if ($topRunResponse['status'] != 'success') {
+                    
+                    $result = $topRunResponse;
                     $response = $result;
-
+                    
                 } else {
+                    
+                    $result = Mdwebservice::call($row, $param);
+                
+                    if ($this->ws->isException()) {
 
-                    if ($result['status'] == 'success') {
-                        
-                        if ($isTaskFlowInfo && isset($result['result']['_taskflowinfo']) && $result['result']['_taskflowinfo']) {
-                            (new Mdprocessflow())->callTaskFlow($result); exit;
-                        }
+                        self::deleteUploadedFiles(FileUpload::$uploadedFiles);
 
-                        $response = array('status' => 'success', 'message' => Lang::line('msg_save_success'));
+                        $result = array('status' => 'error', 'message' => $this->ws->getErrorMessage());
+                        $response = $result;
 
-                        if (isset($result['result']['id'])) {
+                    } else {
 
-                            $resultData = $result['result'];
-                            $rowId = $resultData['id'];
+                        if ($result['status'] == 'success') {
 
-                            self::saveBpAddOn($row['REF_META_GROUP_ID'], $rowId);
-                            self::saveBpAttachWidget($row['REF_META_GROUP_ID'], $rowId);
-                            self::saveBpCheckList($metaDataId, $row['REF_META_GROUP_ID'], $rowId);
-                            self::saveBpMetaVerseRecordMap($metaDataId, $row['REF_META_GROUP_ID'], $rowId);
-                            self::saveBpFieldEcmContent($row['REF_META_GROUP_ID'], $rowId, $fieldEcmContent);
-                            
-                            if (isset($postData['isProcessMultiFile'])) {
-                                self::renderBpTabMovePhoto($row['REF_META_GROUP_ID'], $rowId);
+                            if ($isTaskFlowInfo && isset($result['result']['_taskflowinfo']) && $result['result']['_taskflowinfo']) {
+                                (new Mdprocessflow())->callTaskFlow($result); exit;
                             }
 
-                            self::saveKpiDmMart($rowId, $paramData, $fileParamData, $param, $postData);
-                            self::saveKpiIndicator($rowId);
-                        }
-                        
-                        if (!isset($resultData)) {
-                            $resultData = issetParam($result['result']);
+                            $response = array('status' => 'success', 'message' => Lang::line('msg_save_success'));
+
+                            if (isset($result['result']['id'])) {
+
+                                $resultData = $result['result'];
+                                $rowId = $resultData['id'];
+
+                                self::saveBpAddOn($row['REF_META_GROUP_ID'], $rowId);
+                                self::saveBpAttachWidget($row['REF_META_GROUP_ID'], $rowId);
+                                self::saveBpCheckList($metaDataId, $row['REF_META_GROUP_ID'], $rowId);
+                                self::saveBpMetaVerseRecordMap($metaDataId, $row['REF_META_GROUP_ID'], $rowId);
+                                self::saveBpFieldEcmContent($row['REF_META_GROUP_ID'], $rowId, $fieldEcmContent);
+
+                                if (isset($postData['isProcessMultiFile'])) {
+                                    self::renderBpTabMovePhoto($row['REF_META_GROUP_ID'], $rowId);
+                                }
+
+                                self::saveKpiDmMart($rowId, $paramData, $fileParamData, $param, $postData);
+                                self::saveKpiIndicator($rowId);
+                            }
+
+                            if (!isset($resultData)) {
+                                $resultData = issetParam($result['result']);
+                            }
+
+                            if (isset($postData['dmMetaDataId']) && $postData['dmMetaDataId'] != '') {
+
+                                $dvMetaDataId = Input::param($postData['dmMetaDataId']);
+                                $mainProcess  = $this->model->getMainProcessByCreateModel($dvMetaDataId);
+
+                                if ($mainProcess) {
+                                    $mainProcessId = $mainProcess['PROCESS_META_DATA_ID']; 
+                                } 
+                            }
+
+                        } else {
+                            self::deleteUploadedFiles(FileUpload::$uploadedFiles);
+                            $response = array('status' => 'error', 'message' => $this->ws->getResponseMessage($result));
                         }
 
-                        if (isset($postData['dmMetaDataId']) && $postData['dmMetaDataId'] != '') {
-                            
-                            $dvMetaDataId = Input::param($postData['dmMetaDataId']);
-                            $mainProcess  = $this->model->getMainProcessByCreateModel($dvMetaDataId);
+                        $response['message'] = $response['message'] . self::resultAddonMessage($result);
 
-                            if ($mainProcess) {
-                                $mainProcessId = $mainProcess['PROCESS_META_DATA_ID']; 
-                            } 
-                        }
-
-                        self::runAdditionalProcess($row['META_DATA_CODE'], $param);
-                        
-                    } else {
-                        self::deleteUploadedFiles(FileUpload::$uploadedFiles);
-                        $response = array('status' => 'error', 'message' => $this->ws->getResponseMessage($result));
+                        $result = array('status' => 'success', 'data' => $result);
                     }
-                    
-                    $response['message'] = $response['message'] . self::resultAddonMessage($result);
-
-                    $result = array('status' => 'success', 'data' => $result);
                 }
             }
             
@@ -8423,7 +8422,7 @@ class Mdwebservice extends Controller {
                 if ($row['META_DATA_CODE'] !== 'FLM_REQUEST_CUSTOM_LIST_004') {
                     $flmresult = Functions::runProcess('FLM_REQUEST_CUSTOM_LIST_004', array('id' => $rowId ));    
                 } else {
-                    (Array) $flmresult = array();
+                    $flmresult = array();
                     $flmresult['result'] = $resultData;
                 }
 
@@ -8449,8 +8448,7 @@ class Mdwebservice extends Controller {
             if ($postData['responseType'] == 'outputArray') {
                 return $responseArray;
             } else {
-                header('Content-Type: application/json');
-                echo json_encode($responseArray); exit;
+                jsonResponse($responseArray);
             }
         }
     }
@@ -9465,40 +9463,61 @@ class Mdwebservice extends Controller {
         }
     }
     
-    public function runAdditionalProcess($processCode, $inputParam) {
+    public function topRunAdditionalProcess($processCode, $inputParam) {
+        
+        $response = array('status' => 'success');
+        $message = 'Шинэчлэх тохиргоо олдсонгүй! /001/';
         
         if ($processCode == 'metaFixingApprove') {
+            
+            $response = array('status' => 'error', 'message' => $message);
             
             if (isset($inputParam['setRowWfmStatus'][0])) {
                 
                 $this->load->model('mdupgrade', 'middleware/models/');
                 
                 $setRowWfmStatus = $inputParam['setRowWfmStatus'];
-                $this->model->updatePatchMetaBugFixModel($setRowWfmStatus);
+                $response = $this->model->updatePatchMetaBugFixModel($setRowWfmStatus);
+                
+                require_once('middleware/models/mdwebservice_model.php');
+                $model = new Mdwebservice_Model();
+                $this->model = $model;
             }
             
         } elseif ($processCode == 'metaFixingImport') {
             
+            $response = array('status' => 'error', 'message' => $message);
+            
             if (isset($inputParam['setRowWfmStatus'][0])) {
                 
                 $this->load->model('mdupgrade', 'middleware/models/');
                 
                 $setRowWfmStatus = $inputParam['setRowWfmStatus'];
-                $this->model->importPatchMetaBugFixModel($setRowWfmStatus);
+                $response = $this->model->importPatchMetaBugFixModel($setRowWfmStatus);
+                
+                require_once('middleware/models/mdwebservice_model.php');
+                $model = new Mdwebservice_Model();
+                $this->model = $model;
             }
             
         } elseif ($processCode == 'metaInstallSent') {
             
+            $response = array('status' => 'error', 'message' => $message);
+            
             if (isset($inputParam['setRowWfmStatus'][0])) {
                 
                 $this->load->model('mdupgrade', 'middleware/models/');
                 
                 $setRowWfmStatus = $inputParam['setRowWfmStatus'];
-                $this->model->sendPatchMetaBugFixModel($setRowWfmStatus);
-            }
+                $response = $this->model->sendPatchMetaBugFixModel($setRowWfmStatus);
+                
+                require_once('middleware/models/mdwebservice_model.php');
+                $model = new Mdwebservice_Model();
+                $this->model = $model;
+            } 
         }
         
-        return true;
+        return $response;
     }
     
     public function saveSubKpiTemplate($rowId, $rootTemplateId, $paramData) {
@@ -9559,7 +9578,7 @@ class Mdwebservice extends Controller {
         return true;
     }
     
-    public function deleteUploadedFiles($uploadedFiles) {
+    public static function deleteUploadedFiles($uploadedFiles) {
         if (count($uploadedFiles) > 0) {
             foreach ($uploadedFiles as $k => $file) {
                 @unlink($file);
@@ -9569,7 +9588,7 @@ class Mdwebservice extends Controller {
         return true;
     }
     
-    public function bpFileUpload($input, $fileAttr, $prefix = 1) {
+    public static function bpFileUpload($input, $fileAttr, $prefix = 1) {
         
         if (isset($input['uploadPath']) && $input['uploadPath']) {
             $filePath = $input['uploadPath'];
@@ -9734,7 +9753,7 @@ class Mdwebservice extends Controller {
         return false;
     }
     
-    public function bpUploadGetPath($path = '') {
+    public static function bpUploadGetPath($path = '') {
         
         $path = ($path) ? $path : UPLOADPATH . Mdwebservice::$uploadedPath;
         
@@ -9753,7 +9772,7 @@ class Mdwebservice extends Controller {
         return $path;
     }
     
-    public function bpUploadCustomPath($customPath) {
+    public static function bpUploadCustomPath($customPath) {
         
         if (Config::getFromCache('CONFIG_FILE_UPLOAD_DATE_FOLDER')) {
             
@@ -9773,7 +9792,7 @@ class Mdwebservice extends Controller {
         return $path;
     }
 
-    public function getOnlyShowParamAndHiddenPrint($data, $fillParamData) {
+    public static function getOnlyShowParamAndHiddenPrint($data, $fillParamData) {
 
         $onlyShow = $featureParam = array();
         $hiddenParam = '';
@@ -9992,7 +10011,7 @@ class Mdwebservice extends Controller {
         return false;
     }
 
-    public function checkParamDefaultValues($processMetaDataId, $paramRealPath, $lookupMetaDataId) {
+    public static function checkParamDefaultValues($processMetaDataId, $paramRealPath, $lookupMetaDataId) {
         if (empty($processMetaDataId) && empty($paramRealPath)) {
             return false;
         }
@@ -10015,7 +10034,7 @@ class Mdwebservice extends Controller {
         return false;
     }
 
-    public function getParamDefaultValues($processMetaDataId, $paramRealPath, $lookupMetaDataId) {
+    public static function getParamDefaultValues($processMetaDataId, $paramRealPath, $lookupMetaDataId) {
         
         global $db;
         
@@ -10489,8 +10508,8 @@ class Mdwebservice extends Controller {
                         $ii = 0;
                         $gridRowTypePath = $arg = array();
                         $isTab = false;
-                        $sidebarGroupArr_{$row['id']} = array();
-                        $sidebarShowRowsDtl_{$row['id']} = false;     
+                        $sidebarGroupArr_[$row['id']] = array();
+                        $sidebarShowRowsDtl_[$row['id']] = false;     
                         
                         $rowClass = '';
                         $rowStateVal = 'unchanged';
@@ -10574,17 +10593,17 @@ class Mdwebservice extends Controller {
                                         $gridBodyData .= $additionalBody['additionalBody'];
 
                                         if (!empty($additionalBody['sideBarArr'])) {
-                                            $sidebarShowRowsDtl_{$row['id']} = true;
+                                            $sidebarShowRowsDtl_[$row['id']] = true;
 
                                             foreach ($additionalBody['sideBarArr'] as $sdval) {
 
                                                 $sval = $sdval['row'];
 
-                                                if (!in_array($sval['SIDEBAR_NAME'], $sidebarGroupArr_{$row['id']})) {
-                                                    array_push($sidebarGroupArr_{$row['id']}, $sval['SIDEBAR_NAME']);
+                                                if (!in_array($sval['SIDEBAR_NAME'], $sidebarGroupArr_[$row['id']])) {
+                                                    array_push($sidebarGroupArr_[$row['id']], $sval['SIDEBAR_NAME']);
                                                 }
 
-                                                $groupKey = array_search($sval['SIDEBAR_NAME'], $sidebarGroupArr_{$row['id']});
+                                                $groupKey = array_search($sval['SIDEBAR_NAME'], $sidebarGroupArr_[$row['id']]);
                                                 $labelAttr = array(
                                                     'text' => Lang::line($sval['META_DATA_NAME']),
                                                     'for' => "param[" . $sval['PARAM_REAL_PATH'] . "][$rk][]",
@@ -10600,12 +10619,12 @@ class Mdwebservice extends Controller {
                                                 } else {
                                                     $inHtml = Mdwebservice::renderParamControl($methodId, $sval, 'param[' . $sval['PARAM_REAL_PATH'] . ']['.$rk.'][]', '', $sdval['fillData'], 'removeSelect2');
                                                 }
-                                                $sidebarDtlRowsContentArr_{$row['id'].$groupKey}[$rk][] = array(
+                                                $sidebarDtlRowsContentArr_[$row['id'].$groupKey][$rk][] = array(
                                                     'input_label_txt' => Form::label($labelAttr),
                                                     'data_path' => $sval['PARAM_REAL_PATH'], 
                                                     'input_html' => $inHtml
                                                 );
-                                                $sidebarDtlRowsContentArr_{$row['id']}[$groupKey][$rk] = $sidebarDtlRowsContentArr_{$row['id'].$groupKey}[$rk];
+                                                $sidebarDtlRowsContentArr_[$row['id']][$groupKey][$rk] = $sidebarDtlRowsContentArr_[$row['id'].$groupKey][$rk];
 
                                             }
                                         }
@@ -10635,13 +10654,13 @@ class Mdwebservice extends Controller {
 
                                     if (!empty($val['SIDEBAR_NAME'])) {
 
-                                        $sidebarShowRowsDtl_{$row['id']} = true;
+                                        $sidebarShowRowsDtl_[$row['id']] = true;
 
-                                        if (!in_array($val['SIDEBAR_NAME'], $sidebarGroupArr_{$row['id']})) {
-                                            array_push($sidebarGroupArr_{$row['id']}, $val['SIDEBAR_NAME']);
+                                        if (!in_array($val['SIDEBAR_NAME'], $sidebarGroupArr_[$row['id']])) {
+                                            array_push($sidebarGroupArr_[$row['id']], $val['SIDEBAR_NAME']);
                                         }
 
-                                        $groupKey = array_search($val['SIDEBAR_NAME'], $sidebarGroupArr_{$row['id']});
+                                        $groupKey = array_search($val['SIDEBAR_NAME'], $sidebarGroupArr_[$row['id']]);
                                         $labelAttr = array(
                                             'text' => Lang::line($val['META_DATA_NAME']),
                                             'for' => "param[" . $val['PARAM_REAL_PATH'] . "][$rk][]",
@@ -10657,12 +10676,12 @@ class Mdwebservice extends Controller {
                                         } else {
                                             $inHtml = Mdwebservice::renderParamControl($methodId, $val, "param[" . $val['PARAM_REAL_PATH'] . "][$rk][]", $val['PARAM_REAL_PATH'], $rowData, 'removeSelect2');
                                         }
-                                        $sidebarDtlRowsContentArr_{$row['id'].$groupKey}[$rk][] = array(
+                                        $sidebarDtlRowsContentArr_[$row['id'].$groupKey][$rk][] = array(
                                             'input_label_txt' => Form::label($labelAttr),
                                             'data_path' => $val['PARAM_REAL_PATH'], 
                                             'input_html' => $inHtml
                                         );
-                                        $sidebarDtlRowsContentArr_{$row['id']}[$groupKey][$rk] = $sidebarDtlRowsContentArr_{$row['id'].$groupKey}[$rk];                                    
+                                        $sidebarDtlRowsContentArr_[$row['id']][$groupKey][$rk] = $sidebarDtlRowsContentArr_[$row['id'].$groupKey][$rk];                                    
                                     }                                        
                                 }
                             }
@@ -10680,20 +10699,20 @@ class Mdwebservice extends Controller {
                         
                         $htmlBodyCell .= '<td class="text-center stretchInput middle tbl-cell-right-freeze' . ($row['isShowDelete'] === '1' ? '' : ' hide') . '">';
                         
-                        if ($sidebarShowRowsDtl_{$row['id']}) {
+                        if ($sidebarShowRowsDtl_[$row['id']]) {
                             
                             $htmlBodyCell .= '<a href="javascript:;" onclick="proccessRenderPopup(\'div#bp-window-' . $methodId . '\', this);" class="btn btn-xs purple-plum bp-btn-sidebar" style="width:21px" title="Popup цонхоор харах"><i class="fa fa-external-link"></i></a>';
                             $htmlBodyCell .= '<div class="sidebarDetailSection hide">';
 
-                            if (!empty($sidebarGroupArr_{$row['id']})) {
-                                foreach ($sidebarGroupArr_{$row['id']} as $keyPopGroup => $rowPopGroup) {
+                            if (!empty($sidebarGroupArr_[$row['id']])) {
+                                foreach ($sidebarGroupArr_[$row['id']] as $keyPopGroup => $rowPopGroup) {
 
                                     $htmlBodyCell .= '<p class="property_page_title">' . Lang::line($rowPopGroup) . '</p>' .
                                     '<div class="panel panel-default bg-inverse grid-row-content">' .
                                     '<table class="table sheetTable sidebar_detail">' .
                                     '<tbody>';
-                                    if (isset($sidebarDtlRowsContentArr_{$row['id']}[$keyPopGroup][$rk])) {
-                                        foreach ($sidebarDtlRowsContentArr_{$row['id']}[$keyPopGroup][$rk] as $subrowPopGroup) {
+                                    if (isset($sidebarDtlRowsContentArr_[$row['id']][$keyPopGroup][$rk])) {
+                                        foreach ($sidebarDtlRowsContentArr_[$row['id']][$keyPopGroup][$rk] as $subrowPopGroup) {
                                             $htmlBodyCell .= "<tr data-cell-path='".$subrowPopGroup['data_path']."'>" .
                                             "<td style='width: 229px;' class='left-padding'>" . Lang::line($subrowPopGroup['input_label_txt']) . "</td>" .
                                             "<td>" . $subrowPopGroup['input_html'] . "</td>" .
@@ -10853,8 +10872,8 @@ class Mdwebservice extends Controller {
                         $ii = 0;
                         $gridRowTypePath = $arg = array();
                         $isTab = false;
-                        $sidebarGroupArr_{$row['id']} = array();
-                        $sidebarShowRowsDtl_{$row['id']} = false;     
+                        $sidebarGroupArr_[$row['id']] = array();
+                        $sidebarShowRowsDtl_[$row['id']] = false;     
                         
                         $rowClass = '';
                         $rowStateVal = 'unchanged';
@@ -10961,17 +10980,17 @@ class Mdwebservice extends Controller {
                                         $gridBodyData .= $additionalBody['additionalBody'];
 
                                         if (!empty($additionalBody['sideBarArr'])) {
-                                            $sidebarShowRowsDtl_{$row['id']} = true;
+                                            $sidebarShowRowsDtl_[$row['id']] = true;
 
                                             foreach ($additionalBody['sideBarArr'] as $sdval) {
 
                                                 $sval = $sdval['row'];
 
-                                                if (!in_array($sval['SIDEBAR_NAME'], $sidebarGroupArr_{$row['id']})) {
-                                                    array_push($sidebarGroupArr_{$row['id']}, $sval['SIDEBAR_NAME']);
+                                                if (!in_array($sval['SIDEBAR_NAME'], $sidebarGroupArr_[$row['id']])) {
+                                                    array_push($sidebarGroupArr_[$row['id']], $sval['SIDEBAR_NAME']);
                                                 }
 
-                                                $groupKey = array_search($sval['SIDEBAR_NAME'], $sidebarGroupArr_{$row['id']});
+                                                $groupKey = array_search($sval['SIDEBAR_NAME'], $sidebarGroupArr_[$row['id']]);
                                                 $labelAttr = array(
                                                     'text' => Lang::line($sval['META_DATA_NAME']),
                                                     'for' => "param[" . $sval['PARAM_REAL_PATH'] . "][$rk][]",
@@ -10987,12 +11006,12 @@ class Mdwebservice extends Controller {
                                                 } else {
                                                     $inHtml = Mdwebservice::renderParamControl($methodId, $sval, 'param[' . $sval['PARAM_REAL_PATH'] . ']['.$rk.'][]', '', $sdval['fillData'], 'removeSelect2');
                                                 }
-                                                $sidebarDtlRowsContentArr_{$row['id'].$groupKey}[$rk][] = array(
+                                                $sidebarDtlRowsContentArr_[$row['id'].$groupKey][$rk][] = array(
                                                     'input_label_txt' => Form::label($labelAttr),
                                                     'data_path' => $sval['PARAM_REAL_PATH'], 
                                                     'input_html' => $inHtml
                                                 );
-                                                $sidebarDtlRowsContentArr_{$row['id']}[$groupKey][$rk] = $sidebarDtlRowsContentArr_{$row['id'].$groupKey}[$rk];
+                                                $sidebarDtlRowsContentArr_[$row['id']][$groupKey][$rk] = $sidebarDtlRowsContentArr_[$row['id'].$groupKey][$rk];
 
                                             }
                                         }
@@ -11022,13 +11041,13 @@ class Mdwebservice extends Controller {
 
                                     if (!empty($val['SIDEBAR_NAME'])) {
 
-                                        $sidebarShowRowsDtl_{$row['id']} = true;
+                                        $sidebarShowRowsDtl_[$row['id']] = true;
 
-                                        if (!in_array($val['SIDEBAR_NAME'], $sidebarGroupArr_{$row['id']})) {
-                                            array_push($sidebarGroupArr_{$row['id']}, $val['SIDEBAR_NAME']);
+                                        if (!in_array($val['SIDEBAR_NAME'], $sidebarGroupArr_[$row['id']])) {
+                                            array_push($sidebarGroupArr_[$row['id']], $val['SIDEBAR_NAME']);
                                         }
 
-                                        $groupKey = array_search($val['SIDEBAR_NAME'], $sidebarGroupArr_{$row['id']});
+                                        $groupKey = array_search($val['SIDEBAR_NAME'], $sidebarGroupArr_[$row['id']]);
                                         $labelAttr = array(
                                             'text' => Lang::line($val['META_DATA_NAME']),
                                             'for' => "param[" . $val['PARAM_REAL_PATH'] . "][$rk][]",
@@ -11044,12 +11063,12 @@ class Mdwebservice extends Controller {
                                         } else {
                                             $inHtml = Mdwebservice::renderParamControl($methodId, $val, "param[" . $val['PARAM_REAL_PATH'] . "][$rk][]", $val['PARAM_REAL_PATH'], $rowData, 'removeSelect2');
                                         }
-                                        $sidebarDtlRowsContentArr_{$row['id'].$groupKey}[$rk][] = array(
+                                        $sidebarDtlRowsContentArr_[$row['id'].$groupKey][$rk][] = array(
                                             'input_label_txt' => Form::label($labelAttr),
                                             'data_path' => $val['PARAM_REAL_PATH'], 
                                             'input_html' => $inHtml
                                         );
-                                        $sidebarDtlRowsContentArr_{$row['id']}[$groupKey][$rk] = $sidebarDtlRowsContentArr_{$row['id'].$groupKey}[$rk];                                    
+                                        $sidebarDtlRowsContentArr_[$row['id']][$groupKey][$rk] = $sidebarDtlRowsContentArr_[$row['id'].$groupKey][$rk];                                    
                                     }                                        
                                 }
                             }
@@ -11067,20 +11086,20 @@ class Mdwebservice extends Controller {
                         
                         $htmlBodyCell .= '<td style="width: 100%" class="text-center stretchInput float-left middle' . ($row['isShowDelete'] === '1' ? '' : ' hide') . '">';
                         
-                        if ($sidebarShowRowsDtl_{$row['id']}) {
+                        if ($sidebarShowRowsDtl_[$row['id']]) {
                             
                             $htmlBodyCell .= '<a href="javascript:;" onclick="proccessRenderPopup(\'div#bp-window-' . $methodId . '\', this);" class="btn btn-xs purple-plum bp-btn-sidebar" style="width:21px" title="Popup цонхоор харах"><i class="fa fa-external-link"></i></a>';
                             $htmlBodyCell .= '<div class="sidebarDetailSection hide">';
 
-                            if (!empty($sidebarGroupArr_{$row['id']})) {
-                                foreach ($sidebarGroupArr_{$row['id']} as $keyPopGroup => $rowPopGroup) {
+                            if (!empty($sidebarGroupArr_[$row['id']])) {
+                                foreach ($sidebarGroupArr_[$row['id']] as $keyPopGroup => $rowPopGroup) {
 
                                     $htmlBodyCell .= '<p class="property_page_title">' . Lang::line($rowPopGroup) . '</p>' .
                                     '<div class="panel panel-default bg-inverse grid-row-content">' .
                                     '<table class="table sheetTable sidebar_detail">' .
                                     '<tbody>';
-                                    if (isset($sidebarDtlRowsContentArr_{$row['id']}[$keyPopGroup][$rk])) {
-                                        foreach ($sidebarDtlRowsContentArr_{$row['id']}[$keyPopGroup][$rk] as $subrowPopGroup) {
+                                    if (isset($sidebarDtlRowsContentArr_[$row['id']][$keyPopGroup][$rk])) {
+                                        foreach ($sidebarDtlRowsContentArr_[$row['id']][$keyPopGroup][$rk] as $subrowPopGroup) {
                                             $htmlBodyCell .= "<tr data-cell-path='".$subrowPopGroup['data_path']."'>" .
                                             "<td style='width: 229px;' class='left-padding'>" . Lang::line($subrowPopGroup['input_label_txt']) . "</td>" .
                                             "<td>" . $subrowPopGroup['input_html'] . "</td>" .
@@ -11231,8 +11250,8 @@ class Mdwebservice extends Controller {
                         $isTab = false;
                         $gridTabContentHeader = '';
                         $gridTabContentBody = '';
-                        $sidebarGroupArr_{$row['id']} = array();
-                        $sidebarShowRowsDtl_{$row['id']} = false;                           
+                        $sidebarGroupArr_[$row['id']] = array();
+                        $sidebarShowRowsDtl_[$row['id']] = false;                           
                         $isRowState = false;
                         
                         /* CONTENT BEGIN */
@@ -11427,8 +11446,8 @@ class Mdwebservice extends Controller {
                         $gridRowTypePath = $arg = array();
                         $isTab = false;
                         $gridTabContentHeader = $gridTabContentBody = '';
-                        $sidebarGroupArr_{$row['id']} = array();
-                        $sidebarShowRowsDtl_{$row['id']} = false; 
+                        $sidebarGroupArr_[$row['id']] = array();
+                        $sidebarShowRowsDtl_[$row['id']] = false; 
                         
                         if (Mdwebservice::$isLogViewMode && isset($rowData['rowstate'])) {
                             $rowState = strtolower($rowData['rowstate']);
@@ -11515,13 +11534,13 @@ class Mdwebservice extends Controller {
                                         $val['SIDEBAR_NAME'] = trim($val['SIDEBAR_NAME']);
                                         
                                         if (!empty($val['SIDEBAR_NAME'])) {
-                                            $sidebarShowRowsDtl_{$row['id']} = true;
+                                            $sidebarShowRowsDtl_[$row['id']] = true;
 
-                                            if (!in_array($val['SIDEBAR_NAME'], $sidebarGroupArr_{$row['id']})) {
-                                                array_push($sidebarGroupArr_{$row['id']}, $val['SIDEBAR_NAME']);
+                                            if (!in_array($val['SIDEBAR_NAME'], $sidebarGroupArr_[$row['id']])) {
+                                                array_push($sidebarGroupArr_[$row['id']], $val['SIDEBAR_NAME']);
                                             }
 
-                                            $groupKey = array_search($val['SIDEBAR_NAME'], $sidebarGroupArr_{$row['id']});
+                                            $groupKey = array_search($val['SIDEBAR_NAME'], $sidebarGroupArr_[$row['id']]);
                                             $labelAttr = array(
                                                 'text' => Lang::line($val['META_DATA_NAME']),
                                                 'for' => "param[" . $row['code'] . "." . $val['META_DATA_CODE'] . "][$rk][]",
@@ -11534,12 +11553,12 @@ class Mdwebservice extends Controller {
                                             } else {
                                                 $inHtml = Mdwebservice::renderViewParamControl($methodId, $val, "param[" . $row['code'] . "." . $val['META_DATA_CODE'] . "][$rk][]", $row['code'] . '.' . $val['META_DATA_CODE'], $rowData, 'removeSelect2');
                                             }
-                                            $sidebarDtlRowsContentArr_{$row['id'].$groupKey}[$rk][] = array(
+                                            $sidebarDtlRowsContentArr_[$row['id'].$groupKey][$rk][] = array(
                                                 'input_label_txt' => Form::label($labelAttr), 
                                                 'data_path' => $row['code'] . '.' . $val['META_DATA_CODE'],
                                                 'input_html' => $inHtml
                                             );
-                                            $sidebarDtlRowsContentArr_{$row['id']}[$groupKey][$rk] = $sidebarDtlRowsContentArr_{$row['id'].$groupKey}[$rk];                                    
+                                            $sidebarDtlRowsContentArr_[$row['id']][$groupKey][$rk] = $sidebarDtlRowsContentArr_[$row['id'].$groupKey][$rk];                                    
                                         }                                        
                                     }
                                 }
@@ -11606,21 +11625,21 @@ class Mdwebservice extends Controller {
                             }
                         }
                         
-                        if ($sidebarShowRowsDtl_{$row['id']}) {
+                        if ($sidebarShowRowsDtl_[$row['id']]) {
                             
                             $htmlBodyCell .= '<td class="text-center stretchInput middle">';
                             $htmlBodyCell .= '<a href="javascript:;" onclick="proccessRenderPopup(\'div#bp-window-' . $methodId . '\', this);" class="btn btn-xs purple-plum bp-btn-sidebar" style="width:21px" title="Popup цонхоор харах"><i class="fa fa-external-link"></i></a>';
                             $htmlBodyCell .= '<div class="sidebarDetailSection hide">';
 
-                            if (!empty($sidebarGroupArr_{$row['id']})) {
-                                foreach ($sidebarGroupArr_{$row['id']} as $keyPopGroup => $rowPopGroup) {
+                            if (!empty($sidebarGroupArr_[$row['id']])) {
+                                foreach ($sidebarGroupArr_[$row['id']] as $keyPopGroup => $rowPopGroup) {
 
                                     $htmlBodyCell .= '<p class="property_page_title">' . Lang::line($rowPopGroup) . '</p>' .
                                     '<div class="panel panel-default bg-inverse grid-row-content">' .
                                     '<table class="table sheetTable sidebar_detail">' .
                                     '<tbody>';
-                                    if (isset($sidebarDtlRowsContentArr_{$row['id']}[$keyPopGroup][$rk])) {
-                                        foreach ($sidebarDtlRowsContentArr_{$row['id']}[$keyPopGroup][$rk] as $subrowPopGroup) {
+                                    if (isset($sidebarDtlRowsContentArr_[$row['id']][$keyPopGroup][$rk])) {
+                                        foreach ($sidebarDtlRowsContentArr_[$row['id']][$keyPopGroup][$rk] as $subrowPopGroup) {
                                             $htmlBodyCell .= "<tr data-cell-path='".$subrowPopGroup['data_path']."'>" .
                                             "<td style='width: 229px;' class='left-padding'>" . Lang::line($subrowPopGroup['input_label_txt']) . "</td>" .
                                             "<td>" . $subrowPopGroup['input_html'] . "</td>" .
@@ -12444,8 +12463,8 @@ class Mdwebservice extends Controller {
                     $ii = 0;
                     $gridRowTypePath = $arg = array();
                     $isTab = false;
-                    $sidebarGroupArr_{$row['id']} = array();
-                    $sidebarShowRowsDtl_{$row['id']} = false;     
+                    $sidebarGroupArr_[$row['id']] = array();
+                    $sidebarShowRowsDtl_[$row['id']] = false;     
 
                     $rowClass = '';
                     $rowStateVal = 'unchanged';
@@ -12497,17 +12516,17 @@ class Mdwebservice extends Controller {
                                     $gridBodyData .= $additionalBody['additionalBody'];
 
                                     if (!empty($additionalBody['sideBarArr'])) {
-                                        $sidebarShowRowsDtl_{$row['id']} = true;
+                                        $sidebarShowRowsDtl_[$row['id']] = true;
 
                                         foreach ($additionalBody['sideBarArr'] as $sdval) {
 
                                             $sval = $sdval['row'];
 
-                                            if (!in_array($sval['SIDEBAR_NAME'], $sidebarGroupArr_{$row['id']})) {
-                                                array_push($sidebarGroupArr_{$row['id']}, $sval['SIDEBAR_NAME']);
+                                            if (!in_array($sval['SIDEBAR_NAME'], $sidebarGroupArr_[$row['id']])) {
+                                                array_push($sidebarGroupArr_[$row['id']], $sval['SIDEBAR_NAME']);
                                             }
 
-                                            $groupKey = array_search($sval['SIDEBAR_NAME'], $sidebarGroupArr_{$row['id']});
+                                            $groupKey = array_search($sval['SIDEBAR_NAME'], $sidebarGroupArr_[$row['id']]);
                                             $labelAttr = array(
                                                 'text' => $this->lang->line($sval['META_DATA_NAME']),
                                                 'for' => "param[" . $sval['PARAM_REAL_PATH'] . "][$rk][]",
@@ -12523,12 +12542,12 @@ class Mdwebservice extends Controller {
                                             } else {
                                                 $inHtml = Mdwebservice::renderParamControl($methodId, $sval, 'param[' . $sval['PARAM_REAL_PATH'] . ']['.$rk.'][]', '', $sdval['fillData'], 'removeSelect2');
                                             }
-                                            $sidebarDtlRowsContentArr_{$row['id'].$groupKey}[$rk][] = array(
+                                            $sidebarDtlRowsContentArr_[$row['id'].$groupKey][$rk][] = array(
                                                 'input_label_txt' => Form::label($labelAttr),
                                                 'data_path' => $sval['PARAM_REAL_PATH'], 
                                                 'input_html' => $inHtml
                                             );
-                                            $sidebarDtlRowsContentArr_{$row['id']}[$groupKey][$rk] = $sidebarDtlRowsContentArr_{$row['id'].$groupKey}[$rk];
+                                            $sidebarDtlRowsContentArr_[$row['id']][$groupKey][$rk] = $sidebarDtlRowsContentArr_[$row['id'].$groupKey][$rk];
 
                                         }
                                     }
@@ -12558,13 +12577,13 @@ class Mdwebservice extends Controller {
 
                                 if (!empty($val['SIDEBAR_NAME'])) {
 
-                                    $sidebarShowRowsDtl_{$row['id']} = true;
+                                    $sidebarShowRowsDtl_[$row['id']] = true;
 
-                                    if (!in_array($val['SIDEBAR_NAME'], $sidebarGroupArr_{$row['id']})) {
-                                        array_push($sidebarGroupArr_{$row['id']}, $val['SIDEBAR_NAME']);
+                                    if (!in_array($val['SIDEBAR_NAME'], $sidebarGroupArr_[$row['id']])) {
+                                        array_push($sidebarGroupArr_[$row['id']], $val['SIDEBAR_NAME']);
                                     }
 
-                                    $groupKey = array_search($val['SIDEBAR_NAME'], $sidebarGroupArr_{$row['id']});
+                                    $groupKey = array_search($val['SIDEBAR_NAME'], $sidebarGroupArr_[$row['id']]);
                                     $labelAttr = array(
                                         'text' => $this->lang->line($val['META_DATA_NAME']),
                                         'for' => "param[" . $val['PARAM_REAL_PATH'] . "][$rk][]",
@@ -12580,12 +12599,12 @@ class Mdwebservice extends Controller {
                                     } else {
                                         $inHtml = Mdwebservice::renderParamControl($methodId, $val, "param[" . $val['PARAM_REAL_PATH'] . "][$rk][]", $val['PARAM_REAL_PATH'], $rowData, 'removeSelect2');
                                     }
-                                    $sidebarDtlRowsContentArr_{$row['id'].$groupKey}[$rk][] = array(
+                                    $sidebarDtlRowsContentArr_[$row['id'].$groupKey][$rk][] = array(
                                         'input_label_txt' => Form::label($labelAttr),
                                         'data_path' => $val['PARAM_REAL_PATH'], 
                                         'input_html' => $inHtml
                                     );
-                                    $sidebarDtlRowsContentArr_{$row['id']}[$groupKey][$rk] = $sidebarDtlRowsContentArr_{$row['id'].$groupKey}[$rk];                                    
+                                    $sidebarDtlRowsContentArr_[$row['id']][$groupKey][$rk] = $sidebarDtlRowsContentArr_[$row['id'].$groupKey][$rk];                                    
                                 }                                        
                             }
                         }
@@ -12771,20 +12790,20 @@ class Mdwebservice extends Controller {
 
                     //$htmlBodyCell .= '<td class="text-center stretchInput middle' . ($row['isShowDelete'] === '1' ? '' : ' hide') . '">';
 
-                    if ($sidebarShowRowsDtl_{$row['id']}) {
+                    if ($sidebarShowRowsDtl_[$row['id']]) {
 
                         $htmlBodyCell .= '<a href="javascript:;" onclick="proccessRenderPopup(\'div#bp-window-' . $methodId . '\', this);" class="btn btn-xs purple-plum bp-btn-sidebar" style="width:21px" title="Popup цонхоор харах"><i class="fa fa-external-link"></i></a>';
                         $htmlBodyCell .= '<div class="sidebarDetailSection hide">';
 
-                        if (!empty($sidebarGroupArr_{$row['id']})) {
-                            foreach ($sidebarGroupArr_{$row['id']} as $keyPopGroup => $rowPopGroup) {
+                        if (!empty($sidebarGroupArr_[$row['id']])) {
+                            foreach ($sidebarGroupArr_[$row['id']] as $keyPopGroup => $rowPopGroup) {
 
                                 $htmlBodyCell .= '<p class="property_page_title">' . $this->lang->line($rowPopGroup) . '</p>' .
                                 '<div class="panel panel-default bg-inverse grid-row-content">' .
                                 '<table class="table sheetTable sidebar_detail">' .
                                 '<tbody>';
-                                if (isset($sidebarDtlRowsContentArr_{$row['id']}[$keyPopGroup][$rk])) {
-                                    foreach ($sidebarDtlRowsContentArr_{$row['id']}[$keyPopGroup][$rk] as $subrowPopGroup) {
+                                if (isset($sidebarDtlRowsContentArr_[$row['id']][$keyPopGroup][$rk])) {
+                                    foreach ($sidebarDtlRowsContentArr_[$row['id']][$keyPopGroup][$rk] as $subrowPopGroup) {
                                         $htmlBodyCell .= "<tr data-cell-path='".$subrowPopGroup['data_path']."'>" .
                                         "<td style='width: 229px;' class='left-padding'>" . $this->lang->line($subrowPopGroup['input_label_txt']) . "</td>" .
                                         "<td>" . $subrowPopGroup['input_html'] . "</td>" .
@@ -13060,6 +13079,8 @@ class Mdwebservice extends Controller {
                         }
                     }
                 }
+                
+                unset($_POST['bp_photo_extension']);
             }
             
             if (Input::postCheck('bp_folder_id')) {
@@ -13084,6 +13105,8 @@ class Mdwebservice extends Controller {
                         $this->db->AutoExecute('ECM_DIRECTORY', array('CHECK_RW' => '0'), 'UPDATE', "ID = $directoryId");
                     }
                 }
+                
+                unset($_POST['bp_folder_id']);
             }
             
             if (isset($_FILES['bp_file'])) {
@@ -13142,6 +13165,8 @@ class Mdwebservice extends Controller {
                         }
                     }
                 }
+                
+                unset($_FILES['bp_file']);
             }
 
             if (Input::postCheck('bpCommentText')) {
@@ -13186,6 +13211,8 @@ class Mdwebservice extends Controller {
                         $this->ws->runSerializeResponse(self::$gfServiceAddress, 'send_mention_notification', $paramsMentions);                    
                     }
                 }
+                
+                unset($_POST['bpCommentText']);
             }
             
             if (Input::postCheck('mdcomment_text')) {
@@ -13200,6 +13227,8 @@ class Mdwebservice extends Controller {
                     'CREATED_DATE'     => $currentDate
                 );
                 $this->db->AutoExecute('ECM_COMMENT', $dataComment);
+                
+                unset($_POST['mdcomment_text']);
             }
             
             if (Input::postCheck('bpcomment_text')) {
@@ -13214,6 +13243,8 @@ class Mdwebservice extends Controller {
                     'CREATED_DATE'     => $currentDate
                 );
                 $this->db->AutoExecute('ECM_COMMENT', $dataComment);
+                
+                unset($_POST['bpcomment_text']);
             }
             
             if (Input::postCheck('bp_copy_physical_path')) {
@@ -13260,6 +13291,8 @@ class Mdwebservice extends Controller {
                         }
                     }
                 }
+                
+                unset($_POST['bp_copy_physical_path']);
             }
         }
         
@@ -13626,6 +13659,7 @@ class Mdwebservice extends Controller {
             $metaValueId = Input::post('metaValueId');
             
             if (is_array($_FILES['bp_photo']['name'])) {
+                
                 $dataAttachPhotoArr = array();
                 
                 foreach ($_FILES['bp_photo']['name'] as $key => $bp_photo) {
@@ -14439,7 +14473,7 @@ class Mdwebservice extends Controller {
         echo json_encode($response, JSON_UNESCAPED_UNICODE); 
     }
     
-    public function fieldHeaderStyleClass($val, $windowId = '') {
+    public static function fieldHeaderStyleClass($val, $windowId = '') {
         
         $gridClass = '';
         $paramRealPath = $val['PARAM_REAL_PATH'];
@@ -14468,7 +14502,7 @@ class Mdwebservice extends Controller {
         return $gridClass;
     }
     
-    public function fieldHeaderStyleLayout($val, $windowId = '') {
+    public static function fieldHeaderStyleLayout($val, $windowId = '') {
         
         $gridClass = '';
         $paramRealPath = $val['PARAM_REAL_PATH'];
@@ -14497,7 +14531,7 @@ class Mdwebservice extends Controller {
         return $gridClass;
     }
     
-    public function fieldDetailStyleClassView($val, $paramRealPath, $rootClass = '', $recordType = 'rows') {
+    public static function fieldDetailStyleClassView($val, $paramRealPath, $rootClass = '', $recordType = 'rows') {
         $gridClass = '';
         
         if ($val['IS_SHOW'] === '1') {
@@ -14557,7 +14591,7 @@ class Mdwebservice extends Controller {
         return $gridClass;
     }
     
-    public function fieldHeaderStyleClassByTemplate($val, $windowId = '') {
+    public static function fieldHeaderStyleClassByTemplate($val, $windowId = '') {
         
         $gridClass = '';
         $paramRealPath = $val['PARAM_REAL_PATH'];
@@ -14595,7 +14629,7 @@ class Mdwebservice extends Controller {
         return $gridClass;
     }
     
-    public function fieldHeaderStyleClassByWTemplate($val, $windowId = '') {
+    public static function fieldHeaderStyleClassByWTemplate($val, $windowId = '') {
         
         $gridClass = '';
         $paramRealPath = $val['PARAM_REAL_PATH'];
@@ -14634,7 +14668,7 @@ class Mdwebservice extends Controller {
         return $gridClass;
     }
     
-    public function fieldDetailRowStyleClass($val, $windowId = '') {
+    public static function fieldDetailRowStyleClass($val, $windowId = '') {
         $gridClass = '';
         $paramRealPath = $val['PARAM_REAL_PATH'];
         
@@ -14676,7 +14710,7 @@ class Mdwebservice extends Controller {
         return $gridClass;
     }
     
-    public function fieldDetailStyleClass($val, $paramRealPath, $rootClass = '', $recordType = 'rows') {
+    public static function fieldDetailStyleClass($val, $paramRealPath, $rootClass = '', $recordType = 'rows') {
         $gridClass = '';
         
         if ($val['IS_SHOW'] === '1') {
@@ -14779,7 +14813,7 @@ class Mdwebservice extends Controller {
         return $gridClass;
     }
     
-    public function fieldDetailStyleTaxoClass($val, $paramRealPath, $paramRealPath2, $rootClass = '', $recordType = 'rows') {
+    public static function fieldDetailStyleTaxoClass($val, $paramRealPath, $paramRealPath2, $rootClass = '', $recordType = 'rows') {
         $gridClass = '';
         
         if ($val['IS_SHOW'] === '1') {
@@ -14921,7 +14955,7 @@ class Mdwebservice extends Controller {
         return $gridClass;
     }
     
-    public function fieldDetailStyleWidth($val) {
+    public static function fieldDetailStyleWidth($val) {
         $width = 100;
         
         if ($val['IS_SHOW'] === '1') {
@@ -15027,7 +15061,7 @@ class Mdwebservice extends Controller {
         echo !empty($comboData) ? json_encode($comboData[0]) : json_encode(array('emptyCombo' => 'OK')); exit;
     }      
     
-    public function renderBpHdrSidebar($methodId, $row, $fillParamData) {
+    public static function renderBpHdrSidebar($methodId, $row, $fillParamData) {
         
         $labelAttr = array(
             'text' => Lang::line($row['META_DATA_NAME']),
@@ -15077,383 +15111,8 @@ class Mdwebservice extends Controller {
         );
         echo json_encode($response); exit;
     }
-    
-    public function themeRenderData($processMetaDataId, $fillData, $paramList, $bpTab) {
-        loadPhpQuery();
-        $this->load->model('mdwebservice', 'middleware/models/');
-        $this->view->themeData = $this->model->getDataFromThemeLink($processMetaDataId);
-        
-        // paramList - н index - г солиж авах
-        $paramList = $this->fixParamList($paramList);
 
-        // section хуваалтууд
-        $this->view->sectionData = $this->model->getThemeSectionData($this->view->themeData['ID']);
-        
-        if (!$this->view->sectionData) {
-            return null;
-        }
-        // section-ны доторх дата
-        foreach ($this->view->sectionData AS $index => $section) {
-            
-            $result = $this->model->getThemeSectionDetail($section['ID']);
-            
-            if ($result) {
-                $this->view->sectionData[$index]['SECTION_DETAIL'] = $result;
-            } else {
-                $this->view->sectionData[$index]['SECTION_DETAIL'] = null;
-            }
-
-            //get html
-            if ($section['FILE_NAME']) {
-                
-                $sectionContentHtml = file_get_contents(BASEPATH . 'middleware/assets/theme/layout/process/style/' . $section['FILE_NAME']);
-                $sectionObj = phpQuery::newDocumentHTML($sectionContentHtml);
-                $langObjLen = $sectionObj['lang']->length();
-
-                if ($langObjLen > 0) {
-                    foreach (pq('lang') as $langObj) {
-                        $o = pq($langObj);
-                        $o->replaceWith(Lang::line($o->html()));
-                    }
-                    $sectionContentHtml = (String) $sectionObj->html();
-                }
-                $this->view->sectionData[$index]['STYLE_CONTENT'] = $sectionContentHtml;
-            } else {
-                $this->view->sectionData[$index]['STYLE_CONTENT'] = '';
-            }
-        }
-        // theme html 
-        $themeContent = file_get_contents(BASEPATH . 'middleware/assets/theme/layout/process/theme/' . $this->view->themeData['FILE_NAME']);
-        $themeContent = str_replace('[uniqId]', getUID(), $themeContent);
-        $themeContent = str_replace('{{footerDescriptionMN}}', '<p style="color:'.Config::getFromCacheDefault('anketFooterTextColor', null, '#000').'">'.Lang::lineDefault('hrmRecruitFooter', 'Бид бүх мэдээллийн нууцлалыг чанд хадгалж харьцах бөгөөд хуулиар шаардсан буюу зөвшөөрснөөс бусад тохиолдолд тухайн хүнийг ажлын байранд тохирох эсэхийг тогтоохоос бусад зорилгоор мэдээллийг задруулах буюу ашиглахгүй болно.').'</p>', $themeContent);
-        $themeContent = str_replace('{{footerDescriptionEN}}', '<p style="color:'.Config::getFromCacheDefault('anketFooterTextColor', null, '#000').'">'.Lang::lineDefault('hrmRecruitFooterEn', 'All information will be treated with the strictest conficientiality and will not be disclosed or used for any other purpose than to assess the suitability of a person except in so far as it may be required and permitted by law.').'</p>', $themeContent);
-        $themeContent = str_replace('{{tab1}}', Lang::lineDefault('hrmHeadertab1', 'Ажлын байр'),  $themeContent);
-        $themeContent = str_replace('{{tab2}}', Lang::lineDefault('hrmHeadertab2', 'Ерөнхий мэдээлэл'),  $themeContent);
-        $themeContent = str_replace('{{tab3}}', Lang::lineDefault('hrmHeadertab3', 'Боловсрол'), $themeContent);
-        $themeContent = str_replace('{{tab4}}', Lang::lineDefault('hrmHeadertab4', 'ЭША-ын туршлага'),  $themeContent);
-        $themeContent = str_replace('{{tab5}}', Lang::lineDefault('hrmHeadertab5', 'Туршлага'),  $themeContent);
-        $themeContent = str_replace('{{tab6}}', Lang::lineDefault('hrmHeadertab6', 'Гэр бүл'),  $themeContent);
-        $themeContent = str_replace('{{tab7}}', Lang::lineDefault('hrmHeadertab7', 'Ур чадвар'), $themeContent);
-        $themeContent = str_replace('{{tab8}}', Lang::lineDefault('hrmHeadertab8', 'Бусад'), $themeContent);
-        $themeContent = str_replace('{{tab91}}', Lang::lineDefault('hrmHeadertab91', 'Ерөнхий<br>мэдээлэл'),  $themeContent);
-        $themeContent = str_replace('{{tab92}}', Lang::lineDefault('hrmHeadertab92', 'Ажлын<br>байр'),  $themeContent);
-        $themeContent = str_replace('{{tab93}}', Lang::lineDefault('hrmHeadertab93', 'Ажлын<br>туршлага'), $themeContent);
-        $themeContent = str_replace('{{tab94}}', Lang::lineDefault('hrmHeadertab94', 'Холбогдох<br>хаяг'),  $themeContent);
-        $themeContent = str_replace('{{tab95}}', Lang::lineDefault('hrmHeadertab95', 'Туршлага'),  $themeContent);
-        $themeContent = str_replace('{{tab96}}', Lang::lineDefault('hrmHeadertab96', 'Бусад'),  $themeContent);
-        $themeContent = str_replace('{{tab97}}', Lang::lineDefault('hrmHeadertab97', 'Ур чадвар'), $themeContent);
-        $themeContent = str_replace('{{tab98}}', Lang::lineDefault('hrmHeadertab98', 'Бусад'), $themeContent);        
-        $themeContent = str_replace('{{staticskilldescription}}', Config::getFromCache('AnketEvalutionConfig'), $themeContent);        
-        // replace html
-        $themeObj = phpQuery::newDocumentHTML($themeContent);
-        $langObjLen = $themeObj['lang']->length();
-
-        if ($langObjLen > 0) {
-            foreach (pq('lang') as $langObj) {
-                $o = pq($langObj);
-                $o->replaceWith(Lang::line($o->html()));
-            }
-            $themeContent = (String) $themeObj->html();
-        }
-        
-        $themeContentReplaced = $this->replaceSectionContent($themeContent, $this->view->sectionData, $fillData, $paramList, $this->getHeaderData($this->view->paramList));
-        $this->view->themeContent = str_replace('{{addons}}', $bpTab['tabStart'] . $bpTab['tabEnd'], $themeContentReplaced);
-        $hiddernHtml = $this->renderHiddenParamForTheme($processMetaDataId, $this->view->paramList, $this->view->fillParamData);
-        $this->view->themeContent .= $hiddernHtml;
-
-        $methodHtml = $this->view->renderPrint('sub/renderMethodTheme', self::$viewPath);
-        $methodHtml = str_replace('Мөр нэмэх', 'Нэмэх', $methodHtml);
-
-        return $methodHtml;
-    }
-
-    public function replaceSectionContent($themeContent, $sectionData, $fillData, $paramList, $headerData) {
-        foreach ($sectionData AS $section) {
-            $findme = '{{' . $section['SECTION_NAME'] . '}}';
-            if ($section['FILE_NAME'] != 'grid.html') {
-                $sectionContent = $this->calculateSectionContent($section, $fillData, $paramList, $headerData);
-            } else {
-                $sectionContent = '';
-                if (isset($paramList[$section['PARAM_PATH']])) {
-                    $sectionContent = Mdwebservice::drawGrid($paramList[$section['PARAM_PATH']]);
-                }
-            }
-
-            $themeContent = str_replace($findme, $sectionContent, $themeContent);
-        }
-
-        return $themeContent;
-    }
-
-    public function calculateSectionContent($section, $fillData, $paramList, $headerData) {
-        $this->load->model('mdwebservice', 'middleware/models/');
-        $sectionContent = $section['STYLE_CONTENT'];
-
-        // Хэрэв Dataview төрөлтэй бол
-        if (array_key_exists($section['PARAM_PATH'], $paramList)) {
-
-            if (isset($section['SECTION_DETAIL'])) {
-                if ($paramList[$section['PARAM_PATH']]['recordtype'] == 'rows') {
-                    $sectionContentArray = array();
-                    $startPoint = strpos($sectionContent, "{{rowsbegin}}");
-                    if ($startPoint > 0) {
-                        $length = strpos($sectionContent, "{{rowsend}}") - strpos($sectionContent, "{{rowsbegin}}");
-                        $sectionContentRows = substr($sectionContent, $startPoint, $length);
-                        $sectionContentRows = str_replace("{{rowsbegin}}", "", $sectionContentRows);
-                        $sectionContentRowsInitial = $sectionContentRows;
-                    } else {
-                        $sectionContentRows = $sectionContent;
-                        $sectionContentRowsInitial = $sectionContent;
-                    }
-
-                    $paramListSection = $paramList[$section['PARAM_PATH']];
-                    $currentParamDataList = $this->fixParamListData($paramListSection['data']);
-
-                    if ($fillData != null) {
-                        $rows = isset($fillData[strtolower($section['PARAM_PATH'])]) ? $fillData[strtolower($section['PARAM_PATH'])] : null;
-
-                        if ($rows != null) {
-                            $sectionContent = str_replace('{{bpaddmainmultirowbtn}}', $this->getSectionOtherHtml($paramListSection, $sectionContent), $sectionContent);
-
-                            array_push($sectionContentArray, '<div id="sectionParamPath" data-parampath="' . $section['PARAM_PATH'] . '"></div>');
-
-                            foreach ($rows AS $index => $row) {
-
-                                $sectionContentRow = '<div class="singleRowTmp" data-rowindex="' . $index . '">';
-                                $sectionContentRow .= '<button type="button" class="removeRowBtn" onclick=""><i class="fa fa-times"></i></button>';
-                                $sectionContentRow .= $sectionContentRows;
-                                $parentDvId = $section['META_DATA_ID']; // Хэрэв тухайн элемент нь detail дотор байвал гадуур нь байгаа DV - н ID - г заавал дамжуулана.                        
-                                $isAddedParamPath = false;
-                                foreach ($section['SECTION_DETAIL'] AS $sectionDetail) {
-
-                                    if (isset($currentParamDataList[$sectionDetail['PARAM_REAL_PATH']])) {
-                                        $currentParamData = $currentParamDataList[$sectionDetail['PARAM_REAL_PATH']];
-                                    } else {
-                                        $currentParamData = $this->findCurrentParamFromAnotherDv($sectionDetail, $paramList, $headerData);
-                                        if (!$currentParamData) {
-                                            continue;
-                                        }
-                                    }
-
-                                    if (!$isAddedParamPath) {
-                                        $sectionContentRow .= '<input type="hidden" name="paramPath" data-parampath="' . $section['PARAM_PATH'] . '" />';
-                                        $isAddedParamPath = true;
-                                    }
-
-                                    $currentValue = $this->findCurrentValueFromAnyDv($currentParamData, $fillData,
-                                            $paramListSection['recordtype'], $index);
-
-                                    // Тухайн элемент тухайн DV - биш header -н элемент эсэхийг шалгаж байна.
-                                    if ($this->checkIsHeaderParam($sectionDetail['PARAM_REAL_PATH'])) {
-                                        $name = "param[" . $currentParamData['PARAM_REAL_PATH'] . "]";
-                                    } else {
-                                        $name = "param[" . $currentParamData['PARAM_REAL_PATH'] . "][$index][]";
-                                    }
-
-                                    $replaceData = Mdwebservice::renderParamControl($this->view->methodId, $currentParamData, $name, $currentParamData['META_DATA_CODE'], array(strtolower($currentParamData['META_DATA_CODE']) => $currentValue));
-
-                                    $labelName = Mdwebservice::renderParamLabelForTheme($currentParamData);
-                                    $findPos = '{{' . $sectionDetail['POSITION_NAME'] . '}}';
-
-                                    $sectionContentRow = str_replace($findPos,
-                                            '<div class="sestion-positions" id="' . $currentParamData['META_DATA_ID'] . '" data-metadatacode="' . strtolower($currentParamData['META_DATA_CODE']) . '" data-valuefield="' . strtolower($currentParamData['VALUE_FIELD']) . '">' . $labelName . $replaceData . '</div>',
-                                            $sectionContentRow); // давталтаар үүссэн html үүд                            
-                                }
-                                $sectionContentRow .= '<input type="hidden" name="param[' . $paramListSection['code'] . '.mainRowCount][]" />';
-                                $sectionContentRow .= '</div>';
-
-                                array_push($sectionContentArray, $sectionContentRow);
-                            }
-                            $sectionContentReplaced = implode("", $sectionContentArray);
-                        } else {
-                            $sectionContent = str_replace('{{bpaddmainmultirowbtn}}',
-                                    $this->getSectionOtherHtml($paramListSection, $sectionContent), $sectionContent);
-                            $sectionContentReplaced = $this->getSectionContentRow($sectionContentRows, $section, $currentParamDataList,
-                                    $paramList, $paramListSection);
-                        }
-                    } else {                        
-                        $sectionContent = str_replace('{{bpaddmainmultirowbtn}}',
-                                $this->getSectionOtherHtml($paramListSection, $sectionContent), $sectionContent);
-                        $sectionContentReplaced = $this->getSectionContentRow($sectionContentRows, $section, $currentParamDataList,
-                                $paramList, $paramListSection);
-                    }
-
-                    $sectionContent = str_replace($sectionContentRowsInitial, $sectionContentReplaced, $sectionContent);
-                } else if ($paramList[$section['PARAM_PATH']]['recordtype'] == 'row') {
-                    if (isset($paramList[$section['PARAM_PATH']]['data'])) {
-                        $currentParamDataList = $this->fixParamListData($paramList[$section['PARAM_PATH']]['data']);
-                        foreach ($section['SECTION_DETAIL'] AS $sectionDetail) {
-                            $findPos = '{{' . $sectionDetail['POSITION_NAME'] . '}}';
-
-                            if (isset($currentParamDataList[$sectionDetail['PARAM_REAL_PATH']])) {
-                                $currentParamData = $currentParamDataList[$sectionDetail['PARAM_REAL_PATH']];
-                            } else {
-                                $currentParamData = $this->findCurrentParamFromAnotherDv($sectionDetail, $paramList, $headerData);
-                                if (!$currentParamData) {
-                                    continue;
-                                }
-                            }
-
-                            // Тухайн элемент тухайн DV - биш header -н элемент эсэхийг шалгаж байна.
-                            if ($this->checkIsHeaderParam($sectionDetail['PARAM_REAL_PATH'])) {
-                                $name = "param[" . $currentParamData['PARAM_REAL_PATH'] . "]";
-                            } else {
-                                $name = "param[" . $currentParamData['PARAM_REAL_PATH'] . "][0][]";
-                            }
-                            $currentValue = !is_null($fillData) ? $this->findCurrentValueFromAnyDv($currentParamData, $fillData,
-                                            $paramList[$section['PARAM_PATH']]['recordtype'], null) : null; // row учир index байхгүй
-                            $replaceData = Mdwebservice::renderParamControl($this->view->methodId, $currentParamData, $name, $currentParamData['META_DATA_CODE'],
-                                            array(strtolower($currentParamData['META_DATA_CODE']) => $currentValue));
-                            $labelName = Mdwebservice::renderParamLabelForTheme($currentParamData);
-                            $sectionContent = str_replace($findPos,
-                                    $this->getSectionOtherHtml($labelName . $replaceData, $currentParamData['PARAM_REAL_PATH']),
-                                    $sectionContent);
-                        }
-                    }
-                }
-            } else {
-                $sectionContent = $section['PARAM_PATH'];
-            }
-            $this->view->isDtlTbl = true;
-        } else {
-            // Хэрэв Dataview төрөлтэй биш бол
-            if (isset($section['SECTION_DETAIL'])) {
-                foreach ($section['SECTION_DETAIL'] AS $sectionDetail) {
-
-                    $findPos = '{{' . $sectionDetail['POSITION_NAME'] . '}}';
-                    if (!isset($headerData[strtolower($sectionDetail['PARAM_PATH'])])) {
-                        continue;
-                    }
-                    $currentParamData = $headerData[strtolower($sectionDetail['PARAM_PATH'])];
-                    if ($fillData != null) {
-                        $currentValue = isset($fillData[strtolower($sectionDetail['PARAM_PATH'])]) ? $fillData[strtolower($sectionDetail['PARAM_PATH'])]
-                                    : null;
-                    } else {
-                        $currentValue = null;
-                    }
-                    $name = "param[" . $currentParamData['META_DATA_CODE'] . "]";
-                    $replaceData = Mdwebservice::renderParamControl($this->view->methodId, $currentParamData, $name, $currentParamData['META_DATA_CODE'],
-                                    array(strtolower($currentParamData['META_DATA_CODE']) => $currentValue));
-
-                    if ($replaceData === null) {
-                        $replaceData = '';
-                    }
-                    $labelName = Mdwebservice::renderParamLabelForTheme($currentParamData);                    
-                    $sectionContent = str_replace($findPos,
-                            $this->getSectionOtherHtml($labelName . $replaceData, $currentParamData['PARAM_REAL_PATH']), $sectionContent);
-                }
-            }
-        }
-
-        $sectionContent = str_replace("{{rowsbegin}}", "", $sectionContent);
-        $sectionContent = str_replace("{{rowsend}}", "", $sectionContent);
-
-        return $sectionContent;
-    }
-
-    private function getSectionContentRow($sectionContentRows, $section, $currentParamDataList, $paramList, $paramListSection) {
-        $sectionContentRow = $sectionContentRows;
-        $parentDvId = $section['META_DATA_ID']; // Хэрэв тухайн элемент нь detail дотор байвал гадуур нь байгаа DV - н ID - г заавал дамжуулана.                        
-        foreach ($section['SECTION_DETAIL'] AS $sectionDetail) {
-
-            if (isset($currentParamDataList[$sectionDetail['PARAM_REAL_PATH']])) {
-                $currentParamData = $currentParamDataList[$sectionDetail['PARAM_REAL_PATH']];
-            } else {
-                $currentParamData = $this->findCurrentParamFromAnotherDv($sectionDetail, $paramList, $headerData);
-                if (!$currentParamData) {
-                    continue;
-                }
-            }
-
-            // Тухайн элемент тухайн DV - биш header -н элемент эсэхийг шалгаж байна.
-            $currentValue = "";
-            if ($this->checkIsHeaderParam($sectionDetail['PARAM_REAL_PATH'])) {
-                $name = "param[" . $currentParamData['PARAM_REAL_PATH'] . "]";
-            } else {
-                $name = "param[" . $currentParamData['PARAM_REAL_PATH'] . "][0][]";
-            }
-            $replaceData = Mdwebservice::renderParamControl($this->view->methodId, $currentParamData, $name, $currentParamData['META_DATA_CODE'], null);
-            $labelName = Mdwebservice::renderParamLabelForTheme($currentParamData);
-            $findPos = '{{' . $sectionDetail['POSITION_NAME'] . '}}';
-            $sectionContentRow = str_replace($findPos,
-                    '<div class="sestion-positions" id="' . $currentParamData['META_DATA_ID'] . '" data-metadatacode="' . strtolower($currentParamData['META_DATA_CODE']) . '" data-valuefield="' . strtolower($currentParamData['VALUE_FIELD']) . '">' . $labelName . $replaceData . '</div>',
-                    $sectionContentRow); // давталтаар үүссэн html үүд                            
-        }
-        $sectionContentRow .= '<input type="hidden" name="param[' . $paramListSection['code'] . '.mainRowCount][]" />';
-        $sectionContentRow .= '<div id="sectionParamPath" data-parampath="' . $section['PARAM_PATH'] . '"></div>';
-
-        return $sectionContentRow;
-    }
-
-    private function getSectionOtherHtml($controlHtml, $realPath) {
-        $wrappedHtml = '';
-
-        if (!is_array($controlHtml)) {
-            $wrappedHtml = '<div data-section-path="' . $realPath . '">' . $controlHtml . '</div>';
-        }
-
-        return $wrappedHtml;
-    }
-
-    private function wrapThemeControl() {
-        $sectionOtherHtml = '<div class="col-md-12 no-padding">';
-        if ($paramListSection['groupKeyLookupMeta'] != '' && $paramListSection['isShowMultipleKeyMap'] != '0') {
-            phpQuery::newDocumentHTML($sectionContent);
-            $panelId = '';
-            if (pq('sectionpanel')->length > 0) {
-                $panelId = pq('sectionpanel')->html();
-            }
-            $sectionOtherHtml .= '<div class="input-group quick-item-process float-left bp-add-ac-row" data-action-path="' . $paramListSection['code'] . '">';
-            $sectionOtherHtml .= '<div class="input-icon">';
-            $sectionOtherHtml .= '</div>';
-            $sectionOtherHtml .= '<span class="input-group-btn">';
-            $sectionOtherHtml .= Form::button(array('data-action-path' => $paramListSection['code'], 'class' => 'btn btn-xs green-meadow bp-group-save',
-                        'value' => '<i class="icon-plus3 font-size-12"></i>', 'onclick' => 'bpAddMainMultiRow_' . $this->view->methodId . '(this, \'' . $this->view->methodId . '\', \'' . $paramListSection['groupKeyLookupMeta'] . '\', \'\', \'' . $paramListSection['paramPath'] . '\', \'autocomplete\', function(rows){ selectedRowsBpAddRowForTheme(rows, \'' . $panelId . '\'); });'));
-            $sectionOtherHtml .= '</span>';
-            $sectionOtherHtml .= '</div>';
-        }
-        $sectionOtherHtml .= '</div>';
-
-        return $sectionOtherHtml;
-    }
-
-    public function getHeaderData($paramList) {
-        $headerDataSorted = array();
-        if (isset($paramList[0]['data'])) {
-            $headerData = $paramList[0]['data'];
-            foreach ($headerData AS $headerRow) {
-                $headerDataSorted[strtolower($headerRow['META_DATA_CODE'])] = $headerRow;
-            }
-        }
-
-        return $headerDataSorted;
-    }
-
-    // paramList -н index нь тоо байгаа учир дурын index рүү шууд хандах боломжгүй байгаа болохоор code - оор index хийв.    
-    public function fixParamList($paramList) {
-        $fixedParamList = array();
-        foreach ($paramList AS $row) {
-            if (isset($row['code'])) {
-                $fixedParamList[$row['code']] = $row;
-            }
-        }
-
-        return $fixedParamList;
-    }
-
-    // paramList -н data -н index нь тоо байгаа учир дурын index рүү шууд хандах боломжгүй байгаа болохоор META_DATA_CODE - оор index хийв.    
-    public function fixParamListData($paramListData) {
-        $fixedParamListData = array();
-        foreach ($paramListData AS $row) {
-            if (isset($row['PARAM_REAL_PATH'])) {
-                $fixedParamListData[$row['PARAM_REAL_PATH']] = $row;
-            }
-        }
-
-        return $fixedParamListData;
-    }
-
-    public function checkIsHeaderParam($paramPath) {
+    public static function checkIsHeaderParam($paramPath) {
         $explode = explode('.', $paramPath);
         if (count($explode) > 1) {
             return false;
@@ -15563,7 +15222,7 @@ class Mdwebservice extends Controller {
         return $this->view->renderPrint('sub/renderGrid', self::$viewPath);
     }
 
-    public function findCriteria($processId, $tabHeaderContentArr) {
+    public static function findCriteria($processId, $tabHeaderContentArr) {
         
         $langCode = Lang::getCode();
         $cache = phpFastCache();
@@ -15606,7 +15265,7 @@ class Mdwebservice extends Controller {
         return $data;
     }
 
-    public function getTabHeaderContent($methodId, $subrow, $tabSecondWidth, $seperatorWidth, $labelWidth, $fillParamData) {
+    public static function getTabHeaderContent($methodId, $subrow, $tabSecondWidth, $seperatorWidth, $labelWidth, $fillParamData) {
         $tabHeaderContent = $tabHeaderParam = '';
         if ($subrow['IS_SHOW'] != '1') {
             $tabHeaderParam = 'hide';
@@ -15642,7 +15301,7 @@ class Mdwebservice extends Controller {
         return $tabHeaderContent;
     }
     
-    public function getTabSplitColumnContent($methodId, $columnCount, $params, $seperatorWidth, $labelWidth, $fillParamData) {
+    public static function getTabSplitColumnContent($methodId, $columnCount, $params, $seperatorWidth, $labelWidth, $fillParamData) {
         $tabHeaderContent = '';
         
         $paramsCount = count($params);
@@ -15856,7 +15515,7 @@ class Mdwebservice extends Controller {
                                     }
 
                                 } else {
-									if ($getBody['IS_COPY_BUTTON'] == '1') {
+                                    if ($getBody['IS_COPY_BUTTON'] == '1') {
                                         $replaceTagHtml = '<span data-dtl-template-path="'.$tagVal.'" data-dtl-taxconfig-id="'.$getBody['CONFIG_ID'].'" data-display-picture="'.$getBody['IS_PICTURE'].'" class="'.$tagVal.' detail-template-body detail-template-child-'.$getGroupInfo['recordtype'].'">';
                                             $replaceTagHtml .= '<span class="detail-template-body-rows">';
                                                 if ($showCopyBtn === '1') {
@@ -15864,15 +15523,14 @@ class Mdwebservice extends Controller {
                                                 }
                                             $replaceTagHtml .= '</span>';
                                         $replaceTagHtml .= '</span>';
-
                                         
                                     } else {
-										$replaceTagHtml = '<span data-dtl-template-path="'.$tagVal.'" data-dtl-taxconfig-id="'.$getBody['CONFIG_ID'].'" data-display-picture="'.$getBody['IS_PICTURE'].'" class="'.$tagVal.' detail-template-body detail-template-child-'.$getGroupInfo['recordtype'].'">';
-											$replaceTagHtml .= '<span class="detail-template-body-rows"></span>';
-										$replaceTagHtml .= '</span>';
-									}
+                                        $replaceTagHtml = '<span data-dtl-template-path="'.$tagVal.'" data-dtl-taxconfig-id="'.$getBody['CONFIG_ID'].'" data-display-picture="'.$getBody['IS_PICTURE'].'" class="'.$tagVal.' detail-template-body detail-template-child-'.$getGroupInfo['recordtype'].'">';
+                                            $replaceTagHtml .= '<span class="detail-template-body-rows"></span>';
+                                        $replaceTagHtml .= '</span>';
+                                    }
 
-									$taxonamyBody = preg_replace('/(\#)('.$metaAs.')(\#)/',  $replaceTagHtml, $taxonamyBody);
+                                    $taxonamyBody = preg_replace('/(\#)('.$metaAs.')(\#)/',  $replaceTagHtml, $taxonamyBody);
                                 }
                             } else {
                                 $taxonamyBody = preg_replace('/(\#)('.$metaAs.')(\#)/', '<span class="'.$tagVal.' detail-template-body detail-template-child-'.$getGroupInfo['recordtype'].'" data-display-picture="'.$getBody['IS_PICTURE'].'" data-dtl-taxconfig-id="'.$getBody['CONFIG_ID'].'"></span>', $taxonamyBody);
@@ -15904,7 +15562,7 @@ class Mdwebservice extends Controller {
                             
                         } else {
 
-							if ($getBody['IS_COPY_BUTTON'] == '1') {
+                            if ($getBody['IS_COPY_BUTTON'] == '1') {
 
                                 $replaceTagHtml = '<span data-dtl-template-path="mainWidget" data-dtl-taxconfig-id="'.$getBody['CONFIG_ID'].'" data-display-picture="'.$getBody['IS_PICTURE'].'" class="mainWidget detail-template-body detail-template-child-header">';
                                     $replaceTagHtml .= '<span class="detail-template-body-rows">';
@@ -15913,12 +15571,11 @@ class Mdwebservice extends Controller {
                                         }
                                     $replaceTagHtml .= '</span>';
                                 $replaceTagHtml .= '</span>';
-							}
-							else {
-								$replaceTagHtml = '<span data-dtl-template-path="mainWidget" data-dtl-taxconfig-id="'.$getBody['CONFIG_ID'].'" data-display-picture="'.$getBody['IS_PICTURE'].'" class="mainWidget detail-template-body detail-template-child-header">';
-									$replaceTagHtml .= '<span class="detail-template-body-rows"></span>';
-								$replaceTagHtml .= '</span>';
-							}
+                            } else {
+                                $replaceTagHtml = '<span data-dtl-template-path="mainWidget" data-dtl-taxconfig-id="'.$getBody['CONFIG_ID'].'" data-display-picture="'.$getBody['IS_PICTURE'].'" class="mainWidget detail-template-body detail-template-child-header">';
+                                        $replaceTagHtml .= '<span class="detail-template-body-rows"></span>';
+                                $replaceTagHtml .= '</span>';
+                            }
 							
                             $taxonamyBody = preg_replace('/(\#)('.$metaAs.')(\#)/', $replaceTagHtml, $taxonamyBody);
                         }
@@ -16319,13 +15976,13 @@ class Mdwebservice extends Controller {
                     $sideBar .= '$paramData['.$i.'][\'SIDEBAR_NAME\'] = trim($paramData['.$i.'][\'SIDEBAR_NAME\']);
 
                         if (!empty($paramData['.$i.'][\'SIDEBAR_NAME\'])) {
-                            $sidebarShowRowsDtl_{$row[\'id\']} = true;
+                            $sidebarShowRowsDtl_[$row[\'id\']] = true;
 
-                            if (!in_array($paramData['.$i.'][\'SIDEBAR_NAME\'], $sidebarGroupArr_{$row[\'id\']})) {
-                                array_push($sidebarGroupArr_{$row[\'id\']}, $paramData['.$i.'][\'SIDEBAR_NAME\']);
+                            if (!in_array($paramData['.$i.'][\'SIDEBAR_NAME\'], $sidebarGroupArr_[$row[\'id\']])) {
+                                array_push($sidebarGroupArr_[$row[\'id\']], $paramData['.$i.'][\'SIDEBAR_NAME\']);
                             }
 
-                            $groupKey = array_search($paramData['.$i.'][\'SIDEBAR_NAME\'], $sidebarGroupArr_{$row[\'id\']});
+                            $groupKey = array_search($paramData['.$i.'][\'SIDEBAR_NAME\'], $sidebarGroupArr_[$row[\'id\']]);
                             $labelAttr = array(
                                 \'text\' => Lang::line($paramData['.$i.'][\'META_DATA_NAME\']),
                                 \'for\' => "param[" . $row[\'code\'] . "." . $paramData['.$i.'][\'META_DATA_CODE\'] . "][$k][]",
@@ -16338,12 +15995,12 @@ class Mdwebservice extends Controller {
                             } else {
                                 $inHtml = Mdwebservice::renderViewParamControl($processId, $paramData['.$i.'], "param[" . $row[\'code\'] . "." . $paramData['.$i.'][\'META_DATA_CODE\'] . "][$k][]", $row[\'code\'] . \'.\' . $paramData['.$i.'][\'META_DATA_CODE\'], $rowData, \'removeSelect2\');
                             }
-                            $sidebarDtlRowsContentArr_{$row[\'id\'].$groupKey}[$k][] = array(
+                            $sidebarDtlRowsContentArr_[$row[\'id\'].$groupKey][$k][] = array(
                                 \'input_label_txt\' => Form::label($labelAttr), 
                                 \'data_path\' => $row[\'code\'] . \'.\' . $paramData['.$i.'][\'META_DATA_CODE\'],
                                 \'input_html\' => $inHtml
                             );
-                            $sidebarDtlRowsContentArr_{$row[\'id\']}[$groupKey][$k] = $sidebarDtlRowsContentArr_{$row[\'id\'].$groupKey}[$k];                                    
+                            $sidebarDtlRowsContentArr_[$row[\'id\']][$groupKey][$k] = $sidebarDtlRowsContentArr_[$row[\'id\'].$groupKey][$k];                                    
                         } ';
                     
                 } else {
@@ -16380,8 +16037,8 @@ class Mdwebservice extends Controller {
                 $ii = 0;
                 $isTab = false;
                 $gridTabContentHeader = $gridTabContentBody = '';
-                $sidebarGroupArr_{$row['id']} = array();
-                $sidebarShowRowsDtl_{$row['id']} = false;   
+                $sidebarGroupArr_[$row['id']] = array();
+                $sidebarShowRowsDtl_[$row['id']] = false;   
 
                 eval($htmlContent);
             }
@@ -16423,8 +16080,8 @@ class Mdwebservice extends Controller {
                 $ii = 0;
                 $isTab = false;
                 $gridTabContentHeader = $gridTabContentBody = '';
-                $sidebarGroupArr_{$row['id']} = array();
-                $sidebarShowRowsDtl_{$row['id']} = false;   
+                $sidebarGroupArr_[$row['id']] = array();
+                $sidebarShowRowsDtl_[$row['id']] = false;   
 
                 eval($htmlContent);
             }
@@ -16472,8 +16129,8 @@ class Mdwebservice extends Controller {
                 $ii = 0;
                 $isTab = false;
                 $gridTabContentHeader = $gridTabContentBody = '';
-                $sidebarGroupArr_{$row['id']} = array();
-                $sidebarShowRowsDtl_{$row['id']} = false;   
+                $sidebarGroupArr_[$row['id']] = array();
+                $sidebarShowRowsDtl_[$row['id']] = false;   
 
                 eval($htmlContent);
             }
@@ -18233,8 +17890,8 @@ class Mdwebservice extends Controller {
                         $ii = 0;
                         $gridRowTypePath = $arg = array();
                         $isTab = false;
-                        $sidebarGroupArr_{$row['id']} = array();
-                        $sidebarShowRowsDtl_{$row['id']} = false;     
+                        $sidebarGroupArr_[$row['id']] = array();
+                        $sidebarShowRowsDtl_[$row['id']] = false;     
                         
                         $rowClass = '';
                         $rowStateVal = 'unchanged';
@@ -18306,17 +17963,17 @@ class Mdwebservice extends Controller {
                                         $gridBodyData .= $additionalBody['additionalBody'];
 
                                         if (!empty($additionalBody['sideBarArr'])) {
-                                            $sidebarShowRowsDtl_{$row['id']} = true;
+                                            $sidebarShowRowsDtl_[$row['id']] = true;
 
                                             foreach ($additionalBody['sideBarArr'] as $sdval) {
 
                                                 $sval = $sdval['row'];
 
-                                                if (!in_array($sval['SIDEBAR_NAME'], $sidebarGroupArr_{$row['id']})) {
-                                                    array_push($sidebarGroupArr_{$row['id']}, $sval['SIDEBAR_NAME']);
+                                                if (!in_array($sval['SIDEBAR_NAME'], $sidebarGroupArr_[$row['id']])) {
+                                                    array_push($sidebarGroupArr_[$row['id']], $sval['SIDEBAR_NAME']);
                                                 }
 
-                                                $groupKey = array_search($sval['SIDEBAR_NAME'], $sidebarGroupArr_{$row['id']});
+                                                $groupKey = array_search($sval['SIDEBAR_NAME'], $sidebarGroupArr_[$row['id']]);
                                                 $labelAttr = array(
                                                     'text' => Lang::line($sval['META_DATA_NAME']),
                                                     'for' => "param[" . $sval['PARAM_REAL_PATH'] . "][$rk][]",
@@ -18332,12 +17989,12 @@ class Mdwebservice extends Controller {
                                                 } else {
                                                     $inHtml = Mdwebservice::renderParamControl($methodId, $sval, 'param[' . $sval['PARAM_REAL_PATH'] . ']['.$rk.'][]', '', $sdval['fillData'], 'removeSelect2');
                                                 }
-                                                $sidebarDtlRowsContentArr_{$row['id'].$groupKey}[$rk][] = array(
+                                                $sidebarDtlRowsContentArr_[$row['id'].$groupKey][$rk][] = array(
                                                     'input_label_txt' => Form::label($labelAttr),
                                                     'data_path' => $sval['PARAM_REAL_PATH'], 
                                                     'input_html' => $inHtml
                                                 );
-                                                $sidebarDtlRowsContentArr_{$row['id']}[$groupKey][$rk] = $sidebarDtlRowsContentArr_{$row['id'].$groupKey}[$rk];
+                                                $sidebarDtlRowsContentArr_[$row['id']][$groupKey][$rk] = $sidebarDtlRowsContentArr_[$row['id'].$groupKey][$rk];
 
                                             }
                                         }
@@ -18367,13 +18024,13 @@ class Mdwebservice extends Controller {
 
                                     /*if (!empty($val['SIDEBAR_NAME'])) {*/
 
-                                        $sidebarShowRowsDtl_{$row['id']} = true;
+                                        $sidebarShowRowsDtl_[$row['id']] = true;
 
-                                        if (!in_array($val['SIDEBAR_NAME'], $sidebarGroupArr_{$row['id']})) {
-                                            array_push($sidebarGroupArr_{$row['id']}, $val['SIDEBAR_NAME']);
+                                        if (!in_array($val['SIDEBAR_NAME'], $sidebarGroupArr_[$row['id']])) {
+                                            array_push($sidebarGroupArr_[$row['id']], $val['SIDEBAR_NAME']);
                                         }
 
-                                        $groupKey = array_search($val['SIDEBAR_NAME'], $sidebarGroupArr_{$row['id']});
+                                        $groupKey = array_search($val['SIDEBAR_NAME'], $sidebarGroupArr_[$row['id']]);
                                         $labelAttr = array(
                                             'text' => Lang::line($val['META_DATA_NAME']),
                                             'for' => "param[" . $val['PARAM_REAL_PATH'] . "][$rk][]",
@@ -18389,13 +18046,13 @@ class Mdwebservice extends Controller {
                                         } else {
                                             $inHtml = Mdwebservice::renderParamControl($methodId, $val, "param[" . $val['PARAM_REAL_PATH'] . "][$rk][]", $val['PARAM_REAL_PATH'], $rowData, 'removeSelect2');
                                         }
-                                        $sidebarDtlRowsContentArr_{$row['id'].$groupKey}[$rk][] = array(
+                                        $sidebarDtlRowsContentArr_[$row['id'].$groupKey][$rk][] = array(
                                             'input_label_txt' => Form::label($labelAttr),
                                             'data_path' => $val['PARAM_REAL_PATH'], 
                                             'data_hideclass' => $hideClass, 
                                             'input_html' => $inHtml
                                         );
-                                        $sidebarDtlRowsContentArr_{$row['id']}[$groupKey][$rk] = $sidebarDtlRowsContentArr_{$row['id'].$groupKey}[$rk];                                    
+                                        $sidebarDtlRowsContentArr_[$row['id']][$groupKey][$rk] = $sidebarDtlRowsContentArr_[$row['id'].$groupKey][$rk];                                    
                                     /*}   */                                     
                                 }
                             }
@@ -18413,20 +18070,20 @@ class Mdwebservice extends Controller {
                         
                         //$htmlBodyCell .= '<td class="text-center stretchInput float-left middle' . ($row['isShowDelete'] === '1' ? '' : ' hide') . '">';
                         
-                        if ($sidebarShowRowsDtl_{$row['id']}) {
+                        if ($sidebarShowRowsDtl_[$row['id']]) {
                             
                             $htmlBodyCell .= '<a href="javascript:;" onclick="proccessRenderPopup(\'div#bp-window-' . $methodId . '\', this);" class="btn btn-sm alpha-danger text-danger-800 btn-icon rounded-round mr3 bp-btn-sidebar" style="padding: 2px 8px;" title="Popup цонхоор харах"><i class="icon-more2 font-size-12"></i></a>';
                             $htmlBodyCell .= '<div class="sidebarDetailSection hide">';
 
-                            if (!empty($sidebarGroupArr_{$row['id']})) {
-                                foreach ($sidebarGroupArr_{$row['id']} as $keyPopGroup => $rowPopGroup) {
+                            if (!empty($sidebarGroupArr_[$row['id']])) {
+                                foreach ($sidebarGroupArr_[$row['id']] as $keyPopGroup => $rowPopGroup) {
 
                                     $htmlBodyCell .= '<p class="property_page_title">' . Lang::line($rowPopGroup) . '</p>' .
                                     '<div class="panel panel-default bg-inverse grid-row-content">' .
                                     '<table class="table sheetTable sidebar_detail">' .
                                     '<tbody>';
-                                    if (isset($sidebarDtlRowsContentArr_{$row['id']}[$keyPopGroup][$rk])) {
-                                        foreach ($sidebarDtlRowsContentArr_{$row['id']}[$keyPopGroup][$rk] as $subrowPopGroup) {
+                                    if (isset($sidebarDtlRowsContentArr_[$row['id']][$keyPopGroup][$rk])) {
+                                        foreach ($sidebarDtlRowsContentArr_[$row['id']][$keyPopGroup][$rk] as $subrowPopGroup) {
                                             $htmlBodyCell .= "<tr data-cell-path='".$subrowPopGroup['data_path']."' class='". $subrowPopGroup['data_hideclass'] ."'>" .
                                             "<td style='width: 229px;' class='left-padding'>" . Lang::line($subrowPopGroup['input_label_txt']) . "</td>" .
                                             "<td>" . $subrowPopGroup['input_html'] . "</td>" .
@@ -18980,7 +18637,7 @@ class Mdwebservice extends Controller {
         echo json_encode($response); exit;
     }
     
-    public function setLookupDefaultValue($value, $lookupMetaDataId, $lookupType, $valueField) {
+    public static function setLookupDefaultValue($value, $lookupMetaDataId, $lookupType, $valueField) {
         
         if ($value == '') {
             return null;

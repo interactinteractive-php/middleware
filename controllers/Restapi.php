@@ -476,6 +476,200 @@ class Restapi extends Controller {
         echo $compressed;
     }
     
+    public function explore($version = '', $indicatorId = '') {
+        
+        $response = array('status' => 'error', 'message' => 'Bad request');
+        
+        if ($version == 'v1' && $indicatorId != '') {
+            
+            try {
+                
+                $indicatorId = Input::paramNum($indicatorId);
+                
+                if (!$indicatorId) {
+                    throw new Exception('Invalid indicatorId!');
+                }
+                
+                $select   = Input::get('select');
+                $where    = Input::get('where');
+                $group_by = Input::get('group_by');
+                $order_by = Input::get('order_by');
+                $limit    = Input::paramNum(Input::get('limit'));
+                $offset   = Input::paramNum(Input::get('offset'));
+
+                $_POST['indicatorId'] = $indicatorId;
+                
+                if ($limit) {
+                    $_POST['rows'] = $limit;
+                }
+                
+                if ($offset) {
+                    $_POST['page'] = $offset;
+                }
+                
+                if ($select) {
+                    
+                    $selectArr = explode(',', trim($select));
+                    $selectColumns = array();
+                    
+                    foreach ($selectArr as $selectColumn) {
+                        
+                        $selectColumn = trim($selectColumn);
+                        $isCorrectSelectColumn = (boolean) preg_match("/^[0-9a-zA-Z_\(\)\s]{1,30}$/i", $selectColumn);
+                        
+                        if (!$isCorrectSelectColumn) {
+                            throw new Exception('Invalid selectColumn!');
+                        }
+                        
+                        $selectColumn = strtolower($selectColumn);
+                        $selectColumns[$selectColumn] = 1;
+                    }
+                    
+                    $_POST['selectColumns'] = $selectColumns;
+                }
+
+                if ($where) {
+                    
+                    $where = $_GET['where'];
+                    $isCorrectWhere = (boolean) preg_match("/^[0-9a-zA-ZФЦУЖЭНГШҮЗКЪЙЫБӨАХРОЛДПЯЧЁСМИТЬВЮЕЩфцужэнгшүзкъйыбөахролдпячёсмитьвюещ_\(\)\>\<\=\-'\:\s]{1,500}$/i", $where);
+                    
+                    if (!$isCorrectWhere) {
+                        throw new Exception('Invalid where!');
+                    }
+                    
+                    $where = str_replace('&#39;', "'", $where);
+                    
+                    if (strpos($where, "date'") !== false) {
+                        preg_match_all('/date\'([\w\W]*?)\'/i', $where, $dates);
+
+                        if (count($dates[1]) > 0) {
+                            foreach ($dates[1] as $ek => $ev) {
+                                if (!isValidDate($ev, 'Y-m-d')) {
+                                    throw new Exception('Invalid date!');
+                                }
+                                $where = str_replace($dates[0][$ek], $this->db->SQLDate('Y-m-d', "'".$ev."'", 'TO_DATE'), $where);
+                            }
+                        }
+                    }
+                    
+                    if (strpos($where, "datetime'") !== false) {
+                        preg_match_all('/datetime\'([\w\W]*?)\'/i', $where, $datetimes);
+
+                        if (count($datetimes[1]) > 0) {
+                            foreach ($datetimes[1] as $ek => $ev) {
+                                if (!isValidDate($ev, 'Y-m-d H:i')) {
+                                    throw new Exception('Invalid datetime!');
+                                }
+                                $where = str_replace($datetimes[0][$ek], $this->db->SQLDate('Y-m-d H:i', "'".$ev."'", 'TO_DATE'), $where);
+                            }
+                        }
+                    }
+        
+                    $_POST['whereClause'] = $where;
+                }
+                
+                if ($group_by) {
+                    
+                    $group_byArr = explode(',', trim($group_by));
+                    $groupColumns = array();
+                    
+                    foreach ($group_byArr as $groupColumn) {
+                        
+                        $groupColumn = trim($groupColumn);
+                        $isCorrectGroupColumn = (boolean) preg_match("/^[0-9a-zA-Z_\(\)]{1,30}$/i", $groupColumn);
+                        
+                        if (!$isCorrectGroupColumn) {
+                            throw new Exception('Invalid groupColumn!');
+                        }
+                        
+                        $groupColumns[$groupColumn] = 1;
+                    }
+                    
+                    $_POST['ignoreOrderIdField'] = 1;
+                    $_POST['groupColumns'] = $groupColumns;
+                }
+                
+                if ($order_by) {
+                    
+                    $order_byArr = explode(',', trim($order_by));
+                    $sortColumns = '';
+                    
+                    foreach ($order_byArr as $orderColumn) {
+                        
+                        $orderColumn = strtolower(trim($orderColumn));
+                        $isCorrectOrderColumn = (boolean) preg_match("/^[0-9a-zA-Z_\(\)\s]{1,30}$/i", $orderColumn);
+                        
+                        if (!$isCorrectOrderColumn) {
+                            throw new Exception('Invalid orderColumn!');
+                        }
+                        
+                        $orderColumn = Str::remove_doublewhitespace($orderColumn);
+                        
+                        $orderDirectionAsc  = substr($orderColumn, -4);
+                        $orderDirectionDesc = substr($orderColumn, -5);
+                        $isDirectionAsc     = ($orderDirectionAsc == ' asc');
+                        $isDirectionDesc    = ($orderDirectionDesc == ' desc');
+                        
+                        if ($isDirectionAsc || $isDirectionDesc) {
+                            
+                            if ($isDirectionAsc) {
+                                $sortColumnName = str_replace(' asc', '', $orderColumn);
+                                $sortType = 'asc';
+                            } else {
+                                $sortColumnName = str_replace(' desc', '', $orderColumn);
+                                $sortType = 'desc';
+                            }
+                            
+                            $sortColumns .= $sortColumnName.'='.$sortType.'&';
+                        } else {
+                            throw new Exception('Invalid orderColumn!');
+                        }
+                    }
+                    
+                    $_POST['ignoreOrderIdField'] = 1;
+                    $_POST['sortFields'] = rtrim($sortColumns, '&');
+                }
+
+                $this->load->model('mdform', 'middleware/models/');
+                $result = $this->model->indicatorDataGridModel();
+                
+                if ($result['status'] == 'success') {
+                    
+                    $rows = $result['rows'];
+                    
+                    if (Input::get('lowercase') == '1') {
+                        $rows = Arr::changeKeyLower($rows);
+                    }
+                    
+                    $response = array(
+                        'status' => 'success', 
+                        'result' => array(
+                            'totalcount' => $result['total'], 
+                            'rows' => $rows
+                        )
+                    );
+                    
+                    unset($rows);
+
+                } else {
+                    $response = array('status' => 'error', 'message' => $result['message']);
+                }
+                
+            } catch (Exception $ex) {
+                $response = array('status' => 'error', 'message' => $ex->getMessage());
+            }
+        }
+        
+        if ($response['status'] == 'error') {
+            set_status_header(400);
+        }
+        
+        $compressed = json_encode($response, JSON_UNESCAPED_UNICODE);
+        header('Content-Type: application/json; charset=utf-8');
+            
+        echo $compressed;
+    }
+    
     public function isPhpGzCompressionInProcess() {
 
         if (in_array('ob_gzhandler', ob_list_handlers())) {
@@ -520,6 +714,11 @@ class Restapi extends Controller {
         } 
         
         echo json_encode(array('response' => $response), JSON_UNESCAPED_UNICODE);
+    }
+    
+    public function runIndicatorFromMetaProcessData() {
+        $param = file_get_contents('php://input');
+        @file_put_contents('log/runIndicatorFromMetaProcessData.log', $param);
     }
     
 }

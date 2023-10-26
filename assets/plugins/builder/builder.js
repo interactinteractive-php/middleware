@@ -212,6 +212,11 @@ var Builder = function() {
                             echarts.dispose(chartDom);
                             var myChart = echarts.init(chartDom);
                             chartOption && myChart.setOption(chartOption);
+                            
+                            setInterval(() => {
+                                myChart.resize();
+                            }, 2000);
+                            
                         });
                         break;
                 

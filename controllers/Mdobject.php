@@ -26,7 +26,7 @@ class Mdobject extends Controller {
         Auth::handleLogin();
     }
 
-    public function gridDefaultOptions($option = '') {
+    public static function gridDefaultOptions($option = '') {
         $array = array(
             'detaultViewer' => 'detail',
             'viewTheme' => 'jeasyuiTheme3',
@@ -421,7 +421,7 @@ class Mdobject extends Controller {
         exit;
     }
     
-    public function findMandatoryCriteria($dataViewId, $dataViewHeaderData) {
+    public static function findMandatoryCriteria($dataViewId, $dataViewHeaderData) {
         $cache = phpFastCache();
         
         $data = $cache->get('dvMandatoryCriterias_' . $dataViewId);
@@ -435,7 +435,7 @@ class Mdobject extends Controller {
         return $data;
     }
     
-    public function findCriteria($dataViewId, $dataViewHeaderData) {
+    public static function findCriteria($dataViewId, $dataViewHeaderData) {
         $cache = phpFastCache();
         
         $data = $cache->get('dvCriterias_' . $dataViewId);
@@ -1822,7 +1822,7 @@ class Mdobject extends Controller {
         return $this->view->renderPrint('viewer/header/index', self::$dataViewPath);
     }
 
-    public function getFeatureCellIndex($headerRow, $cellIndex) {
+    public static function getFeatureCellIndex($headerRow, $cellIndex) {
         $row = Arr::multidimensional_search($headerRow['featureRowNum'], array('FEATURE_NUM' => $cellIndex));
         
         if ($row) {
@@ -2018,7 +2018,7 @@ class Mdobject extends Controller {
         $metaDataId = Input::numeric('metaDataId');
         $total      = Input::numeric('total');
         
-        if ($total && $total > 2000) {
+        if ($total && $total > 1) {
             self::bigDataViewExcelExport($metaDataId);
             exit;
         }
@@ -3337,7 +3337,7 @@ class Mdobject extends Controller {
     
     public function getWorkflowNextStatus() {
         $result = $this->model->getWorkflowNextStatusModel();
-        echo json_encode($result); exit;
+        echo json_encode($result, JSON_UNESCAPED_UNICODE); 
     }
 
     public function isWfmStatusAssign($wfmStatusId) {
@@ -3463,7 +3463,7 @@ class Mdobject extends Controller {
 
     public function setRowWfmStatus() {
         $result = $this->model->setRowWfmStatusModel();
-        echo json_encode($result); exit;
+        echo json_encode($result, JSON_UNESCAPED_UNICODE); exit;
     }
     
     public function checkMetaDataType() {
@@ -4674,7 +4674,7 @@ class Mdobject extends Controller {
         echo json_encode($secondData, JSON_UNESCAPED_UNICODE);
     }
     
-    public function dvPanelMainMenuRender($row, $idField, $nameField) {
+    public static function dvPanelMainMenuRender($row, $idField, $nameField) {
         
         $menu = array();
     

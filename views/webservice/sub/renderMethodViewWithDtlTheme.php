@@ -195,11 +195,11 @@ if ($this->isDialog == false && Input::isEmpty('workSpaceId') == true) {
                                             if (!empty($tabname)) {
                                                 if (!in_array($tabname, $tabHeaderArr)) {
                                                     $tabHeaderArr[$resetArrIndex] = $tabname;                                 
-                                                    $tabHeaderContentArr{$resetArrIndex} = array();
+                                                    $tabHeaderContentArr[$resetArrIndex] = array();
                                                 }
                                                 $groupKey = array_search($tabname, $tabHeaderArr);
-                                                $tabHeaderContentArr{$groupKey}[] = $columns[$xxx];
-                                                $tabHeaderContentArr[$groupKey] = $tabHeaderContentArr{$groupKey};
+                                                $tabHeaderContentArr[$groupKey][] = $columns[$xxx];
+                                                $tabHeaderContentArr[$groupKey] = $tabHeaderContentArr[$groupKey];
                                                 unset($buildData['onlyShow'][$resetArrIndex++]);
                                                 $xxx++;
                                                 continue;                                                
@@ -265,7 +265,7 @@ if ($this->isDialog == false && Input::isEmpty('workSpaceId') == true) {
                             $htmlHeaderCell = $htmlBodyCell = $gridHead = $gridBody = $gridFoot = $gridBodyRow = $gridBodyRowAfter = $gridTabBody = $gridTabContentHeader = $gridTabContentBody = $gridClass = $aggregateClass = '';
                             $htmlGridFoot = '<td></td>';
                             $gridRowTypePath = $firstLevelRowArr = array();
-                            $sidebarGroupArr_{$row['id']} = array();
+                            $sidebarGroupArr_[$row['id']] = array();
 
                             if (isset($row['data']) && $row['isShow'] == '1') {
                                 if ($indexK%2 == 0) {
@@ -377,13 +377,13 @@ if ($this->isDialog == false && Input::isEmpty('workSpaceId') == true) {
                                                 $gridBody .= Mdwebservice::renderViewParamControl($this->methodId, $val, "param[" . $row['code'] . "." . $val['META_DATA_CODE'] . "][0][]", $row['code'] . "." . $val['META_DATA_CODE'], null);
                                                 $gridBody .= '</td>';
                                             } else {
-                                                $sidebarShowRowsDtl_{$row['id']} = true;
-                                                if (!in_array($val['SIDEBAR_NAME'], $sidebarGroupArr_{$row['id']})) {
-                                                    $sidebarGroupArr_{$row['id']}[$ind] = $val['SIDEBAR_NAME'];
-                                                    $sidebarDtlRowsContentArr_{$row['id'].$ind} = array();
+                                                $sidebarShowRowsDtl_[$row['id']] = true;
+                                                if (!in_array($val['SIDEBAR_NAME'], $sidebarGroupArr_[$row['id']])) {
+                                                    $sidebarGroupArr_[$row['id']][$ind] = $val['SIDEBAR_NAME'];
+                                                    $sidebarDtlRowsContentArr_[$row['id'].$ind] = array();
                                                 }
 
-                                                $groupKey = array_search($val['SIDEBAR_NAME'], $sidebarGroupArr_{$row['id']});
+                                                $groupKey = array_search($val['SIDEBAR_NAME'], $sidebarGroupArr_[$row['id']]);
                                                 $labelAttr = array(
                                                     'text' => $this->lang->line($val['META_DATA_NAME']),
                                                     'for' => "param[" . $row['code'] . "." . $val['META_DATA_CODE'] . "][0][]",
@@ -394,11 +394,11 @@ if ($this->isDialog == false && Input::isEmpty('workSpaceId') == true) {
                                                 } else {
                                                     $inHtml = Mdwebservice::renderViewParamControl($this->methodId, $val, "param[" . $row['code'] . "." . $val['META_DATA_CODE'] . "][0][]", $row['code'] . "." . $val['META_DATA_CODE'], array());
                                                 }
-                                                $sidebarDtlRowsContentArr_{$row['id'].$groupKey}[] = array(
+                                                $sidebarDtlRowsContentArr_[$row['id'].$groupKey][] = array(
                                                     'input_label_txt' => Form::label($labelAttr),
                                                     'input_html' => $inHtml
                                                 );
-                                                $sidebarDtlRowsContentArr_{$row['id']}[$groupKey] = $sidebarDtlRowsContentArr_{$row['id'].$groupKey};                                    
+                                                $sidebarDtlRowsContentArr_[$row['id']][$groupKey] = $sidebarDtlRowsContentArr_[$row['id'].$groupKey];                                    
                                             }
                                         } 
 
@@ -408,24 +408,24 @@ if ($this->isDialog == false && Input::isEmpty('workSpaceId') == true) {
                                     if ($isMultiRow) {
 
                                         $actionWidth = 40;
-                                        if (isset($sidebarShowRowsDtl_{$row['id']})) {
+                                        if (isset($sidebarShowRowsDtl_[$row['id']])) {
                                             $actionWidth = 70;
                                         }
                                         $htmlHeaderCell = '<th class="action ' . ($row['isShowDelete'] === '1' ? '' : ' hide') . '" style="width:' . $actionWidth . 'px;"></th>';
                                         $htmlBodyCell .= '<td class="text-center middle' . ($row['isShowDelete'] === '1' ? '' : ' hide') . '">';
 
-                                        if (isset($sidebarShowRowsDtl_{$row['id']})) {
+                                        if (isset($sidebarShowRowsDtl_[$row['id']])) {
                                             $htmlBodyCell .= '<a href="javascript:;" onclick="proccessRenderPopup(\'div#bp-window-' . $this->methodId . ':visible\', this);" class="btn btn-xs purple-plum" style="width:21px" title="Popup цонхоор харах"><i class="fa fa-external-link"></i></a>';
                                             $htmlBodyCell .= '<div class="sidebarDetailSection hide">';
 
-                                            if (!empty($sidebarGroupArr_{$row['id']})) {
-                                                foreach ($sidebarGroupArr_{$row['id']} as $keyPopGroup => $rowPopGroup) {
+                                            if (!empty($sidebarGroupArr_[$row['id']])) {
+                                                foreach ($sidebarGroupArr_[$row['id']] as $keyPopGroup => $rowPopGroup) {
 
                                                     $htmlBodyCell .= '<p class="property_page_title">' . $this->lang->line($rowPopGroup) . '</p>' .
                                                     '<div class="panel panel-default bg-inverse grid-row-content">' .
                                                     '<table class="table sheetTable sidebar_detail">' .
                                                     '<tbody>';
-                                                    foreach ($sidebarDtlRowsContentArr_{$row['id']}[$keyPopGroup] as $subrowPopGroup) {
+                                                    foreach ($sidebarDtlRowsContentArr_[$row['id']][$keyPopGroup] as $subrowPopGroup) {
                                                         $htmlBodyCell .= "<tr>" .
                                                         "<td style='width: 229px;' class='left-padding'>" . $this->lang->line($subrowPopGroup['input_label_txt']) . "</td>" .
                                                         "<td>" . $subrowPopGroup['input_html'] . "</td>" .

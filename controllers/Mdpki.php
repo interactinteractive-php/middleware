@@ -131,7 +131,7 @@ class Mdpki extends Controller {
         
         $selectedRow = Input::post('selectedRow');
         
-        if (isset($selectedRow['plaintextforcipher'])) {
+        if (issetParam($selectedRow['plaintextforcipher']) !== '') {
             
             $contents = $selectedRow['plaintextforcipher'];
             

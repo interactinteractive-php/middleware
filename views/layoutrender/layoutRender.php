@@ -19,7 +19,8 @@ if (Config::getFromCache('CONFIG_MULTI_TAB')) {
             </div>
         <?php 
         } 
-        else { ?>
+        else { 
+        ?>
             <div class="col-md-12">
                 <div class="card light shadow card-multi-tab">
                     <div class="card-header header-elements-inline tabbable-line">
@@ -432,6 +433,7 @@ echo isset($this->defaultJs) ? $this->defaultJs : '';
             url: 'mdmeta/cardRenderByPost',
             data: {metaDataId: metaDataId, workSpaceId: workSpaceId, workSpaceParams: workSpaceParams},
             dataType: 'json',
+            //async: isChartAsync, 
             success: function (data) {
                 $layout.empty().append(data.Html);
             },
@@ -470,6 +472,7 @@ echo isset($this->defaultJs) ? $this->defaultJs : '';
                 defaultCriteriaData: $("div#layout-id-<?php echo $this->layoutLinkId; ?>").find('form#default-criteria-form:eq(0),form#default-mandatory-criteria-form:eq(0)').serialize()
             },
             dataType: "json",
+            //async: isChartAsync, 
             beforeSend: function () {
                 if (executeType !== 'refreshTimer') {
                     Core.blockUI({
@@ -497,6 +500,7 @@ echo isset($this->defaultJs) ? $this->defaultJs : '';
             url: 'mdmetadata/googleMapView',
             data: {metaDataId: metaDataId},
             dataType: "json",
+            //async: isChartAsync, 
             beforeSend: function () {
                 Core.blockUI({
                     animate: true
@@ -556,6 +560,7 @@ echo isset($this->defaultJs) ? $this->defaultJs : '';
                 dvDefaultCriteria: dvDefaultCriteria
             },
             url: 'mdobject/dataview/' + metaDataId + '/<?php echo $this->layoutLink['IS_HIDE_BUTTON'] ?>',
+            //async: isChartAsync, 
             beforeSend: function () {
                 if (executeType !== 'refreshTimer') {
                     Core.blockUI({
@@ -582,6 +587,7 @@ echo isset($this->defaultJs) ? $this->defaultJs : '';
             url: 'mdcalendar/calendarRenderByPost/',
             data: {metaDataId: metaDataId},
             dataType: "json",
+            //async: isChartAsync, 
             beforeSend: function () {
                 Core.blockUI({
                     animate: true
@@ -606,6 +612,7 @@ echo isset($this->defaultJs) ? $this->defaultJs : '';
             url: 'mdobject/package/' + metaDataId + '/json',
             data: {metaDataId: metaDataId},
             dataType: "json",
+            //async: isChartAsync, 
             beforeSend: function () {
                 Core.blockUI({
                     animate: true
@@ -636,6 +643,7 @@ echo isset($this->defaultJs) ? $this->defaultJs : '';
                 uniqId: '<?php echo getUID(); ?>'
             },
             dataType: "json",
+            //async: isChartAsync, 
             beforeSend: function () {
                 Core.blockUI({
                     animate: true
@@ -667,6 +675,7 @@ echo isset($this->defaultJs) ? $this->defaultJs : '';
                 position: position
             },
             dataType: "json",
+            //async: isChartAsync, 
             beforeSend: function () {
                 Core.blockUI({
                     animate: true
@@ -685,3 +694,8 @@ echo isset($this->defaultJs) ? $this->defaultJs : '';
     }
     
 </script>
+<?php 
+if (isset($this->isWorkAlone) && $this->isWorkAlone) {
+/*<script type="text/javascript" src="dashboard/delayUrl/<?php echo getUID(); ?>"></script>*/
+} 
+?>

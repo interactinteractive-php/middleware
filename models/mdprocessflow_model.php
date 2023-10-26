@@ -4105,7 +4105,7 @@ class Mdprocessflow_model extends Model {
                 MPW.META_PROCESS_WORKFLOW_ID, 
                 MD.META_DATA_ID, 
                 MD.META_DATA_CODE, 
-                MD.META_DATA_NAME, 
+                ".$this->db->IfNull("MBPL.PROCESS_NAME", "MD.META_DATA_NAME")." AS META_DATA_NAME,
                 MD.META_TYPE_ID, 
                 MPW.MAIN_BP_ID, 
                 MPW.DO_BP_ID, 
@@ -4175,7 +4175,7 @@ class Mdprocessflow_model extends Model {
                 array_push($object, array(
                     'id' => $pId,
                     'metaDataCode' => $row['META_DATA_CODE'],
-                    'title' => $row['META_DATA_NAME'],
+                    'title' => Lang::line($row['META_DATA_NAME']),
                     'doBpId' => $row['DO_BP_ID'],
                     'type' => 'rectangle',
                     'class' => 'wfIconRectangle ' . (($row['DO_BP_ID'] == $mainBpId) ? 'wfIconRectangleBackground' : ''),
@@ -4227,6 +4227,214 @@ class Mdprocessflow_model extends Model {
         }
 
         return array('object' => $object, 'connect' => $connect, 'paramMapLinks' => array(array('id' => '1626661933302760', 'id2' => '1626661978451871')));
+    }
+
+    public function lastRunTaskFlowModel($mainBpId, $recordId) {
+        $getLastTaskFlowRow = $this->db->GetRow("
+            SELECT T0.ID 
+            FROM META_TASKFLOW_LOG T0
+            LEFT JOIN META_TASKFLOW_LOG_DTL MTLD ON T0.ID = MTLD.TASKFLOW_LOG_ID
+            WHERE MTLD.TASKFLOW_LOG_ID IS NOT NULL AND T0.MAIN_BP_ID = ".$this->db->Param(0)."
+            ORDER BY T0.CREATED_DATE DESC", array($mainBpId, $recordId));            
+
+        return $getLastTaskFlowRow;
+    }
+
+    public function lastRunRecordTaskFlowModel($mainBpId, $recordId) {
+        $getLastTaskFlowRow = self::lastRunTaskFlowModel($mainBpId, $recordId);          
+
+        if (empty($getLastTaskFlowRow)) {
+            return '';
+        }
+
+        $createdUserId  = Ue::sessionUserKeyId();
+
+        $getLastTaskFlowRow = $this->db->GetRow("
+            SELECT RECORD_ID FROM META_TASKFLOW_LOG_DTL 
+            WHERE TASKFLOW_LOG_ID = ".$this->db->Param(0)." AND CREATED_USER_ID = ".$this->db->Param(1)."
+            ORDER BY CREATED_DATE DESC", array($getLastTaskFlowRow['ID'], $createdUserId));            
+
+        return $getLastTaskFlowRow;
+    }
+
+    public function getObjectPositionListViewModel($mainBpId, $recordId) {
+
+        $idPh = $this->db->Param(0);        
+        
+        $metaData = $this->db->GetRow("
+            SELECT 
+                MD.META_DATA_ID, 
+                MD.META_DATA_CODE, 
+                MD.META_DATA_NAME, 
+                MD.ADDON_DATA 
+            FROM META_DATA MD
+                INNER JOIN META_BUSINESS_PROCESS_LINK MBPL ON MD.META_DATA_ID = MBPL.META_DATA_ID
+            WHERE MD.META_DATA_ID = $idPh", array($mainBpId));
+
+        $getLastTaskFlowRow = self::lastRunTaskFlowModel($mainBpId, $recordId);            
+
+        $processWorkflowList = $this->db->GetAll("
+            SELECT 
+                MPW.META_PROCESS_WORKFLOW_ID, 
+                MD.META_DATA_ID, 
+                MD.META_DATA_CODE, 
+                MD2.META_DATA_CODE AS TASK_FLOW_META_CODE, 
+                ".$this->db->IfNull("MBPL.PROCESS_NAME", "MD.META_DATA_NAME")." AS META_DATA_NAME,
+                MD.META_TYPE_ID, 
+                MPW.MAIN_BP_ID, 
+                MPW.DO_BP_ID, 
+                MPW.IS_SCHEDULED, 
+                MPW.SCHEDULED_DATE_PATH, 
+                CASE 
+                    WHEN (
+                        SELECT 
+                            COUNT(META_PROCESS_WORKFLOW_ID) 
+                        FROM META_PROCESS_WORKFLOW 
+                        WHERE MAIN_BP_ID = MD.META_DATA_ID 
+                            AND IS_ACTIVE = 1 
+                            AND MAIN_BP_ID <> MPW.MAIN_BP_ID 
+                            AND MAIN_BP_ID <> DO_BP_ID   
+                        ) > 0 
+                    THEN 1 
+                    ELSE 0 
+                END AS IS_COMPLEX_PROCESS, 
+                CASE 
+                    WHEN (
+                        SELECT 
+                            COUNT(MTUIL.META_DATA_ID) 
+                        FROM META_TASKFLOW_LOG MTL
+                        LEFT JOIN META_TASKFLOW_UI_LOG MTUIL ON MTL.ID = MTUIL.TASKFLOW_LOG_ID
+                        WHERE MTL.ID IN (".$this->db->Param(1).") AND MTUIL.META_DATA_ID = MD.META_DATA_ID   
+                        ) > 0 
+                    THEN 1 
+                    ELSE 0 
+                END AS IS_WORKED,
+                MPW.TASKFLOW_TYPE,
+                T3.TASKFLOW_ID 
+            FROM META_PROCESS_WORKFLOW MPW 
+                INNER JOIN META_DATA MD ON MD.META_DATA_ID = MPW.DO_BP_ID
+                INNER JOIN META_DATA MD2 ON MD2.META_DATA_ID = MPW.MAIN_BP_ID
+                INNER JOIN META_BUSINESS_PROCESS_LINK MBPL ON MBPL.META_DATA_ID = MD.META_DATA_ID
+                LEFT JOIN (
+                    SELECT 
+                        MTUIL.META_DATA_ID,
+                        MTUIL.ID AS TASKFLOW_ID
+                    FROM META_TASKFLOW_LOG MTL
+                    LEFT JOIN META_TASKFLOW_UI_LOG MTUIL ON MTL.ID = MTUIL.TASKFLOW_LOG_ID
+                    WHERE MTL.ID = ".$this->db->Param(1)."
+                ) T3 ON T3.META_DATA_ID = MD.META_DATA_ID
+            WHERE MPW.MAIN_BP_ID = $idPh", array($mainBpId, issetParam($getLastTaskFlowRow['ID'])));
+
+        $positionData = json_decode($metaData['ADDON_DATA']);
+
+        $position = array();
+
+        if ($positionData) {
+            foreach ($positionData as $row) {
+                if (isset($row->id)) {
+                    $position[$row->id] = array('positionTop' => $row->positionTop, 'positionLeft' => $row->positionLeft);
+                }
+            }
+        }
+
+        $object = array();
+        $connect = array();
+        $positionLeft = 110;
+        $positionTop = 80;
+
+        array_push($object, array(
+            'id' => '0',
+            'metaDataCode' => '',
+            'title' => '',
+            'type' => 'circle',
+            'class' => 'wfIconCircle',
+            'positionTop' => '100',
+            'positionLeft' => '80',
+            'borderColor' => '#f00a0a',
+            'borderWidth' => '2',
+            'background' => '#f00a0a',
+            'width' => '30',
+            'height' => '30', 
+            'doBpId' => '', 
+            'isScheduled' => '', 
+            'scheduledDatePath' => '', 
+            'taskflowType' => null, 
+            'metaTypeId' => null
+        ));
+
+        if ($processWorkflowList) {
+
+            $lastRunTaskFlow = [];
+            foreach ($processWorkflowList as $row) {
+                $pId = $row['META_PROCESS_WORKFLOW_ID'];
+
+                array_push($object, array(
+                    'id' => $pId,
+                    'metaDataCode' => $row['META_DATA_CODE'],
+                    'title' => Lang::line($row['META_DATA_NAME']),
+                    'doBpId' => $row['DO_BP_ID'],
+                    'type' => 'rectangle',
+                    'class' => 'wfIconRectangle ' . (($row['DO_BP_ID'] == $mainBpId) ? 'wfIconRectangleBackground' : ''),
+                    'positionTop' => (isset($position[$pId]) ? $position[$pId]['positionTop'] : $positionTop),
+                    'positionLeft' => (isset($position[$pId]) ? $position[$pId]['positionLeft'] : $positionLeft),
+                    'width' => '160',
+                    'height' => '70',
+                    'isScheduled' => $row['IS_SCHEDULED'], 
+                    'scheduledDatePath' => $row['SCHEDULED_DATE_PATH'], 
+                    'isComplexProcess' => $row['IS_COMPLEX_PROCESS'], 
+                    'isWorked' => $row['IS_WORKED'], 
+                    'taskFlowId' => $row['TASKFLOW_ID'], 
+                    'taskflowType' => $row['TASKFLOW_TYPE'], 
+                    'metaTypeId' => $row['META_TYPE_ID']
+                ));
+                $positionLeft += 300;
+
+                if ($row['IS_WORKED'] == '1') {
+                    $lastRunTaskFlow = $row;
+                }
+            }
+
+            if ($lastRunTaskFlow) {
+                $_POST['taskFlowCode'] = $lastRunTaskFlow['META_DATA_CODE'];
+                $_POST['oneSelectedRow'] = ['id' => $recordId];
+                $getTaskFlowResult = self::callTaskFlowModel();
+            }
+
+            $connect = $this->db->GetAll("
+                SELECT 
+                    ".$this->db->IfNull('BEH.META_PROCESS_WF_ID', 0)." AS SOURCE,  
+                    BEH.NEXT_META_PROCESS_WF_ID AS TARGET,
+                    BEH.CRITERIA 
+                FROM META_PROCESS_WF_BEHAVIOUR BEH
+                WHERE BEH.MAIN_BP_ID = $idPh", array($mainBpId));
+
+        } else {
+
+            $pId = getUID();
+
+            array_push($object, array(
+                'id' => $pId,
+                'metaDataCode' => $metaData['META_DATA_CODE'],
+                'title' => $metaData['META_DATA_NAME'],
+                'doBpId' => $metaData['META_DATA_ID'],
+                'type' => 'rectangle',
+                'class' => 'wfIconRectangle wfIconRectangleBackground',
+                'positionTop' => $positionTop,
+                'positionLeft' => $positionLeft + 170,
+                'width' => '160',
+                'height' => '70',
+                'isScheduled' => '', 
+                'scheduledDatePath' => ''
+            ));
+
+            array_push($connect, array(
+                'SOURCE' => '0',
+                'TARGET' => $pId,
+                'CRITERIA' => ''
+            ));
+        }
+
+        return array('object' => $object, 'connect' => $connect, 'lastRunTaskFlow' => issetParam($getTaskFlowResult['result']), 'paramMapLinks' => array(array('id' => '1626661933302760', 'id2' => '1626661978451871')));
     }
 
     public function saveVisualMetaProcessWorkflowModel($object = '', $connect = '') {
@@ -5116,7 +5324,11 @@ class Mdprocessflow_model extends Model {
     }
 
     public function getMetaDataModel($metaDataId) {
-        return $this->db->GetRow("SELECT META_DATA_ID, META_DATA_CODE, META_DATA_NAME, META_TYPE_ID FROM META_DATA WHERE META_DATA_ID = ".$this->db->Param(0), array($metaDataId));
+        return $this->db->GetRow("SELECT T0.META_DATA_ID, T0.META_DATA_CODE, T0.META_DATA_NAME, T0.META_TYPE_ID, T1.SUB_TYPE 
+            FROM META_DATA T0 
+            LEFT JOIN META_BUSINESS_PROCESS_LINK T1 ON T1.META_DATA_ID = T0.META_DATA_ID
+            WHERE T0.META_DATA_ID = ".$this->db->Param(0), array($metaDataId)
+        );
     }
 
     public function filterBusinessProcessInfoModel() {

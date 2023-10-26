@@ -872,6 +872,9 @@ var EchartBuilder = function() {
             $('#' + elemId).attr('data-config', JSON.stringify(obj));
         }
         window.addEventListener("resize", myChart.resize);
+        setTimeout(() => {
+            window.addEventListener("resize", myChart.resize); 
+        }, '2000');
     }
     
     var chartConfigrationToggle = function ($mainSelector, _dataConfigStr) {
@@ -966,8 +969,11 @@ var EchartBuilder = function() {
                     });
                 } */
             }
-    
-            window.addEventListener("resize", myChart.resize);
+            
+            setInterval(() => {
+                myChart.resize();
+            }, 2000);
+            /* window.addEventListener("resize", myChart.resize); */
         } catch (error) {
             console.log(error);
         }
@@ -988,4 +994,5 @@ var EchartBuilder = function() {
             chartConfigrationToggle($mainSelector, _dataConfigStr);
         }
     };
+
 } ();

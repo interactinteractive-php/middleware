@@ -28,7 +28,7 @@
                 }
     ?>
     <li class="nav-item<?php echo $subMenu . $subMenuOpen; ?>" style="<?php echo issetParam($row['style']) ?>">
-        <a href="javascript:void(0);" class="nav-link font-weight-bold<?php echo $menuSelected; ?>" data-id="<?php echo $row[$this->idField]; ?>" data-listmetadataid="<?php echo $row['metadataid']; ?>" data-listmetadatacriteria="<?php echo issetParam($row['listmetadatacriteria']); ?>" data-metatypeid="<?php echo issetParam($row['metatypeid']); ?>" data-rowdata="<?php echo $rowJson; ?>">
+        <a href="javascript:;" class="nav-link font-weight-bold<?php echo $menuSelected; ?>" data-id="<?php echo $row[$this->idField]; ?>" data-listmetadataid="<?php echo $row['metadataid']; ?>" data-listmetadatacriteria="<?php echo issetParam($row['listmetadatacriteria']); ?>" data-metatypeid="<?php echo issetParam($row['metatypeid']); ?>" data-rowdata="<?php echo $rowJson; ?>">
             <?php echo $icon; ?>
             <span><?php echo $row[$this->nameField]; ?></span>
         </a>

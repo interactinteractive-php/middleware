@@ -2,19 +2,19 @@
 
 $sidebarCell = '';
 
-if ($sidebarShowRowsDtl_{$row['id']}) {
+if ($sidebarShowRowsDtl_[$row['id']]) {
                             
     $sidebarCell .= '<div class="sidebarDetailSection hide">';
 
-    if (!empty($sidebarGroupArr_{$row['id']})) {
-        foreach ($sidebarGroupArr_{$row['id']} as $keyPopGroup => $rowPopGroup) {
+    if (!empty($sidebarGroupArr_[$row['id']])) {
+        foreach ($sidebarGroupArr_[$row['id']] as $keyPopGroup => $rowPopGroup) {
 
             $sidebarCell .= '<p class="property_page_title">' . $this->lang->line($rowPopGroup) . '</p>' .
             '<div class="panel panel-default bg-inverse grid-row-content">' .
             '<table class="table sheetTable sidebar_detail">' .
             '<tbody>';
-            if (isset($sidebarDtlRowsContentArr_{$row['id']}[$keyPopGroup][$k])) {
-                foreach ($sidebarDtlRowsContentArr_{$row['id']}[$keyPopGroup][$k] as $subrowPopGroup) {
+            if (isset($sidebarDtlRowsContentArr_[$row['id']][$keyPopGroup][$k])) {
+                foreach ($sidebarDtlRowsContentArr_[$row['id']][$keyPopGroup][$k] as $subrowPopGroup) {
                     $sidebarCell .= "<tr data-cell-path='".$subrowPopGroup['data_path']."'>" .
                     "<td style='width: 229px;' class='left-padding'>" . $this->lang->line($subrowPopGroup['input_label_txt']) . "</td>" .
                     "<td>" . $subrowPopGroup['input_html'] . "</td>" .
