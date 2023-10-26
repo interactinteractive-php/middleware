@@ -35,62 +35,65 @@
 
         $name1 = $this->row['dataViewLayoutTypes']['explorer']['fields']['name1'];
         $name2 = $this->row['dataViewLayoutTypes']['explorer']['fields']['name2'];
-        
+
         $colorValue = $photoValue = 'return "";';
         $isColorField = $isNameRunProcess = $isNameRunDataview = $isNameRunPackage = $isNameRunWorkspace = false;
         
-        if (isset($this->row['dataViewLayoutTypes']['explorer']['fields']['color']) 
-            && $this->row['dataViewLayoutTypes']['explorer']['fields']['color'] != '') {
+        if ($this->recordList) {
             
-            $colorField = strtolower($this->row['dataViewLayoutTypes']['explorer']['fields']['color']);
-            
-            if (array_key_exists($colorField, $this->recordList[0])) {    
-                $colorValue = 'return $row[$colorField];';
-                $isColorField = true;
-            }
-        }
-        
-        if (isset($this->row['dataViewLayoutTypes']['explorer']['fields']['photo']) 
-            && $this->row['dataViewLayoutTypes']['explorer']['fields']['photo'] != '') {
-            
-            $photoField = strtolower($this->row['dataViewLayoutTypes']['explorer']['fields']['photo']);
-            
-            if (array_key_exists($photoField, $this->recordList[0])) {
-                $photoValue = 'return $row[$photoField];';
-            }
-        }
-        
-        if (isset($this->row['dataViewLayoutTypes']['explorer']['fields']['process']) 
-            && $this->row['dataViewLayoutTypes']['explorer']['fields']['process'] != '') {
-            
-            $processId = $this->row['dataViewLayoutTypes']['explorer']['fields']['process'];
-            $isNameRunProcess = true;
-        }
-        
-        if (isset($this->row['dataViewLayoutTypes']['explorer']['fields']['dataview']) 
-            && $this->row['dataViewLayoutTypes']['explorer']['fields']['dataview'] != '') {
-            
-            $processId = $this->row['dataViewLayoutTypes']['explorer']['fields']['dataview'];
-            $isNameRunDataview = true;
-        }
-        
-        if (isset($this->row['dataViewLayoutTypes']['explorer']['fields']['package']) 
-            && $this->row['dataViewLayoutTypes']['explorer']['fields']['package'] != '') {
-            
-            $processId = $this->row['dataViewLayoutTypes']['explorer']['fields']['package'];
-            $isNameRunPackage = true;
-        }
-        
-        if (isset($this->row['dataViewLayoutTypes']['explorer']['fields']['workspace']) 
-            && $this->row['dataViewLayoutTypes']['explorer']['fields']['workspace'] != '') {
-            
-            $processId = $this->row['dataViewLayoutTypes']['explorer']['fields']['workspace'];
-            $isNameRunWorkspace = true;
-        }
+            if (isset($this->row['dataViewLayoutTypes']['explorer']['fields']['color']) 
+                && $this->row['dataViewLayoutTypes']['explorer']['fields']['color'] != '') {
 
-        foreach ($this->recordList as $row) {
-            $rowJson = htmlentities(json_encode($row), ENT_QUOTES, 'UTF-8');
-            echo '{id: '.$row[$id].', parentId: \''.$row[$parent].'\', name: \''.str_replace("\\", '', $row[$name1]).'\', title: \''.$row[$name2].'\', color: \''.eval($colorValue).'\', image: \''.eval($photoValue).'\', rowdata: "'.$rowJson.'"},';
+                $colorField = strtolower($this->row['dataViewLayoutTypes']['explorer']['fields']['color']);
+
+                if (array_key_exists($colorField, $this->recordList[0])) {    
+                    $colorValue = 'return $row[$colorField];';
+                    $isColorField = true;
+                }
+            }
+
+            if (isset($this->row['dataViewLayoutTypes']['explorer']['fields']['photo']) 
+                && $this->row['dataViewLayoutTypes']['explorer']['fields']['photo'] != '') {
+
+                $photoField = strtolower($this->row['dataViewLayoutTypes']['explorer']['fields']['photo']);
+
+                if (array_key_exists($photoField, $this->recordList[0])) {
+                    $photoValue = 'return $row[$photoField];';
+                }
+            }
+
+            if (isset($this->row['dataViewLayoutTypes']['explorer']['fields']['process']) 
+                && $this->row['dataViewLayoutTypes']['explorer']['fields']['process'] != '') {
+
+                $processId = $this->row['dataViewLayoutTypes']['explorer']['fields']['process'];
+                $isNameRunProcess = true;
+            }
+
+            if (isset($this->row['dataViewLayoutTypes']['explorer']['fields']['dataview']) 
+                && $this->row['dataViewLayoutTypes']['explorer']['fields']['dataview'] != '') {
+
+                $processId = $this->row['dataViewLayoutTypes']['explorer']['fields']['dataview'];
+                $isNameRunDataview = true;
+            }
+
+            if (isset($this->row['dataViewLayoutTypes']['explorer']['fields']['package']) 
+                && $this->row['dataViewLayoutTypes']['explorer']['fields']['package'] != '') {
+
+                $processId = $this->row['dataViewLayoutTypes']['explorer']['fields']['package'];
+                $isNameRunPackage = true;
+            }
+
+            if (isset($this->row['dataViewLayoutTypes']['explorer']['fields']['workspace']) 
+                && $this->row['dataViewLayoutTypes']['explorer']['fields']['workspace'] != '') {
+
+                $processId = $this->row['dataViewLayoutTypes']['explorer']['fields']['workspace'];
+                $isNameRunWorkspace = true;
+            }
+
+            foreach ($this->recordList as $row) {
+                $rowJson = htmlentities(json_encode($row), ENT_QUOTES, 'UTF-8');
+                echo '{id: '.$row[$id].', parentId: \''.$row[$parent].'\', name: \''.str_replace("\\", '', $row[$name1]).'\', title: \''.$row[$name2].'\', color: \''.eval($colorValue).'\', image: \''.eval($photoValue).'\', rowdata: "'.$rowJson.'"},';
+            }
         }
         ?>
     ]; 
