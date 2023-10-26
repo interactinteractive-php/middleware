@@ -559,7 +559,7 @@ class Mddatamodel extends Controller {
     
     public function dvSqlDecrypt() {
         $result = $this->model->sqlDecryptModel();
-        echo $result; exit;
+        echo $result; 
     }
     
     public function dataViewRowReload() {

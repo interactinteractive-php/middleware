@@ -246,8 +246,8 @@ class Mdstatement extends Controller {
             'pagePrint' => true,
             'pagePdf' => true, 
             'pagePdfView' => Config::getFromCache('CONFIG_STATEMENT_PDF_VIEW') ? true : false, 
-            'pageExcel'  => Config::getFromCache('CONFIG_STATEMENT_XLS_EXP') === '1' ? false : true,
-            'pageWord'   => Config::getFromCache('CONFIG_STATEMENT_DOC_EXP') === '1' ? false : true,
+            'pageExcel' => Config::getFromCache('CONFIG_STATEMENT_XLS_EXP') === '1' ? false : true,
+            'pageWord' => Config::getFromCache('CONFIG_STATEMENT_DOC_EXP') === '1' ? false : true,
             'pageSearch' => true,
             'pageArchive' => ($this->view->row['IS_ARCHIVE'] == '1') ? true : false, 
             'pageMarginTop' => $this->view->row['PAGE_MARGIN_TOP'], 
@@ -514,7 +514,7 @@ class Mdstatement extends Controller {
                     eval($expressionArr['gloExp']);
                     
                     $prevGroupHtmlReplace = self::paramKeywordReplacer(self::$data['prevGroupHtml'], '');
-                    $html .= Mdstatement::onlyGroupRowReplacer($prevGroupHtmlReplace, $params);
+                    $html .= self::onlyGroupRowReplacer($prevGroupHtmlReplace, $params);
                     
                     self::$data['prevGroupHtml'] = '';
                     
@@ -688,11 +688,11 @@ class Mdstatement extends Controller {
                     
                 }
                 
-                $html = Mdstatement::matchDefaultValue($html);
-                $html = Mdstatement::calculateExpression($html);
-                $html = Mdstatement::runExpression($html);
-                $html = Mdstatement::runExpressionTag($html);
-                $html = Mdstatement::moneyFormat($html);
+                $html = self::matchDefaultValue($html);
+                $html = self::calculateExpression($html);
+                $html = self::runExpression($html);
+                $html = self::runExpressionTag($html);
+                $html = self::moneyFormat($html);
                 
                 $groupCounter++;
             } 
@@ -817,12 +817,12 @@ class Mdstatement extends Controller {
 
                 self::$data['rownum_'.$rowDepth] += 1;
                 
-                $tableBodyRow = Mdstatement::matchDefaultValue($tableBodyRow);
-                $tableBodyRow = Mdstatement::calculateExpression($tableBodyRow);
-                $tableBodyRow = Mdstatement::runExpression($tableBodyRow);
-                $tableBodyRow = Mdstatement::runExpressionTag($tableBodyRow);
-                $tableBodyRow = Mdstatement::dropZeroMoneyFormat($tableBodyRow);
-                $tableBodyRow = Mdstatement::moneyFormat($tableBodyRow);
+                $tableBodyRow = self::matchDefaultValue($tableBodyRow);
+                $tableBodyRow = self::calculateExpression($tableBodyRow);
+                $tableBodyRow = self::runExpression($tableBodyRow);
+                $tableBodyRow = self::runExpressionTag($tableBodyRow);
+                $tableBodyRow = self::dropZeroMoneyFormat($tableBodyRow);
+                $tableBodyRow = self::moneyFormat($tableBodyRow);
                 
                 if (self::$isMultiDetail) {
                             
@@ -891,8 +891,8 @@ class Mdstatement extends Controller {
         
             $htmlData .= '<div class="print-width-dpi"></div>';
             
-            $htmlData = Mdstatement::editable($htmlData);
-            $htmlData = Mdstatement::qrcode($htmlData);
+            $htmlData = self::editable($htmlData);
+            $htmlData = self::qrcode($htmlData);
             
             $this->load->model('mdstatement', 'middleware/models/');
 
@@ -1799,7 +1799,7 @@ class Mdstatement extends Controller {
                     }
                     
                     $html = str_replace(array("\n", "\r", "\t"), '', $html);
-                    $html = Mdstatement::getval($html, $dataRows);
+                    $html = self::getval($html, $dataRows);
                     
                     if ($renderType == 'notloop' && count($dataRows) == 1) {
                         
@@ -1876,29 +1876,29 @@ class Mdstatement extends Controller {
                 }
                 
                 $html = self::paramKeywordReplacer($html, $params);
-                $html = Mdstatement::formatDate($html, $realParams);
-                $html = Mdstatement::prevDate($html, $realParams);
-                $html = Mdstatement::matchDefaultValue($html);
-                $html = Mdstatement::calculateExpression($html);
-                $html = Mdstatement::runExpression($html);
-                $html = Mdstatement::runExpressionTag($html);
-                $html = Mdstatement::runExpressionStr($html);
-                $html = Mdstatement::numberToWords($html);
-                $html = Mdstatement::reportDateDiff($html);
-                $html = Mdstatement::barcode($html);                
-                $html = Mdstatement::textStyler($html);
-                $html = Mdstatement::langLine($html);
-                $html = Mdstatement::scaleMoneyFormat($html);
-                $html = Mdstatement::dropZeroMoneyFormat($html);
-                $html = Mdstatement::moneyFormat($html);
-                $html = Mdstatement::numberToTime($html);
-                $html = Mdstatement::replaceCyrillicToLatin($html);
-                $html = Mdstatement::pathReplaceByFirstRow($result['rows'][0], $html);
+                $html = self::formatDate($html, $realParams);
+                $html = self::prevDate($html, $realParams);
+                $html = self::matchDefaultValue($html);
+                $html = self::calculateExpression($html);
+                $html = self::runExpression($html);
+                $html = self::runExpressionTag($html);
+                $html = self::runExpressionStr($html);
+                $html = self::numberToWords($html);
+                $html = self::reportDateDiff($html);
+                $html = self::barcode($html);                
+                $html = self::textStyler($html);
+                $html = self::langLine($html);
+                $html = self::scaleMoneyFormat($html);
+                $html = self::dropZeroMoneyFormat($html);
+                $html = self::moneyFormat($html);
+                $html = self::numberToTime($html);
+                $html = self::replaceCyrillicToLatin($html);
+                $html = self::pathReplaceByFirstRow($result['rows'][0], $html);
                 $html = str_replace('|zero|', '', $html);
                 $html = str_replace('-0.00<', '0<', $html);
             }
             
-            $html = Mdstatement::assetsReplacer($html);
+            $html = self::assetsReplacer($html);
             
             $html = self::configValueReplacer($html, $realParams);
             $html = self::reportSubstr($html);
@@ -1916,12 +1916,12 @@ class Mdstatement extends Controller {
         return $response;
     }
     
-    public function formatAmountFloatEmpty($v) {
-        return empty($v) ? '' : str_replace('.00', '', number_format($v, 2, '.', ','));
+    public static function formatAmountFloatEmpty($v) {
+        return (empty($v) || !is_numeric($v)) ? '' : str_replace('.00', '', number_format($v, 2, '.', ','));
     }
     
-    public function formatAmountFloatEmptyScale($v, $field) {
-        if (empty($v)) {
+    public static function formatAmountFloatEmptyScale($v, $field) {
+        if (empty($v) || !is_numeric($v)) {
             return '';
         } else {
             $scale = self::$dataViewColumnsSetScale[$field];
@@ -1931,7 +1931,7 @@ class Mdstatement extends Controller {
         }
     }
     
-    public function stCellValue($typeCode, $k, $v) {
+    public static function stCellValue($typeCode, $k, $v) {
         
         if ($typeCode == 'bigdecimal') {
             $v = self::detailFormatMoney($v);
@@ -1970,7 +1970,7 @@ class Mdstatement extends Controller {
         return $v;
     }
     
-    public function decimal_to_time($v) {
+    public static function decimal_to_time($v) {
         if ($v != '' && $v != '0') {
             $h = floor($v / 60);
             $m = $v % 60;
@@ -2067,8 +2067,8 @@ class Mdstatement extends Controller {
             }
         }
 
-        $htmlData = Mdstatement::editable($htmlData);
-        $htmlData = Mdstatement::qrcode($htmlData);
+        $htmlData = self::editable($htmlData);
+        $htmlData = self::qrcode($htmlData);
 
         ob_start('ob_html_compress'); 
             $response = array(
@@ -2095,7 +2095,7 @@ class Mdstatement extends Controller {
             
             $result = self::paramKeywordReplacer(Str::cleanOut($html), $params);
             $result = self::configValueReplacer($result, $realParams);
-            $result = Mdstatement::formatDate($result, $realParams);
+            $result = self::formatDate($result, $realParams);
         }
         
         return $result;
@@ -2159,7 +2159,7 @@ class Mdstatement extends Controller {
                     $this->view->paddingRight = $row['PAGE_MARGIN_RIGHT'];
                     $this->view->paddingBottom = $row['PAGE_MARGIN_BOTTOM'];
                             
-                    $htmlData = Mdstatement::qrcode($htmlData);
+                    $htmlData = self::qrcode($htmlData);
                     
                     $this->view->contentHtml = $htmlData;
                     
@@ -2180,10 +2180,10 @@ class Mdstatement extends Controller {
     }
     
     public static function detailFormatMoney($v) {
-        return empty($v) ? '0' : number_format($v, 2, '.', ',');
+        return (empty($v) || !is_numeric($v)) ? '0' : number_format($v, 2, '.', ',');
     }
     
-    public function detailFormatMoneyScale($v, $field) {
+    public static function detailFormatMoneyScale($v, $field) {
         if (empty($v)) {
             return '0';
         } else {
@@ -2199,8 +2199,8 @@ class Mdstatement extends Controller {
         }
     }
     
-    public function detailFormatMoneySetScale($v, $field) {
-        if (empty($v)) {
+    public static function detailFormatMoneySetScale($v, $field) {
+        if (empty($v) || !is_numeric($v)) {
             return '0';
         } else {
             $scale = self::$dataViewColumnsSetScale[$field];
@@ -2210,11 +2210,11 @@ class Mdstatement extends Controller {
         }
     }
     
-    public function formatAmountEmpty($v) {
+    public static function formatAmountEmpty($v) {
         return empty($v) ? '|zero|' : Number::trimTrailingZeroes(number_format($v, 2, '.', ','));
     }
     
-    public function formatDecimalZero($v) {
+    public static function formatDecimalZero($v) {
         return empty($v) ? '0' : Number::trimTrailingZeroes(number_format($v, 2, '.', ','));
     }
     
@@ -2439,7 +2439,7 @@ class Mdstatement extends Controller {
         return $html;
     }
 
-    public function generateBarcode($value) {
+    public static function generateBarcode($value) {
         
         if ($value == '') { return ''; }
         
@@ -2447,7 +2447,7 @@ class Mdstatement extends Controller {
         return '<img src="data:image/png;base64,'.base64_encode($generator->getBarcode($value, $generator::TYPE_CODE_128, 2, 25)).'" border="0" style="width: 100%;height: 15px;">';
     }
     
-    public function generateBarcodeStyle($value, $styles) {
+    public static function generateBarcodeStyle($value, $styles) {
         
         if ($value == '') { return ''; }
         
@@ -2455,7 +2455,7 @@ class Mdstatement extends Controller {
         return '<img src="data:image/png;base64,'.base64_encode($generator->getBarcode($value, $generator::TYPE_CODE_128, 2, 25)).'" border="0" style="'.$styles.'">';
     }
     
-    public function generateBarcodeSvg($value) {
+    public static function generateBarcodeSvg($value) {
         
         if ($value == '') { return ''; }
         
@@ -2465,7 +2465,7 @@ class Mdstatement extends Controller {
         return "<img src='data:image/svg+xml;utf8,".$svg."' border='0' style='width: 100%;height: 15px;'>";
     }
     
-    public function generateBarcodeSvgStyle($value, $styles) {
+    public static function generateBarcodeSvgStyle($value, $styles) {
         
         if ($value == '') { return ''; }
         
@@ -2473,8 +2473,6 @@ class Mdstatement extends Controller {
         $svg = $generator->getBarcode($value, $generator::TYPE_CODE_128, 3, 150, 'black', false);
         
         return "<img src='data:image/svg+xml;utf8,".$svg."' border='0' style='".$styles."'>";
-        
-        //return '<div style="display: inline-block; background: url(\'api/svg_barcode.php?v='.$value.'\') no-repeat; background-size: cover;'.$styles.'"></div>';
     }
 
     public static function assetsReplacer($html) {
