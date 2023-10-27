@@ -55,15 +55,13 @@
                             
                             $lowerPath = strtolower($value['path']);                 
                             
-                            if (Config::getFromCache('IsAccountFilterFinancialRemoved')) {
-                                $dimcheck = '';
-                                $dimensionConfig = issetParam($this->detailvalues['dimensionconfig']) ? json_decode($this->detailvalues['dimensionconfig'], true) : [];
-                                $dimensionConfig = issetParam($dimensionConfig['rows']);
-                                if (is_array($dimensionConfig) && array_key_exists($lowerPath, $dimensionConfig)) {
-                                    $dimcheck = ' checked';
-                                }                       
-                                $isEmptyDimensionCheckbox = '<td style="width: 21px; vertical-align: middle"><input type="checkbox"'.$dimcheck.' name="accountMeta[0][' . $this->selectedRow['accountid'] . ']['.$lowerPath.'_accEmptyDimension]" value="1" class="is-ac-meta-empty" title="Дансны үзүүлэлт цэвэрлэх"></td>';
-                            }                            
+                            $dimcheck = '';
+                            $dimensionConfig = issetParam($this->detailvalues['dimensionconfig']) ? json_decode($this->detailvalues['dimensionconfig'], true) : [];
+                            $dimensionConfig = issetParam($dimensionConfig['rows']);
+                            if (is_array($dimensionConfig) && array_key_exists($lowerPath, $dimensionConfig)) {
+                                $dimcheck = ' checked';
+                            }                       
+                            $isEmptyDimensionCheckbox = '<td style="width: 21px; vertical-align: middle"><input type="checkbox"'.$dimcheck.' name="accountMeta[0][' . $this->selectedRow['accountid'] . ']['.$lowerPath.'_accEmptyDimension]" value="1" class="is-ac-meta-empty d-none" title="Дансны үзүүлэлт цэвэрлэх"></td>';
                             
                             if ($lowerPath == 'vatattrsubcategoryid') {
                                 

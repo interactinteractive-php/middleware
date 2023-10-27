@@ -1445,7 +1445,7 @@ class Mdprocessflow extends Controller {
             $_POST['fillDataParams'] = $response['result'];
             $_POST['isDialog'] = 'true';
             
-            if ($_POST['isTaskFlowView'] != '1') {
+            if (Input::post('isTaskFlowView') != '1') {
                 unset($_POST['oneSelectedRow']);
             } else {
                 $_POST['isGetConsolidate'] = 'true';

@@ -4234,7 +4234,7 @@ class Mdprocessflow_model extends Model {
             SELECT T0.ID 
             FROM META_TASKFLOW_LOG T0
             LEFT JOIN META_TASKFLOW_LOG_DTL MTLD ON T0.ID = MTLD.TASKFLOW_LOG_ID
-            WHERE MTLD.TASKFLOW_LOG_ID IS NOT NULL AND T0.MAIN_BP_ID = ".$this->db->Param(0)."
+            WHERE T0.MAIN_BP_ID = ".$this->db->Param(0)." AND MTLD.RECORD_ID = ".$this->db->Param(1)."
             ORDER BY T0.CREATED_DATE DESC", array($mainBpId, $recordId));            
 
         return $getLastTaskFlowRow;
@@ -4395,7 +4395,7 @@ class Mdprocessflow_model extends Model {
             }
 
             if ($lastRunTaskFlow) {
-                $_POST['taskFlowCode'] = $lastRunTaskFlow['META_DATA_CODE'];
+                $_POST['taskFlowCode'] = $lastRunTaskFlow['TASK_FLOW_META_CODE'];
                 $_POST['oneSelectedRow'] = ['id' => $recordId];
                 $getTaskFlowResult = self::callTaskFlowModel();
             }

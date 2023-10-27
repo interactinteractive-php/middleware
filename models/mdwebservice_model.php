@@ -4595,8 +4595,15 @@ class Mdwebservice_Model extends Model {
             }
 
             if ($isEmpty) {
+                
                 WebService::$addonHeaderParam['windowSessionId'] = getUID();
                 $result = $this->ws->caller($process['SERVICE_LANGUAGE_CODE'], $process['WS_URL'], $process['COMMAND_NAME'], 'return', $param, 'serialize');
+                
+                if (isset($result['status']) && $result['status'] == 'success' && isset($result['result'])) {
+                    Mdwebservice::$responseData = $result['result'];
+                    self::afterRunAdditionalProcessModel($process['META_DATA_ID'], $process['COMMAND_NAME']);
+                }
+                
                 return $result;
             }
         }
@@ -5259,7 +5266,7 @@ class Mdwebservice_Model extends Model {
     }
 
     public function getMainProcessByCreateModel($dmMetaDataId) {
-        return $this->db->GetRow("SELECT PROCESS_META_DATA_ID FROM META_DM_PROCESS_DTL WHERE MAIN_META_DATA_ID = " .$dmMetaDataId . " AND IS_MAIN = 1 ORDER BY ORDER_NUM");
+        return $this->db->GetRow("SELECT PROCESS_META_DATA_ID FROM META_DM_PROCESS_DTL WHERE MAIN_META_DATA_ID = ".$this->db->Param(0)." AND IS_MAIN = 1 ORDER BY ORDER_NUM", array($dmMetaDataId));
     }
 
     public function getProcessActiveCheckListModel($processMetaDataId) {
@@ -6481,6 +6488,37 @@ class Mdwebservice_Model extends Model {
         );
         
         return $row;
+    }
+    
+    public function afterRunAdditionalProcessModel($processId, $processCode) {
+        
+        $mvProcessIds = array(
+            '16413659216321', '16413780044111', '16424366404971', 
+            '16424366405551', '16424911282141', '16705727269419', 
+            '16425125580661', '16660589496259'
+        );
+        
+        if (in_array($processId, $mvProcessIds) && isset(Mdwebservice::$responseData['jsonid'])) {
+            
+            try {
+            
+                WebService::$addonHeaderParam['windowSessionId'] = null;
+                $param = array('filterId' => Mdwebservice::$responseData['jsonid']);
+
+                $result = $this->ws->runSerializeResponse(Mdwebservice::$gfServiceAddress, 'getMetaVerseFullInfo_004', $param);
+
+                if ($result['status'] == 'success' && isset($result['result'])) {
+                    
+                    $json = json_encode($result['result'], JSON_UNESCAPED_UNICODE);
+                    $this->db->UpdateClob('KPI_INDICATOR', 'JSON_CONFIG', $json, 'ID = '.$param['filterId']);
+                    
+                    return true;
+                }
+
+            } catch (Exception $ex) { }
+        }
+        
+        return false;
     }
     
 }

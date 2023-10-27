@@ -34,6 +34,9 @@ class Mdwebservice extends Controller {
     public static $fillParamData = array();
     public static $layoutDisplayOrder = array();
     public static $layoutSectionOrder = array();
+    public static $sections = array();
+    public static $layoutExistsParam = array();
+    public static $responseData = null;
     public static $isHistoryControl = false;
     public static $isLogViewMode = false;
     public static $bpActionType = null;
@@ -43,8 +46,6 @@ class Mdwebservice extends Controller {
     public static $renderLayoutSectionRowFnc = null;
     public static $fieldCssStyle = null;
     public static $refStructureId = null;
-    public static $sections = array();
-    public static $layoutExistsParam = array();
 
     public function __construct() {
         parent::__construct();
@@ -8281,13 +8282,13 @@ class Mdwebservice extends Controller {
             
         } else {
             
-            $resultData = null;
+            self::$responseData = null;
             
             if (isset($postData['windowSessionId'])) {
                 WebService::$addonHeaderParam['windowSessionId'] = Input::param($postData['windowSessionId']);
             }
             
-            if (issetParam($row['WORKIN_TYPE']) !== '' && issetParam($row['WORKIN_TYPE']) !== 'flm') {
+            if ($row['WORKIN_TYPE'] != '' && $row['WORKIN_TYPE'] != 'flm') {
                 
                 switch ($row['WORKIN_TYPE']) {
                     case 'bank':
@@ -8296,7 +8297,7 @@ class Mdwebservice extends Controller {
                         $result = $this->model->callBankService($row, $param);
 
                         $response = $result;
-                        $resultData = $result['data'];
+                        self::$responseData = $result['data'];
 
                         $this->load->model('mdwebservice', 'middleware/models/');
 
@@ -8306,7 +8307,7 @@ class Mdwebservice extends Controller {
                         $result = $this->model->callXypService($row, $param);
 
                         $response = $result;
-                        $resultData = $result['data'];
+                        self::$responseData = $result['data'];
 
                         $this->load->model('mdwebservice', 'middleware/models/');
                         
@@ -8317,7 +8318,7 @@ class Mdwebservice extends Controller {
                         $result = $this->model->callZmsService($row, $param);
 
                         $response = $result;
-                        $resultData = $result['data'];
+                        self::$responseData = $result['data'];
 
                         $this->load->model('mdwebservice', 'middleware/models/');
 
@@ -8326,7 +8327,7 @@ class Mdwebservice extends Controller {
                 
             } else {
                 
-                $topRunResponse = self::topRunAdditionalProcess($row['META_DATA_CODE'], $param);
+                $topRunResponse = self::beforeRunAdditionalProcess($row['META_DATA_CODE'], $param);
                 
                 if ($topRunResponse['status'] != 'success') {
                     
@@ -8354,10 +8355,9 @@ class Mdwebservice extends Controller {
 
                             $response = array('status' => 'success', 'message' => Lang::line('msg_save_success'));
 
-                            if (isset($result['result']['id'])) {
+                            if (isset($result['result']['id']) && $rowId = $result['result']['id']) {
 
-                                $resultData = $result['result'];
-                                $rowId = $resultData['id'];
+                                self::$responseData = $result['result'];
 
                                 self::saveBpAddOn($row['REF_META_GROUP_ID'], $rowId);
                                 self::saveBpAttachWidget($row['REF_META_GROUP_ID'], $rowId);
@@ -8371,16 +8371,16 @@ class Mdwebservice extends Controller {
 
                                 self::saveKpiDmMart($rowId, $paramData, $fileParamData, $param, $postData);
                                 self::saveKpiIndicator($rowId);
+                                self::afterRunAdditionalProcess($metaDataId, $row['META_DATA_CODE']);
                             }
 
-                            if (!isset($resultData)) {
-                                $resultData = issetParam($result['result']);
+                            if (!self::$responseData) {
+                                self::$responseData = issetParam($result['result']);
                             }
 
-                            if (isset($postData['dmMetaDataId']) && $postData['dmMetaDataId'] != '') {
+                            if (isset($postData['dmMetaDataId']) && $dvMetaDataId = Input::paramNum($postData['dmMetaDataId'])) {
 
-                                $dvMetaDataId = Input::param($postData['dmMetaDataId']);
-                                $mainProcess  = $this->model->getMainProcessByCreateModel($dvMetaDataId);
+                                $mainProcess = $this->model->getMainProcessByCreateModel($dvMetaDataId);
 
                                 if ($mainProcess) {
                                     $mainProcessId = $mainProcess['PROCESS_META_DATA_ID']; 
@@ -8413,10 +8413,12 @@ class Mdwebservice extends Controller {
                 'processId' => isset($mainProcessId) ? $mainProcessId : $metaDataId,
                 'rowId' => $rowId, 
                 'uniqId' => getUID(), 
-                'resultData' => $resultData
+                'resultData' => self::$responseData
             );
             
-            if (issetParam($row['WORKIN_TYPE']) === 'flm') {
+            self::$responseData = null;
+            
+            if ($row['WORKIN_TYPE'] == 'flm') {
                 
                 includeLib('Utils/Functions');
                 if ($row['META_DATA_CODE'] !== 'FLM_REQUEST_CUSTOM_LIST_004') {
@@ -9463,7 +9465,7 @@ class Mdwebservice extends Controller {
         }
     }
     
-    public function topRunAdditionalProcess($processCode, $inputParam) {
+    public function beforeRunAdditionalProcess($processCode, $inputParam) {
         
         $response = array('status' => 'success');
         $message = 'Шинэчлэх тохиргоо олдсонгүй! /001/';
@@ -9518,6 +9520,11 @@ class Mdwebservice extends Controller {
         }
         
         return $response;
+    }
+    
+    public function afterRunAdditionalProcess($processId, $processCode) {
+        $rs = $this->model->afterRunAdditionalProcessModel($processId, $processCode);
+        return $rs;
     }
     
     public function saveSubKpiTemplate($rowId, $rootTemplateId, $paramData) {

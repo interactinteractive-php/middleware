@@ -453,7 +453,7 @@ class Mdupgrade extends Controller {
         
         $url = self::phpImportServiceAddr();
 
-        $data = WebService::curlRequest($url, array('commandName' => $command, 'param' => $param));
+        $data = (new WebService())->curlRequest($url, array('commandName' => $command, 'param' => $param));
         
         return $data;
     }

@@ -2299,8 +2299,7 @@
             $glDtl.find("thead#header2").addClass('hide').hide();
             $glDtl.find("thead#header1").show();
             $glDtl.find("th.usebase, td.usebase, td[data-usebase='usebase']").css({display: 'none'});
-        }
-        checkAccountFilterConfig_<?php echo $this->uniqId; ?>(elem);
+        }        
         calculateFooterSum_<?php echo $this->uniqId; ?>(elem);
         return;
     }
@@ -2342,12 +2341,23 @@
             var $thisRow = $(this);
 
             if ($thisRow.find("input[name='gl_subid[]']").val() == subid && $thisRow.find("input[name='gl_accountId[]']").val() != accountid) { 
-                subAccountFilters += $thisRow.find("input[name='gl_accounttypeCode[]']").val() + ',';
+                subAccountFilters += $thisRow.find("input[name='gl_main_accounttypeid[]']").val() + ',';
                 if ($thisRow.find("input[name='gl_accountFilterConfig[]']").val()) {
                     accountFilterRow.push($thisRow);
                 }
             }
         });         
+
+        if ($(tr).find('#glExpandedWindow').length && $(tr).find('#glExpandedWindow').find("[data-col-path]").length) {
+            var $accFilters = $(tr).find('#glExpandedWindow').find("[data-col-path]");            
+            $accFilters.each(function() {
+                var $colPath = $(this).attr('data-col-path');
+                if ($colPath) {
+                    $(this).closest('tr').hide();                    
+                    $(this).closest('tr').find('.is-ac-meta-empty').prop('checked', true);                    
+                }
+            });
+        }        
         
         if (subAccountFilters) {
             var accFilter = subAccountFilters.split(",");
@@ -2357,169 +2367,91 @@
                 
                 $accFilters.each(function() {
                     var $colPath = $(this).attr('data-col-path').split(",");
+                    var obj = undefined;
                     for (var cc = 0; cc < $colPath.length; cc++) {
-                        var obj = accFilter.find(o => o.trim() === $colPath[cc].trim());
                         if (typeof obj === 'undefined') {
-                            $(this).closest('tr').hide();
-                        } else {
-                            $(this).closest('tr').show();
-                        }
+                            obj = accFilter.find(o => o.trim() === $colPath[cc].trim());
+                        }                        
                     }
+                    if (typeof obj === 'undefined') {
+                        $(this).closest('tr').hide();
+                        $(this).closest('tr').find('.is-ac-meta-empty').prop('checked', true);
+                    } else {
+                        $(this).closest('tr').show();
+                        $(this).closest('tr').find('.is-ac-meta-empty').prop('checked', false);
+                    }                    
                 });
             }
         }        
         
-        if (Object.keys(accountFilterRow).length) {
-            for (var k = 0; k < accountFilterRow.length; k++) {
-                subAccountFilters = '';
-                var $trel = $(accountFilterRow[k]);
-                $('#glDtl > tbody > tr', glBpMainWindow_<?php echo $this->uniqId; ?>).each(function() {
-                    var $thisRow = $(this);
+        // if (Object.keys(accountFilterRow).length) {
+        //     for (var k = 0; k < accountFilterRow.length; k++) {
+        //         subAccountFilters = '';
+        //         var $trel = $(accountFilterRow[k]);
+        //         $('#glDtl > tbody > tr', glBpMainWindow_<?php echo $this->uniqId; ?>).each(function() {
+        //             var $thisRow = $(this);
 
-                    if ($thisRow.find("input[name='gl_subid[]']").val() == $trel.find("input[name='gl_subid[]']").val() && $thisRow.find("input[name='gl_accountId[]']").val() != $trel.find("input[name='gl_accountId[]']").val()) { 
-                        subAccountFilters += $thisRow.find("input[name='gl_accounttypeCode[]']").val() + ',';
-                    }
-                });         
+        //             if ($thisRow.find("input[name='gl_subid[]']").val() == $trel.find("input[name='gl_subid[]']").val() && $thisRow.find("input[name='gl_accountId[]']").val() != $trel.find("input[name='gl_accountId[]']").val()) { 
+        //                 subAccountFilters += $thisRow.find("input[name='gl_main_accounttypeid[]']").val() + ',';
+        //             }
+        //         });         
 
-                if (subAccountFilters) {
-                    var accFilter = subAccountFilters.split(",");
+        //         if (subAccountFilters) {
+        //             var accFilter = subAccountFilters.split(",");
 
-                    if ($trel.find('#glExpandedWindow').length && $trel.find('#glExpandedWindow').find("[data-col-path]").length) {
-                        var $accFilters = $trel.find('#glExpandedWindow').find("[data-col-path]");
+        //             if ($trel.find('#glExpandedWindow').length && $trel.find('#glExpandedWindow').find("[data-col-path]").length) {
+        //                 var $accFilters = $trel.find('#glExpandedWindow').find("[data-col-path]");
 
-                        $accFilters.each(function() {
-                            var $colPath = $(this).attr('data-col-path').split(",");
-                            for (var cc = 0; cc < $colPath.length; cc++) {
-                                var obj = accFilter.find(o => o.trim() === $colPath[cc].trim());
-                                if (typeof obj === 'undefined') {
-                                    $(this).closest('tr').hide();
-                                } else {
-                                    $(this).closest('tr').show();
-                                }
-                            }
-                        });
-                    }
-                }                     
-            }
-        }
+        //                 $accFilters.each(function() {
+        //                     var $colPath = $(this).attr('data-col-path').split(",");
+        //                     for (var cc = 0; cc < $colPath.length; cc++) {
+        //                         var obj = accFilter.find(o => o.trim() === $colPath[cc].trim());
+        //                         if (typeof obj === 'undefined') {
+        //                             $(this).closest('tr').hide();
+        //                         } else {
+        //                             $(this).closest('tr').show();
+        //                         }
+        //                     }
+        //                 });
+        //             }
+        //         }                     
+        //     }
+        // }
     }
-    function checkAccountFilterConfig_<?php echo $this->uniqId; ?>(elem) {
-        return;
+    function checkAccountFilterConfig_<?php echo $this->uniqId; ?>(elem, subId) {
         var $rowEl = $(elem);
+        if (typeof subId !== 'undefined') {
+            $('#glDtl > tbody > tr', glBpMainWindow_<?php echo $this->uniqId; ?>).each(function() {
+                var $thisRow = $(this);
+
+                if ($thisRow.find("input[name='gl_subid[]']").val() == subId) { 
+                    $rowEl = $thisRow;
+                }
+            });           
+        }
+    
         if (!$rowEl.find("input[name='gl_subid[]']").length) return;
         
-        var subAccountFilters = '', accountFilterRow = [];
-        $('#glDtl > tbody > tr', glBpMainWindow_<?php echo $this->uniqId; ?>).each(function() {
-            var $thisRow = $(this);
-
-            if ($thisRow.find("input[name='gl_subid[]']").val() == $rowEl.find("input[name='gl_subid[]']").val() && $thisRow.find("input[name='gl_accountId[]']").val() != $rowEl.find("input[name='gl_accountId[]']").val()) { 
-                subAccountFilters += $thisRow.find("input[name='gl_accounttypeCode[]']").val() + ',';
-                if ($thisRow.find("input[name='gl_accountFilterConfig[]']").val()) {
-                    accountFilterRow.push($thisRow);
-                }
-            }
-        });         
-        
-        if (subAccountFilters) {
-            var accFilter = subAccountFilters.split(",");
-            
-            if ($rowEl.find('#glExpandedWindow').length && $rowEl.find('#glExpandedWindow').find("[data-col-path]").length) {
-                var $accFilters = $(tr).find('#glExpandedWindow').find("[data-col-path]");
-                var obj = [];
-                
-                $accFilters.each(function() {
-                    var $colPath = $(this).attr('data-col-path').split(",");
-                    for (var cc = 0; cc < $colPath.length; cc++) {
-                        obj = accFilter.find(o => o.trim() === $colPath[cc].trim());
-                    }
-                });
-                
-                var $actionCell = $rowEl.find("td.gl-action-column");
-                if (typeof obj === 'undefined') {
-                    if ($rowEl.find("td.gl-action-column").find('.gl-dtl-meta-btn').length) {
-                        $actionCell.find('.gl-dtl-meta-btn').hide();
-                    } else if ($rowEl.find("td.gl-action-column").find('#detailedMeta').length) {
-                        $actionCell.find('#detailedMeta').hide();
-                    }                                  
-                } else {
-                    if ($rowEl.find("td.gl-action-column").find('.gl-dtl-meta-btn').length) {
-                        $actionCell.find('.gl-dtl-meta-btn').show();
-                    } else if ($rowEl.find("td.gl-action-column").find('#detailedMeta').length) {
-                        $actionCell.find('#detailedMeta').show();
-                    }       
-                }                
-            }
-        }        
-        
-        if (Object.keys(accountFilterRow).length) {
-            for (var k = 0; k < accountFilterRow.length; k++) {
-                subAccountFilters = '';
-                var $trel = $(accountFilterRow[k]);
-                $('#glDtl > tbody > tr', glBpMainWindow_<?php echo $this->uniqId; ?>).each(function() {
-                    var $thisRow = $(this);
-
-                    if ($thisRow.find("input[name='gl_subid[]']").val() == $trel.find("input[name='gl_subid[]']").val() && $thisRow.find("input[name='gl_accountId[]']").val() != $trel.find("input[name='gl_accountId[]']").val()) { 
-                        subAccountFilters += $thisRow.find("input[name='gl_accounttypeCode[]']").val() + ',';
-                    }
-                });         
-
-                if (subAccountFilters) {
-                    var accFilter = subAccountFilters.split(",");
-                    var obj = [];
-                    
-                    var $colPath = $trel.find("input[name='gl_accountFilterConfig[]']").val().split(",");
-                    for (var cc = 0; cc < $colPath.length; cc++) {
-                        obj = accFilter.find(o => o.trim() === $colPath[cc].trim());
-                    }
-                    console.log('obj', obj)
-                    
-                    var $actionCell = $trel.find("td.gl-action-column");
-                    if (typeof obj === 'undefined') {
-                        if ($trel.find("td.gl-action-column").find('.gl-dtl-meta-btn').length) {
-                            $actionCell.find('.gl-dtl-meta-btn').hide();
-                        } else if ($trel.find("td.gl-action-column").find('#detailedMeta').length) {
-                            $actionCell.find('#detailedMeta').hide();
-                        }                                  
-                    } else {
-                        if ($trel.find("td.gl-action-column").find('.gl-dtl-meta-btn').length) {
-                            $actionCell.find('.gl-dtl-meta-btn').show();
-                        } else if ($trel.find("td.gl-action-column").find('#detailedMeta').length) {
-                            $actionCell.find('#detailedMeta').show();
-                        }       
-                    }    
-                }                     
-            }
-        }    
-    
-        return;
-        
         var subId = $rowEl.find("input[name='gl_subid[]']").val();
-        var accTypeCode = $rowEl.find("input[name='gl_accounttypeCode[]']").val();
-        
-//        if ($rowEl.find("input[name='gl_accountFilterConfigIsDimension[]']").val() != '1') {
-//            var accFilter = $rowEl.find("input[name='gl_accountFilterConfig[]']").val().split(",");
-//            var obj = accFilter.find(o => o.trim() === accTypeCode);
-//            if (typeof obj === 'undefined' && $rowEl.find("td.gl-action-column").find('.gl-dtl-meta-btn').length) {
-//                $rowEl.find("td.gl-action-column").find('.gl-dtl-meta-btn').hide();
-//            }            
-//        }
+        var accTypeCode = $rowEl.find("input[name='gl_main_accounttypeid[]']").val();
         
         $('#glDtl > tbody > tr', glBpMainWindow_<?php echo $this->uniqId; ?>).each(function() {
             var $thisRow = $(this);
 
             if ($thisRow.find("input[name='gl_subid[]']").val() == subId && $thisRow.find("input[name='gl_accountFilterConfigIsDimension[]']").val() != '1'
-                && $rowEl.find("input[name='gl_accountId[]']").val() !== $thisRow.find("input[name='gl_accountId[]']").val()) { 
+                && $thisRow.find("input[name='gl_accountFilterConfig[]']").val() != '') { 
                 var $actionCell = $thisRow.find("td.gl-action-column");
                 var accFilter = $thisRow.find("input[name='gl_accountFilterConfig[]']").val().split(",");
-                //var accTypeCode = $thisRow.find("input[name='gl_accounttypeCode[]']").val();
                 var obj = accFilter.find(o => o.trim() === accTypeCode);                
 
-                console.log('accFilter ', accFilter);
-                console.log('obj ', obj);
-                if (typeof obj === 'undefined' && $thisRow.find("td.gl-action-column").find('.gl-dtl-meta-btn').length) {
+                if (typeof obj === 'undefined' && $actionCell.find('.gl-dtl-meta-btn').length) {
                     $actionCell.find('.gl-dtl-meta-btn').hide();
-                } else if (typeof obj === 'undefined' && $thisRow.find("td.gl-action-column").find('#detailedMeta').length) {
+                } else if (typeof obj === 'undefined' && $actionCell.find('#detailedMeta').length) {
                     $actionCell.find('#detailedMeta').hide();
+                } else if (typeof obj !== 'undefined' && $actionCell.find('.gl-dtl-meta-btn').length) {
+                    $actionCell.find('.gl-dtl-meta-btn').show();
+                } else if (typeof obj !== 'undefined' && $actionCell.find('#detailedMeta').length) {
+                    $actionCell.find('#detailedMeta').show();
                 }      
             }
         });
@@ -2528,13 +2460,14 @@
     }
     function removeGlDtl_<?php echo $this->uniqId; ?>(elem) {
         var targetRow = $(elem).closest("tr");
-        var targetBody = targetRow.closest('tbody');
+        var targetBody = targetRow.closest('tbody');        
+        var subId = targetRow.find("input[name='gl_subid[]']").val();
         targetRow.remove();
         checkIsUseBase_<?php echo $this->uniqId; ?>(elem);
         calculateFooterSum_<?php echo $this->uniqId; ?>(targetBody);
         refreshTrIndex_<?php echo $this->uniqId; ?>();
         bpSetGlMetaRowIndex(glBpMainWindow_<?php echo $this->uniqId; ?>);
-        checkAccountFilterConfig_<?php echo $this->uniqId; ?>(elem);
+        checkAccountFilterConfig_<?php echo $this->uniqId; ?>(elem, subId);
         return;
     }   
     function addGlDtlWithAccountValue_<?php echo $this->uniqId; ?>(data, elem, fromAutoComplete) {
@@ -3165,6 +3098,8 @@
             $thisRow.find(".gl-dtl-meta-btn").remove();
             $(tr).find("td.glRowExpenseCenter").empty();
         }
+
+        checkAccountFilterConfig_<?php echo $this->uniqId; ?>(tr);
         
         if (typeof checkData.isOppMeta !== 'undefined') {
             $(tr).attr('data-op-meta', checkData.isOppMeta);
@@ -4714,7 +4649,7 @@
                     }
                     
                     bpSetGlMetaRowIndex(glBpMainWindow_<?php echo $this->uniqId; ?>);
-                    //hideByAccountFilterConfig_<?php echo $this->uniqId; ?>(selectedRow['subid'], selectedRow['accountid'], tr);
+                    hideByAccountFilterConfig_<?php echo $this->uniqId; ?>(selectedRow['subid'], selectedRow['accountid'], tr);
                     nonRequiredCashOnHand_<?php echo $this->uniqId; ?>(selectedRow['subid'], selectedRow['accountid'], tr);
                 },
                 error: function() {
@@ -4725,7 +4660,7 @@
             });            
         } else {
             $rowDialog.dialog('open');
-            //hideByAccountFilterConfig_<?php echo $this->uniqId; ?>(selectedRow['subid'], selectedRow['accountid'], tr);
+            hideByAccountFilterConfig_<?php echo $this->uniqId; ?>(selectedRow['subid'], selectedRow['accountid'], tr);
             nonRequiredCashOnHand_<?php echo $this->uniqId; ?>(selectedRow['subid'], selectedRow['accountid'], tr);
         }
     }   

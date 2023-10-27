@@ -2002,7 +2002,7 @@ class Mdobject extends Controller {
         return $content;
     }
     
-    public function getRowCount($text, $width = 55) {
+    public static function getRowCount($text, $width = 55) {
         $rc = 0;
         $line = explode("\n", $text);
         foreach ($line as $source) {
@@ -2018,7 +2018,7 @@ class Mdobject extends Controller {
         $metaDataId = Input::numeric('metaDataId');
         $total      = Input::numeric('total');
         
-        if ($total && $total > 1) {
+        if ($total && $total > 2000) {
             self::bigDataViewExcelExport($metaDataId);
             exit;
         }

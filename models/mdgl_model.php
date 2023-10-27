@@ -203,7 +203,7 @@ class Mdgl_Model extends Model {
                                     $accountSegmentShortCode .= $segSeparator.$segmentCode;
                                 }
                                 
-                                if (array_key_exists($metaKey.'_accEmptyDimension', $accountMetaDatas) && Config::getFromCache('IsAccountFilterFinancial')) {
+                                if (array_key_exists($metaKey.'_accEmptyDimension', $accountMetaDatas)) {
                                     $dimensionConfig[$metaKey] = 1;
                                     $generalLedgers[$k][$metaKey]= '';
                                 }
@@ -419,7 +419,7 @@ class Mdgl_Model extends Model {
                                     $accountSegmentShortCode .= $segSeparator.$segmentCode;
                                 }
                                 
-                                if (array_key_exists($metaKey.'_accEmptyDimension', $accountMetaDatas) && Config::getFromCache('IsAccountFilterFinancial')) {
+                                if (array_key_exists($metaKey.'_accEmptyDimension', $accountMetaDatas) && Config::getFromCache('IsAccountFilterFinancialRemoved')) {
                                     $dimensionConfig[$metaKey] = 1;
                                     $generalLedgers[$k][$metaKey]= '';
                                 }                                
@@ -437,7 +437,7 @@ class Mdgl_Model extends Model {
                         if ($accountSegmentName) {
                             $generalLedgers[$k]['accountsegmentname'] = $accountSegmentName;
                         }
-                    } elseif (Config::getFromCache('IsAccountFilterFinancial')) {                        
+                    } elseif (Config::getFromCache('IsAccountFilterFinancialRemoved')) {                        
                         $dimConfig = json_decode($generalLedgers[$k]['dimensionconfig'], true);
                         $dimConfig = issetParam($dimConfig['rows']);
 
@@ -785,6 +785,7 @@ class Mdgl_Model extends Model {
                     CONF.LOOKUP_CRITERIA, 
                     CONF.VALUE_CRITERIA, 
                     CONFL.IS_USE_OPP_ACCOUNT, 
+                    CONF.ACCOUNT_FILTER, 
                     SC.ID AS SEGMENT_ID, 
                     SC.SEPRATOR_CHAR, 
                     SC.REPLACE_VALUE, 
@@ -830,6 +831,7 @@ class Mdgl_Model extends Model {
                     CONF.IS_REQUIRED, 
                     CONF.LOOKUP_CRITERIA, 
                     CONF.VALUE_CRITERIA, 
+                    CONF.ACCOUNT_FILTER, 
                     CONFL.IS_USE_OPP_ACCOUNT, 
                     MGC.DISPLAY_ORDER, 
                     SC.ID, 
