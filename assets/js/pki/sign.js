@@ -265,7 +265,7 @@ function CheckOut(fileUrl) {
     }
 }*/
 
-function hardSign(fileName, contentId, server, funcName, funcArguments, row) {
+function hardSign(fileName, contentId, server, funcName, funcArguments, row, signatureImage) {
     var pdfPath = fileName.replace(URL_APP, '');
     $.ajax({
         type: 'post',
@@ -294,7 +294,7 @@ function hardSign(fileName, contentId, server, funcName, funcArguments, row) {
                     var pathStr = baseUrl + '/storage/signedDocument/' + filename;*/
                     window[funcName].apply(null, funcArguments);
                 }   
-            }, signX, signY, pageNumber);
+            }, signX, signY, pageNumber, signatureImage);
         }
     });
 }
@@ -544,7 +544,7 @@ function signPdfAndTextRun(dataForDocumentSign, fileUploadUrl, ecmContentId, cal
     mapForm.appendChild(mapInput);
 
     var picvalue = '';
-    if(picBase64 !== null){
+    if (picBase64 && picBase64 !== null) {
         picvalue = ",SignatureImage:'"+picBase64 + "'";    
     }
     

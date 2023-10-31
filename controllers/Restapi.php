@@ -719,6 +719,49 @@ class Restapi extends Controller {
     public function runIndicatorFromMetaProcessData() {
         $param = file_get_contents('php://input');
         @file_put_contents('log/runIndicatorFromMetaProcessData.log', $param);
+        
+        $inputParam = json_decode($param, true);
+        
+        if (is_array($inputParam)) {
+            
+            $bpCode  = array_key_first($inputParam);
+            $bpParam = $inputParam[$bpCode];
+
+            if ($bpParam && isset($bpParam['_metadataid']) && isset($bpParam['_indicatorid'])) {
+                $rs = $this->model->runIndicatorFromMetaProcessDataModel($bpParam);
+            } else {
+                $rs = array('status' => 'info', 'message' => 'No params! /_metadataid, _indicatorid/');
+            }
+        
+        } else {
+            $rs = array('status' => 'info', 'message' => 'No params!');
+        }
+        
+        echo json_encode($rs, JSON_UNESCAPED_UNICODE);
+    }
+    
+    public function runIndicatorFromMetaProcessDataTest() {
+        
+        $param = file_get_contents('runIndicatorFromMetaProcessData.log');
+        
+        $inputParam = json_decode($param, true);
+        
+        if (is_array($inputParam)) {
+            
+            $bpCode  = array_key_first($inputParam);
+            $bpParam = $inputParam[$bpCode];
+
+            if ($bpParam && isset($bpParam['_metadataid']) && isset($bpParam['_indicatorid'])) {
+                $rs = $this->model->runIndicatorFromMetaProcessDataModel($bpParam);
+            } else {
+                $rs = array('status' => 'info', 'message' => 'No params! /_metadataid, _indicatorid/');
+            }
+        
+        } else {
+            $rs = array('status' => 'info', 'message' => 'No params!');
+        }
+        
+        echo json_encode($rs, JSON_UNESCAPED_UNICODE);
     }
     
 }

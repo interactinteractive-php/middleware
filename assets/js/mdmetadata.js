@@ -17765,7 +17765,7 @@ function beforeSignProcess(mainMetaDataId, processMetaDataId, metaTypeId, whereF
                             contentId = row.contentid;
                         }
                         
-                        hardSign(URL_APP + row.physicalpath, contentId, URL_APP + 'mddoceditor/fileUpload', 'privateTransferProcessAction', funcArguments);
+                        hardSign(URL_APP + row.physicalpath, contentId, URL_APP + 'mddoceditor/fileUpload', 'privateTransferProcessAction', funcArguments, row, responseData.signatureImage);
                     } else {
                         callSign(responseData.hash, responseData.guid, elem, 'privateTransferProcessAction', funcArguments);
                     }
@@ -17833,7 +17833,7 @@ function beforeHardSignProcess(mainMetaDataId, processMetaDataId, metaTypeId, wh
                                             if (t.status === 'success') {
                                                 setTimeout(function(){ window[funcName].apply(null, funcArguments); }, 2000);
                                             }   
-                                        }, Math.floor(1.33333333* coordinate.x), Math.floor(1.33333333 * (573-coordinate.y)), coordinate.pageNum);
+                                        }, Math.floor(1.33333333* coordinate.x), Math.floor(1.33333333 * (573-coordinate.y)), coordinate.pageNum, responseData.signatureImage);
                                     }
                                 });
                             } else {
@@ -17901,50 +17901,6 @@ function beforeHardSignProcess(mainMetaDataId, processMetaDataId, metaTypeId, wh
     $("#callIframeCanvasHardSign").dialog('open');
     return false;
 
-    $.ajax({
-        type: 'post',
-        url: 'mdpki/generateHashFromFileByDataView',
-        data: { selectedRow: row },
-        dataType: 'json',
-        beforeSend: function() {
-            Core.blockUI({message: 'Loading...', boxed: true});
-        },
-        success: function(responseData) {
-            PNotify.removeAll();
-
-            if (responseData.status === 'success') {
-
-                var funcArguments = [mainMetaDataId, processMetaDataId, metaTypeId, whereFrom, elem, params, dataGrid, wfmStatusParams, drillDownType];
-
-                if (typeof row.physicalpath !== 'undefined') {
-                    var physicalpath = row.physicalpath;
-
-                    if (physicalpath.split('.').pop().toLowerCase() === 'pdf') {
-                        var contentId = null;
-                        
-                        if (row.hasOwnProperty('contentid')) {
-                            contentId = row.contentid;
-                        }
-                        
-                        hardSign(URL_APP + row.physicalpath, contentId, URL_APP + 'mddoceditor/fileUpload', 'privateTransferProcessAction', funcArguments);
-                    } else {
-                        callSign(responseData.hash, responseData.guid, elem, 'privateTransferProcessAction', funcArguments);
-                    }
-                } else {
-                    callSign(responseData.hash, responseData.guid, elem, 'privateTransferProcessAction', funcArguments);
-                }
-
-            } else {
-                new PNotify({
-                    title: 'Error',
-                    text: responseData.message,
-                    type: 'error',
-                    sticker: false
-                });
-            }
-            Core.unblockUI();
-        }
-    });
 }
 
 function beforeSignChangeWfmStatusId(elem, wfmStatusId, metaDataId, refStructureId, newWfmStatusColor, newWfmStatusName) {
@@ -17976,7 +17932,7 @@ function beforeSignChangeWfmStatusId(elem, wfmStatusId, metaDataId, refStructure
                             contentId = row.contentid;
                         }
                         
-                        hardSign(URL_APP + row.physicalpath, contentId, URL_APP + 'mddoceditor/fileUpload', 'changeWfmStatusId', funcArguments, row);
+                        hardSign(URL_APP + row.physicalpath, contentId, URL_APP + 'mddoceditor/fileUpload', 'changeWfmStatusId', funcArguments, row, responseData.signatureImage);
                     } else {
                         callSign(responseData.hash, responseData.guid, elem, 'changeWfmStatusId', funcArguments);
                     }
@@ -18033,11 +17989,10 @@ function beforeHardSignChangeWfmStatusId(elem, wfmStatusId, metaDataId, refStruc
                                     if (row.hasOwnProperty('contentid')) {
                                         contentId = row.contentid;
                                     }
-                                    // hardSign(URL_APP + row.physicalpath, contentId, URL_APP + 'mddoceditor/fileUpload', 'changeWfmStatusId', funcArguments);
+                                    
                                     var fileName = URL_APP + row.physicalpath;
                                     var server = URL_APP + 'mddoceditor/fileUpload';
                                     var funcName = 'changeWfmStatusId';
-                                    // function hardSign(fileName, contentId, server, funcName, funcArguments) {
                                     var pdfPath = fileName.replace(URL_APP, '');
 
                                     $.ajax({
@@ -18050,7 +18005,7 @@ function beforeHardSignChangeWfmStatusId(elem, wfmStatusId, metaDataId, refStruc
                                                 if (t.status === 'success') {
                                                     setTimeout(function(){ window[funcName].apply(null, funcArguments); }, 2000);
                                                 }   
-                                            }, Math.floor(1.33333333* coordinate.x), Math.floor(1.33333333 * (573-coordinate.y)), coordinate.pageNum);
+                                            }, Math.floor(1.33333333* coordinate.x), Math.floor(1.33333333 * (573-coordinate.y)), coordinate.pageNum, responseData.signatureImage);
                                         }
                                     });
                                     

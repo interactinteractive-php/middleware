@@ -630,6 +630,14 @@ class Mdmeta_Model extends Model {
                         $menu .= '</a>';
                     $menu .= '</li>';  
                     
+                }  elseif ($rowMeta['linkHref'] === 'mdhelpdesk/veritechLogin') {
+                    
+                    $menu .= '<li class="top-menu-link nav-item">';
+                        $menu .= '<a href="mdhelpdesk/veritechLogin" target="_blank" class="tooltips navbar-nav-link" data-placement="top" data-close-others="true" aria-expanded="false" title="HELP VERITECH">';
+                            $menu .= '<i class="fas icon-stack font-size-15"></i>';
+                        $menu .= '</a>';
+                    $menu .= '</li>';  
+                    
                 } elseif ($rowMeta['linkHref'] === 'mdobject/package/1648088644166855') {
                     
                     $menu .= '<li class="top-menu-link nav-item">';

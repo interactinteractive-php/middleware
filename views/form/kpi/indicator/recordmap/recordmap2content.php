@@ -13,6 +13,7 @@
     $add_btn = $this->lang->line('add_btn');
     $view_btn = $this->lang->line('view_btn');
     $delete_btn = $this->lang->line('delete_btn');
+    $basketClickAction = '';
     
     if ($this->components) {
       foreach ($this->components as $row) {
@@ -30,6 +31,17 @@
                   continue;
               }
           }
+
+        if (isset($this->fromWebLink)) {
+            $basketClickAction = 'chooseKpiIndicatorRowsFromBasket(this, \''.$row['ID'].'\', \'multi\', \'kpiIndicatorMainRelationFillRows\');';
+        } else {
+            $basketClickAction = 'chooseKpiIndicatorRowsFromBasket(this, \''.$row['ID'].'\', \'multi\');';
+        }          
+
+        if (issetParam($row['LOOKUP_META_DATA_ID'])) {
+            $basketClickAction = 'dataViewSelectableGrid(\'nullmeta\', 0, \''.$row['LOOKUP_META_DATA_ID'].'\', \'multi\', \'nullmeta\', this, \'kpiIndicatorMainRelationMetaFillRows\');';
+        }
+        
       ?>
       <div class="col reldetail mt-2" style="background-color: #f1f8e9; border: 1px solid #e0e0e0;" data-rowid="<?php echo $row['MAP_ID'] ?>">                       
           <div class="d-flex align-items-center align-items-md-start flex-column flex-md-row pt-2">
@@ -59,22 +71,13 @@
                   </div>
                   <span class="input-group-btn">
                       <?php 
-                      $configArr = array('isAddonForm' => $row['IS_ADDON_FORM'], 'metaInfoIndicatorId' => $row['META_INFO_INDICATOR_ID']);
-                      if (isset($this->fromWebLink)) {
-                          echo Form::button(array(
-                              'class' => 'btn btn-xs green-meadow',
-                              'value' => '<i class="icon-plus3 font-size-12"></i>', 
-                              'data-config' => htmlentities(str_replace('&quot;', '\\&quot;', json_encode($configArr)), ENT_QUOTES, 'UTF-8'), 
-                              'onclick' => 'chooseKpiIndicatorRowsFromBasket(this, \''.$row['ID'].'\', \'multi\', \'kpiIndicatorMainRelationFillRows\');'
-                          ));
-                      } else {
-                          echo Form::button(array(
-                              'class' => 'btn btn-xs green-meadow',
-                              'value' => '<i class="icon-plus3 font-size-12"></i>', 
-                              'data-config' => htmlentities(str_replace('&quot;', '\\&quot;', json_encode($configArr)), ENT_QUOTES, 'UTF-8'), 
-                              'onclick' => 'chooseKpiIndicatorRowsFromBasket(this, \''.$row['ID'].'\', \'multi\');'
-                          ));
-                      }
+                        $configArr = array('isAddonForm' => $row['IS_ADDON_FORM'], 'metaInfoIndicatorId' => $row['META_INFO_INDICATOR_ID']);
+                        echo Form::button(array(
+                            'class' => 'btn btn-xs green-meadow',
+                            'value' => '<i class="icon-plus3 font-size-12"></i>', 
+                            'data-config' => htmlentities(str_replace('&quot;', '\\&quot;', json_encode($configArr)), ENT_QUOTES, 'UTF-8'), 
+                            'onclick' => $basketClickAction
+                        ));
                       ?>
                   </span>
               </div>
@@ -84,9 +87,15 @@
           <table class="table table-sm table-hover mv-record-map-tbl" style="border-top: 1px #ddd solid;">
               <tbody>
                   <?php
-                  if (isset($this->savedComponentRows[$row['ID']])) {
+                  if (isset($this->savedComponentRows[$row['ID']]) || isset($this->savedComponentRows[$row['LOOKUP_META_DATA_ID']])) {
                       
+                    if (isset($this->savedComponentRows[$row['ID']])) {
                       $childRows = $this->savedComponentRows[$row['ID']];
+                    } else {
+                        $childRows = $this->savedComponentRows[$row['LOOKUP_META_DATA_ID']];
+                    }
+
+                    if (!$childRows) continue;
                       
                       foreach ($childRows as $childRow) {
                   ?>

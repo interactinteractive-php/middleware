@@ -259,6 +259,7 @@ if (isset($params['generalledgerbookdtls']) && ($dtlCount = count($params['gener
             Form::button(array_merge(array('class' => 'btn default btn-bordered form-control-sm mr0', 'value' => '<i class="fa fa-search"></i>', 'onclick' => "dataViewCustomSelectableGrid('fin_account_list', 'single', 'accountSelectabledGrid_".$this->uniqId."', '', this, '" . (isset($glRow['accountfilter']) ? htmlentities($glRow['accountfilter'], ENT_QUOTES, 'UTF-8') : '') . "');"), $btnAttrDisabled)) .
             "</span>" .
         "</div>";
+        
         $accountNameField = Form::text(array_merge(array('name' => 'gl_accountName[]', 'id' => 'gl_accountName', 'class' => 'form-control form-control-sm readonly-white-bg', 'readonly' => 'readonly', 'value' => $accountName, 'title' => $accountName), $accountAttrArray));        
         
         $row .= "<tr data-sub-id='".$glRow['subid']."' data-row-index='$j'$oppMetaAttr>";
@@ -275,6 +276,8 @@ if (isset($params['generalledgerbookdtls']) && ($dtlCount = count($params['gener
         $row .= Form::hidden(array('name' => 'gl_dtlId[]', 'value' => $dtlId));
         $row .= Form::hidden(array('name' => 'gl_accountFilter[]', 'value' => (isset($glRow['accountfilter']) ? $glRow['accountfilter'] : '')));
         $row .= Form::hidden(array('name' => 'gl_cashflowsubcategoryid[]', 'value' => ''));
+        $row .= Form::hidden(array('name' => 'gl_accountFilterConfig[]', 'value' => ''));
+        $row .= Form::hidden(array('name' => 'gl_accountFilterConfigIsDimension[]', 'value' => ''));
         $row .= Form::hidden(array('name' => 'defaultInvoiceBook[]', 'value' => $defaultInvoiceBooks));
         $row .= Form::hidden(array('name' => 'gl_rate_currency[]', 'value' => $currencyCode));
         $row .= Form::hidden(array('name' => 'gl_isEdited[]', 'value' => '0'));

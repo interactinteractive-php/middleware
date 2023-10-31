@@ -55,6 +55,26 @@ class Mdhelpdesk extends Controller {
         }
     }
     
+    public function veritechLogin() 
+    {
+        Auth::handleLogin();
+        
+        $result = $this->ws->runArrayResponse(GF_SERVICE_ADDRESS, 'CHECK_UM_USER_004', array('filterUserId' => Ue::sessionUserId()));
+        
+        if ($result['status'] == 'success' && isset($result['result'])) {
+            
+            $result['result']['expiredate'] = Date::currentDate('Y-m-d H:i:s');
+            
+            $hashJson = json_encode($result['result'], JSON_UNESCAPED_UNICODE);
+            $hash = Hash::encryption($hashJson);
+            $hash = str_replace(array('+', '='), array('tttnmhttt', 'ttttntsuttt'), $hash);
+            
+            header('location: https://help.veritech.mn/login/authorization?user='. $hash);
+        } else {
+            echo 'No data! CHECK_UM_USER_004';
+        }
+    }
+    
     public function getCustomer()
     {
         $param = array(

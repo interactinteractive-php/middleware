@@ -130,7 +130,20 @@ class Mdpki extends Controller {
     public function generateHashFromFileByDataView() {
         
         $selectedRow = Input::post('selectedRow');
-        
+        $signatureImage = '';
+
+        if (issetParam($selectedRow['signatureimage']) !== '') {
+            $isBase64 = preg_match('/^[a-zA-Z0-9\/\r\n+]*={0,2}$/', $selectedRow['signatureimage']);
+            if (!$isBase64) {
+                if (@is_array(getimagesize($selectedRow['signatureimage']))){
+                    $data = file_get_contents($selectedRow['signatureimage']);
+                    $signatureImage = base64_encode($data);
+                }
+            } else {
+                $signatureImage = $selectedRow['signatureimage'];
+            }
+        }
+
         if (issetParam($selectedRow['plaintextforcipher']) !== '') {
             
             $contents = $selectedRow['plaintextforcipher'];
@@ -164,6 +177,7 @@ class Mdpki extends Controller {
             'status'    => 'success', 
             'hash'      => $hash, 
             'plainText' => $hash, 
+            'signatureImage' => $signatureImage, 
             'guid'      => Session::get(SESSION_PREFIX.'monpassGUID')
         );
         

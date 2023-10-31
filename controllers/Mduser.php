@@ -721,7 +721,7 @@ class Mduser extends Controller {
         $this->view->render('ecm_content/userInfo', self::$viewPath);
     }
     
-    public function validatePassword($password, $userName = '') {
+    public static function validatePassword($password, $userName = '') {
         
         if ($password == '') {
             return array('status' => 'error', 'message' => Lang::line('user_minlenght_password'));

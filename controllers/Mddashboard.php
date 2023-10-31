@@ -1928,7 +1928,7 @@ class Mddashboard extends Controller {
                 case 'am_threed_cylinder_chart' : {
                     $this->load->model('mddashboard', 'middleware/models/');
                     $metaDashboardLink = $this->model->getMetaDiagramLinkThemeModel($metaDataId);
-                    $diagramTheme = Info::getDashboardColorTheme(($metaDashboardLink['DIAGRAM_THEME']) ? $metaDashboardLink['DIAGRAM_THEME'] : '1');
+                    $diagramTheme = Info::getDashboardColorTheme(issetDefaultVal($metaDashboardLink['DIAGRAM_THEME'], '1'));
                     $diagramTheme = explode(' ', $diagramTheme);
                     
                     foreach ($data['result'] AS $index => $dataRow) {

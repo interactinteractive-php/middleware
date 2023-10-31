@@ -112,9 +112,128 @@ class Restapi_Model extends Model {
             return $row;
         
         } catch (Exception $ex) {
-            
             return array();
         }
+    }
+    
+    public function runIndicatorFromMetaProcessDataModel($param) {
+        
+        $bpId         = $param['_metadataid'];
+        $indicatorIds = $param['_indicatorid'];
+        
+        $indicators = $this->db->GetAll("
+            SELECT 
+                T0.SRC_INDICATOR_ID AS INDICATOR_ID, 
+                T1.QUERY_STRING
+            FROM KPI_INDICATOR_INDICATOR_MAP T0 
+                INNER JOIN KPI_INDICATOR T1 ON T1.ID = T0.SRC_INDICATOR_ID 
+            WHERE T0.SEMANTIC_TYPE_ID = 78 
+                AND T0.LOOKUP_META_DATA_ID = $bpId 
+                AND T0.SRC_INDICATOR_ID IN ($indicatorIds) 
+                AND T1.QUERY_STRING IS NOT NULL 
+            ORDER BY T0.ORDER_NUMBER ASC");
+        
+        if ($indicators) {
+            
+            $this->load->model('mdform', 'middleware/models/');
+            
+            $runIndicators = array();
+            
+            foreach ($indicators as $indicator) {
+                
+                $indicatorId = $indicator['INDICATOR_ID'];
+                
+                if (!isset($runIndicators[$indicatorId])) {
+                    
+                    $queryString = $indicator['QUERY_STRING'];
+                    
+                    if (mb_strlen($queryString) > 30) {
+                        
+                        includeLib('Compress/Compression');
+                        
+                        $queryString = Compression::decompress($queryString);
+                        $queryString = trim($queryString);
+                        $queryString = $this->model->replaceKpiDbSchemaName($queryString);
+                        $first7Char  = strtolower(substr($queryString, 0, 7));
+                        $matches     = DBSql::getQueryNamedParams($queryString);
+                        
+                        $params = $this->db->GetAll("
+                            SELECT 
+                                LOWER(PM.SRC_INDICATOR_PATH) AS SRC_PATH, 
+                                LOWER(PM.TRG_META_DATA_PATH) AS TRG_PATH 
+                            FROM KPI_INDICATOR_INDICATOR_MAP M 
+                                LEFT JOIN KPI_INDICATOR_INDICATOR_MAP PM ON M.ID = PM.SRC_INDICATOR_MAP_ID 
+                            WHERE M.SEMANTIC_TYPE_ID = 78 
+                                AND PM.TRG_META_DATA_PATH IS NOT NULL 
+                                AND M.SRC_INDICATOR_ID = ".$this->db->Param('filterindicatorid')." 
+                                AND M.LOOKUP_META_DATA_ID = ".$this->db->Param('filtermetadataid')." 
+                            GROUP BY  
+                                PM.SRC_INDICATOR_PATH, 
+                                PM.TRG_META_DATA_PATH", 
+                            array(
+                                'filterindicatorid' => $indicatorId, 
+                                'filtermetadataid'  => $bpId
+                            )
+                        );
+                        
+                        $tmpParams = $bindParams = array();
+                        
+                        foreach ($params as $row) {
+                            $bpPath = $row['TRG_PATH'];
+                            $qryPath = $row['SRC_PATH'];
+                            
+                            $tmpParams[$qryPath] = isset($param[$bpPath]) ? $param[$bpPath] : null;
+                        }
+                        
+                        foreach ($matches as $matchParam) {
+                            $matchParam = str_replace(':', '', strtolower($matchParam));
+                            
+                            if (isset($tmpParams[$matchParam])) {
+                                $bindParams[$matchParam] = $tmpParams[$matchParam];
+                            } else {
+                                $bindParams[$matchParam] = null;
+                            }
+                        }
+                        
+                        try {
+                            
+                            /*if ($first7Char == 'declare') {
+                                
+                                $keys = array_map('strlen', array_keys($bindParams));
+                                array_multisort($keys, SORT_DESC, $bindParams);
+                                
+                                foreach ($bindParams as $bindParam => $bindVal) {
+                                    $queryString = str_ireplace(':'.$bindParam, $bindVal, $queryString);
+                                }
+                                
+                                $this->db->Execute($queryString);
+                                
+                            } else {*/
+                                $this->db->Execute($queryString, $bindParams);
+                            //}
+                            
+                        } catch (Exception $ex) { 
+                            
+                            $logMsg = 'bpId: '.$bpId . "\n";
+                            $logMsg .= 'indicatorId: '.$indicatorId . "\n";
+                            $logMsg .= 'sql: '.$queryString . "\n";
+                            $logMsg .= 'error: '.$ex->getMessage() . "\n";
+                            $logMsg .= '==================' . "\n";
+                            
+                            file_put_contents('log/mv_triggered_query.log', $logMsg, FILE_APPEND);
+                        }
+                    }
+                    
+                    $runIndicators[$indicatorId] = 1;
+                }
+            }
+            
+            $response = array('status' => 'success');
+        } else {
+            $response = array('status' => 'error', 'message' => 'No indicators!');
+        }
+        
+        return $response;
     }
     
 }

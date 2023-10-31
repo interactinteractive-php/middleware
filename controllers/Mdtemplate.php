@@ -666,7 +666,7 @@ class Mdtemplate extends Controller {
                             $pivotPath  = trim(strip_tags($evArr[1]));
                             $configAttr = isset($evArr[2]) ? trim(strip_tags($evArr[2])) : '';
                             
-                            $returnPivotDetail = self::returnPivotDetail($firstPath, $pivotPath, $configAttr);
+                            $returnPivotDetail = (new Mdtemplate())->returnPivotDetail($firstPath, $pivotPath, $configAttr);
                         
                             $html = str_replace($htmlPivots[0][$ek], $returnPivotDetail, $html);
                         }
@@ -679,6 +679,7 @@ class Mdtemplate extends Controller {
     }
     
     public function returnPivotDetail($firstPath, $pivotPath, $configAttr = '') {
+        $this->load->model('mdtemplate', 'middleware/models/');
         
         //printPivotDetail(EXT_PRICE_COMPARISON_DTL.COMPARISON_DTL, COMPARE_CUSTOMER_COLUMN[supplierid|suppliername])
         
@@ -1416,7 +1417,7 @@ class Mdtemplate extends Controller {
 
                                 } else {
 
-                                    $renderTemplate = self::renderTemplate($dataElement, $templateId, $isTemplateMetaId, $dataModelId);
+                                    $renderTemplate = $this->renderTemplate($dataElement, $templateId, $isTemplateMetaId, $dataModelId);
 
                                     if ($rtRow['UI_EXPRESSION']) {
 

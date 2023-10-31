@@ -206,6 +206,8 @@ class Mdgl_Model extends Model {
                                 if (array_key_exists($metaKey.'_accEmptyDimension', $accountMetaDatas)) {
                                     $dimensionConfig[$metaKey] = 1;
                                     $generalLedgers[$k][$metaKey]= '';
+                                    $generalLedgers[$k][$metaKey.'_segmentCode'] = '';
+                                    $generalLedgers[$k][$metaKey.'_segmentName'] = '';                                    
                                 }
                             }
                         }

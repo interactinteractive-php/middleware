@@ -10010,7 +10010,7 @@ class Mdwebservice extends Controller {
         return false;
     }
 
-    public function getFeatureCellIndex($headerRow, $cellIndex) {
+    public static function getFeatureCellIndex($headerRow, $cellIndex) {
         $row = Arr::multidimensional_search($headerRow, array('FEATURE_NUM' => $cellIndex));
         if ($row) {
             return $row;
@@ -10049,7 +10049,7 @@ class Mdwebservice extends Controller {
             SELECT 
                 VALUE_ID  
             FROM META_PARAM_VALUES 
-            WHERE MAIN_META_DATA_ID = ".$db->Param(0)."  
+            WHERE MAIN_META_DATA_ID = ".$db->Param(0)." 
                 AND LOOKUP_META_DATA_ID = ".$db->Param(1)." 
                 AND LOWER(PARAM_PATH) = ".$db->Param(2), 
             array($processMetaDataId, $lookupMetaDataId, strtolower($paramRealPath))

@@ -188,7 +188,7 @@ class Mddashboard_Model extends Model {
     }
     
     public function getMetaDiagramLinkThemeModel($metaDataId) {
-      $row = $this->db->GetRow("SELECT MDD.DIAGRAM_THEME FROM META_DASHBOARD_LINK MDD WHERE MDD.PROCESS_META_DATA_ID = $metaDataId AND DIAGRAM_THEME IS NOT NULL");
+      $row = $this->db->GetRow("SELECT DIAGRAM_THEME FROM META_DASHBOARD_LINK WHERE PROCESS_META_DATA_ID = $metaDataId AND DIAGRAM_THEME IS NOT NULL");
       if ($row) {
         return $row; 
       } else {

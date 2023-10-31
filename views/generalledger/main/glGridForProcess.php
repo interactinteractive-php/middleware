@@ -1821,6 +1821,7 @@
         
         checkIsUseBase_<?php echo $this->uniqId; ?>(trLast);
         glRowExpand_<?php echo $this->uniqId; ?>(trLast, 'expandRemove', '');
+        checkAccountFilterConfig_<?php echo $this->uniqId; ?>(tr);
     }
     function customerSelectabledGrid(metaDataCode, chooseType, elem, rows) {
         var row = rows[0], $tr = $(elem).closest('tr');
@@ -2274,6 +2275,7 @@
                 $(changedTr).find("input[data-input-name='creditAmountBase']").autoNumeric('set', ktAmtFcy);  
                 
                 glRowExpand_<?php echo $this->uniqId; ?>(changedTr, 'expandRemove', '');
+                checkAccountFilterConfig_<?php echo $this->uniqId; ?>(changedTr, 'all');
             }
         } else {
             checkIsUseGlDetail_<?php echo $this->uniqId; ?>('expandRemove');
@@ -2419,7 +2421,42 @@
         // }
     }
     function checkAccountFilterConfig_<?php echo $this->uniqId; ?>(elem, subId) {
-        var $rowEl = $(elem);
+        var $rowEl = $(elem), prevSubId = '', prevSubId2 = '';
+
+        if (subId === 'all') {
+            $('#glDtl > tbody > tr', glBpMainWindow_<?php echo $this->uniqId; ?>).each(function() {
+                prevSubId = $(this).find("input[name='gl_subid[]']").val();
+
+                if (prevSubId != prevSubId2) {
+                    $('#glDtl > tbody > tr', glBpMainWindow_<?php echo $this->uniqId; ?>).each(function() {
+                        var $thisRow = $(this);
+
+                        if ($thisRow.find("input[name='gl_subid[]']").val() == prevSubId && $thisRow.find("input[name='gl_accountFilterConfigIsDimension[]']").val() != '1' && $thisRow.find("input[name='gl_accountFilterConfig[]']").val() != '') { 
+                            var $actionCell = $thisRow.find("td.gl-action-column");
+                            var accFilter = $thisRow.find("input[name='gl_accountFilterConfig[]']").val().split(",");
+                            var obj = accFilter.find(o => o.trim() === accTypeCode);                
+
+                            if (typeof obj === 'undefined' && $actionCell.find('.gl-dtl-meta-btn').length) {
+                                $actionCell.find('.gl-dtl-meta-btn').hide();
+                                hideByAccountFilterConfig_<?php echo $this->uniqId; ?>($thisRow.find("input[name='gl_subid[]']").val(), $thisRow.find("input[name='gl_accountId[]']").val(), $thisRow);
+                            } else if (typeof obj === 'undefined' && $actionCell.find('#detailedMeta').length) {
+                                $actionCell.find('#detailedMeta').hide();
+                                hideByAccountFilterConfig_<?php echo $this->uniqId; ?>($thisRow.find("input[name='gl_subid[]']").val(), $thisRow.find("input[name='gl_accountId[]']").val(), $thisRow);
+                            } else if (typeof obj !== 'undefined' && $actionCell.find('.gl-dtl-meta-btn').length) {
+                                $actionCell.find('.gl-dtl-meta-btn').show();
+                                hideByAccountFilterConfig_<?php echo $this->uniqId; ?>($thisRow.find("input[name='gl_subid[]']").val(), $thisRow.find("input[name='gl_accountId[]']").val(), $thisRow);
+                            } else if (typeof obj !== 'undefined' && $actionCell.find('#detailedMeta').length) {
+                                $actionCell.find('#detailedMeta').show();
+                                hideByAccountFilterConfig_<?php echo $this->uniqId; ?>($thisRow.find("input[name='gl_subid[]']").val(), $thisRow.find("input[name='gl_accountId[]']").val(), $thisRow);
+                            }      
+                        }
+                    });         
+                }   
+                prevSubId2 = prevSubId;
+            });            
+            return;
+        }
+
         if (typeof subId !== 'undefined') {
             $('#glDtl > tbody > tr', glBpMainWindow_<?php echo $this->uniqId; ?>).each(function() {
                 var $thisRow = $(this);
@@ -2446,12 +2483,16 @@
 
                 if (typeof obj === 'undefined' && $actionCell.find('.gl-dtl-meta-btn').length) {
                     $actionCell.find('.gl-dtl-meta-btn').hide();
+                    hideByAccountFilterConfig_<?php echo $this->uniqId; ?>($thisRow.find("input[name='gl_subid[]']").val(), $thisRow.find("input[name='gl_accountId[]']").val(), $thisRow);                    
                 } else if (typeof obj === 'undefined' && $actionCell.find('#detailedMeta').length) {
                     $actionCell.find('#detailedMeta').hide();
+                    hideByAccountFilterConfig_<?php echo $this->uniqId; ?>($thisRow.find("input[name='gl_subid[]']").val(), $thisRow.find("input[name='gl_accountId[]']").val(), $thisRow);
                 } else if (typeof obj !== 'undefined' && $actionCell.find('.gl-dtl-meta-btn').length) {
                     $actionCell.find('.gl-dtl-meta-btn').show();
+                    hideByAccountFilterConfig_<?php echo $this->uniqId; ?>($thisRow.find("input[name='gl_subid[]']").val(), $thisRow.find("input[name='gl_accountId[]']").val(), $thisRow);
                 } else if (typeof obj !== 'undefined' && $actionCell.find('#detailedMeta').length) {
                     $actionCell.find('#detailedMeta').show();
+                    hideByAccountFilterConfig_<?php echo $this->uniqId; ?>($thisRow.find("input[name='gl_subid[]']").val(), $thisRow.find("input[name='gl_accountId[]']").val(), $thisRow);
                 }      
             }
         });
@@ -5037,7 +5078,7 @@
         checkIsUseDetail_<?php echo $this->uniqId; ?>(data.ISUSEDETAILBOOK, tr);
         $thisRow.closest('table').find('> tbody > tr.currentTRtarget').removeClass('currentTRtarget');
         $thisRow.addClass('currentTRtarget');                              
-        glRowExpand_<?php echo $this->uniqId; ?>(tr, 'expandRemove', 'autocomplete');
+        glRowExpand_<?php echo $this->uniqId; ?>(tr, 'expandRemove', 'autocomplete');        
         
         return false;
     }

@@ -10420,7 +10420,7 @@ class Mdform_Model extends Model {
         
         $queryString = trim($queryString);
         
-        if (strlen($queryString) > 30) {    
+        if (mb_strlen($queryString) > 30) {    
             
             includeLib('Compress/Compression');
             
@@ -16329,7 +16329,7 @@ class Mdform_Model extends Model {
                                         continue;
                                     }
 
-                                    $tspliter = explode("_:", $colName);
+                                    $tspliter = explode('_:', $colName);
                                     if (count($tspliter) === 2) {
                                         if ($row[$key]) {
                                             $translationValue[$tspliter[0]][Str::lower($tspliter[1])] = $row[$key];
@@ -16337,19 +16337,20 @@ class Mdform_Model extends Model {
                                         continue;
                                     }
 
-                                    $cellVal = Input::param($row[$key]);
-                                    $colConfig = $columnConfig[$colName]; 
-                                    $showType = $colConfig['SHOW_TYPE']; 
+                                    $cellVal      = Input::param($row[$key]);
+                                    $colConfig    = $columnConfig[$colName]; 
+                                    $showType     = $colConfig['SHOW_TYPE']; 
+                                    $defaultValue = Mdmetadata::setDefaultValue($colConfig['DEFAULT_VALUE']); 
 
                                     if ($showType == 'decimal' || $showType == 'bigdecimal') {
-
-                                        $cellVal = Number::decimal($cellVal);
-                                        $evalRow .= '$insertData[\''.$colName.'\'] = self::cleanDecimal($row['.$key.']); ';
+                                        
+                                        $cellVal = self::setEitherValue(Number::decimal($cellVal), $defaultValue);
+                                        $evalRow .= '$insertData[\''.$colName.'\'] = self::setEitherValue(self::cleanDecimal($row['.$key.']), \''.$defaultValue.'\'); ';
 
                                     } elseif ($showType == 'date') {
 
-                                        $cellVal = Date::formatter($cellVal, 'Y-m-d');
-                                        $evalRow .= '$insertData[\''.$colName.'\'] = Date::formatter($row['.$key.'], \'Y-m-d\'); ';
+                                        $cellVal = self::setEitherValue(Date::formatter($cellVal, 'Y-m-d'), $defaultValue);
+                                        $evalRow .= '$insertData[\''.$colName.'\'] = self::setEitherValue(Date::formatter($row['.$key.'], \'Y-m-d\'), \''.$defaultValue.'\'); ';
 
                                     } elseif ($showType == 'combo' || $showType == 'popup' || $showType == 'radio') {
 
@@ -16439,7 +16440,8 @@ class Mdform_Model extends Model {
                                         $evalRow .= '} ';
 
                                     } else {
-                                        $evalRow .= '$insertData[\''.$colName.'\'] = self::cleanVal($row['.$key.']); ';
+                                        $cellVal = self::setEitherValue($cellVal, $defaultValue);
+                                        $evalRow .= '$insertData[\''.$colName.'\'] = self::setEitherValue(self::cleanVal($row['.$key.']), \''.$defaultValue.'\'); ';
                                     }
 
                                     $_POST['kpiTbl'][$colName] = $cellVal;
@@ -16523,7 +16525,7 @@ class Mdform_Model extends Model {
         return $response;
     }
     
-    public function cleanVal($string) {
+    public static function cleanVal($string) {
         if ($string == '' || $string === null) {
             return null;
         }
@@ -16539,7 +16541,7 @@ class Mdform_Model extends Model {
         return $string;
     }
     
-    public function cleanDecimal($number)
+    public static function cleanDecimal($number)
     { 
         if ($number == '' || $number === null) {
             return null;
@@ -16552,7 +16554,11 @@ class Mdform_Model extends Model {
         return 0; 
     }
     
-    public function expressionServerSideParse($expressionColumns, $columnConfig) {
+    public static function setEitherValue($val, $defaultVal) {
+        return $val != '' ? $val : $defaultVal;
+    }
+    
+    public static function expressionServerSideParse($expressionColumns, $columnConfig) {
         
         $evalExp = '';
         
@@ -16576,14 +16582,14 @@ class Mdform_Model extends Model {
         return $evalExp;
     }
     
-    public function kpiExpressionReplaceFncNames($expression) {
+    public static function kpiExpressionReplaceFncNames($expression) {
         
         $expression = str_replace('dateFormat(', 'self::kpiDateFormat(', $expression);
         
         return $expression;
     }
     
-    public function kpiDateFormat($format, $dateStr) {
+    public static function kpiDateFormat($format, $dateStr) {
         
         if ($dateStr != '' && $format != '') {
             if ($format == 'S') {
@@ -20738,6 +20744,71 @@ class Mdform_Model extends Model {
         return '';
     }    
 
+    public function getSavedRecordMapDVModel($trgStructureMetaId, $srcStructureId) {
+        $id1Ph = $this->db->Param(0);
+        $id2Ph = $this->db->Param(1);
+                
+        $sql = "
+                SELECT LISTAGG(TRG_RECORD_ID, ',') WITHIN GROUP (ORDER BY TRG_REF_STRUCTURE_ID) AS REVERSE_CRITERIA_PATH
+            FROM META_DM_RECORD_MAP 
+            WHERE SRC_REF_STRUCTURE_ID = 1479204227214 
+                AND SRC_RECORD_ID = $id2Ph 
+                AND TRG_REF_STRUCTURE_ID = $id1Ph
+            GROUP BY TRG_REF_STRUCTURE_ID";
+
+        $getIds = $this->db->GetOne($sql, array($trgStructureMetaId, $srcStructureId));
+
+        if (!$getIds) return '';
+
+        $this->load->model('mdobject', 'middleware/models/');
+        $idField = $this->model->getDataViewMetaValueId($trgStructureMetaId);
+        $idField = $idField ? $idField : 'id';
+        $param = array(
+            'systemMetaGroupId' => $trgStructureMetaId,
+            'showQuery' => 1, 
+            'ignorePermission' => 1, 
+            'criteria' => array(
+                $idField => array(
+                    array(
+                        'operator' => 'IN',
+                        'operand' => $getIds
+                    )
+                )
+            )
+        );   
+        $data = $this->ws->runResponse(GF_SERVICE_ADDRESS, 'PL_MDVIEW_004', $param);
+        
+        if ($data['status'] == 'success' && isset($data['result'])) {        
+            
+            $nameField = $this->model->getDataViewMetaValueName($trgStructureMetaId);
+            $codeField = $this->model->getDataViewMetaValueCode($trgStructureMetaId);
+
+            $selectName = 'T1.'.$idField;
+            if ($nameField && $codeField) {
+                $selectName = 'T1.'.$codeField.' - T1.'.$nameField;
+            } elseif ($nameField) {
+                $selectName = 'T1.'.$nameField;
+            } elseif ($codeField) {
+                $selectName = 'T1.'.$codeField;
+            }
+
+            $sql = "
+                SELECT T2.ID AS PF_MAP_ID, 
+                    T2.TRG_RECORD_ID AS PF_MAP_RECORD_ID, 
+                    $selectName AS PF_MAP_NAME,
+                    T2.TRG_RECORD_ID AS PF_MAP_TRG_RECORD_ID
+                FROM (".$data['result'].") T1 
+                INNER JOIN META_DM_RECORD_MAP T2 ON T2.TRG_RECORD_ID = T1.$idField
+                WHERE T2.SRC_REF_STRUCTURE_ID = 1479204227214 
+                    AND T2.SRC_RECORD_ID = $id2Ph 
+                    AND T2.TRG_REF_STRUCTURE_ID = $id1Ph";
+
+            return $this->db->GetAll($sql, array($trgStructureMetaId, $srcStructureId));        
+        } else {
+            return '';
+        }
+    }
+
     public function getSavedRecordMapKpiModel($srcIndicatorId, $srcRecordId, $components) {
         
         try {
@@ -20745,61 +20816,72 @@ class Mdform_Model extends Model {
             $result = array();
         
             foreach ($components as $component) {
+
+                if ($component['LOOKUP_META_DATA_ID']) {
+                    $result[$component['LOOKUP_META_DATA_ID']] = self::getSavedRecordMapDVModel($component['LOOKUP_META_DATA_ID'], $srcRecordId);
+                } else {
                 
-                $tableName = $component['TABLE_NAME'];
-                $queryString = $component['QUERY_STRING'];
-                
-                if ($tableName || $queryString) {
-
-                    $trgIndicatorId = $component['ID'];
-
-                    $fieldConfig = self::getKpiComboDataModel(array('FILTER_INDICATOR_ID' => $trgIndicatorId, 'TRG_TABLE_NAME' => $tableName, 'isData' => false));
+                    $tableName = $component['TABLE_NAME'];
+                    $queryString = $component['QUERY_STRING'];
                     
-                    $idField = $fieldConfig['id'];
-                    $nameField = $fieldConfig['name'];
-                    
-                    if ($idField && $nameField) {
+                    if ($tableName || $queryString) {
+
+                        $trgIndicatorId = $component['ID'];
+
+                        $fieldConfig = self::getKpiComboDataModel(array('FILTER_INDICATOR_ID' => $trgIndicatorId, 'TRG_TABLE_NAME' => $tableName, 'isData' => false));
                         
-                        if (!$tableName && $queryString) {
-                            $tableName = self::parseQueryString($queryString);
-                        }
-
-                        if (stripos($tableName, 'select') !== false && stripos($tableName, 'from') !== false) {
-                            $tableName = '('.$tableName.')';
-                        }
-
-                        $sql = "
-                            SELECT 
-                                MRM.ID AS PF_MAP_ID, 
-                                MRM.TRG_RECORD_ID AS PF_MAP_RECORD_ID, 
-                                ".$this->db->IfNull("PL.PROCESS_NAME", "T0.".$nameField)." AS PF_MAP_NAME,
-                                T1.TRG_RECORD_ID AS PF_MAP_TRG_RECORD_ID, 
-                                T0.* 
-                            FROM 
-                                (
-                                    SELECT  
-                                        ID, 
-                                        TRG_RECORD_ID 
-                                    FROM META_DM_RECORD_MAP 
-                                    WHERE SRC_REF_STRUCTURE_ID = 1479204227214 
-                                        AND SRC_RECORD_ID = $srcRecordId 
-                                        AND TRG_REF_STRUCTURE_ID = $trgIndicatorId
-                                ) MRM 
-
-                                INNER JOIN $tableName T0 ON T0.$idField = MRM.TRG_RECORD_ID 
-                                LEFT JOIN META_BUSINESS_PROCESS_LINK PL ON PL.META_DATA_ID = MRM.TRG_RECORD_ID
-                                LEFT JOIN META_DM_RECORD_MAP T1 ON T1.SRC_RECORD_ID = MRM.ID 
-                                    AND T1.SRC_REF_STRUCTURE_ID = $trgIndicatorId 
-
-                            ORDER BY MRM.ID ASC";
-
-                        $rows = $this->db->GetAll($sql);
+                        $idField = $fieldConfig['id'];
+                        $nameField = $fieldConfig['name'];
+                        $codeField = $fieldConfig['code'];
                         
-                    } else {
-                        $rows = array();
+                        if ($idField && $nameField) {
+                            
+                            if (!$tableName && $queryString) {
+                                $tableName = self::parseQueryString($queryString);
+                            }
+
+                            if (stripos($tableName, 'select') !== false && stripos($tableName, 'from') !== false) {
+                                $tableName = '('.$tableName.')';
+                            }
+
+                            $selectName = "T0.".$nameField;
+                            if ($codeField) {
+                                $selectName = "T0.".$codeField." - "."T0.".$nameField;
+                            }
+
+                            $sql = "
+                                SELECT 
+                                    MRM.ID AS PF_MAP_ID, 
+                                    MRM.TRG_RECORD_ID AS PF_MAP_RECORD_ID, 
+                                    ".$this->db->IfNull("PL.PROCESS_NAME", $selectName)." AS PF_MAP_NAME,
+                                    T1.TRG_RECORD_ID AS PF_MAP_TRG_RECORD_ID, 
+                                    T0.* 
+                                FROM 
+                                    (
+                                        SELECT  
+                                            ID, 
+                                            TRG_RECORD_ID 
+                                        FROM META_DM_RECORD_MAP 
+                                        WHERE SRC_REF_STRUCTURE_ID = 1479204227214 
+                                            AND SRC_RECORD_ID = $srcRecordId 
+                                            AND TRG_REF_STRUCTURE_ID = $trgIndicatorId
+                                    ) MRM 
+
+                                    INNER JOIN $tableName T0 ON T0.$idField = MRM.TRG_RECORD_ID 
+                                    LEFT JOIN META_BUSINESS_PROCESS_LINK PL ON PL.META_DATA_ID = MRM.TRG_RECORD_ID
+                                    LEFT JOIN META_DM_RECORD_MAP T1 ON T1.SRC_RECORD_ID = MRM.ID 
+                                        AND T1.SRC_REF_STRUCTURE_ID = $trgIndicatorId 
+
+                                ORDER BY MRM.ID ASC";
+
+                            $rows = $this->db->GetAll($sql);
+                            
+                        } else {
+                            $rows = array();
+                        }
+                        
+                        $result[$trgIndicatorId] = $rows;
                     }
-                    
-                    $result[$trgIndicatorId] = $rows;
                 }
             }
         
@@ -20818,7 +20900,7 @@ class Mdform_Model extends Model {
             $data = $this->db->GetAll("
                 SELECT 
                     T1.ID, 
-                    FNC_TRANSLATE('$langCode', T1.TRANSLATION_VALUE, 'NAME', T1.NAME) AS NAME, 
+                    ".$this->db->IfNull('T4.META_DATA_NAME', "FNC_TRANSLATE('$langCode', T1.TRANSLATION_VALUE, 'NAME', T1.NAME)")." AS NAME,  
                     T1.TABLE_NAME, 
                     T1.QUERY_STRING, 
                     T1.KPI_TYPE_ID, 
@@ -20831,6 +20913,7 @@ class Mdform_Model extends Model {
                     T0.SEMANTIC_TYPE_NAME, 
                     T0.SEMANTIC_TYPE_ICON, 
                     T0.SEMANTIC_TYPE_ID, 
+                    T0.LOOKUP_META_DATA_ID, 
                     ".$this->db->IfNull('T0.DESCRIPTION', "'Холбоос'")." AS DESCRIPTION, 
                     T2.TABLE_NAME AS SRC_TABLE_NAME, 
                     T2.QUERY_STRING AS SRC_QUERY_STRING,
@@ -20850,6 +20933,7 @@ class Mdform_Model extends Model {
                             KIIM.SRC_INDICATOR_ID, 
                             KIIM.TRG_INDICATOR_ID, 
                             KIIM.META_INFO_INDICATOR_ID, 
+                            KIIM.LOOKUP_META_DATA_ID, 
                             KIIM.CODE 
                         FROM (
                             SELECT 
@@ -20861,6 +20945,7 @@ class Mdform_Model extends Model {
                                 KIIM.DESCRIPTION, 
                                 KIIM.SRC_INDICATOR_ID, 
                                 KIIM.TRG_INDICATOR_ID, 
+                                KIIM.LOOKUP_META_DATA_ID, 
                                 K.ID AS META_INFO_INDICATOR_ID, 
                                 ST.NAME AS SEMANTIC_TYPE_NAME, 
                                 ST.ICON AS SEMANTIC_TYPE_ICON, 
@@ -20886,10 +20971,12 @@ class Mdform_Model extends Model {
                             KIIM.SRC_INDICATOR_ID, 
                             KIIM.TRG_INDICATOR_ID, 
                             KIIM.META_INFO_INDICATOR_ID, 
+                            KIIM.LOOKUP_META_DATA_ID, 
                             KIIM.CODE 
                     ) T0 
-                    INNER JOIN KPI_INDICATOR T1 ON T1.ID = T0.TRG_INDICATOR_ID 
+                    LEFT JOIN KPI_INDICATOR T1 ON T1.ID = T0.TRG_INDICATOR_ID 
                         AND T1.DELETED_USER_ID IS NULL 
+                    LEFT JOIN META_DATA T4 ON T4.META_DATA_ID = T0.LOOKUP_META_DATA_ID 
                     INNER JOIN KPI_INDICATOR T2 ON T2.ID = T0.SRC_INDICATOR_ID 
                         AND T2.DELETED_USER_ID IS NULL 
                     LEFT JOIN KPI_INDICATOR T3 ON T3.ID = T1.PARENT_ID 

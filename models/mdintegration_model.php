@@ -7,6 +7,8 @@ class Mdintegration_model extends Model {
     private static $isClearing = false;
     private static $saveLogId = null;
     private static $bankBillingCreatedUserId = null;
+    private static $departmentId = null;
+    private static $userNamePassword = null;
     private static $invoiceRecordIds = array();
     
     public function __construct() {
@@ -1516,6 +1518,19 @@ class Mdintegration_model extends Model {
             }
         }
         
+        $jsonData = json_decode($jsonData, true);
+        
+        if (isset($jsonData['tranPassword'])) {
+            $jsonData['tranPassword'] = null;
+        }
+
+        $jsonData['API_PARAMS'] = array(
+            'token' => $getToken, 
+            'departmentId' => self::$departmentId, 
+            'userNamePassword' => '******' . substr(self::$userNamePassword, 6, 200)
+        );
+        $jsonData = json_encode($jsonData, JSON_UNESCAPED_UNICODE);
+        
         self::createServiceMethodLog($url, 'khanbankTransfer', $jsonData, $response);
         
         return $result;
@@ -1940,6 +1955,9 @@ class Mdintegration_model extends Model {
             } else {
                 $userNamePassword = Config::get('bankIntegrationUsernamePWDKhaan');
             }
+            
+            self::$departmentId = $departmentId;
+            self::$userNamePassword = $userNamePassword;
 
             $opts = array(
                 CURLOPT_URL => $url,
