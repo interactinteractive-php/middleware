@@ -452,7 +452,11 @@
                                 array(
                                     'id' => 'wfmstatus',
                                     'name' => 'Wfm status'
-                                )
+                                ),
+                                array(
+                                    'id' => 'card',
+                                    'name' => 'Card'
+                                ),
                             ),
                             'op_value' => 'id',
                             'op_text' => 'name',

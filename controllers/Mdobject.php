@@ -1889,7 +1889,7 @@ class Mdobject extends Controller {
         $this->view->render('search/countcard', self::$dataViewPath);
     }
 
-    public function renderCountCardByFieldPath($metaDataId, $fieldPath, $dataType, $theme, $selection) {
+    public function renderCountCardByFieldPath($metaDataId, $fieldPath, $dataType, $theme, $selection, $jsonConfig = '') {
         $this->load->model('mdobject', 'middleware/models/');
         if (!isset($this->view)) {
             $this->view = new View();
@@ -1900,7 +1900,8 @@ class Mdobject extends Controller {
         $this->view->getTypeCode      = $dataType;
         $this->view->theme            = $theme;
         $this->view->selection        = $selection;
-        $this->view->getCountCardData = $this->model->getCountCardDataModel($metaDataId, $fieldPath);
+        $this->view->jsonConfig        = $jsonConfig;
+        $this->view->getCountCardData = $this->model->getCountCardDataModel($metaDataId, $fieldPath, $jsonConfig);
 
         return $this->view->renderPrint('search/cardview', self::$dataViewPath);
     }

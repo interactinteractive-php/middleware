@@ -7023,7 +7023,8 @@ class Mdobject_Model extends Model {
                 LOWER(FIELD_PATH) AS FIELD_PATH, 
                 DATA_TYPE AS META_TYPE_CODE, 
                 COUNTCARD_THEME, 
-                LOWER(COUNTCARD_SELECTION) AS COUNTCARD_SELECTION 
+                LOWER(COUNTCARD_SELECTION) AS COUNTCARD_SELECTION ,
+                JSON_CONFIG
             FROM META_GROUP_CONFIG 
             WHERE MAIN_META_DATA_ID = ".$this->db->Param(0)." 
                 AND IS_COUNTCARD = 1 
@@ -7034,12 +7035,21 @@ class Mdobject_Model extends Model {
         return $data;
     }
 
-    public function getCountCardDataModel($metaDataId, $fieldPath) {
+    public function getCountCardDataModel($metaDataId, $fieldPath, $jsonConfig = '') {
         
         $param = array(
             'systemMetaGroupId' => $metaDataId,
             'groupParamPath' => $fieldPath, 
         );
+        
+        if (issetParam($jsonConfig)) {
+            $jsonArr = json_decode(str_replace("&quot;", "\"", $jsonConfig), true);
+            if (issetParam($jsonArr['aggregateField']) && issetParam($jsonArr['aggregateFunction'])) {
+                $param['aggregateField'] = Str::lower($jsonArr['aggregateField']);
+                $param['aggregateFunction'] = Str::upper($jsonArr['aggregateFunction']);
+            }
+        }
+
         $workSpaceId = Input::numeric('workSpaceId');
         $workSpaceParams = (Input::postCheck('workSpaceParams')) ? Input::post('workSpaceParams') : '';        
         
@@ -7271,7 +7281,6 @@ class Mdobject_Model extends Model {
         }
         
         $result = $this->ws->runResponse(self::$gfServiceAddress, 'PL_MDMVIEWGROUPCOUNT_004', $param);
-        
         if ($result['status'] == 'success') {
             return (isset($result['result']) ? $result['result'] : false);
         }

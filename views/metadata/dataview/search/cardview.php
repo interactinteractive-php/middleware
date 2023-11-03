@@ -1,6 +1,6 @@
 <?php
 if ($this->getCountCardData) {
-    
+    $colors = array('#FFCA57', '#FF9F7F', '#A4A9FF', '#F6B14A', '#FF948C', '#FFA8D2', '#78D3F4', '#73E9BE', '#D0A3FF', '#83E286', '#64DCD2', '#FFA486', '#FF8C66', '#FF97B0', '#82BDDB', '#9BA0F4', '#6AE8BA', '#FF93A0', '#8ACEF9', '#F9A771', '#F9948C', '#F58DB0', '#E295EF', '#B49AE4', '#9EA8E3', '#93CBF6', '#85D5F8', '#75E1EC', '#6CD4CC', '#7FE181', '#B7E382', '#FFD762', '#FFC671', '#FFAC94', '#CBA497', '#7DB7D4', '#F099A5', '#F39C8E', '#9BC2EF', '#8ACDD8');
     $selectedIndex = null;
         
     if (strpos($this->selection, 'rowindex:') !== false) {
@@ -9,8 +9,12 @@ if ($this->getCountCardData) {
             $selectedIndex = $selectedIndex - 1;
         }
     }
+
+    if (issetParam($this->jsonConfig)) {
+        $jsonArr = json_decode(str_replace("&quot;", "\"", $this->jsonConfig), true);
+    }
         
-    if ($this->theme == 'wfmstatus') {
+    if ($this->theme == 'wfmstatus' || $this->theme == 'card') {
 ?>
 <div class="wfm-status-step">
     <ul>
@@ -41,12 +45,51 @@ if ($this->getCountCardData) {
                 $activeTab = 'true';
             }
 
-            echo '<li><a href="javascript:;" class="'.$cssClass.'" onclick="dataViewFilterCardFieldPath_'.$this->metaDataId.'(\''.$this->fieldPath.'\', \''.$value.'\', this);" data-default-active="'.$activeTab.'">'.$title.' ('.$row['count'].')</a></li>';
+            if (issetParam($this->theme) === 'card' && issetParam($jsonArr['aggregateField']) && issetParam($jsonArr['aggregateFunction'])) {
+                echo '<li>'
+                    . '<a href="javascript:;" style="background: '. $colors[$k] .';"
+                            class="'.$cssClass.' card-section" onclick="dataViewFilterCardFieldPath_'.$this->metaDataId.'(\''.$this->fieldPath.'\', \''.$value.'\', this);" data-default-active="'.$activeTab.'">'
+                        . '<div class="d-flex">'
+                            . '<span class="uppercase text-left text-two-line" style="width: 67% !important">'. $title . '</span>'
+                            . '<div class="ml-1 pull-right">'
+                                . '<span class="text-right w-100 pull-left"> '. Number::formatMoney($row['count']) .'</span>'
+                                . ($jsonArr['aggregateLabelName'] ? '<span class="text-right w-100 pull-left" >'. $jsonArr['aggregateLabelName'] .'</span>'  : '')
+                            . '</div>' 
+                        . '</div>'
+                    . '</a>'
+                .'</li>';
+            } else {
+                
+                echo '<li>'
+                    . '<a href="javascript:;" class="'.$cssClass.'" onclick="dataViewFilterCardFieldPath_'.$this->metaDataId.'(\''.$this->fieldPath.'\', \''.$value.'\', this);" data-default-active="'.$activeTab.'">'
+                        . $title.' ('.$row['count'].')' 
+                    . '</a>'
+                .'</li>';
+            }
             
             $total += $row['count'];
         }
+
+        if (issetParam($this->theme) === 'card' && issetParam($jsonArr['aggregateField']) && issetParam($jsonArr['aggregateFunction'])) {
+            echo '<li>'
+                . '<a href="javascript:;" style="background: '. $colors[$k+1] .';"
+                        class="wfm-status-done card-section" onclick="dataViewFilterCardFieldPath_'.$this->metaDataId.'(\'all\', \'all\', this);">'
+                    . '<div class="d-flex">'
+                        . '<span class="uppercase text-left text-two-line" style="width: 67% !important">'. $this->lang->line('all') . '</span>'
+                        . '<div class="ml-1 pull-right">'
+                            . '<span class="text-right w-100 pull-left"> '. Number::formatMoney($total).'</span>'
+                            . ($jsonArr['aggregateLabelName'] ? '<span class="text-right w-100 pull-left" >'. $jsonArr['aggregateLabelName'] .'</span>'  : '')
+                        . '</div>' 
+                    . '</div>'
+                . '</a>'
+            .'</li>';
+        } else {
+            ?>
+            <li><a href="javascript:;" class="wfm-status-done uppercase" onclick="dataViewFilterCardFieldPath_<?php echo $this->metaDataId; ?>('all', 'all', this);"><?php echo $this->lang->line('all') . ' ('.$total.')'; ?></a></li>
+        <?php 
+        }
         ?>
-        <li><a href="javascript:;" class="wfm-status-done uppercase" onclick="dataViewFilterCardFieldPath_<?php echo $this->metaDataId; ?>('all', 'all', this);"><?php echo $this->lang->line('all') . ' ('.$total.')'; ?></a></li>
+        
     </ul>
 </div>
 <style type="text/css">
@@ -61,6 +104,13 @@ if ($this->getCountCardData) {
 }
 .wfm-status-step ul li {
     display: inline;
+}
+.wfm-status-step .card-section {
+    max-height: max-content;
+    box-shadow: 0px 20px 27px 0px #0000000D;
+    padding: 20px;
+    width: 320px;
+    min-height: 75px;
 }
 .wfm-status-step ul li a {
     display: inline-block;

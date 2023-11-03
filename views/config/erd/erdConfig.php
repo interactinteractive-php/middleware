@@ -34,7 +34,7 @@
                 ); 
                 ?>
             </div>
-            <div class="heigh-editor" style="position: absolute;">
+            <div class="heigh-editor">
                 <div class="css-editor" id="datamart-editor-<?php echo $this->uniqId; ?>" style="width: 4000px; height: 4000px; position: relative;"></div>
             </div>
         </div>

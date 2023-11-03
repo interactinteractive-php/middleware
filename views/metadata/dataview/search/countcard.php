@@ -1,6 +1,7 @@
 <?php
 if ($this->getIsCountCardData) {
     $count = count($this->getIsCountCardData);
+    
 ?>
 <div class="tabbable-line tab-not-padding-top<?php echo ($count == 1 ? ' tabbable-ul-notvisible-forone' : ''); ?>">
     <?php
@@ -9,10 +10,10 @@ if ($this->getIsCountCardData) {
 
     foreach ($this->getIsCountCardData as $k => $row) {
         $active = $content = '';
-
+        
         if ($k == 0) { 
             $active = 'active'; 
-            $content = (new Mdobject())->renderCountCardByFieldPath($this->metaDataId, $row['FIELD_PATH'], $row['META_TYPE_CODE'], $row['COUNTCARD_THEME'], $row['COUNTCARD_SELECTION']);
+            $content = (new Mdobject())->renderCountCardByFieldPath($this->metaDataId, $row['FIELD_PATH'], $row['META_TYPE_CODE'], $row['COUNTCARD_THEME'], $row['COUNTCARD_SELECTION'], issetParam($row['JSON_CONFIG']));
         }
 
         $tabeHead .= '

@@ -630,7 +630,7 @@ class Mdhelpdesk extends Controller {
             'showQuery' => '0', 
             'ignorePermission' => '1', 
             'criteria' => array(
-                'externalCode' =>  array(
+                'externalCode' => array(
                     array(
                         'operator' => 'like',
                         'operand' => '%'.$name.'%'
