@@ -824,7 +824,7 @@ class Mdwebservice_Model extends Model {
             }
 
             /**
-             * @description Depth Level(2 би түүнээс дээш) үед 3 цэгтэй товчийг нэг болгож зурж байна.
+             * @description Depth Level(2 ба түүнээс дээш) үед 3 цэгтэй товчийг нэг болгож зурж байна.
              * @date    2016-01-12
              * @author  Ulaankhuu Ts
              */
@@ -4436,64 +4436,67 @@ class Mdwebservice_Model extends Model {
     }
 
     public function runProcessValueModel($postData) {
+        
+        if (isset($postData['processCode']) && isset($postData['responsePath'])) {
+            
+            $processCode = $postData['processCode'];
+            $responsePath = strtolower($postData['responsePath']);
 
-        $processCode = $postData['processCode'];
-        $responsePath = strtolower($postData['responsePath']);
+            $getProcess = self::getProcessConfigByCode($processCode);
 
-        $getProcess = self::getProcessConfigByCode($processCode);
+            if ($getProcess) {
 
-        if ($getProcess) {
+                if ($getProcess['SUB_TYPE'] == 'internal' && $getProcess['ACTION_TYPE'] == 'get') {
 
-            if ($getProcess['SUB_TYPE'] == 'internal' && $getProcess['ACTION_TYPE'] == 'get') {
+                    $isEmpty = false;
+                    $paramCriteria = array();
 
-                $isEmpty = false;
-                $paramCriteria = array();
-                
-                foreach ($postData['paramData'] as $inputField) {
-                    if ($inputField['value'] != '') {
-                        $paramCriteria[$inputField['inputPath']][] = array(
-                            'operator' => '=',
-                            'operand' => is_array($inputField['value']) ? Arr::implode_r(',', $inputField['value'], true) : $inputField['value']
-                        );
-                        $isEmpty = true;
-                    } 
-                }
+                    foreach ($postData['paramData'] as $inputField) {
+                        if ($inputField['value'] != '') {
+                            $paramCriteria[$inputField['inputPath']][] = array(
+                                'operator' => '=',
+                                'operand' => is_array($inputField['value']) ? Arr::implode_r(',', $inputField['value'], true) : $inputField['value']
+                            );
+                            $isEmpty = true;
+                        } 
+                    }
 
-                if ($isEmpty) {
-                    $param['criteria'] = $paramCriteria;
+                    if ($isEmpty) {
+                        $param['criteria'] = $paramCriteria;
 
-                    $result = $this->ws->caller($getProcess['SERVICE_LANGUAGE_CODE'], $getProcess['WS_URL'], $getProcess['COMMAND_NAME'], 'return', $param, 'serialize');
-                    
-                    if ($result['status'] == 'success' && isset($result['result'])) {
-                        if (isset($result['result'][$responsePath])) {
+                        $result = $this->ws->caller($getProcess['SERVICE_LANGUAGE_CODE'], $getProcess['WS_URL'], $getProcess['COMMAND_NAME'], 'return', $param, 'serialize');
+
+                        if ($result['status'] == 'success' && isset($result['result'])) {
+                            if (isset($result['result'][$responsePath])) {
+                                return $result['result'][$responsePath];
+                            } elseif (isset($result[$responsePath])) {
+                                return $result[$responsePath];                           
+                            }
+                        }
+                    }
+
+                } else {
+
+                    $isEmpty = false;
+                    $param = array();
+
+                    foreach ($postData['paramData'] as $inputField) {
+                        if (issetParam($inputField['value']) != '') {
+                            $value = $inputField['value'];
+                            if (is_array($value) && count($value) == 1 && isset($value[0])) {
+                                $value = $value[0];
+                            }
+                            $param[$inputField['inputPath']] = $value;
+                            $isEmpty = true;
+                        }
+                    }
+
+                    if ($isEmpty) {
+                        $result = $this->ws->caller($getProcess['SERVICE_LANGUAGE_CODE'], $getProcess['WS_URL'], $getProcess['COMMAND_NAME'], 'return', $param, 'serialize');
+
+                        if ($result['status'] == 'success' && isset($result['result'][$responsePath])) {
                             return $result['result'][$responsePath];
-                        } elseif (isset($result[$responsePath])) {
-                            return $result[$responsePath];                           
                         }
-                    }
-                }
-
-            } else {
-
-                $isEmpty = false;
-                $param = array();
-
-                foreach ($postData['paramData'] as $inputField) {
-                    if (issetParam($inputField['value']) != '') {
-                        $value = $inputField['value'];
-                        if (is_array($value) && count($value) == 1 && isset($value[0])) {
-                            $value = $value[0];
-                        }
-                        $param[$inputField['inputPath']] = $value;
-                        $isEmpty = true;
-                    }
-                }
-
-                if ($isEmpty) {
-                    $result = $this->ws->caller($getProcess['SERVICE_LANGUAGE_CODE'], $getProcess['WS_URL'], $getProcess['COMMAND_NAME'], 'return', $param, 'serialize');
-
-                    if ($result['status'] == 'success' && isset($result['result'][$responsePath])) {
-                        return $result['result'][$responsePath];
                     }
                 }
             }

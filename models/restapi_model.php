@@ -124,7 +124,7 @@ class Restapi_Model extends Model {
         $indicators = $this->db->GetAll("
             SELECT 
                 T0.SRC_INDICATOR_ID AS INDICATOR_ID, 
-                T1.QUERY_STRING
+                T1.QUERY_STRING 
             FROM KPI_INDICATOR_INDICATOR_MAP T0 
                 INNER JOIN KPI_INDICATOR T1 ON T1.ID = T0.SRC_INDICATOR_ID 
             WHERE T0.SEMANTIC_TYPE_ID = 78 
@@ -214,7 +214,8 @@ class Restapi_Model extends Model {
                             
                         } catch (Exception $ex) { 
                             
-                            $logMsg = 'bpId: '.$bpId . "\n";
+                            $logMsg = 'Date: '.Date::currentDate() . "\n";
+                            $logMsg .= 'bpId: '.$bpId . "\n";
                             $logMsg .= 'indicatorId: '.$indicatorId . "\n";
                             $logMsg .= 'sql: '.$queryString . "\n";
                             $logMsg .= 'error: '.$ex->getMessage() . "\n";

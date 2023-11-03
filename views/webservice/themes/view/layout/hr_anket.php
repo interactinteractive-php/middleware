@@ -18,19 +18,19 @@
                                 <div class="col-md-3">                                    
                                     <?php echo Lang::lineDefault('hranketvalue1', 'Ажилтны код'); ?>
                                     <span class="hranket-general-value">
-                                        <?php echo $this->fillParamData['employeecode']; ?>
+                                        <?php echo issetParam($this->fillParamData['employeecode']); ?>
                                     </span>
                                 </div>
                                 <div class="col-md-3">                                    
                                     <?php echo Lang::lineDefault('hranketvalue2', 'Ургийн овог'); ?>
                                     <span class="hranket-general-value">
-                                        <?php echo $this->fillParamData['urag']; ?>
+                                        <?php echo issetParam($this->fillParamData['urag']); ?>
                                     </span>
                                 </div>
                                 <div class="col-md-3">
                                     <?php echo Lang::lineDefault('hranketvalue3', 'Төрсөн огноо'); ?>
                                     <span class="hranket-general-value">
-                                        <?php echo $this->fillParamData['dateofbirth']; ?>
+                                        <?php echo issetParam($this->fillParamData['dateofbirth']); ?>
                                     </span>
                                 </div>
                             </div>
@@ -38,13 +38,13 @@
                                 <div class="col-md-3">                                    
                                     <?php echo Lang::lineDefault('hranketvalue4', 'Регистрийн дугаар'); ?>
                                     <span class="hranket-general-value">
-                                        <?php echo $this->fillParamData['stateregnumber']; ?>
+                                        <?php echo issetParam($this->fillParamData['stateregnumber']); ?>
                                     </span>
                                 </div>
                                 <div class="col-md-3">
                                     <?php echo Lang::lineDefault('hranketgender', 'Хүйс'); ?>
                                     <span class="hranket-general-value">
-                                        <?php echo $this->fillParamData['gender']; ?>
+                                        <?php echo issetParam($this->fillParamData['gender']); ?>
                                     </span>
                                 </div>
                             </div>
@@ -59,19 +59,19 @@
                                 <div class="col-md-3">
                                     <?php echo Lang::lineDefault('hranketvalue5', 'Иргэншил'); ?>
                                     <span class="hranket-general-value">
-                                        <?php echo $this->fillParamData['countryname']; ?>
+                                        <?php echo issetParam($this->fillParamData['countryname']); ?>
                                     </span>
                                 </div>
                                 <div class="col-md-3">
                                     <?php echo Lang::lineDefault('hranketvalue6', 'Төрсөн улс'); ?>
                                     <span class="hranket-general-value">
-                                        <?php echo $this->fillParamData['birthcountryname']; ?>
+                                        <?php echo issetParam($this->fillParamData['birthcountryname']); ?>
                                     </span>
                                 </div>
                                 <div class="col-md-3">
                                     <?php echo Lang::lineDefault('hranketvalue7', 'Яс үндэс'); ?>
                                     <span class="hranket-general-value">
-                                        <?php echo $this->fillParamData['originname']; ?>
+                                        <?php echo issetParam($this->fillParamData['originname']); ?>
                                     </span>
                                 </div>
                             </div>
@@ -79,20 +79,20 @@
                                 <div class="col-md-3">
                                     <?php echo Lang::lineDefault('hranketvalue8', 'Төрсөн хот/аймаг'); ?>
                                     <span class="hranket-general-value">
-                                        <?php echo $this->fillParamData['cityname']; ?>
+                                        <?php echo issetParam($this->fillParamData['cityname']); ?>
                                     </span>
                                 </div>
                                 <div class="col-md-3">                                    
                                     <?php echo Lang::lineDefault('hranketvalue9', 'Төрсөн сум/дүүрэг'); ?>
                                     <span class="hranket-general-value">
-                                        <?php echo $this->fillParamData['districtname']; ?>
+                                        <?php echo issetParam($this->fillParamData['districtname']); ?>
                                     </span>
                                 </div>
                                 <div class="col-md-3">
                                     <?php if ($this->fillParamData['socialorigin']) { ?>                                    
                                     <?php echo Lang::lineDefault('hranketvalue10', 'Нийгмийн гарал'); ?>
                                     <span class="hranket-general-value">
-                                        <?php echo $this->fillParamData['socialorigin']; ?>
+                                        <?php echo issetParam($this->fillParamData['socialorigin']); ?>
                                     </span>
                                     <?php } ?>
                                 </div>                                
@@ -109,19 +109,19 @@
                                     <div class="col-md-3">                                        
                                         <?php echo Lang::lineDefault('hranketvalue11', 'Гэрлэлтийн байдал'); ?>
                                         <span class="hranket-general-value">
-                                            <?php echo $this->fillParamData['maritalstatusname']; ?>
+                                            <?php echo issetParam($this->fillParamData['maritalstatusname']); ?>
                                         </span>
                                     </div>
                                     <div class="col-md-3">
                                         <?php echo Lang::lineDefault('hranketvalue12', 'Ам бүлийн тоо'); ?>
                                         <span class="hranket-general-value">
-                                            <?php echo $this->fillParamData['nooffamilymember']; ?>
+                                            <?php echo issetParam($this->fillParamData['nooffamilymember']); ?>
                                         </span>
                                     </div>
                                     <div class="col-md-3">
                                         <?php echo Lang::lineDefault('hranketvalue13', 'Хүүхдийн тоо'); ?>
                                         <span class="hranket-general-value">
-                                            <?php echo $this->fillParamData['noofchildren']; ?>
+                                            <?php echo issetParam($this->fillParamData['noofchildren']); ?>
                                         </span>
                                     </div>
                                 </div>
@@ -138,7 +138,7 @@
                                 <div class="col-md-3">
                                     <?php echo Lang::line('HR_ANKET_01'); ?>
                                     <span class="hranket-general-value">
-                                        <?php echo $this->fillParamData['employeemobile'] ? $this->fillParamData['employeemobile'] : $this->fillParamData['employeephone']; ?>
+                                        <?php echo issetParam($this->fillParamData['employeemobile']) ? $this->fillParamData['employeemobile'] : issetParam($this->fillParamData['employeephone']); ?>
                                     </span>
                                 </div>
                                 <div class="col-md-3">
@@ -171,7 +171,7 @@
                                 <div class="col-md-3">
                                     <?php echo Lang::line('HR_ANKET_06'); ?>
                                     <span class="hranket-general-value">
-                                        <?php echo $this->fillParamData['mobile']; ?>
+                                        <?php echo issetParam($this->fillParamData['mobile']); ?>
                                     </span>
                                 </div>
                                 <?php } ?>
@@ -192,7 +192,7 @@
         <div class="card-body">
             
             <?php
-            if (isset($this->fillParamData['hrmemphomeaddress'])) {
+            if (issetParamArray($this->fillParamData['hrmemphomeaddress'])) {
                 foreach ($this->fillParamData['hrmemphomeaddress'] as $homeAddress) {
             ?>
             <div class="hranket-address">
@@ -200,11 +200,11 @@
                     <img src="middleware/assets/theme/layout/hranket/img/address-blue.png">
                 </div>
                 <div class="hranket-address-info">
-                    <strong><?php echo $homeAddress['address']; ?></strong><br />
-                    <?php echo $homeAddress['addresstypename']; ?><br />
-                    <?php echo $homeAddress['cityname']; ?><br />
-                    <?php echo $homeAddress['districtname']; ?><br />
-                    <?php echo $homeAddress['streetname']; ?>
+                    <strong><?php echo issetParam($homeAddress['address']); ?></strong><br />
+                    <?php echo issetParam($homeAddress['addresstypename']); ?><br />
+                    <?php echo issetParam($homeAddress['cityname']); ?><br />
+                    <?php echo issetParam($homeAddress['districtname']); ?><br />
+                    <?php echo issetParam($homeAddress['streetname']); ?>
                 </div>
             </div>
             <?php
@@ -222,7 +222,7 @@
         <div class="card-body">
             
             <?php
-            if (isset($this->fillParamData['hrmempfamilypeople'])) {
+            if (issetParamArray($this->fillParamData['hrmempfamilypeople'])) {
                 foreach ($this->fillParamData['hrmempfamilypeople'] as $familyPeople) {
             ?>
             <div class="hranket-address">
@@ -232,10 +232,10 @@
                 <div class="hranket-address-info">
                     <strong>
                         <?php echo $familyPeople['lastname']; ?> овогтой <?php echo $familyPeople['firstname']; ?>
-                    </strong> (<?php echo $familyPeople['relationshipname']; ?>)<br />
-                    <?php echo $familyPeople['yearname']; ?><br />
-                    <?php echo $familyPeople['mobile']; ?><br />
-                    <?php echo $familyPeople['positionname']; ?>
+                    </strong> (<?php echo issetParam($familyPeople['relationshipname']); ?>)<br />
+                    <?php echo issetParam($familyPeople['yearname']); ?><br />
+                    <?php echo issetParam($familyPeople['mobile']); ?><br />
+                    <?php echo issetParam($familyPeople['positionname']); ?>
                 </div>
             </div>
             <?php
@@ -247,7 +247,7 @@
         </div>
     </div> 
     
-    <?php if (isset($this->fillParamData['hrmempfamilypeople2'])) { ?>
+    <?php if (issetParamArray($this->fillParamData['hrmempfamilypeople2'])) { ?>
     <div class="bg-white mt-3">
         <div class="card-header card-header-no-padding header-elements-inline">
             <div class="card-title font-weight-bold"><?php echo Lang::line('HR_ANKET_07'); ?></div>
@@ -263,11 +263,11 @@
                 </div>
                 <div class="hranket-address-info">
                     <strong>
-                        <?php echo $familyPeople2['lastname']; ?> овогтой <?php echo $familyPeople2['firstname']; ?>
-                    </strong> (<?php echo $familyPeople2['relationshipname']; ?>)<br />
-                    <?php echo $familyPeople2['yearname']; ?><br />
-                    <?php echo $familyPeople2['mobile']; ?><br />
-                    <?php echo $familyPeople2['positionname']; ?>
+                        <?php echo issetParam($familyPeople2['lastname']); ?> овогтой <?php echo issetParam($familyPeople2['firstname']); ?>
+                    </strong> (<?php echo issetParam($familyPeople2['relationshipname']); ?>)<br />
+                    <?php echo issetParam($familyPeople2['yearname']); ?><br />
+                    <?php echo issetParam($familyPeople2['mobile']); ?><br />
+                    <?php echo issetParam($familyPeople2['positionname']); ?>
                 </div>
             </div>
             <?php
@@ -279,7 +279,7 @@
     </div> 
     <?php } ?>
     
-    <?php if (isset($this->fillParamData['hrmempfamilypeople3'])) { ?>
+    <?php if (issetParamArray($this->fillParamData['hrmempfamilypeople3'])) { ?>
     <div class="bg-white mt-3">
         <div class="card-header card-header-no-padding header-elements-inline">
             <div class="card-title font-weight-bold"><?php echo Lang::line('globe_employee_relative_family'); ?></div>
@@ -295,12 +295,12 @@
                 </div>
                 <div class="hranket-address-info">
                     <strong>
-                        <?php echo $familyPeople2['lastname']; ?> овогтой <?php echo $familyPeople2['firstname']; ?>
-                    </strong> (<?php echo $familyPeople2['relationshipname']; ?>)<br />
-                    <?php echo $familyPeople2['yearname']; ?><br />
-                    <?php echo $familyPeople2['mobile']; ?><br />
-                    <?php echo $familyPeople2['positionname']; ?><br />
-                    <?php echo $familyPeople2['workname']; ?>
+                        <?php echo issetParam($familyPeople2['lastname']); ?> овогтой <?php echo issetParam($familyPeople2['firstname']); ?>
+                    </strong> (<?php echo issetParam($familyPeople2['relationshipname']); ?>)<br />
+                    <?php echo issetParam($familyPeople2['yearname']); ?><br />
+                    <?php echo issetParam($familyPeople2['mobile']); ?><br />
+                    <?php echo issetParam($familyPeople2['positionname']); ?><br />
+                    <?php echo issetParam($familyPeople2['workname']); ?>
                 </div>
             </div>
             <?php
@@ -319,7 +319,7 @@
         <div class="card-body">
             
             <?php
-            if (isset($this->fillParamData['hrmempeducation_general'])) {
+            if (issetParamArray($this->fillParamData['hrmempeducation_general'])) {
             ?>
             <table class="hranket-education-table">
                 <thead>
@@ -341,11 +341,11 @@
             ?>
                 <tr>
                     <td><img src="middleware/assets/theme/layout/hranket/img/dot-green.png"></td>
-                    <td><?php echo $educationGeneral['startyear'].' - '.$educationGeneral['endyear']; ?></td>
-                    <td><strong><?php echo $educationGeneral['schoolname']; ?></strong></td>
-                    <td class="bold"><?php echo $educationGeneral['certificatenumber']; ?></td>
-                    <td><strong><?php echo $educationGeneral['countryname']; ?></strong></td>
-                    <td class="bold"><?php echo $educationGeneral['grade']; ?></td>
+                    <td><?php echo issetParam($educationGeneral['startyear']).' - '.issetParam($educationGeneral['endyear']); ?></td>
+                    <td><strong><?php echo issetParam($educationGeneral['schoolname']); ?></strong></td>
+                    <td class="bold"><?php echo issetParam($educationGeneral['certificatenumber']); ?></td>
+                    <td><strong><?php echo issetParam($educationGeneral['countryname']); ?></strong></td>
+                    <td class="bold"><?php echo issetParam($educationGeneral['grade']); ?></td>
                 </tr>
             <?php
                 }
@@ -361,7 +361,7 @@
     </div> 
     
     <?php
-    if (isset($this->fillParamData['hrmempeducation_training'])) {
+    if (issetParamArray($this->fillParamData['hrmempeducation_training'])) {
     ?>
     <div class="bg-white mt-3">
         <div class="card-header card-header-no-padding header-elements-inline">
@@ -384,9 +384,9 @@
             ?>
                 <tr>
                     <td><img src="middleware/assets/theme/layout/hranket/img/dot-green.png"></td>
-                    <td><?php echo $educationGeneral['startyear'].' - '.$educationGeneral['endyear']; ?></td>
-                    <td><strong><?php echo $educationGeneral['schoolname']; ?></strong></td>
-                    <td class="bold"><?php echo $educationGeneral['certificatenumber']; ?></td>
+                    <td><?php echo issetParam($educationGeneral['startyear']).' - '.issetParam($educationGeneral['endyear']); ?></td>
+                    <td><strong><?php echo issetParam($educationGeneral['schoolname']); ?></strong></td>
+                    <td class="bold"><?php echo issetParam($educationGeneral['certificatenumber']); ?></td>
                 </tr>
             <?php
                 }
@@ -408,7 +408,7 @@
         <div class="card-body">
             
             <?php
-            if (isset($this->fillParamData['hrmempworkexperience'])) {
+            if (issetParamArray($this->fillParamData['hrmempworkexperience'])) {
             ?>
             <table class="hranket-education-table">
                 <thead>
@@ -427,9 +427,12 @@
             ?>
                 <tr>
                     <td><img src="middleware/assets/theme/layout/hranket/img/dot-green.png"></td>
-                    <td><?php echo Date::formatter($workExperience['startdate'], 'Y/m/d').' - '.Date::formatter($workExperience['enddate'], 'Y/m/d'); ?></td>
-                    <td class="bold"><?php echo $workExperience['organizationname'].' '.$workExperience['departmentname']; ?></td>
-                    <td class="bold"><?php echo $workExperience['positionname']; ?></td>
+                    <td><?php 
+                        echo (issetParam($workExperience['startdate']) ? Date::formatter($workExperience['startdate'], 'Y/m/d') .' - ' : '' ) ;
+                        echo (issetParam($workExperience['enddate']) ? Date::formatter($workExperience['enddate'], 'Y/m/d') : ''); 
+                    ?></td>
+                    <td class="bold"><?php echo issetParam($workExperience['organizationname']) . ' '.issetParam($workExperience['departmentname']); ?></td>
+                    <td class="bold"><?php echo issetParam($workExperience['positionname']); ?></td>
                     <td class="bold"><?php echo issetParam($workExperience['resignreason']); ?></td>
                     <td class="bold"><?php echo issetParam($workExperience['workedyear']); ?></td>
                 </tr>
@@ -446,7 +449,7 @@
         </div>
     </div>
     
-    <?php if (isset($this->fillParamData['hrmempreward'])) { ?>
+    <?php if (issetParamArray($this->fillParamData['hrmempreward'])) { ?>
     <div class="bg-white mt-3">
         <div class="card-header card-header-no-padding header-elements-inline">
             <div class="card-title font-weight-bold"><?php echo Lang::lineDefault('hranketgroup4', 'Шагнал'); ?></div>
@@ -468,9 +471,9 @@
                 ?>
                     <tr>
                         <td><img src="middleware/assets/theme/layout/hranket/img/dot-green.png"></td>
-                        <td><?php echo $reward['yearcode']; ?></td>
-                        <td class="bold"><?php echo $reward['rewardtypename'].' '.$reward['rewardname']; ?></td>
-                        <td class="bold"><?php echo $reward['organizationname']; ?></td>
+                        <td><?php echo issetParam($reward['yearcode']); ?></td>
+                        <td class="bold"><?php echo issetParam($reward['rewardtypename']).' '.issetParam($reward['rewardname']); ?></td>
+                        <td class="bold"><?php echo issetParam($reward['organizationname']); ?></td>
                     </tr>
                 <?php
                 }
@@ -483,7 +486,7 @@
     </div> 
     <?php } ?>
     
-    <?php if (isset($this->fillParamData['hrmemppunishment'])) { ?>
+    <?php if (issetParamArray($this->fillParamData['hrmemppunishment'])) { ?>
     <div class="bg-white mt-3">
         <div class="card-header card-header-no-padding header-elements-inline">
             <div class="card-title font-weight-bold"><?php echo Lang::lineDefault('hranketgroup5', 'Сахилга'); ?></div>
@@ -506,10 +509,10 @@
                     ?>
                     <tr>
                         <td><img src="middleware/assets/theme/layout/hranket/img/dot-red.png"></td>
-                        <td><?php echo Date::formatter($punishment['punishmentdate'], 'Y/m/d'); ?></td>
-                        <td class="bold"><?php echo $punishment['punishmenttypename']; ?></td>
-                        <td class="bold"><?php echo $punishment['punishment']; ?></td>
-                        <td class="bold"><?php echo $punishment['rectorshipnumber']; ?></td>
+                        <td><?php echo (issetParam($punishment['punishmentdate']) ? Date::formatter($punishment['punishmentdate'], 'Y/m/d') : ''); ?></td>
+                        <td class="bold"><?php echo issetParam($punishment['punishmenttypename']); ?></td>
+                        <td class="bold"><?php echo issetParam($punishment['punishment']); ?></td>
+                        <td class="bold"><?php echo issetParam($punishment['rectorshipnumber']); ?></td>
                     </tr>
                     <?php
                     }
@@ -524,7 +527,7 @@
     }
     ?>    
     
-    <?php if ((isset($this->fillParamData['hrm_emp_language']) && $this->fillParamData['hrm_emp_language']) || (isset($this->fillParamData['hrm_emp_language2']) && $this->fillParamData['hrm_emp_language2'])) { ?>
+    <?php if (issetParamArray($this->fillParamData['hrm_emp_language']) || issetParamArray($this->fillParamData['hrm_emp_language2'])) { ?>
     <div class="bg-white mt-3">
         <div class="card-header card-header-no-padding header-elements-inline">
             <div class="card-title font-weight-bold"><?php echo Lang::lineDefault('hranketgroup6', 'Хэлний мэдлэг'); ?></div>
@@ -532,39 +535,39 @@
         <div class="card-body">
             
             <?php
-            if (isset($this->fillParamData['hrm_emp_language'])) {
+            if (issetParamArray($this->fillParamData['hrm_emp_language'])) {
                 foreach ($this->fillParamData['hrm_emp_language'] as $language) {
             ?>
             <div class="hranket-progress-parent"> 
                 <div class="hranket-progress-name">
-                    <?php echo $language['languagename']; ?>
+                    <?php echo issetParamZero($language['languagename']); ?>
                 </div>
-                <div class="hranket-progress-circle p<?php echo $language['speakvalue']; ?>">
-                    <span class="span2"><?php echo (int) $language['speakvalue'] * 100 / 5; ?>%</span>
+                <div class="hranket-progress-circle p<?php echo issetParamZero($language['speakvalue']); ?>">
+                    <span class="span2"><?php echo (int) issetParamZero($language['speakvalue']) * 100 / 5; ?>%</span>
                     <span><?php echo Lang::line('HR_ANKET_09'); ?></span>
                     <div class="left-half-clipper">
                         <div class="first50-bar"></div>
                         <div class="value-bar"></div>
                     </div>
                 </div>
-                <div class="hranket-progress-circle p<?php echo $language['writevalue']; ?>">
-                    <span class="span2"><?php echo (int) $language['writevalue'] * 100 / 5; ?>%</span>
+                <div class="hranket-progress-circle p<?php echo issetParamZero($language['writevalue']); ?>">
+                    <span class="span2"><?php echo (int) issetParamZero($language['writevalue']) * 100 / 5; ?>%</span>
                     <span><?php echo Lang::line('HR_ANKET_10'); ?></span>
                     <div class="left-half-clipper">
                         <div class="first50-bar"></div>
                         <div class="value-bar"></div>
                     </div>
                 </div>
-                <div class="hranket-progress-circle p<?php echo $language['readvalue']; ?>">
-                    <span class="span2"><?php echo (int) $language['readvalue'] * 100 / 5; ?>%</span>
+                <div class="hranket-progress-circle p<?php echo issetParamZero($language['readvalue']); ?>">
+                    <span class="span2"><?php echo (int) issetParamZero($language['readvalue']) * 100 / 5; ?>%</span>
                     <span><?php echo Lang::line('HR_ANKET_11'); ?></span>
                     <div class="left-half-clipper">
                         <div class="first50-bar"></div>
                         <div class="value-bar"></div>
                     </div>
                 </div>
-                <div class="hranket-progress-circle p<?php echo $language['listenvalue']; ?>">
-                    <span class="span2"><?php echo (int) $language['listenvalue'] * 100 / 5; ?>%</span>
+                <div class="hranket-progress-circle p<?php echo issetParamZero($language['listenvalue']); ?>">
+                    <span class="span2"><?php echo (int) issetParamZero($language['listenvalue']) * 100 / 5; ?>%</span>
                     <span><?php echo Lang::line('HR_ANKET_12'); ?></span>
                     <div class="left-half-clipper">
                         <div class="first50-bar"></div>
@@ -578,15 +581,15 @@
             ?>
             
             <?php
-            if (isset($this->fillParamData['hrm_emp_language2'])) {
+            if (issetParamArray($this->fillParamData['hrm_emp_language2'])) {
                 foreach ($this->fillParamData['hrm_emp_language2'] as $language) {
             ?>
             <div class="hranket-progress-parent"> 
                 <div class="hranket-progress-name">
-                    <?php echo $language['languagename']; ?>
+                    <?php echo issetParam($language['languagename']); ?>
                 </div>
                 <div class="hranket-progress-circle">
-                    <span class="span2"><?php echo $language['fluencyname']; ?></span>
+                    <span class="span2"><?php echo issetParam($language['fluencyname']); ?></span>
                     <span>Ерөнхий түвшин</span>
                     <div class="left-half-clipper">
                         <div class="first50-bar"></div>
@@ -594,7 +597,7 @@
                     </div>
                 </div>
                 <div class="hranket-progress-circle">
-                    <span class="span2"><?php echo $language['examname']; ?></span>
+                    <span class="span2"><?php echo issetParam($language['examname']); ?></span>
                     <span>Шалгалтын төрөл</span>
                     <div class="left-half-clipper">
                         <div class="first50-bar"></div>
@@ -602,9 +605,9 @@
                     </div>
                 </div>
                 <div class="hranket-progress-circle">
-                    <span class="span2"><?php echo $language['readvalue']; ?></span>
+                    <span class="span2"><?php echo issetParam($language['readvalue']); ?></span>
                     <span>Оноо</span>
-                    <span>/<?php echo $language['stardate']; ?> - <?php echo $language['enddate']; ?>/</span>
+                    <span>/<?php echo issetParam($language['stardate']); ?> - <?php echo issetParam($language['enddate']); ?>/</span>
                     <div class="left-half-clipper">
                         <div class="first50-bar"></div>
                         <div class="value-bar"></div>
@@ -621,7 +624,7 @@
     </div>
     <?php } ?>
     
-    <?php if (isset($this->fillParamData['hrmemphobby'])) { ?>
+    <?php if (issetParamArray($this->fillParamData['hrmemphobby'])) { ?>
     <div class="bg-white mt-3">
         <div class="card-header card-header-no-padding header-elements-inline">
             <div class="card-title font-weight-bold"><?php echo Lang::lineDefault('hranketgroup7', 'Сонирхол'); ?></div>
@@ -633,7 +636,7 @@
             ?>
             <div class="hranket-hobby w-100"> 
                 <div class="hranket-hobby-name w-100 text-left">
-                    <?php echo $hobby['hobbyname']; ?>
+                    <?php echo issetParamZero($hobby['hobbyname']); ?>
                 </div>
             </div>
             <?php
@@ -645,7 +648,7 @@
     </div>
     <?php } ?>
 
-    <?php if (isset($this->fillParamData['hrmemptalent'])) { ?>
+    <?php if (issetParamArray($this->fillParamData['hrmemptalent'])) { ?>
     <div class="bg-white mt-3">
         <div class="card-header card-header-no-padding header-elements-inline">
             <div class="card-title font-weight-bold"><?php echo Lang::lineDefault('hranketgroup8', 'Авьяас чадвар'); ?></div>
@@ -657,7 +660,7 @@
             ?>
             <div class="hranket-hobby">
                 <div class="hranket-hobby-name">
-                    <?php echo $hobby['talentname']; ?>
+                    <?php echo issetParamZero($hobby['talentname']); ?>
                 </div>
             </div>
             <?php

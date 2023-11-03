@@ -207,16 +207,17 @@ var Builder = function() {
                 switch (rowData['blockType']) {
                     case 'chart':
                         layoutSelector.find('div[data-block-uniqid="'+ key +'"]').append('<div id="itemDragin-'+key +'" class="row w-100 h-100"></div>').promise().done(function () {
-                            var chartOption = JSON.parse(rowData['addintionalConfig']);
-                            var chartDom = document.getElementById(chartOption['elemId']);
-                            echarts.dispose(chartDom);
-                            var myChart = echarts.init(chartDom);
-                            chartOption && myChart.setOption(chartOption);
-                            
-                            setInterval(() => {
-                                myChart.resize();
-                            }, 2000);
-                            
+                            if (typeof rowData['addintionalConfig'] !== 'undefined') {
+                                var chartOption = JSON.parse(rowData['addintionalConfig']);
+                                var chartDom = document.getElementById(chartOption['elemId']);
+                                echarts.dispose(chartDom);
+                                var myChart = echarts.init(chartDom);
+                                chartOption && myChart.setOption(chartOption);
+                                
+                                setInterval(() => {
+                                    myChart.resize();
+                                }, 2000);
+                            }
                         });
                         break;
                 

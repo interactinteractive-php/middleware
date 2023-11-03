@@ -9908,6 +9908,8 @@ class Mdform_Model extends Model {
                 
                 if (issetParam($configRow['isFilter'])) {
                     $where = ' AND KIIM.IS_FILTER = 1 ';
+                } elseif (issetParam($configRow['isGridRender']) == '1') {
+                    $where = " AND KIIM.COLUMN_NAME IS NOT NULL ";
                 } else {
                     $where = " AND KIIM.COLUMN_NAME IS NOT NULL AND KIIM.COLUMN_NAME <> 'ID' ";
                 }
@@ -10724,7 +10726,7 @@ class Mdform_Model extends Model {
 
                     if (isset($columnsConfig[$colName]) && $columnsConfig[$colName]['isTranslate']) {
                         $fields .= "CASE 
-                            WHEN LOWER('$langCode') = 'mn' THEN $colName ELSE FNC_TRANSLATE('$langCode, TRANSLATION_VALUE, '$colName', $colName) 
+                            WHEN LOWER('$langCode') = 'mn' THEN $colName ELSE FNC_TRANSLATE('$langCode', TRANSLATION_VALUE, '$colName', $colName) 
                         END AS $colName, ";
                     } else {
                         $fields .= $colName . ', ';
@@ -10760,7 +10762,7 @@ class Mdform_Model extends Model {
 
                     if (isset($columnsConfig[$colName]) && $columnsConfig[$colName]['isTranslate']) {
                         $fields .= "CASE 
-                            WHEN LOWER('$langCode') = 'mn' THEN T0.$colName ELSE FNC_TRANSLATE('$langCode, T0.TRANSLATION_VALUE, '$colName', T0.$colName) 
+                            WHEN LOWER('$langCode') = 'mn' THEN T0.$colName ELSE FNC_TRANSLATE('$langCode', T0.TRANSLATION_VALUE, '$colName', T0.$colName) 
                         END AS $colName, ";
                     } else {
                         $fields .= 'T0.'.$colName . ', ';
@@ -14110,6 +14112,7 @@ class Mdform_Model extends Model {
                 $filterGroup     = issetParam($jsonData['FILTER_GROUP']);
                 
                 $configRow     = self::getKpiIndicatorRowModel($dataIndicatorId);
+                //$dataTableName = $configRow['QUERY_STRING'] ? '('.$configRow['QUERY_STRING'].')' : $configRow['TABLE_NAME'];
                 $dataTableName = $configRow['TABLE_NAME'];
                 
                 $sessionUserId = Ue::sessionUserKeyId();
@@ -20517,7 +20520,7 @@ class Mdform_Model extends Model {
                         T1.PARENT_ID,
                         T1.SHOW_TYPE,
                         T1.ORDER_NUMBER,
-                        t1.DEFAULT_VALUE
+                        NVL(t1.JSON_CONFIG, t1.DEFAULT_VALUE) AS DEFAULT_VALUE
                     FROM KPI_TYPE T0 
                     INNER JOIN KPI_INDICATOR T2 ON T0.RELATED_INDICATOR_ID = T2.ID
                     INNER JOIN KPI_INDICATOR_INDICATOR_MAP T1 ON T2.ID = T1.MAIN_INDICATOR_ID

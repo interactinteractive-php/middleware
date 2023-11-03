@@ -1883,8 +1883,18 @@ class Mdmetadata extends Controller {
         $this->view->longitude = Input::param($longitude);
 
         if (Input::isEmpty('latitude') == false && Input::isEmpty('longitude') == false) {
-            $this->view->latitude = Input::post('latitude');
-            $this->view->longitude = Input::post('longitude');
+            
+            $latitude = Input::post('latitude');
+            $longitude = Input::post('longitude');
+            
+            if ((float) $latitude > (float) $longitude) {
+                $latitudeTmp = $latitude;
+                $latitude = $longitude;
+                $longitude = $latitudeTmp;
+            }
+            
+            $this->view->latitude = $latitude;
+            $this->view->longitude = $longitude;
         }
 
         $response = array(

@@ -1503,4 +1503,9 @@ class Mdprocessflow extends Controller {
         jsonResponse($response);
     }
     
+    public function getTaskFlowType() {
+        $response = $this->model->getTaskFlowTypeModel();
+        jsonResponse($response);
+    }    
+    
 }

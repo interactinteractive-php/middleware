@@ -380,6 +380,8 @@ $(function() {
                             if (data.lastRunTaskFlow) {
                                 $('div[data-dobpid="'+data.lastRunTaskFlow._taskflowinfo.doprocessid+'"]', '#metaProcessDetial').eq(0).closest('.wfposition').removeClass('wfcomplexbpWillWork');
                             }
+                            
+                            $('div[data-dobpid="'+mainBpId+'"]', '#metaProcessDetial').eq(0).closest('.wfposition').addClass('d-none');
 
                             // $('.wfposition').draggable({
                             //     containment: '#workFlowEditor',
@@ -943,6 +945,7 @@ function runTaskFlowRenderBp(elem) {
 
     var processForm = $this.closest("form#wsForm"), responseBpJsonData = {};
     processForm.find('input[name="responseType"]').val('json');
+    
     processForm.ajaxSubmit({
         type: "post",
         url: "mdwebservice/runProcess",
@@ -952,7 +955,9 @@ function runTaskFlowRenderBp(elem) {
         },
         success: function (responseData) {
             if (responseData.status === 'success') {
-                responseBpJsonData = responseData.paramData
+                if (Object.keys(responseData.paramData).length) {
+                    responseBpJsonData = responseData.paramData;
+                }
             }
         },
         error: function () {

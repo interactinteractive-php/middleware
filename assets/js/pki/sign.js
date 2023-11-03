@@ -912,3 +912,36 @@ function ShowRegisterWin() {
     });
     
 }
+
+function redirectFunction (element, url) {
+    var $parent = $(element).parent();
+
+    $.ajax({
+        type: 'post',
+        url: url,
+        dataType: 'json',
+        beforeSend: function () {
+            Core.blockUI({message: 'Loading...', boxed: true});
+        },
+        success: function (data) {
+            if (data['status'] !== 'success') {
+                new PNotify({
+                    title: 'Error',
+                    text: data.message,
+                    type: 'error',
+                    sticker: false
+                });
+            } else {
+                $parent.find('a.newtab').attr('href', data.href);
+                console.log($parent.find('a.newtab'));
+                $parent.find('a.newtab')[0].click();
+            }
+
+            Core.unblockUI();
+        },
+        error: function (jqXHR, exception) {
+            Core.showErrorMessage(jqXHR, exception);
+            Core.unblockUI();
+        }
+    });
+} 

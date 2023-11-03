@@ -436,16 +436,30 @@ class Mdstatement extends Controller {
                     
                     if (strpos($groupHeader.$groupFooter.$tableFoot.self::$addonTableFoot, 'sum(#'.$groupKey.'#)')) {
                         
-                        $groupHeader = str_replace('sum(#'.$groupKey.'#)', $groupKey.'_sum_'.$rowDepth, $groupHeader);
-                        $groupFooter = str_replace('sum(#'.$groupKey.'#)', $groupKey.'_sum_'.$rowDepth, $groupFooter);
-                        $tableFoot = str_replace('sum(#'.$groupKey.'#)', $groupKey.'_sum_'.$rowDepth, $tableFoot);
-                        
-                        self::$addonTableFoot = str_replace('sum(#'.$groupKey.'#)', $groupKey.'_sum_'.$rowDepth, self::$addonTableFoot);
-                        
-                        foreach (range($rowDepth, $groupingCount) as $number) {
-                            self::$data[$groupKey.'_sum_'.$number] = 0;
+                        if ($groupingCount != $rowDepth) {
+                            
+                            $sumVal = helperSumFieldBp($groupedRow['rows'], $groupKey);
+                            
+                            $groupHeader = str_replace('sum(#'.$groupKey.'#)', $sumVal, $groupHeader);
+                            $groupFooter = str_replace('sum(#'.$groupKey.'#)', $sumVal, $groupFooter);
+                            $tableFoot = str_replace('sum(#'.$groupKey.'#)', $sumVal, $tableFoot);
+                            
+                            self::$addonTableFoot = str_replace('sum(#'.$groupKey.'#)', $sumVal, self::$addonTableFoot);
+                            
+                        } else {
+                            
+                            $groupHeader = str_replace('sum(#'.$groupKey.'#)', $groupKey.'_sum_'.$rowDepth, $groupHeader);
+                            $groupFooter = str_replace('sum(#'.$groupKey.'#)', $groupKey.'_sum_'.$rowDepth, $groupFooter);
+                            $tableFoot = str_replace('sum(#'.$groupKey.'#)', $groupKey.'_sum_'.$rowDepth, $tableFoot);
+
+                            self::$addonTableFoot = str_replace('sum(#'.$groupKey.'#)', $groupKey.'_sum_'.$rowDepth, self::$addonTableFoot);
+
+                            foreach (range($rowDepth, $groupingCount) as $number) {
+                                self::$data[$groupKey.'_sum_'.$number] = 0;
+                            }
                         }
                     }
+                    
                     if (isset(self::$data[$groupKey.'_sum_'.$rowDepth])) {
                         self::$data[$groupKey.'_sum_'.$rowDepth] = 0;
                     }
@@ -721,37 +735,40 @@ class Mdstatement extends Controller {
 
                 $tableBodyRow = $tableBody;
                 $addonTableBodyRow = self::$addonTableBody;
-
+                
                 eval($expressionArr['rowExp']);
                 
                 foreach ($row as $k => $v) {
                     
-                    if (isset(self::$data[$k.'_sum'])) {
-                        self::$data[$k.'_sum'] += $v;
-                    }
-                    if (isset(self::$data[$k.'_avg']) && $v != '') {
-                        self::$data[$k.'_avg'] += $v;
-                        self::$data[$k.'_avgCount'] += 1;
-                    }
-                    if (isset(self::$data[$k.'_min'])) {
-                        array_push(self::$data[$k.'_min'], $v);
-                    }
-                    if (isset(self::$data[$k.'_max'])) {
-                        array_push(self::$data[$k.'_max'], $v);
-                    }
+                    if (is_numeric($v)) {
+                        
+                        if (isset(self::$data[$k.'_sum'])) {
+                            self::$data[$k.'_sum'] += $v;
+                        }
+                        if (isset(self::$data[$k.'_avg'])) {
+                            self::$data[$k.'_avg'] += $v;
+                            self::$data[$k.'_avgCount'] += 1;
+                        }
+                        if (isset(self::$data[$k.'_min'])) {
+                            array_push(self::$data[$k.'_min'], $v);
+                        }
+                        if (isset(self::$data[$k.'_max'])) {
+                            array_push(self::$data[$k.'_max'], $v);
+                        }
 
-                    if (isset(self::$data[$k.'_sum_'.$rowDepth])) {
-                        self::$data[$k.'_sum_'.$rowDepth] += $v;
-                    }
-                    if (isset(self::$data[$k.'_avg_'.$rowDepth]) && $v != '') {
-                        self::$data[$k.'_avg_'.$rowDepth] += $v;
-                        self::$data[$k.'_avgCount_'.$rowDepth] += 1;
-                    }
-                    if (isset(self::$data[$k.'_min_'.$rowDepth])) {
-                        array_push(self::$data[$k.'_min_'.$rowDepth], $v);
-                    }
-                    if (isset(self::$data[$k.'_max_'.$rowDepth])) {
-                        array_push(self::$data[$k.'_max_'.$rowDepth], $v);
+                        if (isset(self::$data[$k.'_sum_'.$rowDepth])) {
+                            self::$data[$k.'_sum_'.$rowDepth] += $v;
+                        }
+                        if (isset(self::$data[$k.'_avg_'.$rowDepth])) {
+                            self::$data[$k.'_avg_'.$rowDepth] += $v;
+                            self::$data[$k.'_avgCount_'.$rowDepth] += 1;
+                        }
+                        if (isset(self::$data[$k.'_min_'.$rowDepth])) {
+                            array_push(self::$data[$k.'_min_'.$rowDepth], $v);
+                        }
+                        if (isset(self::$data[$k.'_max_'.$rowDepth])) {
+                            array_push(self::$data[$k.'_max_'.$rowDepth], $v);
+                        }
                     }
                         
                     if (isset(self::$isRenderColumn[$k])) {
@@ -1862,7 +1879,6 @@ class Mdstatement extends Controller {
                             eval($hdrFtrEval);
     
                             $html = $hdrFtrHtml;
-                            
                         }
                         
                         for ($i = 1, $index = 0; $index <= $days; $i++, $index++) {
@@ -2184,7 +2200,7 @@ class Mdstatement extends Controller {
     }
     
     public static function detailFormatMoneyScale($v, $field) {
-        if (empty($v)) {
+        if (empty($v) || !is_numeric($v)) {
             return '0';
         } else {
             $scale = self::$dataViewColumnsTypeScale[$field];
@@ -2215,7 +2231,7 @@ class Mdstatement extends Controller {
     }
     
     public static function formatDecimalZero($v) {
-        return empty($v) ? '0' : Number::trimTrailingZeroes(number_format($v, 2, '.', ','));
+        return (empty($v) || !is_numeric($v)) ? '0' : Number::trimTrailingZeroes(number_format($v, 2, '.', ','));
     }
     
     public static function getval($html, $dataRows) {
@@ -2296,7 +2312,7 @@ class Mdstatement extends Controller {
                     $ev = str_replace('|', ',', $ev);
                     $ev = str_replace('OROR', '||', $ev);
                     
-                    $calcEval = @eval($ev);
+                    $calcEval = Mdcommon::expressionEvalFix($ev);
                     $calcEval = (is_numeric($calcEval) && is_infinite($calcEval)) ? 0 : $calcEval;
                     $calcEval = is_nan($calcEval) ? 0 : $calcEval;
                     
@@ -2331,7 +2347,7 @@ class Mdstatement extends Controller {
                     $ev = str_replace('|', ',', $ev);
                     $ev = str_replace('OROR', '||', $ev);
                     
-                    $calcEval = self::findNumberFormatting(@eval($ev));
+                    $calcEval = self::findNumberFormatting(Mdcommon::expressionEvalFix($ev));
                     
                     $html = str_replace($htmlExpression[0][$ek], $calcEval, $html);
                 }
@@ -2354,7 +2370,7 @@ class Mdstatement extends Controller {
                     $ev = str_replace('return <', "return '<", $ev);
                     $ev = str_replace('>;', ">';", $ev);
                     
-                    $calcEval = @eval($ev);
+                    $calcEval = Mdcommon::expressionEvalFix($ev);
                     $html = str_replace($htmlExpression[0][$ek], $calcEval, $html);
                 }
             }
@@ -2364,7 +2380,11 @@ class Mdstatement extends Controller {
     }
 
     public static function findNumberFormatting($str) {
-
+        
+        if ($str == '') {
+            return null;
+        }
+        
         $htmlObj = phpQuery::newDocumentHTML($str);      
         $matches = $htmlObj->find('span:not(:empty)');
         
@@ -2400,6 +2420,7 @@ class Mdstatement extends Controller {
             preg_match_all('/calExp\[(.*?)\]/i', $html, $htmlExpression);
 
             if (count($htmlExpression[0]) > 0) {
+                
                 foreach ($htmlExpression[1] as $ek => $ev) {
                     
                     $evalStr = str_replace(',', '', strip_tags($ev));
@@ -2427,7 +2448,7 @@ class Mdstatement extends Controller {
                     $evalStr = str_replace('|', ',', $evalStr);
                     $evalStr = trim($evalStr);
                     
-                    $calcEval = @eval('return ('.$evalStr.');');
+                    $calcEval = Mdcommon::expressionEvalFixWithReturn($evalStr);
                     $calcEval = (is_numeric($calcEval) && is_infinite($calcEval)) ? 0 : $calcEval;
                     $calcEval = is_nan($calcEval) ? 0 : $calcEval;
                     
@@ -4310,9 +4331,9 @@ class Mdstatement extends Controller {
                 $id = @eval($joinGroupKeys);
 
                 if (isset($resultArr[$id])) {
-                    $resultArr[$id] += isset($rowdv[$response]) ? $rowdv[$response] : 0;
+                    $resultArr[$id] += (isset($rowdv[$response]) && is_numeric($rowdv[$response])) ? $rowdv[$response] : 0;
                 } else {
-                    $resultArr[$id] = isset($rowdv[$response]) ? $rowdv[$response] : 0;
+                    $resultArr[$id] = (isset($rowdv[$response]) && is_numeric($rowdv[$response])) ? $rowdv[$response] : 0;
                 }                
             }
             
@@ -4321,9 +4342,9 @@ class Mdstatement extends Controller {
             foreach ($getRows as $rowdv) {
 
                 if (isset($resultArr[$response])) {
-                    $resultArr[$response] += isset($rowdv[$response]) ? $rowdv[$response] : 0;
+                    $resultArr[$response] += (isset($rowdv[$response]) && is_numeric($rowdv[$response])) ? $rowdv[$response] : 0;
                 } else {
-                    $resultArr[$response] = isset($rowdv[$response]) ? $rowdv[$response] : 0;
+                    $resultArr[$response] = (isset($rowdv[$response]) && is_numeric($rowdv[$response])) ? $rowdv[$response] : 0;
                 }                
             }
         }

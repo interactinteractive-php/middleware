@@ -38,21 +38,6 @@
                 <input type="text" id="scanItemCode" class="form-control form-control-sm ignorebarcode" placeholder="<?php echo $this->lang->line('POS_0003'); ?>" style="width: 227px">
             </td>
         </tr>
-        <?php
-        // foreach ($this->sidebarShowList['']['rows'] as $row) {
-        //     if ($row['path'] == 'itemId') {
-        //         if (array_key_exists($row['ordernumber'], $this->sidebarShowList)) {
-        //             foreach ($this->sidebarShowList[$row['ordernumber']]['rows'] as $childRow) { ?>
-        <!-- //                 <tr>
-        //                     <td class="text-right"><?php echo $childRow['name']; ?>:</td>
-        //                     <td data-field-name="detail-customer-<?php echo Str::lower($childRow['path']); ?>"></td>
-        //                 </tr>                         -->
-                     <?php                     
-        //             }
-        //         }
-        //     }
-        // }        
-        ?>
         <tr>
             <td class="text-right"><?php echo $this->lang->line('code'); ?>:</td>
             <td data-field-name="detail-code"></td>

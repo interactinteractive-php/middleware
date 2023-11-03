@@ -56,6 +56,65 @@
                 }
             }
         });
+        bp_window_<?php echo $this->methodId; ?>.on('click', '.show-bpdtl-comment-btn', function() {
+            var $this = $(this); $parent = $this.closest('tr');
+            var sourceId = $parent.find('> td > input[data-field-name="id"]').val();        
+            var refId = $this.data('refstructureid');
+
+            $.ajax({
+                type: 'post',
+                url: 'mdwebservice/renderEditModeBpCommentTab',
+                data: {uniqId: getUniqueId(''), refStructureId: refId, sourceId: sourceId},
+                beforeSend: function() {
+                    Core.blockUI({
+                      message: "Loading...",
+                      boxed: true
+                    });
+                },
+                success: function(data) {
+                    Core.unblockUI();
+
+                    var $dialogName2 = "dialog-bpdtl-comment";
+                    if (!$($dialogName2).length) {
+                      $('<div id="' + $dialogName2 + '"></div>').appendTo("body");
+                    }
+                    var $dialog2 = $("#" + $dialogName2);
+
+                    $dialog2.empty().append(data);
+
+                    $dialog2.dialog({
+                      cache: false,
+                      resizable: false,
+                      bgiframe: true,
+                      autoOpen: false,
+                      title: 'Сэтгэгдэл',
+                      width: 500,
+                      height: "auto",
+                      modal: true,
+                      position: { my: "top", at: "top+100" },
+                      open: function () {
+                        disableScrolling();
+                      },
+                      close: function () {
+                        enableScrolling();
+                        $dialog2.empty().dialog("destroy").remove();
+                      },
+                      buttons: [{
+                          text: plang.get("close_btn"),
+                          class: "btn btn-sm blue-hoki",
+                          click: function () {
+                            $dialog2.dialog("close");
+                          },
+                        }]
+                    });
+
+                    $dialog2.dialog("open");
+                },
+                error: function() {
+                    alert('Error');
+                }
+            });            
+        });        
         bp_window_<?php echo $this->methodId; ?>.on('change', "select.linked-combo:not(.kpi-ind-combo), select[data-criteria-param]", function(e, isTrigger){
             var $this = $(this), attrToJson = '';
             
@@ -1194,14 +1253,34 @@
         }
 
         if (bp_window_<?php echo $this->methodId; ?>.find('input[name="processSubType"]').val() === 'endtoend') {
+            bp_window_<?php echo $this->methodId; ?>.find('.center-sidebar').addClass('hidden');
+            
+            var response = $.ajax({
+              type: "post",
+              url: "Mdprocessflow/getTaskFlowType",
+              data: {
+                mainBpId: "<?php echo $this->methodId; ?>"
+              },
+              dataType: "json",
+              async: false
+            });
+            var responseValue = response.responseJSON;      
+            
+            if (responseValue.TASKFLOW_TYPE === 'UI') {
+                bp_window_<?php echo $this->methodId; ?>.find('.center-sidebar').removeClass('hidden');
+            }
+            
             var taskFlowSelectedRow = <?php echo json_encode($this->selectedRowData); ?>;
-            bp_window_<?php echo $this->methodId; ?>.closest('.ui-dialog').find('.ui-dialog-buttonset').prepend('<button type="button" class="btn green-meadow btn-sm bp-continue-taskflow-btn">Үргэлжлүүлэх</button>')
+            if (responseValue.TASKFLOW_TYPE === 'UI') {
+                bp_window_<?php echo $this->methodId; ?>.closest('.ui-dialog').find('.ui-dialog-buttonset').prepend('<button type="button" class="btn green-meadow btn-sm bp-continue-taskflow-btn-<?php echo $this->uniqId; ?>">Үргэлжлүүлэх</button>')
+            } else {
+                bp_window_<?php echo $this->methodId; ?>.closest('.ui-dialog').find('.ui-dialog-buttonset').prepend('<button type="button" class="d-none btn green-meadow btn-sm bp-continue-taskflow-btn-<?php echo $this->uniqId; ?>">Үргэлжлүүлэх</button>')
+            }
             <?php if (Input::post('isTaskFlowView') != '1') { ?>
-                $(document.body).on("click", ".bp-continue-taskflow-btn", function (e) {
+                $(document.body).on("click", ".bp-continue-taskflow-btn-<?php echo $this->uniqId; ?>", function (e) {
                     var $this = $(this);
                     $this.hide();
 
-                    // bp_window_<?php echo $this->methodId; ?>.find('.bp-header-param').closest('.center-sidebar').addClass('hidden');                
                     if (typeof _taskFlowSelectedRow === 'undefined') {                
                         $.getScript(URL_APP + 'assets/custom/addon/plugins/jsplumb/jsplumb.min.js', function() {
                             if ($("link[href='assets/custom/addon/plugins/jsplumb/css/style.v3.css']").length == 0) {
@@ -1218,7 +1297,11 @@
                     }       
 
                     $this.closest('.ui-dialog').find('.center-sidebar').addClass('hidden');
-                });                             
+                });   
+                if (responseValue.TASKFLOW_TYPE !== 'UI') {
+                    bp_window_<?php echo $this->methodId; ?>.closest('.ui-dialog').find('.ui-dialog-buttonset').find('.bp-continue-taskflow-btn-<?php echo $this->uniqId; ?>').trigger('click');
+                }
+                bp_window_<?php echo $this->methodId; ?>.closest('.ui-dialog').find('.ui-dialog-buttonset').find('.bp-btn-save').addClass('hide');
             <?php } ?>
         }
     });

@@ -9,8 +9,7 @@
  * @author	B.Och-Erdene <ocherdene@interactive.mn>
  * @link	http://www.interactive.mn/PHPframework/Middleware/Mdexpression
  */
-class Mdexpression extends Controller
-{
+class Mdexpression extends Controller {
 
     public static $mainSelector = 'bp_window_';
     public static $searchMainSelector = 'dv_search_';
@@ -2530,6 +2529,8 @@ class Mdexpression extends Controller
         $fullExpression = str_replace('getEditSidebarValue(', 'bpGetEditSidebarValue(' . $mainSelector . ', ', $fullExpression);
         $fullExpression = str_replace('getRowIndex(', 'bpGetRowIndex(checkElement', $fullExpression);
         $fullExpression = str_replace('getWhat3words(', 'bpGetWhat3words(' . $mainSelector . ', checkElement, ', $fullExpression);
+        $fullExpression = str_replace('getOpenCageData(', 'bpGetOpenCageData(' . $mainSelector . ', checkElement, ', $fullExpression);
+        $fullExpression = str_replace('getGoogleGeoData(', 'bpGetGoogleGeoData(' . $mainSelector . ', checkElement, ', $fullExpression);
         $fullExpression = str_replace('getCivilInfo(', 'bpGetCivilInfo(', $fullExpression);
         $fullExpression = str_replace('getBankAccountBalance(', 'bpGetBankAccountBalance(', $fullExpression);
         $fullExpression = str_replace('getBankAccountInfo(', 'bpGetBankAccountInfo(', $fullExpression);
@@ -4773,9 +4774,8 @@ class Mdexpression extends Controller
         return $result;
     }
 
-    public function statementUIExpressionParse($expressionStr)
+    public static function statementUIExpressionParse($expressionStr)
     {
-
         preg_match_all('/\[([^\]]*)\].val\(\)/', $expressionStr, $getValPath);
         preg_match_all('/\[([^\]]*)\].filter\(\)/', $expressionStr, $getValPathFilter);
         preg_match_all('/\[(.*?)\].hide\(\)|\[(.*?)\].show\(\)/', $expressionStr, $parseExpressionlAttr);

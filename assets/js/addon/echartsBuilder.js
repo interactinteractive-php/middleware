@@ -123,8 +123,10 @@ var EchartBuilder = function() {
         option = {
             themeCode: chartConfig.themeCode,
         };
+        
+        console.clear();
         option = convertOptions(chartConfig, option);
-    
+        console.log(obj);
         var axisLabel = {},
             yAxis = {
                 type: 'value',
@@ -169,6 +171,7 @@ var EchartBuilder = function() {
             },
             label: seriesLabel,
         };
+        console.log(dataSet);
 
         switch (type) {
             case 'maps': 
@@ -523,18 +526,18 @@ var EchartBuilder = function() {
                     },
                 }; 
                 break;
-            case 'barPolar':
+            case 'bar_polar':
                 option = {
                     polar: {
-                    radius: [30, '80%']
+                        radius: [30, '80%']
                     },
                     radiusAxis: {
-                    max: 4
+                        max: 4
                     },
                     angleAxis: {
-                    type: 'category',
-                    data: obj.dataXaxis,
-                    startAngle: 75
+                        type: 'category',
+                        data: obj.dataXaxis,
+                        startAngle: 75
                     },
                     series: {
                         data: dataSet,
@@ -552,9 +555,246 @@ var EchartBuilder = function() {
                     }
                 };
                 break;
+            case 'line_race':
+                option.type = 'line';
+                
+                break;
             case 'stacked_column':
             case 'clustered_column':
-                type = 'bar';
+            case 'bar_stacked':
+            case 'bar_radial':
+            case 'bar_label_rotation':
+                option.type = 'bar';
+
+            case 'line_stacked':
+                option.type = 'line';
+                var axisXColumn = (chartConfig.axisX).toLowerCase(); 
+                var axisXGroup = (chartConfig.axisXGroup).toLowerCase(); 
+
+                var tmp = {};
+                var xAxisData = [],
+                    legendData = [];
+
+                $.each(obj.dataXaxis, function (index, row) {
+                    if ($.inArray(row, legendData) === -1) {
+                        legendData.push(row);
+                    }
+                });
+                
+                $.each(obj.data, function (index, row) {
+                    if ($.inArray(row[axisXGroup], xAxisData) === -1) {
+                        xAxisData.push(row[axisXGroup]);
+                    }
+                });
+
+                /* begin main constant */
+                
+                var app = {};
+                posList = [
+                    'left',
+                    'right',
+                    'top',
+                    'bottom',
+                    'inside',
+                    'insideTop',
+                    'insideLeft',
+                    'insideRight',
+                    'insideBottom',
+                    'insideTopLeft',
+                    'insideTopRight',
+                    'insideBottomLeft',
+                    'insideBottomRight'
+                ];
+
+                app.configParameters = {
+                    rotate: {
+                        min: -90,
+                        max: 90
+                    },
+                    align: {
+                        options: {
+                        left: 'left',
+                        center: 'center',
+                        right: 'right'
+                        }
+                    },
+                    verticalAlign: {
+                        options: {
+                        top: 'top',
+                        middle: 'middle',
+                        bottom: 'bottom'
+                        }
+                    },
+                    position: {
+                        options: posList.reduce(function (map, pos) {
+                        map[pos] = pos;
+                        return map;
+                        }, {})
+                    },
+                    distance: {
+                        min: 0,
+                        max: 100
+                    }
+                };
+
+                app.config = {
+                    rotate: 90,
+                    align: 'left',
+                    verticalAlign: 'middle',
+                    position: 'insideBottom',
+                    distance: 15,
+                    onChange: function () {
+                        const labelOption = {
+                            rotate: app.config.rotate,
+                            align: app.config.align,
+                            verticalAlign: app.config.verticalAlign,
+                            position: app.config.position,
+                            distance: app.config.distance
+                        };
+                        myChart.setOption({
+                            series: [
+                                {
+                                label: labelOption
+                                },
+                                {
+                                label: labelOption
+                                },
+                                {
+                                label: labelOption
+                                },
+                                {
+                                label: labelOption
+                                }
+                            ]
+                        });
+                    }
+                };
+
+                const labelOption = {
+                    show: true,
+                    position: app.config.position,
+                    distance: app.config.distance,
+                    align: app.config.align,
+                    verticalAlign: app.config.verticalAlign,
+                    rotate: app.config.rotate,
+                    formatter: '{c}  {name|{a}}',
+                    fontSize: 16,
+                    rich: {
+                        name: {}
+                    }
+                };
+                /* end main constant */
+
+                var seriesTmp = [];
+                if (type === 'bar_stacked') {
+                    tmp['stack'] = 'total';
+                }
+
+                $.each(xAxisData, function (x, xk) {
+                    var tmp = {
+                        name: xk,
+                        type: 'bar',
+                        barGap: 0,
+                        /* label: labelOption, */
+                        emphasis: {
+                            focus: 'series'
+                        },
+                        data: []
+                    };
+                    
+                    if (type === 'bar_stacked') {
+                        tmp = {
+                            name: xk,
+                            type: 'bar',
+                            barGap: 0,
+                            stack: 'total',
+                            /* label: labelOption, */
+                            emphasis: {
+                                focus: 'series'
+                            },
+                            data: []
+                        };
+                    };
+
+                    if (type === 'line_stacked') {
+                        tmp = {
+                            name: xk,
+                            type: 'line',
+                            barGap: 0,
+                            stack: 'total',
+                            /* label: labelOption, */
+                            emphasis: {
+                                focus: 'series'
+                            },
+                            data: []
+                        };
+                    };
+
+                    var dataTmp = [];
+                    $.each(legendData, function (l, lk) {
+                        dataTmp.push(0);
+                        $.each(obj.data, function (index, row) {
+                            if (row[axisXGroup] === xk && row['name'] === lk) {
+                                dataTmp[l] = row['value'];
+                            }
+                        });
+
+                    });
+
+                    tmp.data = dataTmp;
+                    seriesTmp.push(tmp);
+                });
+
+                tmp['series'] = seriesTmp;
+                
+                tmp['xAxis'] = [{
+                    type: 'category',
+                    axisTick: { show: false },
+                    data: xAxisData
+                }];
+
+                tmp['legend'] = {
+                    data: legendData
+                };
+
+                /* tmp['tooltip'] = {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow' // 'shadow' as default; can also be 'line' or 'shadow'
+                    }
+                }; */
+
+                tmp['yAxis'] = [{
+                    type: 'value'
+                }];
+
+                tmp['toolbox'] = {
+                    show: true,
+                    orient: 'vertical',
+                    left: 'right',
+                    top: 'center',
+                    feature: {
+                        mark: { show: true },
+                        dataView: { show: true, readOnly: false },
+                        magicType: { show: true, type: ['line', 'bar', 'stack'] },
+                        restore: { show: true },
+                        saveAsImage: { show: true }
+                    }
+                };
+
+                if (type !== 'bar_label_rotation') {
+                    tmp['toolbox']['show'] = false;
+                }
+                
+                option = {
+                    ...option,
+                    ...tmp,
+                };
+
+                break;
+            case 'treemap_disk':
+                type = 'treemap';
+                break;
             case 'tree_circle' : 
                 option = {
                     /* tooltip: {
@@ -669,7 +909,7 @@ var EchartBuilder = function() {
         /* myChart.on('finished', function () {
             console.log('ffinished');
         }); */
-        
+        console.log(option);
         option && myChart.setOption(option);
         var jsonMinif = JSON.stringify(option);
         $mainSelector.find('.kpi-dm-chart-create').attr('data-config', jsonMinif);

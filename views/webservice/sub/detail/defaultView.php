@@ -14,6 +14,7 @@ $htmlGridFoot = '<td></td>';
 $gridRowTypePath = $firstLevelRowArr = $getDtlRowsPopup = array();
 $sidebarGroupArr_[$row['id']] = array();
 $isMultiRow = ($row['recordtype'] == 'rows') ? true : false;
+$isComment = issetParam($row['jsonConfig']['isComment']) ? true : false;
 
 $widgetCode = issetParam($row['widgetCode']);
 
@@ -217,7 +218,7 @@ if ($row['recordtype'] == 'rows' && !empty($row['sidebarName'])) {
         if (isset($sidebarShowRowsDtl_[$row['id']])) {
             $actionWidth = 70;
         }
-        $htmlHeaderCell = '<th class="action ' . ($row['isShowDelete'] === '1' ? '' : 'hide') . '" style="width:' . $actionWidth . 'px;"></th>';
+        $htmlHeaderCell .= '<th class="action ' . ($row['isShowDelete'] === '1' ? '' : 'hide') . '" style="width:' . $actionWidth . 'px;"></th>';
         $htmlBodyCell .= '<td class="text-center middle' . ($row['isShowDelete'] === '1' ? '' : ' hide') . '">';
 
         if (isset($sidebarShowRowsDtl_[$row['id']])) {

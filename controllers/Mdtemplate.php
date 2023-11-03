@@ -410,7 +410,7 @@ class Mdtemplate extends Controller {
         return $templateHTML;
     }
     
-    public static function aggregateDtlGroup($templateHTML, $dataElement, $dataModelId) {
+    public function aggregateDtlGroup($templateHTML, $dataElement, $dataModelId) {
         
         if (strpos($templateHTML, 'sum(') !== false) {
             preg_match_all('/sum\(#(.*?)#\)/i', $templateHTML, $htmlSum);
@@ -1015,9 +1015,9 @@ class Mdtemplate extends Controller {
                         if ($columnAggrRow['aggregate'] == 'sum') {
                             $aggregateVal = Number::amount(helperSumFieldBp($detailData, $columnAggrRow['paramName']));
                         } elseif ($columnAggrRow['aggregate'] == 'min') {
-                            $aggregateVal = Number::amount(min(array_column($detailData, $columnAggrRow['paramName'])));
+                            $aggregateVal = Number::amount(helperMinFieldBp($detailData, $columnAggrRow['paramName']));
                         } elseif ($columnAggrRow['aggregate'] == 'max') {
-                            $aggregateVal = Number::amount(max(array_column($detailData, $columnAggrRow['paramName'])));
+                            $aggregateVal = Number::amount(helperMaxFieldBp($detailData, $columnAggrRow['paramName']));
                         }
 
                         $tblFootHtml = str_replace('<td data-col="'.$columnAggrRow['paramName'].'"></td>', '<td data-col="'.$columnAggrRow['paramName'].'" style="text-align:right;font-weight:bold;'.($columnAggrRow['fontSize'] ? 'font-size:'.$columnAggrRow['fontSize'] : '').'">'.$aggregateVal.'</td>', $tblFootHtml);
@@ -1149,7 +1149,7 @@ class Mdtemplate extends Controller {
             $this->view->isSettingsDialog = Input::param($print_options['isSettingsDialog']);
             $this->view->isShowPreview = Input::param($print_options['isShowPreview']);
             $this->view->isPrintPageBottom = Input::param($print_options['isPrintPageBottom']);
-            $this->view->isPrintSaveTemplate = Input::param($print_options['isPrintSaveTemplate']);
+            $this->view->isPrintSaveTemplate = issetVar($print_options['isPrintSaveTemplate']);
             $this->view->isPrintPageRight = Input::param($print_options['isPrintPageRight']);
             $this->view->pageOrientation = Input::param($print_options['pageOrientation']);
             $this->view->paperInput = Input::param($print_options['paperInput']);

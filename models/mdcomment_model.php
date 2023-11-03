@@ -377,9 +377,9 @@ class Mdcomment_Model extends Model {
                 $isChild = array_find_val($rows, 'PARENT_ID', $row['COMMENT_ID']);
                     
                 if ($depth == 0) {
-                    $comment[] = '<li class="media flex-column flex-md-row border-bottom-1 mt0 border-gray pt-2 pb-1" data-comment-id="'.$row['COMMENT_ID'].'" data-user-id="'.$row['USER_ID'].'">';
+                    $comment[] = '<li class="media flex-column flex-md-row border-top-1 mt0 border-gray pt-2 pb-1" data-comment-id="'.$row['COMMENT_ID'].'" data-user-id="'.$row['USER_ID'].'">';
                 } else {
-                    $comment[] = '<div class="media flex-column flex-md-row border-bottom-1 mt0 border-gray pt-2 pb-1" data-comment-id="'.$row['COMMENT_ID'].'" data-user-id="'.$row['USER_ID'].'">';
+                    $comment[] = '<div class="media flex-column flex-md-row border-top-1 mt0 border-gray pt-2 pb-1" data-comment-id="'.$row['COMMENT_ID'].'" data-user-id="'.$row['USER_ID'].'">';
                 }
 
                     $comment[] = '<div class="mr-md-1 mb-2 mb-md-0">';
@@ -388,6 +388,8 @@ class Mdcomment_Model extends Model {
 
                     $comment[] = '<div class="media-body">';
 
+                        $comment[] = '<div class="p-2 pb3" style="background-color: #F3F4F6;border-radius: 0.5rem;">';
+                        
                         $comment[] = '<div class="media-title">';
                             $comment[] = '<a href="javascript:;" class="font-weight-semibold" tabindex="-1">'.($row['FIRST_NAME'] ? $row['FIRST_NAME'] : $row['USERNAME']).'</a>';
                             $comment[] = '<span class="text-muted ml-3 font-size-sm">'.Date::formatter($row['CREATED_DATE'], 'Y/m/d H:i').'</span>';
@@ -403,6 +405,8 @@ class Mdcomment_Model extends Model {
                         $comment[] = '</div>';
 
                         $comment[] = '<p class="mb-2 line-height-normal">'.$row['COMMENT_TEXT'].'</p>';
+                        
+                        $comment[] = '</div>';
 
                         $comment[] = '<ul class="list-inline list-inline-dotted font-size-sm">';
 

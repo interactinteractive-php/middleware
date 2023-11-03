@@ -2329,9 +2329,11 @@ class Mdprocessflow_model extends Model {
 
         $result = $this->ws->runSerializeResponse(Mdwebservice::$gfServiceAddress, Mddatamodel::$getDataViewCommand, $param);
 
-        if ($result) {
+        if (isset($result['result'][0])) {
+            
             unset($result['result']['aggregatecolumns']);
-            unset($result['result']['paging']);                  
+            unset($result['result']['paging']);
+            
             $response['total'] = count($result['result']);
             $response['rows'] = $result['result'];
         } else {
@@ -5999,6 +6001,15 @@ class Mdprocessflow_model extends Model {
             FROM META_PROCESS_WORKFLOW_ROLE MD
                 INNER JOIN UM_ROLE UR ON MD.ROLE_ID = UR.ROLE_ID
             WHERE MD.META_DATA_ID = $idPh", array($idPh2));
+
+        return $metaData;
+    }
+
+    public function getTaskFlowTypeModel() {
+        $idPh = $this->db->Param(0);
+        $idPh2 = Input::post('mainBpId');
+        
+        $metaData = $this->db->GetRow("SELECT TASKFLOW_TYPE FROM META_PROCESS_WORKFLOW WHERE MAIN_BP_ID = $idPh AND DO_BP_ID = $idPh", array($idPh2));
 
         return $metaData;
     }

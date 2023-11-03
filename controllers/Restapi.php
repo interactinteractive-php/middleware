@@ -459,6 +459,8 @@ class Restapi extends Controller {
             $response = array('status' => 'error', 'text' => 'Invalid command!');
         }
         
+        $isMobile = true;
+        
         if ($isMobile || self::isPhpGzCompressionInProcess() == false) {
             
             $compressed = json_encode(array('response' => $response), JSON_UNESCAPED_UNICODE);
@@ -718,7 +720,7 @@ class Restapi extends Controller {
     
     public function runIndicatorFromMetaProcessData() {
         $param = file_get_contents('php://input');
-        @file_put_contents('log/runIndicatorFromMetaProcessData.log', $param);
+        @file_put_contents('log/runIndicatorFromMetaProcessData.log', "\n" . Date::currentDate() . "\n" . $param, FILE_APPEND);
         
         $inputParam = json_decode($param, true);
         

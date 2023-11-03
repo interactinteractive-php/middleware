@@ -55,24 +55,44 @@ class Mdhelpdesk extends Controller {
         }
     }
     
-    public function veritechLogin() 
+    public function ssoLogin() 
     {
+        $this->view->isAjax = is_ajax_request();
         Auth::handleLogin();
         
         $result = $this->ws->runArrayResponse(GF_SERVICE_ADDRESS, 'CHECK_UM_USER_004', array('filterUserId' => Ue::sessionUserId()));
-        
-        if ($result['status'] == 'success' && isset($result['result'])) {
+        try {
+            if (issetParam($result['status']) == 'success' && isset($result['result'])) {
             
-            $result['result']['expiredate'] = Date::currentDate('Y-m-d H:i:s');
-            
-            $hashJson = json_encode($result['result'], JSON_UNESCAPED_UNICODE);
-            $hash = Hash::encryption($hashJson);
-            $hash = str_replace(array('+', '='), array('tttnmhttt', 'ttttntsuttt'), $hash);
-            
-            header('location: https://help.veritech.mn/login/authorization?user='. $hash);
-        } else {
-            echo 'No data! CHECK_UM_USER_004';
+                if (!issetParam($result['result']['email'])) {
+                    throw new Exception("И-мэйл тохируулаагүй байна!"); 
+                }
+    
+                $result['result']['expiredate'] = Date::currentDate('Y-m-d H:i:s');
+                
+                $hashJson = json_encode($result['result'], JSON_UNESCAPED_UNICODE);
+                $hash = Hash::encryption($hashJson);
+                $hash = str_replace(array('+', '='), array('tttnmhttt', 'ttttntsuttt'), $hash);
+                $response = array('status' => 'success', 'href' => 'https://help.veritech.mn/login/authorization?user='. $hash);
+                
+            } else {
+                throw new Exception("No data! CHECK_UM_USER_004"); 
+            }
+
+        } catch (Exception $ex) {
+            $response = array('status' => 'error', 'message' => $ex->getMessage(), 'ex' => $ex);
         }
+
+        if (!$this->view->isAjax) {
+            if ($response['status'] === 'error') {
+                echo $response['message'];
+            } else {
+                header('location: ' . $response['href']);
+            }
+        } else {
+            convJson($response);
+        }
+        
     }
     
     public function getCustomer()

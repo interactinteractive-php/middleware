@@ -503,7 +503,7 @@ if ($this->isDialog == false) {
                         $gridBodyData = '';
 
                         /*if ($this->fillParamData) {
-                            $renderFirstLevelDtl = Mdwebservice::renderFirstLevelDtl($this->uniqId, $this->methodId, $row, $getDtlRowsPopup, $isMultiRow, $this->fillParamData);
+                            $renderFirstLevelDtl = (new Mdwebservice())->renderFirstLevelDtl($this->uniqId, $this->methodId, $row, $getDtlRowsPopup, $isMultiRow, $this->fillParamData);
                             if ($renderFirstLevelDtl) {
                                 $gridBody = $renderFirstLevelDtl['gridBody'];
                                 $gridBodyRow = Mdwebservice::renderFirstLevelAddEditDtlRow($this->methodId, $firstLevelRowArr, $row['code'], $row['columnCount'], $this->fillParamData);

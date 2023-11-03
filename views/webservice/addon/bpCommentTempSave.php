@@ -1,4 +1,4 @@
-<li class="media flex-column flex-md-row border-bottom-1 mt0 border-gray pt-2 pb-1" data-temp-comment="1">
+<li class="media flex-column flex-md-row border-top-1 mt0 border-gray pt-2 pb-1" data-temp-comment="1">
     <div class="mr-md-1 mb-2 mb-md-0">
         <?php 
         $currentDate = Date::currentDate('Y/m/d H:i');

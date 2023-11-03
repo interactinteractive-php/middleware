@@ -410,7 +410,7 @@ class Mdcommon extends Controller {
                     $isAppendSet = true;
                 }
                 
-                $renderFirstLevelDtl = Mdwebservice::renderFirstLevelDtl($uniqId, $processId, $row, $getDtlRowsPopup, true, $responseData);
+                $renderFirstLevelDtl = (new Mdwebservice())->renderFirstLevelDtl($uniqId, $processId, $row, $getDtlRowsPopup, true, $responseData);
                     
                 $response = array(
                     'html'       => $renderFirstLevelDtl['gridBodyData'], 
@@ -427,7 +427,7 @@ class Mdcommon extends Controller {
                     $response['append'] = '1';
                 }
 
-                echo json_encode($response); exit;
+                echo json_encode($response, JSON_UNESCAPED_UNICODE); exit;
             }
             
         } else {
@@ -1891,6 +1891,56 @@ class Mdcommon extends Controller {
         }
         
         jsonResponse($response);
+    }
+    
+    public static function expressionEvalFixWithReturn($evalStr) {
+        
+        try {
+            
+            $returnedVal = @eval('return ('.$evalStr.');');
+            return $returnedVal;
+            
+        } catch (Throwable $p) {
+            
+            $msg = $p->getMessage();
+            
+            if (strpos($msg, 'Undefined constant') !== false) {
+                
+                $constant = str_replace('Undefined constant "', '', $msg);
+                $constant = str_replace('"', '', $constant);
+                
+                define($constant, null);
+                
+                return self::expressionEvalFixWithReturn($evalStr);
+            }
+            
+            return null;
+        } 
+    }
+    
+    public static function expressionEvalFix($evalStr) {
+        
+        try {
+            
+            $returnedVal = @eval($evalStr);
+            return $returnedVal;
+            
+        } catch (Throwable $p) {
+            
+            $msg = $p->getMessage();
+            
+            if (strpos($msg, 'Undefined constant') !== false) {
+                
+                $constant = str_replace('Undefined constant "', '', $msg);
+                $constant = str_replace('"', '', $constant);
+                
+                define($constant, null);
+                
+                return self::expressionEvalFix($evalStr);
+            }
+            
+            return null;
+        } 
     }
     
 }

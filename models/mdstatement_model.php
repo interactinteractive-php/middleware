@@ -2883,7 +2883,7 @@ class Mdstatement_model extends Model {
                     'CREATED_DATE' => $currentDate
                 );
                 $this->db->AutoExecute('RP_REPORT_PARAMS', $insertData);
-                $this->db->UpdateClob('RP_REPORT_PARAMS', 'PARAM_VALUE', $params[$defaultParam['FIELD_PATH']], " ID = ".$rparamId);
+                $this->db->UpdateClob('RP_REPORT_PARAMS', 'PARAM_VALUE', $params[$defaultParam['FIELD_PATH']], 'ID = '.$rparamId);
                 
             } elseif ($fieldType == 'Тогтмол' && isset($constantKeys['#'.$defaultParam['FIELD_PATH'].'#'])) {
 

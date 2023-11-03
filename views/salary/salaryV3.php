@@ -159,8 +159,8 @@ if (!$this->isAjax) {
                                                             $param = array(
                                                                 'data' => array(
                                                                     array(
-                                                                        'id' => isset($this->salaryBookInfo) ? $this->salaryBookInfo['CRITERIA_TEMPLATE_ID'] : '',
-                                                                        'name' => isset($this->salaryBookInfo) ? $this->salaryBookInfo['CRITERIA_TEMPLATE_NAME'] : ''
+                                                                        'id' => issetParam($this->salaryBookInfo['CRITERIA_TEMPLATE_ID']),
+                                                                        'name' => issetParam($this->salaryBookInfo['CRITERIA_TEMPLATE_NAME'])
                                                                     )
                                                                 ),
                                                                 'op_value' => 'id',
@@ -169,7 +169,7 @@ if (!$this->isAjax) {
                                                                 'id' => 'criteriaTemplateId',
                                                                 'text' => $this->lang->line('choose'),
                                                                 'class' => 'form-control form-control-sm dropdownInput select2 mt2',
-                                                                'value' => isset($this->salaryBookInfo) ? $this->salaryBookInfo['CRITERIA_TEMPLATE_ID'] : '',
+                                                                'value' => issetParam($this->salaryBookInfo['CRITERIA_TEMPLATE_ID']),
                                                             );
                                                             if (!isset($this->salaryBookInfo)) {
                                                                 $param['disabled'] = '';

@@ -93,6 +93,10 @@ if (Config::getFromCache('CONFIG_MULTI_TAB')) {
 }
 ?>
 
+<script type="text/javascript">
+    var layoutLinkIdjs = '<?php echo $this->layoutLinkId; ?>';
+</script>
+
 <?php 
 echo isset($this->defaultCss) ? $this->defaultCss : ''; 
 echo isset($this->defaultJs) ? $this->defaultJs : ''; 
@@ -474,6 +478,9 @@ echo isset($this->defaultJs) ? $this->defaultJs : '';
             dataType: "json",
             //async: isChartAsync, 
             beforeSend: function () {
+                if (typeof activeAjaxRequests !== 'undefined') {
+                    activeAjaxRequests = activeAjaxRequests+2;
+                }
                 if (executeType !== 'refreshTimer') {
                     Core.blockUI({
                         animate: true
@@ -562,6 +569,9 @@ echo isset($this->defaultJs) ? $this->defaultJs : '';
             url: 'mdobject/dataview/' + metaDataId + '/<?php echo $this->layoutLink['IS_HIDE_BUTTON'] ?>',
             //async: isChartAsync, 
             beforeSend: function () {
+                if (typeof activeAjaxRequests !== 'undefined') {
+                    activeAjaxRequests = activeAjaxRequests+2;
+                }                
                 if (executeType !== 'refreshTimer') {
                     Core.blockUI({
                         animate: true

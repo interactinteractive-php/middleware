@@ -176,7 +176,7 @@ if ($this->itemList) {
         if (isset($item['couponkeyid']) && $item['couponkeyid'] != '') {
             $isJob = '2';
             $qtyReadonly = ' readonly="readonly" data-accept-remove="1"';
-            $giftButton = '<button type="button" class="btn btn-xs red-intense" title="'+$this->lang->line('POS_0044')+'"><i class="fa fa-credit-card"></i></button>';
+            $giftButton = '<button type="button" class="btn btn-xs red-intense" title="'.$this->lang->line('POS_0044').'"><i class="fa fa-credit-card"></i></button>';
         }
 
         if (isset($item['printcopies'])) {

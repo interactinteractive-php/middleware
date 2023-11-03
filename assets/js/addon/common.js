@@ -416,7 +416,6 @@ function changeVisualWfm(elem, processMetaDataId, dataViewId, selectedRow, param
         }
     });
 }
-
 function customImageMarkerWithDVView(elem, processMetaDataId, dataViewId, selectedRow, paramData, urlLower) {
     var $dialogName = 'dialog-pos-rest-drawtables';
     if (!$('#' + $dialogName).length) {

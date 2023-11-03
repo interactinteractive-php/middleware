@@ -31,6 +31,7 @@ $bigGridView = ($row['dtlTheme'] == '13' || $row['dtlTheme'] == '15' || $row['dt
 $sidebarDtlView = ($row['dtlTheme'] == '2') ? false : true;
 $isTwoRightColumnFreeze = false;
 $isMultiRow = ($row['recordtype'] == 'rows') ? true : false;
+$isComment = issetParam($row['jsonConfig']['isComment']) ? true : false;
 
 $widgetCode = issetParam($row['widgetCode']);
 $availableWidgets = Mdwidget::bpDetailAvailableWidgets($widgetCode);
@@ -466,6 +467,9 @@ if ($isMultiRow && !empty($row['sidebarName'])) {
             $actionWidth = 70;
         }
 
+        if ($isComment) {
+            $htmlHeaderCell .= '<th class="" style="width:' . $actionWidth . 'px; min-width:' . $actionWidth . 'px;"></th>';
+        }
         $htmlHeaderCell .= '<th class="action bp-dtl-action-col' . ($row['isShowDelete'] === '1' ? '' : ' hide') . '" style="width:' . $actionWidth . 'px; min-width:' . $actionWidth . 'px;" datarowspan="0"></th>';
         $htmlBodyCell .= '<td class="text-center stretchInput middle tbl-cell-right-freeze' . ($row['isShowDelete'] === '1' ? '' : ' hide') . '">';
 

@@ -133,13 +133,12 @@ class Mdobject extends Controller {
                     'ids' => rtrim($ids, ','), 
                     'codes' => rtrim($codes, ', '), 
                     'names' => rtrim($names, ', ')
-                )
+                ), JSON_UNESCAPED_UNICODE
             );
             
         } else {
             echo '';
         }
-        exit;
     }
     
     public function autoCompleteById() {
@@ -393,14 +392,18 @@ class Mdobject extends Controller {
         $inputParams = Input::post('inputParams');
         $inputParamArr = Str::simple_parse_str($inputParams);
         $linkedCombo = $this->model->getLinkedComboMetaGroup($inputMetaDataId, $selfParam, $isProcess);
-
-        if ($isProcess) {
-            $data = $this->model->responseDataForProcessLinkedCombo($inputMetaDataId, $linkedCombo['LOOKUP_META_DATA_ID'], $selfParam, $inputParamArr);
+        
+        if (isset($linkedCombo['LOOKUP_META_DATA_ID'])) {
+            if ($isProcess) {
+                $data = $this->model->responseDataForProcessLinkedCombo($inputMetaDataId, $linkedCombo['LOOKUP_META_DATA_ID'], $selfParam, $inputParamArr);
+            } else {
+                $data = $this->model->responseDataForMetaGroupLinkedCombo($inputMetaDataId, $linkedCombo['LOOKUP_META_DATA_ID'], $selfParam, $inputParamArr);
+            }
         } else {
-            $data = $this->model->responseDataForMetaGroupLinkedCombo($inputMetaDataId, $linkedCombo['LOOKUP_META_DATA_ID'], $selfParam, $inputParamArr);
+            $data = array($selfParam => array());
         }
 
-        echo json_encode($data); 
+        echo json_encode($data, JSON_UNESCAPED_UNICODE); 
     }
 
     public function autoCompleteObjectTypeByMetaCode() {
@@ -2254,69 +2257,170 @@ class Mdobject extends Controller {
             "<LI>" => '',
         );    
         
-        if ($groupField = Input::post('groupField')) {
+        if (isset($exportDataRows[0])) {
             
-            $key = 0;
+            if ($groupField = Input::post('groupField')) {
             
-            $lastColumnName = numToAlpha($headerCount + 1);
-            $groupedRows    = Arr::groupByArray($exportDataRows, $groupField);
-            
-            foreach ($groupedRows as $groupedName => $groupedVal) {
-                
-                $exportDataRows = $groupedVal['rows'];
+                $key = 0;
 
-                if ($gridOptions['GROUPSUM'] === 'true' && isset($exportData['footer'])) {
-                    $footerData = $exportData['footer'][0];
-                    $cellSumValue = [];
+                $lastColumnName = numToAlpha($headerCount + 1);
+                $groupedRows    = Arr::groupByArray($exportDataRows, $groupField);
 
-                    foreach ($exportDataRows as $value) {
-                        foreach ($headerData as $k => $item) {
-                            if (isset($value[$item['FIELD_PATH']]) && is_numeric($value[$item['FIELD_PATH']]) && 'bigdecimal' == $item['META_TYPE_CODE']) {
-                                if (!isset($cellSumValue[$item['FIELD_PATH']])) {
-                                    $cellSumValue[$item['FIELD_PATH']] = 0;
-                                }                                
-                                if (isset($value['pfsumrules']) && $value['pfsumrules']) {
-                                    if ($value['pfsumrules'] == 'addition') {
+                foreach ($groupedRows as $groupedName => $groupedVal) {
+
+                    $exportDataRows = $groupedVal['rows'];
+
+                    if ($gridOptions['GROUPSUM'] === 'true' && isset($exportData['footer'])) {
+                        $footerData = $exportData['footer'][0];
+                        $cellSumValue = [];
+
+                        foreach ($exportDataRows as $value) {
+                            foreach ($headerData as $k => $item) {
+                                if (isset($value[$item['FIELD_PATH']]) && is_numeric($value[$item['FIELD_PATH']]) && 'bigdecimal' == $item['META_TYPE_CODE']) {
+                                    if (!isset($cellSumValue[$item['FIELD_PATH']])) {
+                                        $cellSumValue[$item['FIELD_PATH']] = 0;
+                                    }                                
+                                    if (isset($value['pfsumrules']) && $value['pfsumrules']) {
+                                        if ($value['pfsumrules'] == 'addition') {
+                                            $cellSumValue[$item['FIELD_PATH']] += isset($value[$item['FIELD_PATH']]) ? $value[$item['FIELD_PATH']] : 0;
+                                        } elseif ($value['pfsumrules'] == 'subtract') {
+                                            $cellSumValue[$item['FIELD_PATH']] -= isset($value[$item['FIELD_PATH']]) ? $value[$item['FIELD_PATH']] : 0;
+                                        }
+                                    } elseif (array_key_exists('pfsumrules', $value) && !$value['pfsumrules']) {
+                                        $cellSumValue[$item['FIELD_PATH']] += 0;
+                                    } else {
                                         $cellSumValue[$item['FIELD_PATH']] += isset($value[$item['FIELD_PATH']]) ? $value[$item['FIELD_PATH']] : 0;
-                                    } elseif ($value['pfsumrules'] == 'subtract') {
-                                        $cellSumValue[$item['FIELD_PATH']] -= isset($value[$item['FIELD_PATH']]) ? $value[$item['FIELD_PATH']] : 0;
                                     }
-                                } elseif (array_key_exists('pfsumrules', $value) && !$value['pfsumrules']) {
-                                    $cellSumValue[$item['FIELD_PATH']] += 0;
-                                } else {
-                                    $cellSumValue[$item['FIELD_PATH']] += isset($value[$item['FIELD_PATH']]) ? $value[$item['FIELD_PATH']] : 0;
                                 }
                             }
                         }
+
+                        $sheet->setCellValue($aColumnName.$i, $groupedName);
+                        $sheet->mergeCells($aColumnName.$i.':B'.$i);
+                        $sheet->getStyle($aColumnName.$i)->applyFromArray(array('font' => array('bold' => true)));                    
+
+                        foreach ($headerData as $k => $item) {
+                            $numToAlpha = numToAlpha($k + 2);
+
+                            if (isset($cellSumValue[$item['FIELD_PATH']])) {
+                                $sheet->setCellValueExplicit($numToAlpha . $i, $cellSumValue[$item['FIELD_PATH']], PHPExcel_Cell_DataType::TYPE_NUMERIC);
+                                $sheet->getStyle($numToAlpha.$i)->applyFromArray(array('font' => array('bold' => true, 'color' => array('rgb' => '3333ff'))));                    
+                            } else {
+                                $sheet->setCellValueExplicit($numToAlpha . $i, '', PHPExcel_Cell_DataType::TYPE_STRING);
+                            }
+                        }                    
+
+                    } else {
+
+                        $sheet->setCellValue($aColumnName.$i, $groupedName);
+                        $sheet->mergeCells($aColumnName.$i.':'.$lastColumnName.$i);
+                        $sheet->getStyle($aColumnName.$i)->applyFromArray(array('font' => array('bold' => true)));
+
                     }
 
-                    $sheet->setCellValue($aColumnName.$i, $groupedName);
-                    $sheet->mergeCells($aColumnName.$i.':B'.$i);
-                    $sheet->getStyle($aColumnName.$i)->applyFromArray(array('font' => array('bold' => true)));                    
+                    $i++;
 
-                    foreach ($headerData as $k => $item) {
-                        $numToAlpha = numToAlpha($k + 2);
+                    foreach ($exportDataRows as $value) {
 
-                        if (isset($cellSumValue[$item['FIELD_PATH']])) {
-                            $sheet->setCellValueExplicit($numToAlpha . $i, $cellSumValue[$item['FIELD_PATH']], PHPExcel_Cell_DataType::TYPE_NUMERIC);
-                            $sheet->getStyle($numToAlpha.$i)->applyFromArray(array('font' => array('bold' => true, 'color' => array('rgb' => '3333ff'))));                    
-                        } else {
-                            $sheet->setCellValueExplicit($numToAlpha . $i, '', PHPExcel_Cell_DataType::TYPE_STRING);
+                        $sheet->setCellValue($aColumnName . $i, ++$key);
+
+                        foreach ($headerData as $k => $item) {
+
+                            $typeCode   = $item['META_TYPE_CODE'];
+                            $numToAlpha = numToAlpha($k + 2);
+                            $cellValue  = isset($value[$item['FIELD_PATH']]) ? $value[$item['FIELD_PATH']] : '';
+
+                            if ($item['FIELD_PATH'] == 'pfnextstatuscolumn' && is_array($cellValue)) {
+                                $wfmString = '';
+                                foreach ($cellValue as $cellRow) {
+                                    if (isset($cellRow['wfmstatusname'])) {
+                                        $wfmString .= $cellRow['wfmstatusname'] . ', ';
+                                    }
+                                }
+                                $cellValue = rtrim($wfmString, ', ');
+                            }
+
+                            if ($typeCode == 'date') {
+
+                                $sheet->setCellValueExplicit($numToAlpha . $i, Date::formatter($cellValue, 'Y-m-d'), PHPExcel_Cell_DataType::TYPE_STRING);
+
+                            } elseif ($typeCode == 'datetime') {
+
+                                $sheet->setCellValueExplicit($numToAlpha . $i, Date::formatter($cellValue, 'Y-m-d H:i'), PHPExcel_Cell_DataType::TYPE_STRING);
+
+                            } elseif ($typeCode == 'bigdecimal') {
+
+                                $sheet->setCellValueExplicit($numToAlpha . $i, $cellValue, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+
+                            } elseif ($typeCode == 'boolean') {
+
+                                $sheet->setCellValueExplicit($numToAlpha . $i, ($cellValue == '1' ? '✓' : ''), PHPExcel_Cell_DataType::TYPE_STRING);
+                                $sheet->getStyle($numToAlpha . $i)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
+                            } elseif ($item['LABEL_NAME'] == '*') {
+
+                                if (strpos($cellValue, 'fa-chain-broken')) {
+                                    $cellValue = '✗';
+                                } elseif (strpos($cellValue, 'fa-chain')) {
+                                    $cellValue = '✓';
+                                }
+
+                                $sheet->setCellValueExplicit($numToAlpha . $i, $cellValue, PHPExcel_Cell_DataType::TYPE_STRING);
+
+                            } else {
+
+                                if (strpos($cellValue, '<br>') !== false || strpos($cellValue, '<br />') !== false 
+                                    || strpos($cellValue, '<br/>') !== false || strpos($cellValue, '</li>') !== false 
+                                    || strpos($cellValue, '</LI>') !== false || strpos($cellValue, '</a>') !== false) {
+
+                                    $cellValue = strip_tags(str_replace(array('<br/>','<br>','<br />','</li>','</LI>'), "\n", strtr(trim($cellValue), $repArr)));
+                                    $alphaColumns[$numToAlpha] = 1;
+
+                                } elseif (strpos($cellValue, '<tr>') !== false || strpos($cellValue, '<TR>') !== false) {
+
+                                    $repArr = array(
+                                        "<table>" => '', 
+                                        "<TABLE>" => '', 
+                                        "</TABLE>" => '', 
+                                        "</table>" => '', 
+                                        "<li>" => '', 
+                                        "<LI>" => '', 
+                                        "</td><td" => ' - <td', 
+                                    );      
+                                    $cellValue = strip_tags(str_replace(array('</tr>','</tr>'), "\n", strtr($cellValue, $repArr)));    
+                                    $alphaColumns[$numToAlpha] = 1;
+                                }
+
+                                $cellValue = str_replace('&quot;', '"', $cellValue);
+                                $cellValue = strip_tags($cellValue);
+
+                                $sheet->setCellValueExplicit($numToAlpha . $i, $cellValue, PHPExcel_Cell_DataType::TYPE_STRING);
+                            }
                         }
-                    }                    
 
-                } else {
-
-                    $sheet->setCellValue($aColumnName.$i, $groupedName);
-                    $sheet->mergeCells($aColumnName.$i.':'.$lastColumnName.$i);
-                    $sheet->getStyle($aColumnName.$i)->applyFromArray(array('font' => array('bold' => true)));
-
+                        $i++;
+                    }
                 }
-                
-                $i++;
-                
-                foreach ($exportDataRows as $value) {
-                    
+
+            } else {
+
+                $firstRow = $exportDataRows[0];
+                $isBulkUpdate = false;
+
+                if (isset($firstRow['pfupdatetblname']) 
+                    && isset($firstRow['pfupdatecolname']) 
+                    && isset($firstRow['pfupdatecolval']) 
+                    && isset($firstRow['pfupdateequalcolname']) 
+                    && isset($firstRow['pfupdateequalcolval']) 
+                    ) {
+
+                    $isBulkUpdate = true;
+                    $bulkUpdateEqualColVal = strtolower($firstRow['pfupdateequalcolval']);
+                    $bulkIds = array();
+                }
+
+                foreach ($exportDataRows as $key => $value) {
+
                     $sheet->setCellValue($aColumnName . $i, ++$key);
 
                     foreach ($headerData as $k => $item) {
@@ -2387,121 +2491,23 @@ class Mdobject extends Controller {
                             }
 
                             $cellValue = str_replace('&quot;', '"', $cellValue);
+                            $cellValue = str_replace('&gt;', '>', $cellValue);
+                            $cellValue = str_replace('&lt;', '<', $cellValue);
                             $cellValue = strip_tags($cellValue);
 
                             $sheet->setCellValueExplicit($numToAlpha . $i, $cellValue, PHPExcel_Cell_DataType::TYPE_STRING);
                         }
                     }
-                    
+
+                    if ($isTreeData && isset($treeColAlpha)) {
+                        $sheet->getStyle($treeColAlpha . $i)->getAlignment()->setIndent($value['indentlevel']);
+                    }
+
                     $i++;
-                }
-            }
-            
-        } else {
-            
-            $firstRow = $exportDataRows[0];
-            $isBulkUpdate = false;
-            
-            if (isset($firstRow['pfupdatetblname']) 
-                && isset($firstRow['pfupdatecolname']) 
-                && isset($firstRow['pfupdatecolval']) 
-                && isset($firstRow['pfupdateequalcolname']) 
-                && isset($firstRow['pfupdateequalcolval']) 
-                ) {
-                
-                $isBulkUpdate = true;
-                $bulkUpdateEqualColVal = strtolower($firstRow['pfupdateequalcolval']);
-                $bulkIds = array();
-            }
-            
-            foreach ($exportDataRows as $key => $value) {
-            
-                $sheet->setCellValue($aColumnName . $i, ++$key);
 
-                foreach ($headerData as $k => $item) {
-
-                    $typeCode   = $item['META_TYPE_CODE'];
-                    $numToAlpha = numToAlpha($k + 2);
-                    $cellValue  = isset($value[$item['FIELD_PATH']]) ? $value[$item['FIELD_PATH']] : '';
-
-                    if ($item['FIELD_PATH'] == 'pfnextstatuscolumn' && is_array($cellValue)) {
-                        $wfmString = '';
-                        foreach ($cellValue as $cellRow) {
-                            if (isset($cellRow['wfmstatusname'])) {
-                                $wfmString .= $cellRow['wfmstatusname'] . ', ';
-                            }
-                        }
-                        $cellValue = rtrim($wfmString, ', ');
+                    if ($isBulkUpdate && $value[$bulkUpdateEqualColVal]) {
+                        $bulkIds[] = $value[$bulkUpdateEqualColVal];
                     }
-
-                    if ($typeCode == 'date') {
-
-                        $sheet->setCellValueExplicit($numToAlpha . $i, Date::formatter($cellValue, 'Y-m-d'), PHPExcel_Cell_DataType::TYPE_STRING);
-
-                    } elseif ($typeCode == 'datetime') {
-
-                        $sheet->setCellValueExplicit($numToAlpha . $i, Date::formatter($cellValue, 'Y-m-d H:i'), PHPExcel_Cell_DataType::TYPE_STRING);
-
-                    } elseif ($typeCode == 'bigdecimal') {
-
-                        $sheet->setCellValueExplicit($numToAlpha . $i, $cellValue, PHPExcel_Cell_DataType::TYPE_NUMERIC);
-
-                    } elseif ($typeCode == 'boolean') {
-
-                        $sheet->setCellValueExplicit($numToAlpha . $i, ($cellValue == '1' ? '✓' : ''), PHPExcel_Cell_DataType::TYPE_STRING);
-                        $sheet->getStyle($numToAlpha . $i)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-
-                    } elseif ($item['LABEL_NAME'] == '*') {
-
-                        if (strpos($cellValue, 'fa-chain-broken')) {
-                            $cellValue = '✗';
-                        } elseif (strpos($cellValue, 'fa-chain')) {
-                            $cellValue = '✓';
-                        }
-
-                        $sheet->setCellValueExplicit($numToAlpha . $i, $cellValue, PHPExcel_Cell_DataType::TYPE_STRING);
-
-                    } else {
-
-                        if (strpos($cellValue, '<br>') !== false || strpos($cellValue, '<br />') !== false 
-                            || strpos($cellValue, '<br/>') !== false || strpos($cellValue, '</li>') !== false 
-                            || strpos($cellValue, '</LI>') !== false || strpos($cellValue, '</a>') !== false) {
-
-                            $cellValue = strip_tags(str_replace(array('<br/>','<br>','<br />','</li>','</LI>'), "\n", strtr(trim($cellValue), $repArr)));
-                            $alphaColumns[$numToAlpha] = 1;
-
-                        } elseif (strpos($cellValue, '<tr>') !== false || strpos($cellValue, '<TR>') !== false) {
-
-                            $repArr = array(
-                                "<table>" => '', 
-                                "<TABLE>" => '', 
-                                "</TABLE>" => '', 
-                                "</table>" => '', 
-                                "<li>" => '', 
-                                "<LI>" => '', 
-                                "</td><td" => ' - <td', 
-                            );      
-                            $cellValue = strip_tags(str_replace(array('</tr>','</tr>'), "\n", strtr($cellValue, $repArr)));    
-                            $alphaColumns[$numToAlpha] = 1;
-                        }
-
-                        $cellValue = str_replace('&quot;', '"', $cellValue);
-                        $cellValue = str_replace('&gt;', '>', $cellValue);
-                        $cellValue = str_replace('&lt;', '<', $cellValue);
-                        $cellValue = strip_tags($cellValue);
-
-                        $sheet->setCellValueExplicit($numToAlpha . $i, $cellValue, PHPExcel_Cell_DataType::TYPE_STRING);
-                    }
-                }
-                
-                if ($isTreeData && isset($treeColAlpha)) {
-                    $sheet->getStyle($treeColAlpha . $i)->getAlignment()->setIndent($value['indentlevel']);
-                }
-
-                $i++;
-                
-                if ($isBulkUpdate && $value[$bulkUpdateEqualColVal]) {
-                    $bulkIds[] = $value[$bulkUpdateEqualColVal];
                 }
             }
         }

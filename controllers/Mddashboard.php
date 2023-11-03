@@ -33,6 +33,10 @@ class Mddashboard extends Controller {
         $this->view->rowIdGmap = Input::post('rowId');
         $this->view->criteriaString = Input::post('defaultCriteriaData');
         
+        if ($this->view->metaDataId == 1505127833519) {
+            sleep(25);
+        }
+        
         $this->load->model('mddashboard', 'middleware/models/');
         
         $this->view->diagram = $this->model->getMetaDiagramLinkModel($this->view->metaDataId);
@@ -529,6 +533,7 @@ class Mddashboard extends Controller {
             'isExport'          => $isExport,
             'dataLabel'         => $dataLabel,
             'labelStep'         => $labelStep,
+            'labelText'         => issetParam($chartValues['LEGEND_FORMAT']),
             'isXLabel'          => $isXLabel,
             'isYLabel'          => $isYLabel,
             'isBackground'      => $isBackground,

@@ -2829,7 +2829,7 @@ $(function() {
         
         var $this = $(this);
         var $parent = $this.closest('.media-body');
-        var $p = $parent.find('> p:eq(0)');
+        var $p = $parent.find('> div > p:eq(0)');
             
         if (!$this.hasAttr('data-edit-opened')) {
             
@@ -9994,7 +9994,7 @@ function previewReportTemplateFromBp(elem, bpId, uniqId, reportTemplateCode, pro
 
     }, 200);
 }
-function bpFieldTextEditorClickToEdit(elem, triggerChange) {    
+function bpFieldTextEditorClickToEdit(elem, triggerChange, callback) {    
     var $this = $(elem), 
         $parent = $this.closest('.input-group'), 
         $contenteditable = $parent.find('[contenteditable="true"]'), 
@@ -10045,6 +10045,10 @@ function bpFieldTextEditorClickToEdit(elem, triggerChange) {
                 
                 if (typeof triggerChange !== 'undefined') {
                     $textarea.trigger('change');
+                }
+
+                if (typeof callback !== 'undefined') {
+                    window[callback]($this, $textarea.val());
                 }
 
                 $contenteditable.trigger('customEventHtmlClickToEdit');

@@ -572,7 +572,7 @@ class Mdwebservice extends Controller {
 
         $selectedValueIndex = 0;
 
-        if ($dataRow) {
+        if (isset($dataRow) && $dataRow) {
 
             $sizeOfStar = count($dataRow);
             
@@ -2751,7 +2751,7 @@ class Mdwebservice extends Controller {
                 if ($fillParamValue = self::findRowKeyValFillData($fillParamData, $lowerParamName)) {
                     $attrArray['value'] = $fillParamValue;
                 }
-                return html_tag('div', array('class' => 'input-group gmap-set-coordinate-control'), Form::text($attrArray) . '<span class="input-group-btn"><button onclick="setGMapCoordinate(this); return false;" class="btn btn-primary  mr0" style="position: absolute; right: 0;"><i class="fa fa-map-marker"></i></button></span>', true);
+                return html_tag('div', array('class' => 'input-group gmap-set-coordinate-control'), Form::text($attrArray) . '<span class="input-group-btn"><button onclick="setGMapCoordinate(this); return false;" class="btn btn-primary  mr0" data-fix-coordinate-pos="1" style="position: absolute; right: 0;"><i class="fa fa-map-marker"></i></button></span>', true);
 
             } elseif ($typeCode == 'region') {
                 
@@ -10498,6 +10498,7 @@ class Mdwebservice extends Controller {
         }
         
         $lowerKey = strtolower($row['code']);
+        $isComment = issetParam($row['jsonConfig']['isComment']) ? true : false;
         
         if (isset($fillParamData[$lowerKey])) {
             
@@ -10704,7 +10705,20 @@ class Mdwebservice extends Controller {
                             $gridBodyData .= '</td>';
                         }
                         
-                        $htmlBodyCell .= '<td class="text-center stretchInput middle tbl-cell-right-freeze' . ($row['isShowDelete'] === '1' ? '' : ' hide') . '">';
+                        if ($isComment) {
+                            $commentCnt = '';
+                            $commentCntClass = 'pt5 pb5';
+                            $commentPath = issetParam($row['jsonConfig']['commentCountPath']);
+                            if ($commentPath && issetParam($rowData[$commentPath])) {
+                                $commentCnt = $rowData[$commentPath];
+                                $commentCntClass = 'pl4 pr4';
+                            }                            
+                            $htmlBodyCell .= '<td class="text-center stretchInput middle">';
+                            $htmlBodyCell .= '<a href="javascript:;" class="btn btn-sm blue show-bpdtl-comment-btn '.$commentCntClass.'" data-refstructureid="'.issetParam($row['jsonConfig']['refStructureId']).'" title=""><div class="d-flex"><i class="far fa-comment pt4"></i> <span class="pl2">'.$commentCnt.'</span></div></a>';
+                            $htmlBodyCell .= '</td>';
+                        }                            
+                        
+                        $htmlBodyCell .= '<td class="text-center stretchInput middle tbl-cell-right-freeze' . ($row['isShowDelete'] === '1' ? '' : ' hide') . '">';                                           
                         
                         if ($sidebarShowRowsDtl_[$row['id']]) {
                             
@@ -11434,6 +11448,7 @@ class Mdwebservice extends Controller {
         $lowerKey = strtolower($row['code']);
         $isRowState = false;
         $gridBodyData = '';
+        $isComment = issetParam($row['jsonConfig']['isComment']) ? true : false;
         
         if (isset($fillParamData[$lowerKey])) {
             
@@ -11630,7 +11645,21 @@ class Mdwebservice extends Controller {
                                 $gridBodyData .= Mdwebservice::renderViewParamControl($methodId, array_merge($val, array('PARAM_REAL_PATH' => $row['code'] . '.rowState', 'META_DATA_CODE' => 'rowState', 'LOWER_PARAM_NAME' => 'rowstate', 'DEFAULT_VALUE' => 'unchanged', 'IS_SHOW' => '0')), "param[" . $row['code'] . ".rowState][$rk][]", $row['code'] . ".rowState", $rowData, $rk);
                                 $gridBodyData .= '</td>';
                             }
+                                                           
                         }
+                        
+                        if ($isComment) {
+                            $commentCnt = '';
+                            $commentCntClass = 'pt5 pb5';
+                            $commentPath = issetParam($row['jsonConfig']['commentCountPath']);
+                            if ($commentPath && issetParam($rowData[$commentPath])) {
+                                $commentCnt = $rowData[$commentPath];
+                                $commentCntClass = 'pl4 pr4';
+                            }                            
+                            $gridBodyData .= '<td class="text-center stretchInput middle">';
+                            $gridBodyData .= '<a href="javascript:;" class="btn btn-sm blue show-bpdtl-comment-btn '.$commentCntClass.'" data-refstructureid="'.issetParam($row['jsonConfig']['refStructureId']).'" title=""><div class="d-flex"><i class="far fa-comment pt4"></i> <span class="pl2">'.$commentCnt.'</span></div></a>';
+                            $gridBodyData .= '</td>';
+                        }                          
                         
                         if ($sidebarShowRowsDtl_[$row['id']]) {
                             
@@ -11764,7 +11793,7 @@ class Mdwebservice extends Controller {
         return false;
     }
 
-    public function renderFirstLevelAddEditDtlRow($methodId, $rowData, $parentMetaCode, $columnCount, $fillParamData = '') {
+    public static function renderFirstLevelAddEditDtlRow($methodId, $rowData, $parentMetaCode, $columnCount, $fillParamData = '') {
         $gridBodyRow = '';
         if (empty($rowData)) {
             return $gridBodyRow;
@@ -14361,8 +14390,8 @@ class Mdwebservice extends Controller {
                 }
                 
                 $idField = $attributes['id'];
-                $codeField = $attributes['code'];
-                $nameField = $attributes['name'];
+                $codeField = issetParam($attributes['code']);
+                $nameField = issetParam($attributes['name']);
                         
                 $criteria[$nameField][] = array(
                     'operator' => 'LIKE',
@@ -15126,107 +15155,6 @@ class Mdwebservice extends Controller {
         } else {
             return true;
         }
-    }
-
-    public function findCurrentParamFromAnotherDv($sectionDetail, $paramList, $headerData) {
-        $paramReaPathArray = explode('.', $sectionDetail['PARAM_REAL_PATH']);
-        if (count($paramReaPathArray) > 1) {
-            $dvPath = $paramReaPathArray[0];
-            if (isset($paramList[$dvPath])) {
-                foreach ($paramList[$dvPath]['data'] as $paramListDataArray) {
-                    if (strtolower($paramListDataArray['META_DATA_CODE']) == strtolower($sectionDetail['PARAM_PATH'])) {
-                        return $paramListDataArray;
-                    }
-                }
-            }
-        } else {
-            $path = $paramReaPathArray[0];
-            if (isset($headerData[strtolower($path)])) {
-                return $headerData[strtolower($path)];
-            }
-        }
-
-        return null;
-    }
-
-    public function findCurrentValueFromAnyDv($currentParamData, $fillData, $recordtype, $index = null) {
-        $paramReaPathArray = explode(".", $currentParamData['PARAM_REAL_PATH']);
-        if (count($paramReaPathArray) > 1) {
-            $dvPath = $paramReaPathArray[0];
-            if (isset($fillData[strtolower($dvPath)])) {
-                if ($recordtype == 'rows') {
-                    $fillDataDvRow = $fillData[strtolower($dvPath)][$index];
-                } else if ($recordtype == 'row') {
-                    $fillDataDvRow = $fillData[strtolower($dvPath)];
-                } else {
-                    return null;
-                }
-
-                if (isset($fillDataDvRow[strtolower($paramReaPathArray[1])])) {
-                    if (is_array($fillDataDvRow[strtolower($paramReaPathArray[1])])) {
-                        return $fillDataDvRow[strtolower($paramReaPathArray[1])]['id'];
-                    } else {
-                        return $fillDataDvRow[strtolower($paramReaPathArray[1])];
-                    }
-                } else {
-                    return null;
-                }
-            }
-        } else {
-            $path = $paramReaPathArray[0];
-            if (isset($fillData[strtolower($path)])) {
-                if (is_array($fillData[strtolower($path)])) {
-                    return $fillData[strtolower($path)]['id'];
-                } else {
-                    return $fillData[strtolower($path)];
-                }
-            }
-        }
-        return null;
-    }
-
-    public function renderHiddenParamForTheme($processMetaDataId, $paramList, $fillData) {
-        $html = '<div class="hidden">';
-
-        foreach ($paramList AS $param) {
-
-            if ($param['type'] == 'header') {
-
-                foreach ($param['data'] AS $row) {
-                    if ($row['IS_SHOW'] != '1') {
-                        
-                        $code = $row['META_DATA_CODE'];
-                        $path = $row['PARAM_REAL_PATH'];
-
-                        $html .= self::renderParamControl($processMetaDataId, $row, 'param[' . $path . ']', $code, $fillData);
-                    }
-                }
-                
-            } elseif ($param['type'] == 'detail' && isset($param['data'])) {
-
-                foreach ($param['data'] AS $row) {
-                    if ($row['IS_SHOW'] != '1' && substr_count($row['PARAM_REAL_PATH'], '.') == 1) {
-                        
-                        $code = $row['META_DATA_CODE'];
-                        $path = $row['PARAM_REAL_PATH'];
-                        
-                        $html .= self::renderParamControl($processMetaDataId, $row, 'param[' . $path . '][0][]', $code, $fillData);
-                    }
-                }
-            }
-        }
-
-        $html .= '</div>';
-
-        return $html;
-    }
-
-    public function drawGrid($paramTheme) {
-        if (!is_array($paramTheme)) {
-            return '';
-        }
-        $this->view->paramTheme = $paramTheme;
-        return $this->view->renderPrint('sub/renderGrid', self::$viewPath);
     }
 
     public static function findCriteria($processId, $tabHeaderContentArr) {

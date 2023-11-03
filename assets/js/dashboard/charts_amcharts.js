@@ -651,7 +651,6 @@ var ChartsAmcharts = function () {
     }
 
     var stacked = function (container, data, config, metaDataId, drillDown, mainMetaDataId) {
-
         var chartConfigs = {
             "type": "serial",
             "theme": "light",
@@ -2478,219 +2477,221 @@ var ChartsAmcharts = function () {
     }
 
     var threeDStackedClustered = function (container, data, config, metaDataId, dataChart, drillDown, mainMetaDataId) {
+        try {
         
-        if (typeof data !== "undefined") {
-          var tmpData = {},
-            isGrouped = false,
-            tmpDataGrouped = [],
-            configyAxisName = chartTitleSeparatorSplit(config.yAxisName);
+            if (typeof data !== "undefined") {
+              var tmpData = {},
+                isGrouped = false,
+                tmpDataGrouped = [],
+                configyAxisName = chartTitleSeparatorSplit(config.yAxisName);
 
-          $.each(data, function (key, value) {
-            if (typeof tmpData[value[config.xAxisName]] === "undefined") {
-              tmpData[value[config.xAxisName]] = {};
-              $.each(configyAxisName, function (splitedKey, splitedValue) {
-                var yAxisNameSplitedMore = splitedValue.split("_");
-                if (typeof yAxisNameSplitedMore[1] !== "undefined") {
-                  tmpData[value[config.xAxisName]][yAxisNameSplitedMore[1]] =
-                    !isNaN(value[yAxisNameSplitedMore[1]])
-                      ? value[yAxisNameSplitedMore[1]]
-                      : 0;
-                }
-              });
-            } else {
-              $.each(configyAxisName, function (splitedKey, splitedValue) {
-                var yAxisNameSplitedMore = splitedValue.split("_");
-                if (typeof yAxisNameSplitedMore[1] !== "undefined") {
-                  tmpData[value[config.xAxisName]][yAxisNameSplitedMore[1]] =
-                    parseFloat(
-                      tmpData[value[config.xAxisName]][yAxisNameSplitedMore[1]]
-                    ) + parseFloat(value[yAxisNameSplitedMore[1]]);
-                }
-              });
-
-              isGrouped = true;
-            }
-          });
-
-          if (isGrouped) {
-            var cnt = 0;
-            $.each(tmpData, function (key, value) {
-              tmpDataGrouped[cnt] = {};
-              tmpDataGrouped[cnt][config.xAxisName] = key;
-              $.each(configyAxisName, function (splitedKey, splitedValue) {
-                var yAxisNameSplitedMore = splitedValue.split("_");
-                if (typeof yAxisNameSplitedMore[1] !== "undefined") {
-                  tmpDataGrouped[cnt][yAxisNameSplitedMore[1]] = !isNaN(
-                    value[yAxisNameSplitedMore[1]]
-                  )
-                    ? parseFloat(value[yAxisNameSplitedMore[1]])
-                    : 0;
-                }
-              });
-
-              cnt++;
-            });
-
-            data = tmpDataGrouped;
-          } else {
-            var cnt = 0;
-            $.each(data, function (key, value) {
-              tmpDataGrouped[cnt] = {};
-              for (var i in value) {
-                tmpDataGrouped[cnt][i] = value[i];
-              }
-              cnt++;
-            });
-
-            data = tmpDataGrouped;
-          }
-        }
-
-        am4core.useTheme(am4themes_animated);
-        var chart = am4core.create(container, am4charts.XYChart3D);
-        chart.data = data;
-
-        chart.legend = new am4charts.Legend();
-        chart.legend.position = config.legendPosition;
-
-        // Create axes
-        var categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
-        categoryAxis.dataFields.category = config.xAxisName;
-        categoryAxis.renderer.grid.template.location = 0;
-        categoryAxis.renderer.minGridDistance = 30;
-        categoryAxis.renderer.labels.template.rotation = -config.xLabelRotation;
-
-        var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
-        valueAxis.title.text = "";
-        valueAxis.renderer.labels.template.adapter.add("text", function (text) {
-          return text;
-        });
-
-        // Create series
-        for (var i = 0; i < config.graphs.length; i++) {
-          var series = chart.series.push(new am4charts.ColumnSeries3D());
-          series.dataFields.valueY = config.graphs[i]["valueField"];
-          series.dataFields.categoryX = config.xAxisName;
-          series.name = config.graphs[i]["title"];
-          series.clustered = false;
-          series.columns.template.tooltipText =
-            config.graphs[i]["title"] + ": [bold]{valueY}[/]";
-        }        
-
-        /*if (typeof data !== "undefined") {
-            var tmpData = {}, isGrouped = false, tmpDataGrouped = [], 
-                configyAxisName = chartTitleSeparatorSplit(config.yAxisName);    
-
-            $.each(data, function (key, value) {
+              $.each(data, function (key, value) {
                 if (typeof tmpData[value[config.xAxisName]] === "undefined") {
-                    tmpData[value[config.xAxisName]] = {};
-                    $.each(configyAxisName, function (splitedKey, splitedValue) {
-                        var yAxisNameSplitedMore = splitedValue.split('_');
-                        if (typeof yAxisNameSplitedMore[1] !== "undefined") {
-                            tmpData[value[config.xAxisName]][yAxisNameSplitedMore[1]] = !isNaN(value[yAxisNameSplitedMore[1]]) ? value[yAxisNameSplitedMore[1]] : 0;
-                        }
-                    });
+                  tmpData[value[config.xAxisName]] = {};
+                  $.each(configyAxisName, function (splitedKey, splitedValue) {
+                    var yAxisNameSplitedMore = splitedValue.split("_");
+                    if (typeof yAxisNameSplitedMore[1] !== "undefined") {
+                      tmpData[value[config.xAxisName]][yAxisNameSplitedMore[1]] =
+                        !isNaN(value[yAxisNameSplitedMore[1]])
+                          ? value[yAxisNameSplitedMore[1]]
+                          : 0;
+                    }
+                  });
                 } else {
-                    $.each(configyAxisName, function (splitedKey, splitedValue) {
-                        var yAxisNameSplitedMore = splitedValue.split('_');
-                        if (typeof yAxisNameSplitedMore[1] !== "undefined") {
-                            tmpData[value[config.xAxisName]][yAxisNameSplitedMore[1]] = parseFloat(tmpData[value[config.xAxisName]][yAxisNameSplitedMore[1]]) + parseFloat(value[yAxisNameSplitedMore[1]]);
-                        }
-                    });
+                  $.each(configyAxisName, function (splitedKey, splitedValue) {
+                    var yAxisNameSplitedMore = splitedValue.split("_");
+                    if (typeof yAxisNameSplitedMore[1] !== "undefined") {
+                      tmpData[value[config.xAxisName]][yAxisNameSplitedMore[1]] =
+                        parseFloat(
+                          tmpData[value[config.xAxisName]][yAxisNameSplitedMore[1]]
+                        ) + parseFloat(value[yAxisNameSplitedMore[1]]);
+                    }
+                  });
 
-                    isGrouped = true;
+                  isGrouped = true;
                 }
-            });
+              });
 
-            if (isGrouped) {
+              if (isGrouped) {
                 var cnt = 0;
                 $.each(tmpData, function (key, value) {
-                    tmpDataGrouped[cnt] = {};
-                    tmpDataGrouped[cnt][config.xAxisName] = key;
-                    $.each(configyAxisName, function (splitedKey, splitedValue) {
-                        var yAxisNameSplitedMore = splitedValue.split('_');
-                        if (typeof yAxisNameSplitedMore[1] !== "undefined") {
-                            tmpDataGrouped[cnt][yAxisNameSplitedMore[1]] = !isNaN(value[yAxisNameSplitedMore[1]]) ? parseFloat(value[yAxisNameSplitedMore[1]]) : 0;
-                        }
-                    });
+                  tmpDataGrouped[cnt] = {};
+                  tmpDataGrouped[cnt][config.xAxisName] = key;
+                  $.each(configyAxisName, function (splitedKey, splitedValue) {
+                    var yAxisNameSplitedMore = splitedValue.split("_");
+                    if (typeof yAxisNameSplitedMore[1] !== "undefined") {
+                      tmpDataGrouped[cnt][yAxisNameSplitedMore[1]] = !isNaN(
+                        value[yAxisNameSplitedMore[1]]
+                      )
+                        ? parseFloat(value[yAxisNameSplitedMore[1]])
+                        : 0;
+                    }
+                  });
 
-                    cnt++;
+                  cnt++;
                 });
 
                 data = tmpDataGrouped;
-            } else {
+              } else {
                 var cnt = 0;
                 $.each(data, function (key, value) {
-                    tmpDataGrouped[cnt] = {};
-                    for (var i in value) {                    
-                        tmpDataGrouped[cnt][i] = !isNaN(value[i]) && value[i] ? parseFloat(value[i]) : value[i];
-                    }                    
-                    cnt++;
+                  tmpDataGrouped[cnt] = {};
+                  for (var i in value) {
+                    tmpDataGrouped[cnt][i] = value[i];
+                  }
+                  cnt++;
                 });
 
-                data = tmpDataGrouped;                
+                data = tmpDataGrouped;
+              }
             }
-        }
-        
-        $('#'+container).empty();
 
-        var chart = AmCharts.makeChart(container, {
-            "theme": "light",
-            "type": "serial",
-            "legend": {
-                "horizontalGap": 10,
-                "position": config.legendPosition,
-                "useGraphSettings": true,
-                "markerSize": 10,
-                "fontSize": chartValueFontSize,
-                "valueWidth": 140
-            },
-            "valueAxes": [{
-                "stackType": "3d",
-                "fontSize": chartValueFontSize,
-                "position": "left"
-            }],
-            "startDuration": 1,
-            "dataProvider": data,
-            "graphs": config.graphs,
-            "plotAreaFillAlphas": 0.1,
-            "depth3D": 60,
-            "angle": 30,
-            "categoryField": config.xAxisName,
-            "categoryAxis": {
-                "gridPosition": "start",
-                "fontSize": chartValueFontSize,
-                "labelRotation": config.xLabelRotation
-            },
-            "chartCursor": {
-                "enabled": true
-            },
-            "chartScrollbar": {
-                "enabled": true
-            },
-            exportConfig: {
-                "menu": [{
-                    "class": "export-main",
-                    "format": "PRINT"
-                }]
+            am4core.useTheme(am4themes_animated);
+            var chart = am4core.create(container, am4charts.XYChart3D);
+            chart.data = data;
+
+            chart.legend = new am4charts.Legend();
+            chart.legend.position = config.legendPosition;
+
+            // Create axes
+            var categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
+            categoryAxis.dataFields.category = config.xAxisName;
+            categoryAxis.renderer.grid.template.location = 0;
+            categoryAxis.renderer.minGridDistance = 30;
+            categoryAxis.renderer.labels.template.rotation = -config.xLabelRotation;
+
+            var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+            valueAxis.title.text = "";
+            valueAxis.renderer.labels.template.adapter.add("text", function (text) {
+              return text;
+            });
+
+            // Create series
+            for (var i = 0; i < config.graphs.length; i++) {
+              var series = chart.series.push(new am4charts.ColumnSeries3D());
+              series.dataFields.valueY = config.graphs[i]["valueField"];
+              series.dataFields.categoryX = config.xAxisName;
+              series.name = config.graphs[i]["title"];
+              series.clustered = false;
+              series.columns.template.tooltipText =
+                config.graphs[i]["title"] + ": [bold]{valueY}[/]";
+            }        
+
+            /*if (typeof data !== "undefined") {
+                var tmpData = {}, isGrouped = false, tmpDataGrouped = [], 
+                    configyAxisName = chartTitleSeparatorSplit(config.yAxisName);    
+
+                $.each(data, function (key, value) {
+                    if (typeof tmpData[value[config.xAxisName]] === "undefined") {
+                        tmpData[value[config.xAxisName]] = {};
+                        $.each(configyAxisName, function (splitedKey, splitedValue) {
+                            var yAxisNameSplitedMore = splitedValue.split('_');
+                            if (typeof yAxisNameSplitedMore[1] !== "undefined") {
+                                tmpData[value[config.xAxisName]][yAxisNameSplitedMore[1]] = !isNaN(value[yAxisNameSplitedMore[1]]) ? value[yAxisNameSplitedMore[1]] : 0;
+                            }
+                        });
+                    } else {
+                        $.each(configyAxisName, function (splitedKey, splitedValue) {
+                            var yAxisNameSplitedMore = splitedValue.split('_');
+                            if (typeof yAxisNameSplitedMore[1] !== "undefined") {
+                                tmpData[value[config.xAxisName]][yAxisNameSplitedMore[1]] = parseFloat(tmpData[value[config.xAxisName]][yAxisNameSplitedMore[1]]) + parseFloat(value[yAxisNameSplitedMore[1]]);
+                            }
+                        });
+
+                        isGrouped = true;
+                    }
+                });
+
+                if (isGrouped) {
+                    var cnt = 0;
+                    $.each(tmpData, function (key, value) {
+                        tmpDataGrouped[cnt] = {};
+                        tmpDataGrouped[cnt][config.xAxisName] = key;
+                        $.each(configyAxisName, function (splitedKey, splitedValue) {
+                            var yAxisNameSplitedMore = splitedValue.split('_');
+                            if (typeof yAxisNameSplitedMore[1] !== "undefined") {
+                                tmpDataGrouped[cnt][yAxisNameSplitedMore[1]] = !isNaN(value[yAxisNameSplitedMore[1]]) ? parseFloat(value[yAxisNameSplitedMore[1]]) : 0;
+                            }
+                        });
+
+                        cnt++;
+                    });
+
+                    data = tmpDataGrouped;
+                } else {
+                    var cnt = 0;
+                    $.each(data, function (key, value) {
+                        tmpDataGrouped[cnt] = {};
+                        for (var i in value) {                    
+                            tmpDataGrouped[cnt][i] = !isNaN(value[i]) && value[i] ? parseFloat(value[i]) : value[i];
+                        }                    
+                        cnt++;
+                    });
+
+                    data = tmpDataGrouped;                
+                }
             }
-        });
 
-        if ((config['cTheme']).length > 1) {
-            chart.colors = (config['cTheme']).split(' ');
-        }*/
+            $('#'+container).empty();
 
-        if (parseFloat(drillDown) > 0) {
-            if (typeof noDrillDown == 'undefined') {
-                series.slices.template.events.on("hit", function(event) {
-                    isSubChart = 1;
-                    selectedChartEvent = event.target;
-                    ChartsAmcharts.subChartInit(metaDataId, event.target, [], mainMetaDataId);
-                });     
+            var chart = AmCharts.makeChart(container, {
+                "theme": "light",
+                "type": "serial",
+                "legend": {
+                    "horizontalGap": 10,
+                    "position": config.legendPosition,
+                    "useGraphSettings": true,
+                    "markerSize": 10,
+                    "fontSize": chartValueFontSize,
+                    "valueWidth": 140
+                },
+                "valueAxes": [{
+                    "stackType": "3d",
+                    "fontSize": chartValueFontSize,
+                    "position": "left"
+                }],
+                "startDuration": 1,
+                "dataProvider": data,
+                "graphs": config.graphs,
+                "plotAreaFillAlphas": 0.1,
+                "depth3D": 60,
+                "angle": 30,
+                "categoryField": config.xAxisName,
+                "categoryAxis": {
+                    "gridPosition": "start",
+                    "fontSize": chartValueFontSize,
+                    "labelRotation": config.xLabelRotation
+                },
+                "chartCursor": {
+                    "enabled": true
+                },
+                "chartScrollbar": {
+                    "enabled": true
+                },
+                exportConfig: {
+                    "menu": [{
+                        "class": "export-main",
+                        "format": "PRINT"
+                    }]
+                }
+            });
+
+            if ((config['cTheme']).length > 1) {
+                chart.colors = (config['cTheme']).split(' ');
+            }*/
+
+            if (parseFloat(drillDown) > 0) {
+                if (typeof noDrillDown == 'undefined') {
+                    series.slices.template.events.on("hit", function(event) {
+                        isSubChart = 1;
+                        selectedChartEvent = event.target;
+                        ChartsAmcharts.subChartInit(metaDataId, event.target, [], mainMetaDataId);
+                    });     
+                }
             }
-        }
 
-        $('#dialog-dashboard-' + mainMetaDataId).height($('.amcharts-main-div').height() + 100);
+            $('#dialog-dashboard-' + mainMetaDataId).height($('.amcharts-main-div').height() + 100);
+        } catch (e) { console.log(e) }
     };
 
     var drawChartAmchart = function (defaultCriteriaData, chartType, metaDataId, callback, workSpaceParams, workSpaceId, criteriaPosition) {
@@ -3064,13 +3065,14 @@ var ChartsAmcharts = function () {
                 var colorField = (typeof response.colorField !== 'undefined' && response.colorField) ? response.colorField : "";
                 graphs = [];
                 var themeColor = cTheme.split(' ');
+                var labelText = (typeof response.labelText && response.labelText) ? response.labelText : "[[value]]";
                 $.each(yAxisArray, function (i, dtl) {
                     if (themeColor.length > 0) {
                         tempObject = {
                             "balloonText": "<b>[[title]]</b><br><span style='font-size:14px'>[[category]]: <b>[[value]]</b></span>",
                             "fillAlphas": 0.8,
                             "fillColors": themeColor[i],
-                            "labelText": "[[value]]",
+                            "labelText": labelText,
                             "lineAlpha": 0.3,
                             "title": dtl,
                             "fontSize": chartValueFontSize,
@@ -3086,7 +3088,7 @@ var ChartsAmcharts = function () {
                         tempObject = {
                             "balloonText": "<b>[[title]]</b><br><span style='font-size:14px'>[[category]]: <b>[[value]]</b></span>",
                             "fillAlphas": 0.8,
-                            "labelText": "[[value]]",
+                            "labelText": labelText,
                             "lineAlpha": 0.3,
                             "title": dtl,
                             "type": "column",
@@ -3112,7 +3114,7 @@ var ChartsAmcharts = function () {
                                 "fillAlphas": 0.8,
                                 "fillColors": themeColor[i],
                                 "colorField": colorField, 
-                                "labelText": "[[value]]",
+                                "labelText": labelText,
                                 "lineAlpha": 0.3,
                                 "title": dtl,
                                 "fontSize": chartValueFontSize,
@@ -3128,7 +3130,7 @@ var ChartsAmcharts = function () {
                                 "balloonText": "<b>[[title]]</b><br><span style='font-size:14px'>[[category]]: <b>[[value]]</b></span>",
                                 "fillAlphas": 0.8,
                                 "colorField": colorField, 
-                                "labelText": "[[value]]",
+                                "labelText": labelText,
                                 "lineAlpha": 0.3,
                                 "title": dtl,
                                 "type": "column",

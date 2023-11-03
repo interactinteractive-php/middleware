@@ -352,6 +352,9 @@ $(function() {
                     $kpiDMChartLineChartAggregateRow.removeClass('d-none');
                     break;
                 case 'stacked_column':
+                case 'bar_stacked':
+                case 'bar_label_rotation':
+                case 'line_stacked':
 
                     $kpiDMChartCategoryGroupRow.removeClass('d-none');
                 

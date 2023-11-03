@@ -67,6 +67,11 @@
         });
     }
     
+    function saveBtnMdCommentProcessValue_<?php echo $this->uniqId; ?>(elem) {
+        var $this = $(elem).closest('.chat-addcontrol').find('.bpaddon-mention-autocomplete');
+        saveMdCommentProcessValue_<?php echo $this->uniqId; ?>($this);
+    }
+    
     function mdCommentMetaProcessLoad_<?php echo $this->uniqId; ?>(processId, metaDataId, metaValueId){
         var $commentContainer = $('#mdCommentMetaValue_<?php echo $this->uniqId; ?>');
         $.ajax({

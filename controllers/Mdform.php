@@ -1681,6 +1681,7 @@ class Mdform extends Controller {
             exit;
         }
         
+        $this->view->row['isGridRender'] = 1;
         $this->view->columnsData = $this->model->getKpiIndicatorColumnsModel($this->view->indicatorId, $this->view->row);
         $fieldConfig = $this->model->getKpiIndicatorIdFieldModel($this->view->indicatorId, $this->view->columnsData);
         
@@ -5865,7 +5866,7 @@ class Mdform extends Controller {
     }
     
     public function runPivotDataMartTest() {
-        $rs = $this->model->runPivotDataMartModel('16679006894922');
+        $rs = $this->model->runPivotDataMartModel('16980343878036');
         var_dump($rs);die;
     }
     

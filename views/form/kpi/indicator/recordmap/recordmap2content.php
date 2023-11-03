@@ -1,11 +1,11 @@
-  <div class="col p-0">
-        <div class="dv-process-buttons">
-          <div class="btn-group btn-group-devided">
-            <a class="btn btn-success btn-circle btn-sm" title="Нэмэх" onclick="runKpiRelatonBp(this, '16425125580661');" data-actiontype="update" data-dvbtn-processcode="data_IndicatorMapDV_006" data-ismain="0" href="javascript:;"><i class="far fa-plus-square" style="color:"></i> </a>
-            <a class="btn btn-warning btn-circle btn-sm" title="Засах" onclick="runKpiRelatonBp(this, '16660589496259');" data-actiontype="update" data-dvbtn-processcode="data_IndicatorMapDV_006" data-ismain="0" href="javascript:;"><i class="far fa-edit" style="color:"></i> </a>
-          </div>                                    
-        </div>
+<div class="col p-0">
+    <div class="dv-process-buttons">
+      <div class="btn-group btn-group-devided">
+        <a class="btn btn-success btn-circle btn-sm" title="Нэмэх" onclick="runKpiRelatonBp(this, '16425125580661');" data-actiontype="update" data-dvbtn-processcode="data_IndicatorMapDV_006" data-ismain="0" href="javascript:;"><i class="far fa-plus-square" style="color:"></i> </a>
+        <a class="btn btn-warning btn-circle btn-sm" title="Засах" onclick="runKpiRelatonBp(this, '16660589496259');" data-actiontype="update" data-dvbtn-processcode="data_IndicatorMapDV_006" data-ismain="0" href="javascript:;"><i class="far fa-edit" style="color:"></i> </a>
+      </div>                                    
     </div>
+</div>
     
     <?php
     echo Form::hidden(array('name' => 'isKpiComponent', 'value' => '1'));
@@ -50,10 +50,6 @@
                   <span class="ml-1 font-size-12" style="font-weight: normal;color: #404040;">- <?php echo $row['SEMANTIC_TYPE_NAME']; ?></span>
               </h5>
               
-              <!--<a href="javascript:;" onclick="chooseKpiIndicatorRowsFromBasket(this, '<?php echo $row['ID']; ?>', 'multi');" title="<?php echo $add_btn; ?>">
-                  <i class="icon-plus3 relicon"></i>
-              </a>-->
-              
               <div class="input-group quick-item-process float-left" style="margin-top: -6px;">
                   <div class="input-icon meta-autocomplete-wrap mv-popup-control">
                       <i class="far fa-search"></i>
@@ -95,45 +91,46 @@
                         $childRows = $this->savedComponentRows[$row['LOOKUP_META_DATA_ID']];
                     }
 
-                    if (!$childRows) continue;
+                    if ($childRows) {
                       
-                      foreach ($childRows as $childRow) {
-                  ?>
-                  
-                      <tr data-basketrowid="<?php echo $childRow['PF_MAP_RECORD_ID']; ?>">
-                          <td style="height: 25px; max-width: 0;" class="text-left text-truncate">
-                              <input type="hidden" name="metaDmRecordMaps[indicatorId][]" value="<?php echo $row['ID']; ?>">
-                              <input type="hidden" name="metaDmRecordMaps[recordId][]" value="<?php echo $childRow['PF_MAP_RECORD_ID']; ?>">
-                              <input type="hidden" name="metaDmRecordMaps[mapId][]" value="<?php echo $childRow['PF_MAP_ID']; ?>">
-                              <input type="hidden" name="metaDmRecordMaps[rowState][]" value="saved">
-                              <input type="hidden" name="metaDmRecordMaps[childRecordId][]" value="<?php echo $childRow['PF_MAP_TRG_RECORD_ID']; ?>">
-                              <textarea class="d-none" name="metaDmRecordMaps[childRowData][]"><?php echo json_encode($childRow, JSON_UNESCAPED_UNICODE); ?></textarea>
-                              
-                              <?php if ($row['SEMANTIC_TYPE_ID'] == 10000011) { ?>
-                                <a href="javascript:;" onclick="callWebServiceByMeta('<?php echo $childRow['PF_MAP_RECORD_ID']; ?>', true, '', false, '');" class="font-size-14" title="<?php echo $view_btn; ?>">
-                                    <i style="color:blue" class="<?php echo issetParam($row['SEMANTIC_TYPE_ICON']) ? $row['SEMANTIC_TYPE_ICON'] : 'far fa-file-search'; ?> mr-1"></i>
-                                    <?php echo Lang::line($childRow['PF_MAP_NAME']); ?>
-                                </a>
-                              <?php } else { ?>
-                                <a href="javascript:;" onclick="bpCallKpiIndicatorForm(this, this, '<?php echo $row['ID']; ?>', '<?php echo $childRow['PF_MAP_RECORD_ID']; ?>', 'view');" class="font-size-14" title="<?php echo $view_btn; ?>">
-                                    <i style="color:blue" class="<?php echo issetParam($row['SEMANTIC_TYPE_ICON']) ? $row['SEMANTIC_TYPE_ICON'] : 'far fa-file-search'; ?> mr-1"></i>
-                                    <?php echo Lang::line($childRow['PF_MAP_NAME']); ?>
-                                </a>                                
-                              <?php } ?>
-                          </td>
-                          <td style="width: 60px" class="text-right">
-                              <?php
-                              if ($row['IS_ADDON_FORM'] && $row['META_INFO_INDICATOR_ID']) {
-                              ?>
-                              <a href="javascript:;" onclick="kpiIndicatorRelationSubRows(this, '<?php echo $row['META_INFO_INDICATOR_ID']; ?>', '<?php echo $childRow['PF_MAP_TRG_RECORD_ID']; ?>');" class="font-size-16 mr-3" title="Холбоос"><i style="color:#5c6bc0;" class="far fa-external-link-square"></i></a>
-                              <?php
-                              }
-                              ?>
-                              <a href="javascript:;" onclick="kpiIndicatorRelation2RemoveRows(this, '<?php echo $childRow['PF_MAP_ID']; ?>');" class="font-size-14" title="<?php echo $delete_btn; ?>"><i style="color:red" class="far fa-trash"></i></a>
-                          </td>
-                      </tr>
-                      
-                  <?php
+                        foreach ($childRows as $childRow) {
+                    ?>
+
+                        <tr data-basketrowid="<?php echo $childRow['PF_MAP_RECORD_ID']; ?>">
+                            <td style="height: 25px; max-width: 0;" class="text-left text-truncate">
+                                <input type="hidden" name="metaDmRecordMaps[indicatorId][]" value="<?php echo $row['ID']; ?>">
+                                <input type="hidden" name="metaDmRecordMaps[recordId][]" value="<?php echo $childRow['PF_MAP_RECORD_ID']; ?>">
+                                <input type="hidden" name="metaDmRecordMaps[mapId][]" value="<?php echo $childRow['PF_MAP_ID']; ?>">
+                                <input type="hidden" name="metaDmRecordMaps[rowState][]" value="saved">
+                                <input type="hidden" name="metaDmRecordMaps[childRecordId][]" value="<?php echo $childRow['PF_MAP_TRG_RECORD_ID']; ?>">
+                                <textarea class="d-none" name="metaDmRecordMaps[childRowData][]"><?php echo json_encode($childRow, JSON_UNESCAPED_UNICODE); ?></textarea>
+
+                                <?php if ($row['SEMANTIC_TYPE_ID'] == 10000011) { ?>
+                                  <a href="javascript:;" onclick="callWebServiceByMeta('<?php echo $childRow['PF_MAP_RECORD_ID']; ?>', true, '', false, '');" class="font-size-14" title="<?php echo $view_btn; ?>">
+                                      <i style="color:blue" class="<?php echo issetParam($row['SEMANTIC_TYPE_ICON']) ? $row['SEMANTIC_TYPE_ICON'] : 'far fa-file-search'; ?> mr-1"></i>
+                                      <?php echo Lang::line($childRow['PF_MAP_NAME']); ?>
+                                  </a>
+                                <?php } else { ?>
+                                  <a href="javascript:;" onclick="bpCallKpiIndicatorForm(this, this, '<?php echo $row['ID']; ?>', '<?php echo $childRow['PF_MAP_RECORD_ID']; ?>', 'view');" class="font-size-14" title="<?php echo $view_btn; ?>">
+                                      <i style="color:blue" class="<?php echo issetParam($row['SEMANTIC_TYPE_ICON']) ? $row['SEMANTIC_TYPE_ICON'] : 'far fa-file-search'; ?> mr-1"></i>
+                                      <?php echo Lang::line($childRow['PF_MAP_NAME']); ?>
+                                  </a>                                
+                                <?php } ?>
+                            </td>
+                            <td style="width: 60px" class="text-right">
+                                <?php
+                                if ($row['IS_ADDON_FORM'] && $row['META_INFO_INDICATOR_ID']) {
+                                ?>
+                                <a href="javascript:;" onclick="kpiIndicatorRelationSubRows(this, '<?php echo $row['META_INFO_INDICATOR_ID']; ?>', '<?php echo $childRow['PF_MAP_TRG_RECORD_ID']; ?>');" class="font-size-16 mr-3" title="Холбоос"><i style="color:#5c6bc0;" class="far fa-external-link-square"></i></a>
+                                <?php
+                                }
+                                ?>
+                                <a href="javascript:;" onclick="kpiIndicatorRelation2RemoveRows(this, '<?php echo $childRow['PF_MAP_ID']; ?>');" class="font-size-14" title="<?php echo $delete_btn; ?>"><i style="color:red" class="far fa-trash"></i></a>
+                            </td>
+                        </tr>
+
+                    <?php
+                        }
                       }
                   }
                   ?>

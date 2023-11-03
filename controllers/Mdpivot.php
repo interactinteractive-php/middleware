@@ -861,9 +861,11 @@ class Mdpivot extends Controller {
                 }
                 
                 if (!empty($rowData)) {
-                    $_POST['uriParams'] = json_encode($rowData);
+                    $_POST['uriParams'] = json_encode($rowData, JSON_UNESCAPED_UNICODE);
                 }
             }
+            
+            $this->load->model('mdobject', 'middleware/models/');
             
             $this->view->row = $this->model->getDataViewConfigRowModel($this->view->dataViewId);
             $this->view->metaDataCode = $this->view->row['META_DATA_CODE'];

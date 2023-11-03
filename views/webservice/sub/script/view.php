@@ -17,6 +17,66 @@
         bpLoadDetailHideShowFields(bp_window_<?php echo $this->methodId; ?>); 
         showRenderSidebar(bp_window_<?php echo $this->methodId; ?>);
         
+        bp_window_<?php echo $this->methodId; ?>.on('click', '.show-bpdtl-comment-btn', function() {
+            var $this = $(this); $parent = $this.closest('tr');
+            var sourceId = $parent.find('> td > span[data-view-path$=".id"]').text();        
+            var refId = $this.data('refstructureid');
+
+            $.ajax({
+                type: 'post',
+                url: 'mdwebservice/renderEditModeBpCommentTab',
+                data: {uniqId: getUniqueId(''), refStructureId: refId, sourceId: sourceId},
+                beforeSend: function() {
+                    Core.blockUI({
+                      message: "Loading...",
+                      boxed: true
+                    });
+                },
+                success: function(data) {
+                    Core.unblockUI();
+
+                    var $dialogName2 = "dialog-bpdtl-comment";
+                    if (!$($dialogName2).length) {
+                      $('<div id="' + $dialogName2 + '"></div>').appendTo("body");
+                    }
+                    var $dialog2 = $("#" + $dialogName2);
+
+                    $dialog2.empty().append(data);
+
+                    $dialog2.dialog({
+                      cache: false,
+                      resizable: false,
+                      bgiframe: true,
+                      autoOpen: false,
+                      title: 'Сэтгэгдэл',
+                      width: 500,
+                      height: "auto",
+                      modal: true,
+                      position: { my: "top", at: "top+100" },
+                      open: function () {
+                        disableScrolling();
+                      },
+                      close: function () {
+                        enableScrolling();
+                        $dialog2.empty().dialog("destroy").remove();
+                      },
+                      buttons: [{
+                          text: plang.get("close_btn"),
+                          class: "btn btn-sm blue-hoki",
+                          click: function () {
+                            $dialog2.dialog("close");
+                          },
+                        }]
+                    });
+
+                    $dialog2.dialog("open");
+                },
+                error: function() {
+                    alert('Error');
+                }
+            });            
+        });            
+        
         Core.initCodeHighlight(bp_window_<?php echo $this->methodId; ?>);
         
         <?php

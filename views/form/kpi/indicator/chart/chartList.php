@@ -149,7 +149,7 @@ function kpiDataMartLoadChart_<?php echo $this->uniqId; ?>() {
                 success: function(data) {
                     if (data.status == 'success') {
                         if (typeof chartConfig.mainType !== 'undefined' && chartConfig.mainType === 'echart') {
-                            kpiDataMartEChartBuildRender({
+                            EchartBuilder.chartRender({
                                 elemId: chartId, 
                                 chartConfig: chartConfig, 
                                 data: data.data, 

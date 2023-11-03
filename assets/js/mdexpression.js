@@ -11262,7 +11262,39 @@ function transferSplitValueToDtlFunction(mainSelector, srcSplitPath, trgGroupPat
                             $spliAuthoryIds = $thisAutho.split(',');
                         } else {
                             if ($thisAutho.length > 1) {
-                                $spliAuthoryIds = $thisAutho.find('option:selected').map(function(){ return this.value; }).get();
+                                var $spliAuthoryIds = new Array();
+                            
+                                $thisAutho.each(function() {
+                                    var $thisGet = $(this);
+                                    if ($thisGet.is('[multiple]') && $thisGet.hasClass('select2')) {
+                                        
+                                        var selectedValue = $thisGet.select2('data');
+
+                                        if (selectedValue.length) {
+                                            for (var s in selectedValue) {
+                                                var sId = selectedValue[s]['id'];
+                                                $spliAuthoryIds.push(sId);
+                                            }
+                                        } 
+                                    } else {
+                                        var selectedId = $thisAutho.val();
+                                        if (selectedId != '') {
+                                            $spliAuthoryIds.push(selectedId);
+                                        }
+                                    }
+                                });
+                            } else if ($thisAutho.is('[multiple]') && $thisAutho.hasClass('select2')) {
+                                
+                                var selectedValue = $thisAutho.select2('data');
+
+                                if (selectedValue.length) {
+                                    var $spliAuthoryIds = new Array();
+                                    for (var s in selectedValue) {
+                                        var sId = selectedValue[s]['id'];
+                                        $spliAuthoryIds.push(sId);
+                                    }
+                                } 
+                                
                             } else {
                                 $spliAuthoryIds = $thisAutho.val();
                             }
@@ -13911,6 +13943,74 @@ function bpGetWhat3words(mainSelector, elem, coordinate) {
         return responseValue;
     }
 }
+function bpGetGoogleGeoData(mainSelector, elem, coordinate) {
+    if (typeof coordinate === 'undefined' || coordinate == null || coordinate == '') {
+        new PNotify({
+            title: 'Error',
+            text: 'Координатын мэдээлэлээ оруулна уу!',
+            type: 'error',
+            addclass: pnotifyPosition,
+            sticker: false
+        });    
+        return '';
+    }
+    var response = $.ajax({
+        type: 'post',
+        url: 'api/gmap',
+        data: {method: 'geocode', coordinate: coordinate, googleApiKey: gmapApiKey}, 
+        dataType: 'json',
+        async: false
+    });
+    
+    var responseValue = response.responseJSON;
+    
+    if (responseValue.hasOwnProperty('status') && responseValue.status == 'error') {
+        PNotify.removeAll();
+        new PNotify({
+            title: 'Error',
+            text: responseValue.message,
+            type: 'error',
+            addclass: pnotifyPosition,
+            sticker: false
+        });
+    } else {
+        return responseValue;
+    }
+}
+function bpGetOpenCageData(mainSelector, elem, coordinate) {
+    if (typeof coordinate === 'undefined' || coordinate == null || coordinate == '') {
+        new PNotify({
+            title: 'Error',
+            text: 'Координатын мэдээлэлээ оруулна уу!',
+            type: 'error',
+            addclass: pnotifyPosition,
+            sticker: false
+        });    
+        return '';
+    }
+    var response = $.ajax({
+        type: 'post',
+        url: 'api/gmap',
+        data: {method: 'opencagedata', coordinate: coordinate}, 
+        dataType: 'json',
+        async: false
+    });
+    
+    var responseValue = response.responseJSON;
+    
+    if (responseValue && responseValue.hasOwnProperty('status') && responseValue.status == 'error') {
+        PNotify.removeAll();
+        new PNotify({
+            title: 'Error',
+            text: responseValue.message,
+            type: 'error',
+            addclass: pnotifyPosition,
+            sticker: false
+        });
+    } else {
+        return responseValue;
+    }
+}
 function bpGetWorkspaceParam(mainSelector, elem, workspaceid, workspaceparam) {
     if ($('#workspace-id-'+workspaceid).length) {
         var getSerialize = $('#workspace-id-'+workspaceid).find('div.ws-hidden-params > input').serializeArray();
@@ -14878,7 +14978,6 @@ function bpCenterMessage(status, message) {
     return;
 }
 function bpDateFormat(format, dateStr) {
-    console.log(dateStr);
     return date(format, strtotime(dateStr));
 }
 function bpSetDateNoTrigger(mainSelector, elem, fieldPath, val) {

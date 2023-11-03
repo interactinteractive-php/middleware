@@ -1397,6 +1397,7 @@ class Mdpos extends Controller {
             
             $this->view->isIgnoreTemplates = true;
             $this->view->templatesCount = 2;
+            $this->view->rowClass = '';
             $this->view->options = $this->view->renderPrint('options', 'middleware/views/template/options/');
             
             $response['html'] = $this->view->renderPrint('printDropdownSettings', 'middleware/views/template/');
@@ -1542,6 +1543,7 @@ class Mdpos extends Controller {
         if (!Input::post('templateId')) {
             $this->view->isIgnoreTemplates = true;
             $this->view->templatesCount = 2;
+            $this->view->rowClass = '';
             $this->view->options = $this->view->renderPrint('options', 'middleware/views/template/options/');
             $response['html'] = $this->view->renderPrint('printDropdownSettings', 'middleware/views/template/');
             
@@ -1559,8 +1561,8 @@ class Mdpos extends Controller {
                     'data' => array_merge(Input::post('responseData'), $printData)
                 );            
                 $this->view->isIgnoreTemplates = true;
-                $this->view->rowClass = '';
                 $this->view->templatesCount = 2;
+                $this->view->rowClass = '';
                 $this->view->options = $this->view->renderPrint('options', 'middleware/views/template/options/');
                 $response['html'] = $this->view->renderPrint('printDropdownSettings', 'middleware/views/template/');
                 
@@ -3154,7 +3156,15 @@ class Mdpos extends Controller {
     
     public function getInfoLocationName() {
         $getNamesOrig = Input::post('suggestText');
+        
+        $resultArr = array('cityId' => '', 'districtId' => '', 'streetId' => '', 'moreAddress' => issetParam($getNamesOrig['formatted_address']));
+        
+        if (!$getNamesOrig && !is_array($getNamesOrig)) {
+            jsonResponse($resultArr);
+        }
+        
         $getNames = $getNamesOrig['address_components'];
+        
         $values = array();
         foreach ($getNames as $row) {
             array_push($values, array(
@@ -3162,7 +3172,7 @@ class Mdpos extends Controller {
                 'operand' => '%'.trim(Str::replace('Дүүрэг', '', $row['long_name'])).'%'
             ));
         }
-        $resultArr = array('cityId' => '', 'districtId' => '', 'streetId' => '', 'moreAddress' => $getNamesOrig['formatted_address']);
+        
         $criteria = array(
             'name' => $values
         );

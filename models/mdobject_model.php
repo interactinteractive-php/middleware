@@ -12122,6 +12122,10 @@ class Mdobject_Model extends Model {
                 $data = self::freezeSplitter($data, $dataviewCustomerCfg);
             }
             
+            if (!$data) {
+                return array();
+            }
+            
             $dataGroupByName = Arr::groupByArray($data, 'SIDEBAR_NAME');
 
             if (count($dataGroupByName['']['rows']) === count($data)) {

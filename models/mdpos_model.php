@@ -248,7 +248,7 @@ class Mdpos_Model extends Model {
         Session::set(SESSION_PREFIX.'cashRegisterId', $cashierInfo['cashregisterid']);
 
         Session::set(SESSION_PREFIX.'cashierName', $cashierInfo['cashiername']);
-        Session::set(SESSION_PREFIX.'cashierCode', $cashierInfo['cashiercode']);
+        Session::set(SESSION_PREFIX.'cashierCode', issetParam($cashierInfo['cashiercode']));
 
         $posHeaderName = issetParam($cashierInfo['posbillprintname']) != '' ? $cashierInfo['posbillprintname'] : $posHeaderName;
         
@@ -4025,7 +4025,7 @@ class Mdpos_Model extends Model {
                 
                 'isDelivery'             => $isDelivery,  
                 'employeeId'             => $employeeId, 
-                'discountEmployeeId'     => $discountEmployeeId ? $discountEmployeeId : $itemData['editPriceEmployeeId'][$k],
+                'discountEmployeeId'     => $discountEmployeeId ? $discountEmployeeId : issetParam($itemData['editPriceEmployeeId'][$k]),
                 'discountTypeId'         => $discountTypeId, 
                 'description'            => $discountDescription, 
                 'serialNumber'           => $serialNumber, 
@@ -4038,9 +4038,9 @@ class Mdpos_Model extends Model {
                 'couponKeyId'            => $dtlCouponKeyId,
                 'discountId'             => $discountId,
                 'sectionId'              => $sectionId,
-                'lineTotalBonusAmount'   => Number::decimal($itemData['lineTotalBonusAmount'][$k]),
+                'lineTotalBonusAmount'   => Number::decimal(issetParam($itemData['lineTotalBonusAmount'][$k])),
                 'parentId'               => isset($itemData['parentInvoiceDtlId']) ? $itemData['parentInvoiceDtlId'][$k] : "",
-                'refSalePrice'           => isset($itemData['refSalePrice']) ? $itemData['refSalePrice'][$k] : "",
+                'refSalePrice'           => isset($itemData['refSalePrice']) ? issetParam($itemData['refSalePrice'][$k]) : "",
                 'salesPersonId'          => Input::post('waiterId'),                
             );
 
@@ -4107,8 +4107,8 @@ class Mdpos_Model extends Model {
                 
                 if (isset($itemData['merchantId']) && Config::getFromCache('POS_IS_USE_MULTI_BILL_NOT_PACKAGE_POLICY') !== '1') {
                     
-                    $merchantId = $itemData['merchantId'][$k] ? $itemData['merchantId'][$k] : '_1';
-                    $stateRegNumber = Str::upper($itemData['stateRegNumber'][$k]);
+                    $merchantId = $itemData['merchantId'][$k] ? issetParam($itemData['merchantId'][$k]) : '_1';
+                    $stateRegNumber = Str::upper(issetParam($itemData['stateRegNumber'][$k]));
                     $stateRegNumberReal = $stateRegNumber;
                     
                     preg_match("/[ФЦУЖЭНГШҮЗКЪЙЫБӨАХРОЛДПЯЧЁСМИТЬВЮЕЩ]{2}[0-9]{8}$/", $stateRegNumber, $validRegNo);
@@ -10954,6 +10954,8 @@ class Mdpos_Model extends Model {
     }
     
     public function apiStringReplace($str, $reverse = false) {
+        
+        $str = str_replace('S21C', 'S 21C', $str);
         
         $search = array(
             '~', '`', '!', '@', '#', '$',  
