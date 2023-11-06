@@ -1398,21 +1398,12 @@ class Mddoc_Model extends Model {
             if (!file_exists($filename)) {
                 throw new Exception("Файл олдсонгүй!"); 
             }
+        
+            $contentName = getUID();
+            $wordFilePath = self::bpTemplateUploadGetPath(UPLOADPATH . 'signed_content/');
+            $wordFilePath .= 'file_'.$contentName.'.docx';
 
-            $handle = fopen($filename, "rb");
-            $contents = fread($handle, filesize($filename));
-            fclose($handle);
-            $byte_array = unpack('c*', $contents);
-            $ser = serialize($byte_array);
-
-            $inparams = array(
-                'commandName' => $getProcessCommand['COMMAND_NAME'],
-                'recordId' => $selectedRow['id'],
-                'isReplacePicture' => 0,
-                'file' => $ser
-            );
-
-            $saveCache = $this->ws->runResponse(GF_SERVICE_ADDRESS, "replaceWordTags", $inparams);
+            $saveCache = self::replaceWordTags($getContent['PHYSICAL_PATH'], $wordFilePath, $selectedRow['id'], $getProcessCommand['COMMAND_NAME']);
             
             if ($saveCache['status'] === 'success') {
                 $replacedWordTemplate = isset($saveCache['result']['replacewordtags']) ? base64_decode($saveCache['result']['replacewordtags']) : base64_decode($saveCache['result']['result']);
@@ -1433,11 +1424,7 @@ class Mddoc_Model extends Model {
                 throw new Exception("Structure олдсонгүй!");
             }
 
-            $contentName = getUID();
-            $wordFilePath = self::bpTemplateUploadGetPath(UPLOADPATH . 'signed_content/');
-            $wordFilePath .= 'file_'.$contentName.'.docx';
-                
-            if (file_put_contents($wordFilePath, $replacedWordTemplate)) {
+            if (file_exists($wordFilePath)) {
                 $contentData = array(
                     'CONTENT_ID' => $contentName, 
                     'FILE_NAME' => 'file_'.$contentName.'.docx',
@@ -1506,6 +1493,8 @@ class Mddoc_Model extends Model {
                     'contentid' => $contentName,
                     'childRows' => $childRows
                 );
+            } else {
+                throw new Exception("Replace Файл олдсонгүй!"); 
             }
 
         } catch (Exception $e) {
@@ -1553,21 +1542,12 @@ class Mddoc_Model extends Model {
             $tableName = issetDefaultVal($selectedRow['targettable'], 'NTR_SERVICE_BOOK');
             $this->db->AutoExecute($tableName, array('WORD_PATH' => $newPath), "UPDATE", "ID = '". $selectedRow['id'] ."'");
             
-            $handle = fopen($filename, "rb");
-            $contents = fread($handle, filesize($filename));
-            fclose($handle);
-            $byte_array = unpack('c*', $contents);
-            $ser = serialize($byte_array);
+            $contentName = getUID();
+            $wordFilePath = self::bpTemplateUploadGetPath(UPLOADPATH . 'signed_content/');
+            $wordFilePath .= 'file_'.$contentName.'.docx';
 
-            $inparams = array(
-                'commandName' => $getProcessCommand['COMMAND_NAME'],
-                'recordId' => $selectedRow['id'],
-                'isReplacePicture' => 1,
-                'file' => $ser
-            );  
-            
-            $saveCache = $this->ws->runResponse(GF_SERVICE_ADDRESS, "replaceWordTags", $inparams);
-            
+            $saveCache = self::replaceWordTags($selectedRow['physicalpath'], $wordFilePath, $selectedRow['id'], $getProcessCommand['COMMAND_NAME']);
+
             if ($saveCache['status'] === 'success') {
                 $replacedWordTemplate = isset($saveCache['result']['replacewordtags']) ? base64_decode($saveCache['result']['replacewordtags']) : base64_decode($saveCache['result']['result']);
             }
@@ -1575,11 +1555,7 @@ class Mddoc_Model extends Model {
                 throw new Exception($saveCache['text']);
             }
             
-            $contentName = getUID();
-            $wordFilePath = self::bpTemplateUploadGetPath(UPLOADPATH . 'signed_content/');
-            $wordFilePath .= 'file_'.$contentName.'.docx';
-            
-            if (file_put_contents($wordFilePath, $replacedWordTemplate)) {
+            if (file_exists($wordFilePath)) {
                 $contentData = array(
                     'FILE_NAME' => 'file_'.$contentName.'.docx',
                     'PHYSICAL_PATH' => $wordFilePath,
@@ -1630,6 +1606,8 @@ class Mddoc_Model extends Model {
                     'qrCodeString' => issetParam($qrCode['image']),
                     'childRows' => $childRows
                 );
+            } else {
+                throw new Exception("Replace Файл олдсонгүй!"); 
             }
 
         } catch (ADODB_Exception $ex) {
@@ -1668,22 +1646,13 @@ class Mddoc_Model extends Model {
             if (!file_exists($filename)) {
                 throw new Exception("Файл олдсонгүй!"); 
             }
-
-            $handle = fopen($filename, "rb");
-            $contents = fread($handle, filesize($filename));
-            fclose($handle);
-            $byte_array = unpack('c*', $contents);
-            $ser = serialize($byte_array);
-
-            $inparams = array(
-                'commandName' => $getProcessCommand['COMMAND_NAME'],
-                'recordId' => $selectedRow['id'],
-                'isReplacePicture' => 1,
-                'file' => $ser
-            );  
             
-            $saveCache = $this->ws->runResponse(GF_SERVICE_ADDRESS, "replaceWordTags", $inparams);
-            
+            $contentName = getUID();
+            $wordFilePath = self::bpTemplateUploadGetPath(UPLOADPATH . 'signed_content/');
+            $wordFilePath .= 'file_'.$contentName.'.docx';
+
+            $saveCache = self::replaceWordTags($getContent['physicalpath'], $wordFilePath, $selectedRow['id'], $getProcessCommand['COMMAND_NAME']);
+
             if ($saveCache['status'] === 'success') {
                 $replacedWordTemplate = isset($saveCache['result']['replacewordtags']) ? base64_decode($saveCache['result']['replacewordtags']) : base64_decode($saveCache['result']['result']);
             }
@@ -1695,7 +1664,7 @@ class Mddoc_Model extends Model {
             $wordFilePath = self::bpTemplateUploadGetPath(UPLOADPATH . 'signed_content/');
             $wordFilePath .= 'file_'.$contentName.'.docx';
             
-            if (file_put_contents($wordFilePath, $replacedWordTemplate)) {
+            if (file_exists($wordFilePath)) {
 
                 $param = array(
                     'systemMetaGroupId' => '1494555819962926',
@@ -1774,6 +1743,8 @@ class Mddoc_Model extends Model {
                     'status' => 'success', 
                     'filepath' => $wordFilePath
                 );
+            } else {
+                throw new Exception("Replace Файл олдсонгүй!"); 
             }
 
         } catch (Exception $e) {
@@ -2265,20 +2236,11 @@ class Mddoc_Model extends Model {
                 throw new Exception("Файл олдсонгүй!"); 
             }
 
-            $handle = fopen($filename, "rb");
-            $contents = fread($handle, filesize($filename));
-            fclose($handle);
-            $byte_array = unpack('c*', $contents);
-            $ser = serialize($byte_array);
+            $contentName = getUID();
+            $wordFilePath = self::bpTemplateUploadGetPath(UPLOADPATH . 'signed_content/');
+            $wordFilePath .= 'file_'.$contentName.'.docx';
 
-            $inparams = array(
-                'commandName' => $getContent['GET_PROCESS_CODE'],
-                'recordId' => $serviceBookId,
-                'isReplacePicture' => 0,
-                'file' => $ser
-            );   
-            
-            $saveCache = $this->ws->runResponse(GF_SERVICE_ADDRESS, "replaceWordTags", $inparams);
+            $saveCache = self::replaceWordTags($getContent['PHYSICAL_PATH'], $wordFilePath, $serviceBookId, $getContent['GET_PROCESS_CODE']);
 
             if ($saveCache['status'] === 'success') {
                 $replacedWordTemplate = isset($saveCache['result']['replacewordtags']) ? base64_decode($saveCache['result']['replacewordtags']) : base64_decode($saveCache['result']['result']);
@@ -2286,13 +2248,8 @@ class Mddoc_Model extends Model {
             else {
                 throw new Exception($saveCache['text']);
             }
-            
-            $contentId = getUID();
-            
-            $wordFilePath = self::bpTemplateUploadGetPath(UPLOADPATH . 'signed_content/');
-            $wordFilePath .= 'file_'.$contentId.'.docx';
         
-            if (file_put_contents($wordFilePath, $replacedWordTemplate)) {
+            if (file_exists($wordFilePath)) {
                 
                 $contentData = array(
                     'CONTENT_ID' => $contentId, 
@@ -2326,21 +2283,13 @@ class Mddoc_Model extends Model {
                     throw new Exception("Файл олдсонгүй!"); 
                 }
 
-                $handle = fopen($filename, "rb");
-                $contents = fread($handle, filesize($filename));
-                fclose($handle);
-                $byte_array = unpack('c*', $contents);
-                $ser = serialize($byte_array);
-                
                 if ($ticket) {
-                    $inparams = array(
-                        'commandName' => 'ntrGetTagSignatureList_004',
-                        'recordId' => $serviceBookId,
-                        'isReplacePicture' => 1,
-                        'file' => $ser
-                    );
-                
-                    $saveCache = $this->ws->runResponse(GF_SERVICE_ADDRESS, "replaceWordTags", $inparams);
+
+                    $contentName = getUID();
+                    $wordMainFilePath = self::bpTemplateUploadGetPath(UPLOADPATH . 'signed_content/');
+                    $wordMainFilePath .= 'file_'.$contentName.'.docx';
+
+                    $saveCache = self::replaceWordTags($wordFilePath, $wordMainFilePath, $serviceBookId, 'ntrGetTagSignatureList_004');
 
                     if ($saveCache['status'] === 'success') {
                         $replacedWordTemplate = isset($saveCache['result']['replacewordtags']) ? base64_decode($saveCache['result']['replacewordtags']) : base64_decode($saveCache['result']['result']);
@@ -2349,16 +2298,11 @@ class Mddoc_Model extends Model {
                         throw new Exception($saveCache['text']);
                     }
 
-                    $contentName = getUID();
-                    
-                    $wordFilePath = self::bpTemplateUploadGetPath(UPLOADPATH . 'signed_content/');
-                    $wordFilePath .= 'file_'.$contentId.'.docx';
-
-                    if (file_put_contents($wordFilePath, $replacedWordTemplate)) {
+                    if (file_exists($wordMainFilePath)) {
                         $contentData = array(
                             'FILE_NAME' => 'file_'.$contentName.'.docx',
-                            'PHYSICAL_PATH' => $wordFilePath,
-                            'FILE_SIZE' => filesize($wordFilePath),
+                            'PHYSICAL_PATH' => $wordMainFilePath,
+                            'FILE_SIZE' => filesize($wordMainFilePath),
                             'FILE_EXTENSION' => 'docx',
                             'CREATED_USER_ID' => Ue::sessionUserKeyId()
                         );
@@ -2367,16 +2311,18 @@ class Mddoc_Model extends Model {
                         if ($result) {
                             $path_ = self::bpTemplateUploadGetPath(UPLOADPATH . 'ntr_content/');
                             $newPath = $path_ . 'doc_' . getUID() . '.docx';
-                            @copy($wordFilePath, $newPath);
+                            @copy($wordMainFilePath, $newPath);
                             
                             $this->db->AutoExecute('NTR_SERVICE_BOOK', array('WORD_PATH' => $newPath), "UPDATE", "ID = '". $serviceBookId ."'");
                         }
                         return array(
                             'status' => 'success', 
-                            'filepath' => $wordFilePath,
+                            'filepath' => $wordMainFilePath,
                             'recordId' => $serviceBookId,
                             'qrcode' => $getContent['QR_CODE']
                         );
+                    } else {
+                        throw new Exception("Replace_next Файл олдсонгүй!"); 
                     }
                 } else {
                      return array(
@@ -2386,6 +2332,8 @@ class Mddoc_Model extends Model {
                             'qrcode' => $getContent['QR_CODE']
                         );
                 }
+            } else {
+                throw new Exception("Replace Файл олдсонгүй!"); 
             }
 
         } catch (ADODB_Exception $ex) {
@@ -6865,4 +6813,46 @@ class Mddoc_Model extends Model {
         return $response;
     }
     
+    public function replaceWordTags ($physicalPath, $replaceFilePath, $serviceBookId, $processCode) {
+        $fullFilePath = $_SERVER['DOCUMENT_ROOT'] . '/' . $physicalPath;
+        $filename = trim($physicalPath);
+        $ticket = true;
+
+        if (file_exists($fullFilePath)) {
+            $ticket = false;
+
+            $inparams = array(
+                'commandName' => $processCode,
+                'recordId' => $serviceBookId,
+                'isReplacePicture' => 0,
+                'filePath' => $fullFilePath,
+                'replaceFilePath' => $_SERVER['DOCUMENT_ROOT'] . '/' . $replaceFilePath,
+            );
+        } else {
+            $handle = fopen($filename, "rb");
+            $contents = fread($handle, filesize($filename));
+            fclose($handle);
+            $byte_array = unpack('c*', $contents);
+            $ser = serialize($byte_array);
+            
+            $inparams = array(
+                'commandName' => $processCode,
+                'recordId' => $serviceBookId,
+                'isReplacePicture' => 0,
+                'file' => $ser,
+            );
+        }
+
+        $saveCache = $this->ws->runResponse(GF_SERVICE_ADDRESS, "replaceWordTags", $inparams);
+        if ($saveCache['status'] === 'success') {
+            $replacedWordTemplate = isset($saveCache['result']['replacewordtags']) ? base64_decode($saveCache['result']['replacewordtags']) : base64_decode($saveCache['result']['result']);
+            
+            if ($ticket) {
+                file_put_contents($replaceFilePath, $replacedWordTemplate);
+            }
+            
+        }
+
+        return $saveCache;
+    }
 }

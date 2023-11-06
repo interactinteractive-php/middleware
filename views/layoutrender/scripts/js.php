@@ -1,6 +1,7 @@
 <script type="text/javascript">
 var activeAjaxRequests = 0;
 var $thisLayout = $('#layout-id-'+layoutLinkIdjs);
+$thisLayout.attr('data-loaded-layoutdata', 'false');
 $.ajaxSetup({
     global: false, 
     async: true, 
@@ -11,7 +12,9 @@ $.ajaxSetup({
     },
     complete: function(jqXHR) {
         activeAjaxRequests--;
-        $thisLayout.attr('data-loaded-layoutdata', !activeAjaxRequests);
+        setTimeout(function () {
+            $thisLayout.attr('data-loaded-layoutdata', !activeAjaxRequests);
+        }, 1000);
     }
 });
 </script>

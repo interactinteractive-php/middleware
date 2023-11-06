@@ -6,8 +6,19 @@ $metaDataId = issetDefaultVal($this->row['dataViewLayoutTypes']['explorer']['fie
 $metaTypeId = issetDefaultVal($this->row['dataViewLayoutTypes']['explorer']['fields']['metatypeid'], 'metatypeid');
 $groupName = issetDefaultVal($this->row['dataViewLayoutTypes']['explorer']['fields']['groupname'], 'groupname');
 $leftGroupCount = issetDefaultVal($this->row['dataViewLayoutTypes']['explorer']['fields']['leftgroupcount'], 2);
+$firstRow = $this->recordList[0];
 
-$dataList = Arr::groupByArray($this->recordList, $groupName);
+if (array_key_exists($groupName, $firstRow)) {
+    $dataList = Arr::groupByArray($this->recordList, $groupName);
+} else {
+    $firstRow[$groupName] = 'Хоосон';
+    $dataList = array(
+        $firstRow[$groupName] => array(
+            'row' => $firstRow, 
+            'rows' => $this->recordList
+        )
+    );
+}
 ?>
 <div class="dvexplorer pt-1">
     <div class="row">
@@ -41,7 +52,7 @@ $dataList = Arr::groupByArray($this->recordList, $groupName);
                         $title = $this->lang->line($val[$name]);
                     ?>
                     <div class="col-3">
-                        <div class="card cursor-pointer" data-metaid="<?php echo $val[$metaDataId]; ?>" data-typeid="<?php echo $val[$metaTypeId]; ?>" data-criteria="<?php echo $val['criteria']; ?>">
+                        <div class="card cursor-pointer" data-metaid="<?php echo issetParam($val[$metaDataId]); ?>" data-typeid="<?php echo issetParam($val[$metaTypeId]); ?>" data-criteria="<?php echo $val['criteria']; ?>">
                             <div class="d-flex align-items-top justify-content-between">
                                 <i class="icon-puzzle2 icon-2x text-primary"></i>
                             </div>

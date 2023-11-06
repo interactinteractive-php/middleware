@@ -617,12 +617,12 @@ class Mdpos_Model extends Model {
             $ch = curl_init($url);
 
             curl_setopt($ch, CURLOPT_HTTPHEADER, array('Accept: application/json', 'Content-Type: application/json;charset=UTF-8'));
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 
             $str = curl_exec($ch);
             if (curl_errno($ch)) {
-                return json_encode(array('name' => '', 'message' => 'Ebarimt-тай холбогдож чадсангүй.<br>URL: '.$url));
+                return json_encode(array('name' => '', 'message' => 'Ebarimt-тай холбогдож чадсангүй.<br>URL: '.$url.' <br>Error:'.curl_error($ch)));
             }            
             curl_close($ch); 
             
@@ -4107,7 +4107,7 @@ class Mdpos_Model extends Model {
                 
                 if (isset($itemData['merchantId']) && Config::getFromCache('POS_IS_USE_MULTI_BILL_NOT_PACKAGE_POLICY') !== '1') {
                     
-                    $merchantId = $itemData['merchantId'][$k] ? issetParam($itemData['merchantId'][$k]) : '_1';
+                    $merchantId = (issetParam($itemData['merchantId'][$k])) ? issetParam($itemData['merchantId'][$k]) : '_1';
                     $stateRegNumber = Str::upper(issetParam($itemData['stateRegNumber'][$k]));
                     $stateRegNumberReal = $stateRegNumber;
                     
@@ -9290,7 +9290,7 @@ class Mdpos_Model extends Model {
                         'districtId'    => $paymentData['districtId'], 
                         'cityStreetId'  => $paymentData['streetId'], 
                         'what3words'    => $paymentData['what3words'], 
-                        'coordinate'    => $paymentData['coordinate'], 
+                        'coordinate'    => issetParam($paymentData['coordinate']), 
                         'timeRangeId'   => $paymentData['timeZoneId'], 
                         'contactName'   => $paymentData['recipientName'], 
                         'address'       => $paymentData['detailAddress'], 
@@ -10378,7 +10378,7 @@ class Mdpos_Model extends Model {
         
         if ($paymentDtl) {
             
-            $couponAmount = '';
+            $couponAmount = 0;
             
             foreach ($paymentDtl as $row) {
             
@@ -10454,7 +10454,7 @@ class Mdpos_Model extends Model {
                         'amount' => $row['amount']
                     );
                     
-                    $couponAmount += $row['amount'];
+                    $couponAmount += issetParamZero($row['amount']);
 
                 } elseif ($row['paymenttypeid'] == '10') {
 
@@ -10463,7 +10463,7 @@ class Mdpos_Model extends Model {
                         'amount' => $row['amount']
                     );
                     
-                    $couponAmount += $row['amount'];
+                    $couponAmount += issetParamZero($row['amount']);
 
                 } elseif ($row['paymenttypeid'] == '11') {
 
@@ -10472,7 +10472,7 @@ class Mdpos_Model extends Model {
                         'amount' => $row['amount']
                     );
                     
-                    $couponAmount += $row['amount'];
+                    $couponAmount += issetParamZero($row['amount']);
 
                 } elseif ($row['paymenttypeid'] == '34') {
 
@@ -12010,9 +12010,9 @@ class Mdpos_Model extends Model {
                 'storeid'                => $storeId,
                 'salesorderdetailid'     => $salesorderdetailid,
                 'id'                     => $salesorderdetailid,
-                'lineTotalBonusAmount'   => Number::decimal($itemData['lineTotalBonusAmount'][$k]),
-                'unitBonusAmount'        => $itemData['unitBonusAmount'][$k],
-                'unitBonusPercent'       => $itemData['unitBonusPercent'][$k],
+                'lineTotalBonusAmount'   => (issetParam($itemData['lineTotalBonusAmount'][$k]) ? Number::decimal($itemData['lineTotalBonusAmount'][$k]) : '0'),
+                'unitBonusAmount'        => issetParamZero($itemData['unitBonusAmount'][$k]),
+                'unitBonusPercent'       => issetParamZero($itemData['unitBonusPercent'][$k]),
                 'discountEmployeeId'     => $discountEmployeeId ? $discountEmployeeId : $itemData['editPriceEmployeeId'][$k],
                 'customerId'             => $lineCustomerId,
                 'description'            => issetParam($kitchenData['foodDescription']) ? issetParam($kitchenData['foodDescription'][$itemId]) : issetParam($itemData['returnDescription'][$k]),
@@ -12051,20 +12051,20 @@ class Mdpos_Model extends Model {
                     $giftJsonRowMerge          = array();
                     
                     $itemPackageList[] = array(
-                        'packageDtlId'     => $giftJsonRow['packagedtlid'],
+                        'packageDtlId'     => issetParam($giftJsonRow['packagedtlid']),
                         'qty'              => $itemQty, 
-                        'discountPolicyId' => $giftJsonRow['policyid'], 
-                        'isDelivery'       => $giftJsonRow['isDelivery']
+                        'discountPolicyId' => issetParam($giftJsonRow['policyid']), 
+                        'isDelivery'       => issetParam($giftJsonRow['isDelivery'])
                     );
                     
                     if ($giftJsonRow['coupontypeid'] == '') {
                         
                         $giftJsonRow['isgift']     = 1;
                         $giftJsonRow['employeeId'] = $employeeId; 
-                        $giftJsonRow['itemid']     = $giftJsonRow['promotionitemid']; 
-                        $giftJsonRow['jobid']      = $giftJsonRow['jobid']; 
+                        $giftJsonRow['itemid']     = issetParam($giftJsonRow['promotionitemid']); 
+                        $giftJsonRow['jobid']      = issetParam($giftJsonRow['jobid']); 
                         
-                        $itemGiftPrice = $giftJsonRow['saleprice'];
+                        $itemGiftPrice = issetParamZero($giftJsonRow['saleprice']);
                         
                         if ($itemGiftPrice > 0 && ($giftJsonRow['discountamount'] > 0 || $giftJsonRow['discountpercent'] > 0)) {
                             
@@ -21697,5 +21697,18 @@ class Mdpos_Model extends Model {
             return array('status' => 'error', 'message' => $this->ws->getResponseMessage($result));
         }
     }    
+    
+    public function test__ss() {
+        
+        $prm = array(
+            'imageWidth' => 1200,
+            'imageHeight' => 900,
+            'url' => 'dashboard/renderByQryStr/1468832348610969'
+        );
+
+        $result = $this->ws->runSerializeResponse(self::$gfServiceAddress, 'getUrlToImage', $prm);
+
+        return $result;
+    }         
     
 }

@@ -85,8 +85,7 @@ class Mdstatement extends Controller {
             AssetNew::highchartJs()
         ));
         $this->view->fullUrlJs = AssetNew::amChartJs();
-        
-        $this->view->fillData = '';
+        $this->view->fillData = array();
         
         if (Input::postCheck('postData') && Input::isEmpty('postData') === false) {
             parse_str(Input::post('postData'), $this->view->fillData);

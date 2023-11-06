@@ -103,7 +103,7 @@ function statementViewer_<?php echo $this->metaDataId; ?>(elem, viewType, metaDa
         data: {
             viewType: viewType, 
             metaDataId: metaDataId, 
-            fillData: <?php echo json_encode($this->fillData) ?>, 
+            fillData: <?php echo json_encode($this->fillData, JSON_UNESCAPED_UNICODE) ?>, 
             autoSearch: '<?php echo issetVar($this->autoSearch); ?>'
         },
         beforeSend: function(){

@@ -33,6 +33,7 @@ class Mdpos extends Controller {
     }
 
     public function index() {        
+        
         $this->view->title = 'POS';
         $this->view->uniqId = getUID();        
 
@@ -3162,7 +3163,11 @@ class Mdpos extends Controller {
         if (!$getNamesOrig && !is_array($getNamesOrig)) {
             jsonResponse($resultArr);
         }
-        
+
+        if (!issetParamArray($getNamesOrig['address_components'])) {
+            jsonResponse($resultArr);
+        }
+
         $getNames = $getNamesOrig['address_components'];
         
         $values = array();
