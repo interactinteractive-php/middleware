@@ -3577,7 +3577,7 @@ class Mdpos_Model extends Model {
         if ($totalBonusAmount > 0) {
 
             foreach ($itemData['itemId'] as $k => $itemId) {
-                if ($itemData['isNotUseBonusCard'][$k] === '0') {                
+                if (issetParam($itemData['isNotUseBonusCard'][$k]) === '0') {                
                     $isDirectBonusAmount = true;
                 }
             }
@@ -12057,7 +12057,7 @@ class Mdpos_Model extends Model {
                         'isDelivery'       => issetParam($giftJsonRow['isDelivery'])
                     );
                     
-                    if ($giftJsonRow['coupontypeid'] == '') {
+                    if (issetParam($giftJsonRow['coupontypeid']) == '') {
                         
                         $giftJsonRow['isgift']     = 1;
                         $giftJsonRow['employeeId'] = $employeeId; 

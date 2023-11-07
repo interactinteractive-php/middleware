@@ -2887,7 +2887,7 @@ class Mdtemplate extends Controller {
             
                         $criteria = self::convertToCriteria($temp['CRITERIA'], $dRow);
                     
-                        if (eval(sprintf('return (%s);', $criteria))) {
+                        if (Mdcommon::expressionEvalFixWithReturn($criteria)) {
                             $hasCriteria = true;
                             
                             if (!isset($doneTemp[$temp['ID']])) {
@@ -2938,7 +2938,7 @@ class Mdtemplate extends Controller {
                 if ($temp['CRITERIA'] != '') {
                     $criteria = self::convertToCriteria($temp['CRITERIA'], $firstRow);
                     
-                    if (eval(sprintf('return (%s);', $criteria))) {
+                    if (Mdcommon::expressionEvalFixWithReturn($criteria)) {
                         
                         $hasCriteria = true;
                         $isTrueTemp = true;

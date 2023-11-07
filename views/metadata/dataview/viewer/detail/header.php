@@ -12,7 +12,7 @@
             echo $this->defaultCriteriaMandatory;
         }
         
-        $lowerDataViewCriteriaType = $this->dataViewCriteriaType;
+        $lowerDataViewCriteriaType = empty($this->dataViewCriteriaType) ? 'top' : $this->dataViewCriteriaType;
         
         if ($this->isTree || $dataViewHeaderData) {
             if (($lowerDataViewCriteriaType == 'left' || $lowerDataViewCriteriaType == 'hidden') && $this->isCheckDataViewHeaderData) {

@@ -1273,6 +1273,7 @@ class Mdgl extends Controller {
         $paramData = isset($_POST['paramData']) ? $_POST['paramData'] : array();
         $isUseOppAccount = $expenseCenterControl = '';
         $isDebitCreditDefaultValue = '0';
+        $data = [];
         
         if (!isset($selectedRow['checkAccountTypeId']) 
             && isset($paramData['booktypeid']) 
@@ -1437,7 +1438,7 @@ class Mdgl extends Controller {
             'close_btn' => $this->lang->line('close_btn'),
             'uniqId' => $this->view->uniqId, 
             'expenseCenterControl' => $expenseCenterControl, 
-            'isUseOppAccount' => $isUseOppAccount
+            'accountData' => $data
         );
         echo json_encode($response); exit;
     }

@@ -2703,7 +2703,6 @@ class Mdmeta extends Controller {
     
     public function bpFullExpressionUseProcess($processMetaDataId) {
         $this->load->model('mdmeta', 'middleware/models/');
-        
         $result = $this->model->bpFullExpressionUseProcessModel($processMetaDataId);
         return $result;
     }
@@ -3195,12 +3194,12 @@ class Mdmeta extends Controller {
     
     public function saveFullExpression() {
         $response = $this->model->saveFullExpressionModel();
-        echo json_encode($response); 
+        echo json_encode($response, JSON_UNESCAPED_UNICODE); 
     }
     
     public function tempSaveFullExpression() {
         $response = $this->model->tempSaveFullExpressionModel();
-        echo json_encode($response); 
+        echo json_encode($response, JSON_UNESCAPED_UNICODE); 
     }
     
     public function fullExpNewVersion() {
@@ -3210,17 +3209,17 @@ class Mdmeta extends Controller {
             'save_btn' => $this->lang->line('save_btn'),
             'close_btn' => $this->lang->line('close_btn')
         );
-        echo json_encode($response); exit;
+        echo json_encode($response, JSON_UNESCAPED_UNICODE); 
     }
     
     public function saveNewVersionFullExpression() {
         $response = $this->model->saveNewVersionFullExpressionModel();
-        echo json_encode($response); exit;
+        echo json_encode($response, JSON_UNESCAPED_UNICODE); 
     }
     
     public function saveUpdateVersionFullExpression() {
         $response = $this->model->saveUpdateVersionFullExpressionModel();
-        echo json_encode($response);
+        echo json_encode($response, JSON_UNESCAPED_UNICODE); 
     }
     
     public function deleteBpFullExpressionVersion() {

@@ -4308,7 +4308,8 @@ class Mdmeta_Model extends Model {
                 LOAD_EXPRESSION_STRING, 
                 SAVE_EXPRESSION_STRING, 
                 VAR_FNC_EXPRESSION_STRING 
-            FROM META_BUSINESS_PROCESS_LINK WHERE META_DATA_ID = $idPh 
+            FROM META_BUSINESS_PROCESS_LINK 
+            WHERE META_DATA_ID = $idPh 
                UNION ALL 
             SELECT 
                 ED.EVENT_EXPRESSION_STRING, 
@@ -4339,7 +4340,7 @@ class Mdmeta_Model extends Model {
 
                                 if (count($evArr) > 2) {
                                     $processCode = strtolower(str_replace(array("'", '"'), array('', ''), $evArr[0]));
-                                    array_push($array, $processCode);
+                                    $array[$processCode] = 1;
                                 }
                             } 
                         }
@@ -4358,7 +4359,7 @@ class Mdmeta_Model extends Model {
 
                                 if (count($evArr) > 1) {
                                     $processCode = strtolower(str_replace(array("'", '"'), array('', ''), $evArr[0]));
-                                    array_push($array, $processCode);
+                                    $array[$processCode] = 1;
                                 }
                             } 
                         }
@@ -4377,31 +4378,420 @@ class Mdmeta_Model extends Model {
 
                                 if (count($evArr) > 1) {
                                     $processCode = strtolower(str_replace(array("'", '"'), array('', ''), $evArr[0]));
-                                    array_push($array, $processCode);
+                                    $array[$processCode] = 1;
                                 }
                             } 
                         }
                     }
                 }
+                
+                if (strpos($fullExpression, 'callProcess(') !== false) {
+                    preg_match_all('/callProcess\((.*?)\)/i', $fullExpression, $getProcess);
+
+                    if (count($getProcess[0]) > 0) {
+
+                        foreach ($getProcess[1] as $ek => $ev) {
+
+                            if (strpos($ev, ',') !== false) {
+                                $evArr = explode(',', $ev);
+
+                                if (count($evArr) > 1) {
+                                    $processCode = strtolower(str_replace(array("'", '"'), array('', ''), $evArr[0]));
+                                    $array[$processCode] = 1;
+                                }
+                            } 
+                        }
+                    }
+                }
+                
+                if (strpos($fullExpression, 'callProcessBpOpen(') !== false) {
+                    preg_match_all('/callProcessBpOpen\((.*?)\)/i', $fullExpression, $getProcess);
+
+                    if (count($getProcess[0]) > 0) {
+
+                        foreach ($getProcess[1] as $ek => $ev) {
+
+                            if (strpos($ev, ',') !== false) {
+                                $evArr = explode(',', $ev);
+
+                                if (count($evArr) > 1) {
+                                    $processCode = strtolower(str_replace(array("'", '"'), array('', ''), $evArr[0]));
+                                    $array[$processCode] = 1;
+                                }
+                            } 
+                        }
+                    }
+                }
+                
+                if (strpos($fullExpression, 'callProcessDefaultGet(') !== false) {
+                    preg_match_all('/callProcessDefaultGet\((.*?)\)/i', $fullExpression, $getProcess);
+
+                    if (count($getProcess[0]) > 0) {
+
+                        foreach ($getProcess[1] as $ek => $ev) {
+
+                            if (strpos($ev, ',') !== false) {
+                                $evArr = explode(',', $ev);
+
+                                if (count($evArr) > 1) {
+                                    $processCode = strtolower(str_replace(array("'", '"'), array('', ''), $evArr[0]));
+                                    $array[$processCode] = 1;
+                                }
+                            } 
+                        }
+                    }
+                }
+                
+                if (strpos($fullExpression, 'callDataView(') !== false) {
+                    preg_match_all('/callDataView\((.*?)\)/i', $fullExpression, $getProcess);
+
+                    if (count($getProcess[0]) > 0) {
+
+                        foreach ($getProcess[1] as $ek => $ev) {
+
+                            if (strpos($ev, ',') !== false) {
+                                $evArr = explode(',', $ev);
+
+                                if (count($evArr) > 1) {
+                                    $processCode = strtolower(str_replace(array("'", '"'), array('', ''), $evArr[0]));
+                                    $array[$processCode] = 1;
+                                }
+                            } 
+                        }
+                    }
+                }
+                
+                if (strpos($fullExpression, 'callStatement(') !== false) {
+                    preg_match_all('/callStatement\((.*?)\)/i', $fullExpression, $getProcess);
+
+                    if (count($getProcess[0]) > 0) {
+
+                        foreach ($getProcess[1] as $ek => $ev) {
+
+                            if (strpos($ev, ',') !== false) {
+                                $evArr = explode(',', $ev);
+
+                                if (count($evArr) > 1) {
+                                    $processCode = strtolower(str_replace(array("'", '"'), array('', ''), $evArr[0]));
+                                    $array[$processCode] = 1;
+                                }
+                            } 
+                        }
+                    }
+                }
+                
+                if (strpos($fullExpression, 'callWorkspace(') !== false) {
+                    preg_match_all('/callWorkspace\((.*?)\)/i', $fullExpression, $getProcess);
+
+                    if (count($getProcess[0]) > 0) {
+
+                        foreach ($getProcess[1] as $ek => $ev) {
+
+                            if (strpos($ev, ',') !== false) {
+                                $evArr = explode(',', $ev);
+
+                                if (count($evArr) > 1) {
+                                    $processCode = strtolower(str_replace(array("'", '"'), array('', ''), $evArr[0]));
+                                    $array[$processCode] = 1;
+                                }
+                            } 
+                        }
+                    }
+                }
+                
+                if (strpos($fullExpression, 'getFieldValueOtherProcess(') !== false) {
+                    preg_match_all('/getFieldValueOtherProcess\((.*?)\)/i', $fullExpression, $getProcess);
+
+                    if (count($getProcess[0]) > 0) {
+
+                        foreach ($getProcess[1] as $ek => $ev) {
+
+                            if (strpos($ev, ',') !== false) {
+                                $evArr = explode(',', $ev);
+
+                                if (count($evArr) > 1) {
+                                    $processCode = strtolower(str_replace(array("'", '"'), array('', ''), $evArr[0]));
+                                    $array[$processCode] = 1;
+                                }
+                            } 
+                        }
+                    }
+                }
+                
+                if (strpos($fullExpression, 'setFieldValueOtherProcess(') !== false) {
+                    preg_match_all('/setFieldValueOtherProcess\((.*?)\)/i', $fullExpression, $getProcess);
+
+                    if (count($getProcess[0]) > 0) {
+
+                        foreach ($getProcess[1] as $ek => $ev) {
+
+                            if (strpos($ev, ',') !== false) {
+                                $evArr = explode(',', $ev);
+
+                                if (count($evArr) > 1) {
+                                    $processCode = strtolower(str_replace(array("'", '"'), array('', ''), $evArr[0]));
+                                    $array[$processCode] = 1;
+                                }
+                            } 
+                        }
+                    }
+                }
+                
+                if (strpos($fullExpression, 'setComboTextOtherProcess(') !== false) {
+                    preg_match_all('/setComboTextOtherProcess\((.*?)\)/i', $fullExpression, $getProcess);
+
+                    if (count($getProcess[0]) > 0) {
+
+                        foreach ($getProcess[1] as $ek => $ev) {
+
+                            if (strpos($ev, ',') !== false) {
+                                $evArr = explode(',', $ev);
+
+                                if (count($evArr) > 1) {
+                                    $processCode = strtolower(str_replace(array("'", '"'), array('', ''), $evArr[0]));
+                                    $array[$processCode] = 1;
+                                }
+                            } 
+                        }
+                    }
+                }
+                
+                if (strpos($fullExpression, 'setComboValueOtherProcess(') !== false) {
+                    preg_match_all('/setComboValueOtherProcess\((.*?)\)/i', $fullExpression, $getProcess);
+
+                    if (count($getProcess[0]) > 0) {
+
+                        foreach ($getProcess[1] as $ek => $ev) {
+
+                            if (strpos($ev, ',') !== false) {
+                                $evArr = explode(',', $ev);
+
+                                if (count($evArr) > 1) {
+                                    $processCode = strtolower(str_replace(array("'", '"'), array('', ''), $evArr[0]));
+                                    $array[$processCode] = 1;
+                                }
+                            } 
+                        }
+                    }
+                }
+                
+                if (strpos($fullExpression, 'setDataViewFilter(') !== false) {
+                    preg_match_all('/setDataViewFilter\((.*?)\)/i', $fullExpression, $getProcess);
+
+                    if (count($getProcess[0]) > 0) {
+
+                        foreach ($getProcess[1] as $ek => $ev) {
+
+                            if (strpos($ev, ',') !== false) {
+                                $evArr = explode(',', $ev);
+
+                                if (count($evArr) > 1) {
+                                    $processCode = strtolower(str_replace(array("'", '"'), array('', ''), $evArr[0]));
+                                    $array[$processCode] = 1;
+                                }
+                            } 
+                        }
+                    }
+                }
+                
+                if (strpos($fullExpression, 'dataViewRefresh(') !== false) {
+                    preg_match_all('/dataViewRefresh\((.*?)\)/i', $fullExpression, $getProcess);
+
+                    if (count($getProcess[0]) > 0) {
+
+                        foreach ($getProcess[1] as $ek => $ev) {
+
+                            if (strpos($ev, ',') !== false) {
+                                $evArr = explode(',', $ev);
+
+                                if (count($evArr) > 1) {
+                                    $processCode = strtolower(str_replace(array("'", '"'), array('', ''), $evArr[0]));
+                                    $array[$processCode] = 1;
+                                }
+                            } 
+                        }
+                    }
+                }
+                
+                if (strpos($fullExpression, 'getDataViewColumnVal(') !== false) {
+                    preg_match_all('/getDataViewColumnVal\((.*?)\)/i', $fullExpression, $getProcess);
+
+                    if (count($getProcess[0]) > 0) {
+
+                        foreach ($getProcess[1] as $ek => $ev) {
+
+                            if (strpos($ev, ',') !== false) {
+                                $evArr = explode(',', $ev);
+
+                                if (count($evArr) > 1) {
+                                    $processCode = strtolower(str_replace(array("'", '"'), array('', ''), $evArr[0]));
+                                    $array[$processCode] = 1;
+                                }
+                            } 
+                        }
+                    }
+                }
+                
+                if (strpos($fullExpression, 'getVisibleDataViewColumnVal(') !== false) {
+                    preg_match_all('/getVisibleDataViewColumnVal\((.*?)\)/i', $fullExpression, $getProcess);
+
+                    if (count($getProcess[0]) > 0) {
+
+                        foreach ($getProcess[1] as $ek => $ev) {
+
+                            if (strpos($ev, ',') !== false) {
+                                $evArr = explode(',', $ev);
+
+                                if (count($evArr) > 1) {
+                                    $processCode = strtolower(str_replace(array("'", '"'), array('', ''), $evArr[0]));
+                                    $array[$processCode] = 1;
+                                }
+                            } 
+                        }
+                    }
+                }
+                
+                if (strpos($fullExpression, 'getDataViewFilterVal(') !== false) {
+                    preg_match_all('/getDataViewFilterVal\((.*?)\)/i', $fullExpression, $getProcess);
+
+                    if (count($getProcess[0]) > 0) {
+
+                        foreach ($getProcess[1] as $ek => $ev) {
+
+                            if (strpos($ev, ',') !== false) {
+                                $evArr = explode(',', $ev);
+
+                                if (count($evArr) > 1) {
+                                    $processCode = strtolower(str_replace(array("'", '"'), array('', ''), $evArr[0]));
+                                    $array[$processCode] = 1;
+                                }
+                            } 
+                        }
+                    }
+                }
+                
+                if (strpos($fullExpression, 'getPanelSelectedRowVal(') !== false) {
+                    preg_match_all('/getPanelSelectedRowVal\((.*?)\)/i', $fullExpression, $getProcess);
+
+                    if (count($getProcess[0]) > 0) {
+
+                        foreach ($getProcess[1] as $ek => $ev) {
+
+                            if (strpos($ev, ',') !== false) {
+                                $evArr = explode(',', $ev);
+
+                                if (count($evArr) > 1) {
+                                    $processCode = strtolower(str_replace(array("'", '"'), array('', ''), $evArr[0]));
+                                    $array[$processCode] = 1;
+                                }
+                            } 
+                        }
+                    }
+                }
+                
+                if (strpos($fullExpression, 'getWfmNextStatusList(') !== false) {
+                    preg_match_all('/getWfmNextStatusList\((.*?)\)/i', $fullExpression, $getProcess);
+
+                    if (count($getProcess[0]) > 0) {
+
+                        foreach ($getProcess[1] as $ek => $ev) {
+
+                            if (strpos($ev, ',') !== false) {
+                                $evArr = explode(',', $ev);
+
+                                if (count($evArr) > 1) {
+                                    $processCode = strtolower(str_replace(array("'", '"'), array('', ''), $evArr[0]));
+                                    $array[$processCode] = 1;
+                                }
+                            } 
+                        }
+                    }
+                }
+                
+                if (strpos($fullExpression, 'getWfmNextStatusListByRowData(') !== false) {
+                    preg_match_all('/getWfmNextStatusListByRowData\((.*?)\)/i', $fullExpression, $getProcess);
+
+                    if (count($getProcess[0]) > 0) {
+
+                        foreach ($getProcess[1] as $ek => $ev) {
+
+                            if (strpos($ev, ',') !== false) {
+                                $evArr = explode(',', $ev);
+
+                                if (count($evArr) > 1) {
+                                    $processCode = strtolower(str_replace(array("'", '"'), array('', ''), $evArr[0]));
+                                    $array[$processCode] = 1;
+                                }
+                            } 
+                        }
+                    }
+                }
+                
+                if (strpos($fullExpression, 'dataViewExpandAll(') !== false) {
+                    preg_match_all('/dataViewExpandAll\((.*?)\)/i', $fullExpression, $getProcess);
+
+                    if (count($getProcess[0]) > 0) {
+
+                        foreach ($getProcess[1] as $ek => $ev) {
+
+                            if (strpos($ev, ',') !== false) {
+                                $evArr = explode(',', $ev);
+                                $processCode = strtolower(str_replace(array("'", '"'), array('', ''), $evArr[0]));
+                                $array[$processCode] = 1;
+                            } 
+                        }
+                    }
+                }
+                
+                if (strpos($fullExpression, 'dataViewCollapseAll(') !== false) {
+                    preg_match_all('/dataViewCollapseAll\((.*?)\)/i', $fullExpression, $getProcess);
+
+                    if (count($getProcess[0]) > 0) {
+
+                        foreach ($getProcess[1] as $ek => $ev) {
+
+                            if (strpos($ev, ',') !== false) {
+                                $evArr = explode(',', $ev);
+                                $processCode = strtolower(str_replace(array("'", '"'), array('', ''), $evArr[0]));
+                                $array[$processCode] = 1;
+                            } 
+                        }
+                    }
+                }
+                
+                if (strpos($fullExpression, 'workSpaceReload(') !== false) {
+                    preg_match_all('/workSpaceReload\((.*?)\)/i', $fullExpression, $getProcess);
+
+                    if (count($getProcess[0]) > 0) {
+
+                        foreach ($getProcess[1] as $ek => $ev) {
+
+                            if (strpos($ev, ',') !== false) {
+                                $evArr = explode(',', $ev);
+                                $processCode = strtolower(str_replace(array("'", '"'), array('', ''), $evArr[0]));
+                                $array[$processCode] = 1;
+                            } 
+                        }
+                    }
+                }
             }
+            
+            $this->db->Execute("DELETE FROM META_BP_EXPRESSION_PROCESS WHERE PROCESS_META_DATA_ID = $idPh", array($processMetaDataId));
 
             if ($array) {
 
-                $processCodes = implode("','", $array);
+                $processCodes = implode("','", array_keys($array));
 
                 $processData = $this->db->GetAll("
                     SELECT 
                         META_DATA_ID 
                     FROM META_DATA 
-                    WHERE LOWER(META_DATA_CODE) IN ('$processCodes') 
-                        GROUP BY META_DATA_ID");
+                    WHERE LOWER(META_DATA_CODE) IN ('$processCodes')");
 
-                $this->db->Execute("DELETE FROM META_BP_EXPRESSION_PROCESS WHERE PROCESS_META_DATA_ID = $idPh", array($processMetaDataId));
-
-                foreach ($processData as $process) {
+                foreach ($processData as $p => $process) {
 
                     $param = array(
-                        'ID' => getUID(), 
+                        'ID' => getUIDAdd($p), 
                         'PROCESS_META_DATA_ID' => $processMetaDataId, 
                         'USE_META_DATA_ID' => $process['META_DATA_ID']
                     );

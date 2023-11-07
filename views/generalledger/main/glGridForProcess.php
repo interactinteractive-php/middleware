@@ -3329,7 +3329,7 @@
                                     
                                 } else if (thisRow.find("input[name='gl_objectId[]']").val() == '20001') {
                                     thisRow.find("td.gl-action-column").prepend("<div class='btn btn-xs blue' id='detailedMeta' title='Дэлгэрэнгүй' onclick='expandGlDtl_<?php echo $this->uniqId; ?>(this);'>...</div>");
-                                }
+                                }                               
                                     
                                 var $html = $('<div />', {html: data.html});
 
@@ -3341,6 +3341,11 @@
                                         thisRow.find("td.gl-action-column").prepend("<div class='btn btn-xs purple-plum gl-dtl-meta-btn' title='Үзүүлэлт' onclick='showDtlMeta_<?php echo $this->uniqId; ?>(this);'>...</div>");
                                     }
                                 }
+                                
+                                if (Object.keys(data.accountData).length) {
+                                    thisRow.find("input[name='gl_accountFilterConfig[]']").val(data.accountData[0]['ACCOUNT_FILTER']);
+                                    checkAccountFilterConfig_<?php echo $this->uniqId; ?>(thisRow, 'all');
+                                }                                
                             }
                         }
                         

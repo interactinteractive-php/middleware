@@ -1083,6 +1083,7 @@ class Mdobject_Model extends Model {
                     '' AS IS_BOLD, 
                     CASE WHEN CK.IS_SHOW IS NULL THEN 0 ELSE CK.IS_SHOW END AS IS_SHOW,
                     CASE WHEN CK.IS_FREEZE IS NULL THEN 0 ELSE CK.IS_FREEZE END AS IS_FREEZE,
+                    CASE WHEN CK.IS_CRITERIA IS NULL THEN 0 ELSE CK.IS_CRITERIA END AS IS_CRITERIA,
                     CASE WHEN CK.ORDER_NUM IS NULL THEN GC.DISPLAY_ORDER ELSE CK.ORDER_NUM END AS ORDER_NUM, 
                     CK.MAIN_META_DATA_ID 
                 FROM META_GROUP_CONFIG GC 
@@ -1096,6 +1097,7 @@ class Mdobject_Model extends Model {
                             PARAM_NAME, 
                             IS_SHOW, 
                             IS_FREEZE, 
+                            IS_CRITERIA, 
                             HEADER_NAME 
                         FROM META_GROUP_CONFIG_USER 
                         WHERE USER_ID = $userIdPh  
@@ -1106,6 +1108,7 @@ class Mdobject_Model extends Model {
                             PARAM_NAME, 
                             IS_SHOW, 
                             IS_FREEZE, 
+                            IS_CRITERIA, 
                             HEADER_NAME 
                     ) CK ON GC.MAIN_META_DATA_ID = CK.MAIN_META_DATA_ID AND LOWER(GC.FIELD_PATH) = LOWER(CK.PARAM_NAME) 
                 WHERE GC.MAIN_META_DATA_ID = $metaDataIdPh 
@@ -8044,12 +8047,13 @@ class Mdobject_Model extends Model {
                         WHERE META_DATA_ID = $idPh 
                             AND IS_ACTIVE = 1 
                             AND (IS_IGNORE_TREE_GROUP IS NULL OR IS_IGNORE_TREE_GROUP = 0) 
-                    ) AS COUNT_CUSTOMER 
+                    ) AS COUNT_CUSTOMER
                 FROM META_GROUP_CONFIG GC 
                     LEFT JOIN META_DATA LMD ON LMD.META_DATA_ID = GC.LOOKUP_META_DATA_ID 
                     LEFT JOIN META_FIELD_PATTERN MFP ON MFP.PATTERN_ID = GC.PATTERN_ID       
+                    LEFT JOIN META_GROUP_CONFIG_USER GCU ON GC.MAIN_META_DATA_ID = GCU.MAIN_META_DATA_ID AND LOWER(GCU.PARAM_NAME) = LOWER(GC.FIELD_PATH)
                 WHERE GC.MAIN_META_DATA_ID = $idPh 
-                    AND GC.IS_CRITERIA = 1
+                    AND (GC.IS_CRITERIA = 1 OR GCU.IS_CRITERIA = 1)
                 ORDER BY GC.SECOND_DISPLAY_ORDER ASC, GC.DISPLAY_ORDER ASC";
             
             $data = $this->db->GetAll($sql, array($dataViewId));
@@ -8060,11 +8064,11 @@ class Mdobject_Model extends Model {
                 $sql = str_replace('GC.IS_MANDATORY_CRITERIA,', 'DF.IS_MANDATORY_CRITERIA,', $sql); 
                 $sql = str_replace('GC.LABEL_NAME AS META_DATA_NAME,', $this->db->IfNull('DF.LABEL_NAME', 'GC.LABEL_NAME').' AS META_DATA_NAME,', $sql);
                 $sql = str_replace('GC.IS_REQUIRED,', $this->db->IfNull('DF.IS_REQUIRED', 'GC.IS_REQUIRED').' AS IS_REQUIRED,', $sql); 
-                $sql = str_replace('WHERE GC.MAIN_META_DATA_ID', 'LEFT JOIN CUSTOMER_DV_FIELD DF ON GC.MAIN_META_DATA_ID = DF.META_DATA_ID AND LOWER(DF.FIELD_PATH) = LOWER(GC.FIELD_PATH) AND DF.IS_ACTIVE = 1 WHERE GC.MAIN_META_DATA_ID ', $sql);
-                $sql = str_replace('AND GC.IS_CRITERIA = 1', 'AND ((GC.IS_CRITERIA = 1 AND (DF.ID IS NULL OR DF.IS_SHOW = 1)) OR (DF.IS_CRITERIA = 1 AND DF.IS_SHOW = 1) OR DF.IS_CRITERIA = 1)', $sql); 
+                $sql = str_replace('WHERE GC.MAIN_META_DATA_ID', 'LEFT JOIN CUSTOMER_DV_FIELD DF ON GC.MAIN_META_DATA_ID = DF.META_DATA_ID AND LOWER(DF.FIELD_PATH) = LOWER(GC.FIELD_PATH) AND DF.IS_ACTIVE = 1 WHERE GC.MAIN_META_DATA_ID ', $sql);                
                 $sql = str_replace('GC.DISPLAY_ORDER ASC', $this->db->IfNull('DF.DISPLAY_ORDER', 'GC.DISPLAY_ORDER').' ASC ', $sql);
+                $sql = str_replace('AND (GC.IS_CRITERIA = 1', 'AND (((GC.IS_CRITERIA = 1 AND (DF.ID IS NULL OR DF.IS_SHOW = 1)) OR (DF.IS_CRITERIA = 1 AND DF.IS_SHOW = 1) OR DF.IS_CRITERIA = 1)', $sql);            
                   
-                $data = $this->db->GetAll($sql, array($dataViewId));
+                $data = $this->db->GetAll($sql, array($dataViewId));                
             }
             
             $cache->set('dvHdrData_' . $dataViewId, $data, Mdwebservice::$expressionCacheTime);
@@ -8357,6 +8361,7 @@ class Mdobject_Model extends Model {
                         'IS_SHOW'           => Input::param($param['IS_SHOW'][$key]),
                         'ORDER_NUM'         => Input::param($param['CONFIG_ORDER'][$key]),
                         'IS_FREEZE'         => Input::param($param['IS_FREEZE'][$key]),
+                        'IS_CRITERIA'       => Input::param($param['IS_CRITERIA'][$key]),
                         'HEADER_NAME'       => Input::param($param['headerName'][$key]),
                     );
                     $this->db->AutoExecute('META_GROUP_CONFIG_USER', $data);
@@ -8365,10 +8370,10 @@ class Mdobject_Model extends Model {
             
             $tmp_dir = Mdcommon::getCacheDirectory();
             $dvUserConfigs = glob($tmp_dir."/*/dv/dvUserConfigMergeCols2_".$metaDataId."_".$userId.".txt");
-            
             foreach ($dvUserConfigs as $dvUserConfig) {
                 @unlink($dvUserConfig);
             }            
+            (new Mdmeta())->dataViewCacheClear($tmp_dir, $metaDataId);
 
             return array('status' => 'success', 'message' => $this->lang->line('msg_save_success'), 'objectValueViewType' => '');
         
@@ -8507,7 +8512,7 @@ class Mdobject_Model extends Model {
                     'status'     => 'success',
                     'data'       => $result['result'],
                     'datastatus' => true, 
-                    'isShowMsgNotNextStatus' => 1
+                    'isShowMsgNotNextStatus' => Config::getFromCache('IS_SHOW_MSG_WFM_NOT_NEXTSTATUS')
                 );
                 
                 if ($operation == 'GET_ROWS_WFM_STATUS') {

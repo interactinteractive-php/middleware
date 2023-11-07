@@ -147,6 +147,7 @@ var $kpiTmp_<?php echo $this->uniqId; ?> = $('#kpi-<?php echo $this->uniqId; ?>'
 var bp_window_<?php echo $this->uniqId; ?> = $kpiTmp_<?php echo $this->uniqId; ?>;
 var isEditMode_<?php echo $this->uniqId; ?> = <?php echo ((Mdform::$firstTplId) ? 'true' : 'false'); ?>;
 var $aggregate_<?php echo $this->uniqId; ?> = bp_window_<?php echo $this->uniqId; ?>.find('.kpi-dtl-table:not(.bprocess-table-subdtl, [data-pager="true"]) > thead > tr > th[data-aggregate]:not([data-aggregate=""])');
+var textEditorDefaultStyle = "<?php echo html_entity_decode(Config::getFromCache('textEditorDefaultStyle'), ENT_QUOTES, 'UTF-8'); ?>";
 
 if ($kpiTmp_<?php echo $this->uniqId; ?>.find("th[data-merge-cell='true']:eq(0)").length) {
     $kpiTmp_<?php echo $this->uniqId; ?>.find("table > thead:has(th[data-merge-cell='true'])").each(function() {

@@ -122,7 +122,7 @@ class Mdlayoutrender extends Controller {
                         break;
                     default:
                         $searchReplace = array(
-                            '{layout-id}',
+                            '{layout-id}"',
                             '{layout-uniqid}',
                             '{hidden-params}',
                             '{layout-criteria-params}',
@@ -131,7 +131,7 @@ class Mdlayoutrender extends Controller {
                         );
 
                         $replaced = array(
-                            $this->view->layoutLink['ID'],
+                            $this->view->layoutLink['ID'].'" '.'data-loaded-layoutdata="false"',
                             $this->view->uniqId,
                             '',
                             $this->view->defaultCriteria,

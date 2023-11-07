@@ -4734,16 +4734,16 @@ class Mdupgrade_Model extends Model {
                                 
                                     $message = $ex->getMessage();
 
-                                    $logs .= 'META SQL:<br />';
-                                    $logs .= $script.'<br />';
-                                    $logs .= 'Error:<br />';
-                                    $logs .= $message. '<br />';
-                                    $logs .= '=====================================================================<br />';
-
                                     if (!isset($parseTblName[1][0]) || (isset($parseTblName[1][0]) && $parseTblName[1][0] && !in_array(trim($parseTblName[1][0]), self::$ignoreDeleteScriptTables))) {
-
+                                        
+                                        $logs = 'META SQL:<br />';
+                                        $logs .= $script.'<br />';
+                                        $logs .= 'Error:<br />';
+                                        $logs .= $message. '<br />';
+                                        $logs .= '=====================================================================<br />';
+                                    
                                         $this->db->RollbackTrans();
-                                        return array('status' => 'error', 'message' => $message, 'logs' => $logs);
+                                        return array('status' => 'error', 'message' => $parseTblName[1][0] . ' ' . $message, 'logs' => $logs);
                                     }
                                 }
                                 

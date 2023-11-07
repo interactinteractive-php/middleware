@@ -3550,9 +3550,7 @@ class Mdexpression extends Controller {
         return $fullExpression;
     }
 
-    public function detectedFunctionNamesReplacer($fullExpression)
-    {
-
+    public function detectedFunctionNamesReplacer($fullExpression) {
         $data = Mdexpression::$detectedFunctionNames;
 
         foreach ($data as $k => $v) {
@@ -3563,9 +3561,8 @@ class Mdexpression extends Controller {
         return $fullExpression;
     }
 
-    public function statementExpression($getRow)
-    {
-
+    public function statementExpression($getRow) {
+        
         $expressionSuperExp = html_entity_decode($getRow['SUPER_GLOBAL_EXPRESSION']);
         $expressionRowExp = html_entity_decode($getRow['ROW_EXPRESSION']);
         $expressionGroupExp = html_entity_decode($getRow['GLOBAL_EXPRESSION']);
@@ -3817,9 +3814,7 @@ class Mdexpression extends Controller {
         );
     }
 
-    public function strToScript()
-    {
-
+    public function strToScript() {
         $processId = Input::post('processId');
         $uniqId = Input::post('uniqId');
         $expStr = Input::post('expStr');
@@ -3835,8 +3830,7 @@ class Mdexpression extends Controller {
 
         $result = str_replace('_' . $processId, '_' . $uniqId, $result);
 
-        echo json_encode($result);
-        exit;
+        echo json_encode($result, JSON_UNESCAPED_UNICODE); exit;
     }
 
     public function fullExpressionConvertEventTaxonamy($fullExpression = '', $processId = '', $tag, $dtl = false, $dtlCombo = false, $mainRow = array(), $editNtrMode = false)
@@ -4507,15 +4501,14 @@ class Mdexpression extends Controller {
         return $expressionToJs;
     }
 
-    public function getCacheExpression($processId)
-    {
+    public function getCacheExpression($processId) {
         $this->load->model('mdexpression', 'middleware/models/');
         $result = $this->model->getCacheExpressionModel($processId);
         return $result;
     }
 
-    public function processCacheExpression($expressionStr, $processId, $groupPath, $runMode)
-    {
+    public function processCacheExpression($expressionStr, $processId, $groupPath, $runMode) {
+        
         if (empty($expressionStr)) {
             return '';
         }
@@ -4649,9 +4642,8 @@ class Mdexpression extends Controller {
         return $expressionStr;
     }
 
-    public function processCacheExpressionNotLoop($expressionStr, $processId, $groupPath, $runMode)
-    {
-
+    public function processCacheExpressionNotLoop($expressionStr, $processId, $groupPath, $runMode) {
+        
         if (Mdexpression::$isMultiPathConfig == false) {
             (new Mdexpression())->setMultiPathConfig($processId);
         }
@@ -4709,9 +4701,8 @@ class Mdexpression extends Controller {
         return $expressionStr;
     }
 
-    public function cacheExpressionReplaceFncNames($expressionStr, $processId, $groupPath)
-    {
-
+    public function cacheExpressionReplaceFncNames($expressionStr, $processId, $groupPath) {
+        
         $prefix = Mdexpression::$cachePrefix;
         $groupPath = strtolower($groupPath);
 
@@ -4751,8 +4742,8 @@ class Mdexpression extends Controller {
         return $expressionStr;
     }
 
-    public static function statementUIExpression($row, $params = array())
-    {
+    public static function statementUIExpression($row, $params = array()) {
+        
         $result = array();
 
         if (!empty($row['UI_EXPRESSION'])) {

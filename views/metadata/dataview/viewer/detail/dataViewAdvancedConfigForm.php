@@ -16,6 +16,7 @@
                         </label>
                     </th>
                     <th class="text-center">Freeze эсэх</th>
+                    <th class="text-center">Шүүлт эсэх</th>
                 </tr>
             </thead>
             <tbody>
@@ -35,10 +36,14 @@
                         <input type="hidden" name="FIELD_PATH[]" value="<?php echo $param['FIELD_PATH']; ?>"/>
                         <input type="hidden" name="IS_SHOW[]" id="show-<?php echo $param['ID']; ?>" value="<?php echo (!$this->isUserConfig) ? '1' : $param['IS_SHOW']; ?>"/>
                         <input type="hidden" name="IS_FREEZE[]" id="freeze-<?php echo $param['ID']; ?>" class="isFreeze-<?php echo $this->metaDataId ?>" value="<?php echo $param['IS_FREEZE']; ?>"/>
+                        <input type="hidden" name="IS_CRITERIA[]" id="criteria-<?php echo $param['ID']; ?>" class="isCriteria-<?php echo $this->metaDataId ?>" value="<?php echo $param['IS_CRITERIA']; ?>"/>
                         <input type="checkbox" <?php echo (!$this->isUserConfig) ? 'checked' : (($param['IS_SHOW'] == '1') ? 'checked' : '') ?> onclick="isShow_<?php echo $this->metaDataId ?>(this)" id="<?php echo $param['ID']; ?>" />
                     </td>
                     <td class="text-center">
                         <input type="checkbox" <?php echo ($param['IS_FREEZE'] == '1') ? 'checked' : '' ?> onclick="isFreeze_<?php echo $this->metaDataId ?>(this)" class="checkFreeze-<?php echo $this->metaDataId ?>" id="<?php echo $param['ID']; ?>" />
+                    </td>
+                    <td class="text-center">
+                        <input type="checkbox" <?php echo ($param['IS_CRITERIA'] == '1') ? 'checked' : '' ?> onclick="isCriteria<?php echo $this->metaDataId ?>(this)" class="checkCriteria-<?php echo $this->metaDataId ?>" id="<?php echo $param['ID']; ?>" />
                     </td>
                 </tr>
                 <?php
@@ -125,6 +130,15 @@ function isFreeze_<?php echo $this->metaDataId ?>(element) {
         $('#freeze-'+thisid).val('1');
         $(element).attr('checked', 'checked');
         $(element).parent().addClass('checked');
+    }
+}
+function isCriteria<?php echo $this->metaDataId ?>(element) {
+    var ischecked = element.checked
+    var thisid = $(element).attr('id');
+    $('#criteria-'+thisid).val('0');
+
+    if (ischecked) {
+        $('#criteria-'+thisid).val('1');
     }
 }
 </script>

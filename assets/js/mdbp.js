@@ -10079,7 +10079,7 @@ function bpFieldTextEditorClickToEdit(elem, triggerChange, callback) {
 }
 function bpFieldTextEditorTinymceClickToEdit(elem) {
     var textEditorDefaultStyleString = '';
-    if (typeof textEditorDefaultStyle !== 'undefined') {
+    if (typeof textEditorDefaultStyle !== 'undefined' && textEditorDefaultStyle) {
         textEditorDefaultStyleString = textEditorDefaultStyle;
     }
     var $this = $(elem), 
@@ -10246,9 +10246,9 @@ function bpFieldTextEditorTinymceClickToEdit(elem) {
                         
                         var textEdata = $textarea.val();
                         if (!textEdata.startsWith('<div class="append-textstyle') && textEditorDefaultStyleString) {
-                            editor.setContent('<div class="append-textstyle" style="'+textEditorDefaultStyleString+'">'+$textarea.val()+'</div>');
+                            editor.setContent('<div class="append-textstyle" style="'+textEditorDefaultStyleString+'">'+textEdata+'</div>');
                         } else {
-                            editor.setContent($textarea.val());
+                            editor.setContent(textEdata);
                         }
                         
                         $('textarea#text_editorInit').prev('.mce-container').find('.mce-edit-area')

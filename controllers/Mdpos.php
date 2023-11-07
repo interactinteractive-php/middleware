@@ -621,7 +621,7 @@ class Mdpos extends Controller {
                 $row = json_decode(html_entity_decode(Input::post('invoiceRow')), true);
                 $roww = $row;
                 $result = $this->model->getInvoiceByIdModel($row);            
-                if ($result['status'] == 'success' && $result['data']['pos_sdm_sales_order_payment_dtl']) {
+                if ($result['status'] == 'success' && issetParam($result['data']['pos_sdm_sales_order_payment_dtl'])) {
                     $this->view->empLoanAmount = 0;
 
                     foreach ($result['data']['pos_sdm_sales_order_payment_dtl'] as $row) {
