@@ -3474,8 +3474,15 @@ class Mdupgrade_Model extends Model {
                         }
                     }
                 }
-
-                $sql .= rtrim($columns, ', ') . ') VALUES (' . rtrim($values, ', ') . ')' . $separator . "\n";
+                
+                if ($tblName == 'META_PROCESS_RULE') {
+                    
+                    $existsQry = 'SELECT 1 FROM META_PROCESS_RULE WHERE ID = '.$row[$primaryColumn];
+                    $sql .= rtrim($columns, ', ') . ') SELECT ' . rtrim($values, ', ') . ' FROM DUAL WHERE NOT EXISTS ('.$existsQry.')' . $separator . "\n";
+                    
+                } else {
+                    $sql .= rtrim($columns, ', ') . ') VALUES (' . rtrim($values, ', ') . ')' . $separator . "\n";
+                }
 
                 if ($tblName == 'META_DATA_FOLDER_MAP' && $row['FOLDER_ID']) {
                     
@@ -4722,7 +4729,7 @@ class Mdupgrade_Model extends Model {
 
                                 $this->db->Execute($script);
 
-                            } catch (ADODB_Exception $ex) {
+                            } catch (Exception $ex) {
                                 
                                 preg_match_all('/INSERT INTO(.*?)\(/', $script, $parseTblName);
                                 
@@ -4730,8 +4737,8 @@ class Mdupgrade_Model extends Model {
                                     
                                     $skipErrorTbl[trim($parseTblName[1][0])] = 1;
                                     
-                                } elseif (!isset($parseTblName[1][0]) || (isset($parseTblName[1][0]) && $parseTblName[1][0] && !in_array(trim($parseTblName[1][0]), self::$ignoreDeleteScriptTables))) {
-                                        
+                                } else {
+                                
                                     $message = $ex->getMessage();
 
                                     $logs = 'META SQL:<br />';
@@ -4740,8 +4747,11 @@ class Mdupgrade_Model extends Model {
                                     $logs .= $message. '<br />';
                                     $logs .= '=====================================================================<br />';
 
-                                    $this->db->RollbackTrans();
-                                    return array('status' => 'error', 'message' => $parseTblName[1][0] . ' ' . $message, 'logs' => $logs);
+                                    if (!isset($parseTblName[1][0]) || (isset($parseTblName[1][0]) && $parseTblName[1][0] && !in_array(trim($parseTblName[1][0]), self::$ignoreDeleteScriptTables))) {
+
+                                        $this->db->RollbackTrans();
+                                        return array('status' => 'error', 'message' => $message, 'logs' => $logs);
+                                    }
                                 }
                                 
                             }
@@ -4808,7 +4818,7 @@ class Mdupgrade_Model extends Model {
                                     $this->db->UpdateBlob($tblName, $colName, $content, $equalField . ' = '.$recordId);
                                 }
 
-                            } catch (ADODB_Exception $ex) {
+                            } catch (Exception $ex) {
                                 
                                 if ($skipError != '1') {
                                     
