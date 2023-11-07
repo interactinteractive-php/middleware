@@ -4730,21 +4730,18 @@ class Mdupgrade_Model extends Model {
                                     
                                     $skipErrorTbl[trim($parseTblName[1][0])] = 1;
                                     
-                                } else {
-                                
+                                } elseif (!isset($parseTblName[1][0]) || (isset($parseTblName[1][0]) && $parseTblName[1][0] && !in_array(trim($parseTblName[1][0]), self::$ignoreDeleteScriptTables))) {
+                                        
                                     $message = $ex->getMessage();
 
-                                    if (!isset($parseTblName[1][0]) || (isset($parseTblName[1][0]) && $parseTblName[1][0] && !in_array(trim($parseTblName[1][0]), self::$ignoreDeleteScriptTables))) {
-                                        
-                                        $logs = 'META SQL:<br />';
-                                        $logs .= $script.'<br />';
-                                        $logs .= 'Error:<br />';
-                                        $logs .= $message. '<br />';
-                                        $logs .= '=====================================================================<br />';
-                                    
-                                        $this->db->RollbackTrans();
-                                        return array('status' => 'error', 'message' => $parseTblName[1][0] . ' ' . $message, 'logs' => $logs);
-                                    }
+                                    $logs = 'META SQL:<br />';
+                                    $logs .= $script.'<br />';
+                                    $logs .= 'Error:<br />';
+                                    $logs .= $message. '<br />';
+                                    $logs .= '=====================================================================<br />';
+
+                                    $this->db->RollbackTrans();
+                                    return array('status' => 'error', 'message' => $parseTblName[1][0] . ' ' . $message, 'logs' => $logs);
                                 }
                                 
                             }
