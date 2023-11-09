@@ -413,15 +413,14 @@ class Mdasset_Model extends Model {
 
         if (Input::postCheck('filterRules')) {
 
-            $filterRules = json_decode(Str::cp1251_utf8($_POST['filterRules']));
+            $filterRules = json_decode(Str::cp1251_utf8($_POST['filterRules']), true);
 
-            if (count($filterRules) > 0) {
+            if (is_countable($filterRules) && count($filterRules) > 0) {
 
                 $paramFilter = array();
 
                 foreach ($filterRules as $rule) {
 
-                    $rule = get_object_vars($rule);
                     $field = $rule['field'];
                     $condition = $rule['op'];
                     $value = Input::param(trim($rule['value']));

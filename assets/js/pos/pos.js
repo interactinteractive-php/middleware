@@ -769,6 +769,9 @@ $(function () {
     if (bankIpterminals.hasOwnProperty("400000")) {
       posConnectBankTerminal(bankIpterminals["400000"], "tdbank");
     }
+    if (bankIpterminals.hasOwnProperty("320000")) {
+      posConnectBankTerminal(bankIpterminals["320000"], "xacbank");
+    }
     if (bankIpterminals.hasOwnProperty("150000")) {
       posConnectBankTerminal(bankIpterminals["150000"], "golomtbank");
     }
@@ -802,6 +805,9 @@ $(function () {
       }
       if (bankIpterminals.hasOwnProperty("400000")) {
         posConnectBankTerminal(bankIpterminals["400000"], "tdbank");
+      }
+      if (bankIpterminals.hasOwnProperty("320000")) {
+        posConnectBankTerminal(bankIpterminals["320000"], "xacbank");
       }
       if (bankIpterminals.hasOwnProperty("150000")) {
         posConnectBankTerminal(bankIpterminals["150000"], "golomtbank");
@@ -2419,6 +2425,33 @@ $(function () {
             "khanbank",
             function (res) {
               setValuePosKhaanBank($tselect, res);
+            }
+          );
+        } else {
+          if (isBasketOnly) {
+          } else {
+            posPayment();
+          }
+        }
+      }
+
+      if (posUseIpTerminal === "1" && bankCode == 320000) {
+        var amount = $tselect.val();
+
+        if (
+          $tselect
+            .closest(".pos-bank-row")
+            .find('select[name="posBankIdDtl[]"]')
+            .val() != "" &&
+          bankIpterminals.hasOwnProperty(bankCode)
+        ) {
+          isAcceptPrintPos = false;
+          bankIpTerminalTransfer(
+            amount,
+            bankIpterminals[bankCode],
+            "xacbank",
+            function (res) {
+              setValuePosXacBank($tselect, res);
             }
           );
         } else {
@@ -4426,6 +4459,9 @@ $(function () {
     if (bankIpterminals.hasOwnProperty("150000")) {
       posConnectBankTerminal(bankIpterminals["150000"], "golomtbank");
     }
+    if (bankIpterminals.hasOwnProperty("320000")) {
+      posConnectBankTerminal(bankIpterminals["320000"], "xacbank");
+    }
     if (bankIpterminals.hasOwnProperty("400000")) {
       posConnectBankTerminal(bankIpterminals["400000"], "tdbank");
     }
@@ -4450,6 +4486,44 @@ $(function () {
             "golomtbank",
             function (res) {
               setValuePosGolomtBank($tselect, res);
+            }
+          );
+        }
+      }
+
+      if (bankCode == 500000) {
+        var posBalanceAmountChangeCombo = $tselect
+          .closest(".pos-bank-row")
+          .find('input[name="bankAmountDtl[]"]')
+          .autoNumeric("get");
+
+        if (bankIpterminals.hasOwnProperty(bankCode)) {
+          isAcceptPrintPos = false;
+          bankIpTerminalTransfer(
+            posBalanceAmountChangeCombo,
+            bankIpterminals[bankCode],
+            "khanbank",
+            function (res) {
+              setValuePosKhaanBank($tselect, res);
+            }
+          );
+        }
+      }
+
+      if (bankCode == 320000) {
+        var posBalanceAmountChangeCombo = $tselect
+          .closest(".pos-bank-row")
+          .find('input[name="bankAmountDtl[]"]')
+          .autoNumeric("get");
+
+        if (bankIpterminals.hasOwnProperty(bankCode)) {
+          isAcceptPrintPos = false;
+          bankIpTerminalTransfer(
+            posBalanceAmountChangeCombo,
+            bankIpterminals[bankCode],
+            "xacbank",
+            function (res) {
+              setValuePosXacBank($tselect, res);
             }
           );
         }
@@ -17903,6 +17977,34 @@ function setValuePosKhaanBank($elem, getParse) {
     addclass: "pnotify-center",
   });
 }
+function setValuePosXacBank($elem, getParse) {
+  if (getParse["status"] == "error") {
+    new PNotify({
+      title: "Bank terminal error [Xacbank]",
+      text: "ГҮЙЛГЭЭ АМЖИЛТГҮЙ: " + getParse.text,
+      type: "error",
+      sticker: false,
+      addclass: "pnotify-center",
+    });
+    return;
+  }
+
+  var $getParent = $elem.closest(".pos-bank-row");
+  $getParent.find('input[name="deviceRrn[]"]').val(getParse.rrn);
+  $getParent.find('input[name="devicePan[]"]').val(getParse.pan);
+  $getParent.find('input[name="deviceAuthcode[]"]').val(getParse.authcode);
+  $getParent.find('input[name="deviceTerminalId[]"]').val(getParse.terminalid);
+  $getParent.find('input[name="deviceTraceNo[]"]').val(getParse.traceno);
+
+  isAcceptPrintPos = true;
+  new PNotify({
+    title: "Success",
+    text: "<strong>ГҮЙЛГЭЭ АМЖИЛТТАЙ ХИЙГДЛЭЭ</strong>",
+    type: "success",
+    sticker: false,
+    addclass: "pnotify-center",
+  });
+}
 function setValuePosTdBank($elem, getParse) {
   if (getParse["status"] == "error") {
     new PNotify({
@@ -18397,8 +18499,32 @@ function posVoidBankTerminalFn(
         } else {
           PNotify.removeAll();
           new PNotify({
-            title: "Bank terminal error [" + deviceType + "]",
+            title: "Bank terminal error [TDB]",
             text: "ГҮЙЛГЭЭ АМЖИЛТГҮЙ: [" + getParse["code"] + "] " + getParse["message"],
+            type: "error",
+            sticker: false,
+            addclass: "pnotify-center",
+          });
+          callback({status:'error'});
+          Core.unblockUI();
+          return;
+        }
+      } else if (deviceType === "khas_paxA35") {
+        var getParse = JSON.parse(JSON.parse(jsonData.details[0].value));
+        if (getParse["code"] == "0") {
+          new PNotify({
+            title: "Success",
+            text: "<strong>ГҮЙЛГЭЭ АМЖИЛТТАЙ ХИЙГДЛЭЭ</strong>",
+            type: "success",
+            sticker: false,
+            addclass: "pnotify-center",
+          });
+          callback({status:''});
+        } else {
+          PNotify.removeAll();
+          new PNotify({
+            title: "Bank terminal error [Xacbank]",
+            text: "ГҮЙЛГЭЭ АМЖИЛТГҮЙ: [" + getParse["code"] + "] " + getParse["desc"],
             type: "error",
             sticker: false,
             addclass: "pnotify-center",
@@ -18447,10 +18573,10 @@ function posVoidBankTerminal(confCode, bankAmount, callback) {
   if ("WebSocket" in window) {
     console.log("WebSocket is supported by your Browser!");
 
-    if (confCode == "") {
+    /*if (confCode == "") {
       callback({status:'success'});
       return;
-    }
+    }*/
 
     var $bankRow = $(".pos-bank-row");
     // #1-------------------------------------
@@ -18458,13 +18584,16 @@ function posVoidBankTerminal(confCode, bankAmount, callback) {
       var $self = $(this);
       var bankCode = $self.find('select[name="posBankIdDtl[]"]').find("option:selected").data("bankcode");
 
-      if ($self.find("input[name='rowTerminalConfirmCode[]']").val() != "" && !$self.hasClass("worked")) {
+      if (($self.find("input[name='rowTerminalConfirmCode[]']").val() != "" || $self.find("input[name='deviceTraceNo[]']").val() != "") && !$self.hasClass("worked")) {
         var deviceType = "";
         if (bankCode == 150000 && bankIpterminals.hasOwnProperty(bankCode)) {
           deviceType = "glmt";
         }
         if (bankCode == 500000 && bankIpterminals.hasOwnProperty(bankCode)) {
           deviceType = "databank";
+        }
+        if (bankCode == 320000 && bankIpterminals.hasOwnProperty(bankCode)) {
+          deviceType = "khas_paxA35";
         }
         if (bankCode == 400000 && bankIpterminals.hasOwnProperty(bankCode)) {
           deviceType = "tdb_paxs300";
@@ -18495,7 +18624,7 @@ function posVoidBankTerminal(confCode, bankAmount, callback) {
               var $self = $(this);
               var bankCode = $self.find('select[name="posBankIdDtl[]"]').find("option:selected").data("bankcode");
 
-              if ($self.find("input[name='rowTerminalConfirmCode[]']").val() != "" && !$self.hasClass("worked")) {
+              if (($self.find("input[name='rowTerminalConfirmCode[]']").val() != "" || $self.find("input[name='deviceTraceNo[]']").val() != "") && !$self.hasClass("worked")) {
                 var deviceType = "";
                 if (
                   bankCode == 150000 &&
@@ -18508,6 +18637,12 @@ function posVoidBankTerminal(confCode, bankAmount, callback) {
                   bankIpterminals.hasOwnProperty(bankCode)
                 ) {
                   deviceType = "databank";
+                }
+                if (
+                  bankCode == 320000 &&
+                  bankIpterminals.hasOwnProperty(bankCode)
+                ) {
+                  deviceType = "khas_paxA35";
                 }
                 if (bankCode == 400000 && bankIpterminals.hasOwnProperty(bankCode)) {
                   deviceType = "tdb_paxs300";
@@ -18543,10 +18678,7 @@ function posVoidBankTerminal(confCode, bankAmount, callback) {
                         .find("option:selected")
                         .data("bankcode");
 
-                      if (
-                        $self
-                          .find("input[name='rowTerminalConfirmCode[]']")
-                          .val() != "" &&
+                      if (($self.find("input[name='rowTerminalConfirmCode[]']").val() != "" || $self.find("input[name='deviceTraceNo[]']").val() != "") &&
                         !$self.hasClass("worked")
                       ) {
                         var deviceType = "";
@@ -18561,6 +18693,12 @@ function posVoidBankTerminal(confCode, bankAmount, callback) {
                           bankIpterminals.hasOwnProperty(bankCode)
                         ) {
                           deviceType = "databank";
+                        }
+                        if (
+                          bankCode == 320000 &&
+                          bankIpterminals.hasOwnProperty(bankCode)
+                        ) {
+                          deviceType = "khas_paxA35";
                         }
                         if (bankCode == 400000 && bankIpterminals.hasOwnProperty(bankCode)) {
                           deviceType = "tdb_paxs300";
@@ -18594,12 +18732,7 @@ function posVoidBankTerminal(confCode, bankAmount, callback) {
                                 .find("option:selected")
                                 .data("bankcode");
 
-                              if (
-                                $self
-                                  .find(
-                                    "input[name='rowTerminalConfirmCode[]']"
-                                  )
-                                  .val() != "" &&
+                              if (($self.find("input[name='rowTerminalConfirmCode[]']").val() != "" || $self.find("input[name='deviceTraceNo[]']").val() != "") &&
                                 !$self.hasClass("worked")
                               ) {
                                 var deviceType = "";
@@ -18614,6 +18747,12 @@ function posVoidBankTerminal(confCode, bankAmount, callback) {
                                   bankIpterminals.hasOwnProperty(bankCode)
                                 ) {
                                   deviceType = "databank";
+                                }
+                                if (
+                                  bankCode == 320000 &&
+                                  bankIpterminals.hasOwnProperty(bankCode)
+                                ) {
+                                  deviceType = "khas_paxA35";
                                 }
                                 if (bankCode == 400000 && bankIpterminals.hasOwnProperty(bankCode)) {
                                   deviceType = "tdb_paxs300";

@@ -910,12 +910,10 @@ function ShowRegisterWin() {
             Core.unblockUI();
         }
     });
-    
 }
 
-function redirectFunction (element, url) {
+function redirectFunction(element, url) {
     var $parent = $(element).parent();
-
     $.ajax({
         type: 'post',
         url: url,
@@ -933,7 +931,6 @@ function redirectFunction (element, url) {
                 });
             } else {
                 $parent.find('a.newtab').attr('href', data.href);
-                console.log($parent.find('a.newtab'));
                 $parent.find('a.newtab')[0].click();
             }
 

@@ -719,9 +719,8 @@ class Restapi extends Controller {
     }
     
     public function runIndicatorFromMetaProcessData() {
-        $param = file_get_contents('php://input');
-        @file_put_contents('log/runIndicatorFromMetaProcessData.log', "\n" . Date::currentDate() . "\n" . $param, FILE_APPEND);
         
+        $param = file_get_contents('php://input');
         $inputParam = json_decode($param, true);
         
         if (is_array($inputParam)) {
@@ -730,7 +729,7 @@ class Restapi extends Controller {
             $bpParam = $inputParam[$bpCode];
 
             if ($bpParam && isset($bpParam['_metadataid']) && isset($bpParam['_indicatorid'])) {
-                $rs = $this->model->runIndicatorFromMetaProcessDataModel($bpParam);
+                $rs = $this->model->runIndicatorFromMetaProcessDataModel($bpParam, $param);
             } else {
                 $rs = array('status' => 'info', 'message' => 'No params! /_metadataid, _indicatorid/');
             }

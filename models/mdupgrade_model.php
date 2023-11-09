@@ -32,6 +32,7 @@ class Mdupgrade_Model extends Model {
     private static $isMetaImportCopy = false;
     private static $isCreateTable = false;
     private static $isInsertData = true;
+    private static $isCreateRollback = false;
 
     public function __construct() {
         parent::__construct();
@@ -1988,13 +1989,12 @@ class Mdupgrade_Model extends Model {
         
         if (Input::postCheck('filterRules')) {
             
-            $filterRules = json_decode(Str::cp1251_utf8($_POST['filterRules']));
+            $filterRules = json_decode(Str::cp1251_utf8($_POST['filterRules']), true);
 
             if (count($filterRules) > 0) {
 
                 foreach ($filterRules as $rule) {
 
-                    $rule = get_object_vars($rule);
                     $field = $rule['field'];
                     $value = Input::param($rule['value']);
 
@@ -3039,7 +3039,7 @@ class Mdupgrade_Model extends Model {
         
         $xml = null;
         
-        if (self::$exportCreateTables) {
+        if (self::$isCreateRollback == false && self::$exportCreateTables) {
             
             $kpiDbSchemaName = Config::getFromCache('kpiDbSchemaName');
             $rowXml = null;
@@ -3475,14 +3475,7 @@ class Mdupgrade_Model extends Model {
                     }
                 }
                 
-                if ($tblName == 'META_PROCESS_RULE') {
-                    
-                    $existsQry = 'SELECT 1 FROM META_PROCESS_RULE WHERE ID = '.$row[$primaryColumn];
-                    $sql .= rtrim($columns, ', ') . ') SELECT ' . rtrim($values, ', ') . ' FROM DUAL WHERE NOT EXISTS ('.$existsQry.')' . $separator . "\n";
-                    
-                } else {
-                    $sql .= rtrim($columns, ', ') . ') VALUES (' . rtrim($values, ', ') . ')' . $separator . "\n";
-                }
+                $sql .= rtrim($columns, ', ') . ') VALUES (' . rtrim($values, ', ') . ')' . $separator . "\n";
 
                 if ($tblName == 'META_DATA_FOLDER_MAP' && $row['FOLDER_ID']) {
                     
@@ -3579,7 +3572,7 @@ class Mdupgrade_Model extends Model {
     }
     
     public function postgreSqlColumnsConvert($sql) {
-        
+
         $data = $this->db->GetAll($sql);
         
         if ($data) {
@@ -3612,6 +3605,33 @@ class Mdupgrade_Model extends Model {
         return null;
     }
     
+    public function postgreArrayColumnsConvert($data) {
+
+        $arr = array();
+            
+        foreach ($data as $row) {
+
+            $typeName = 'varchar';
+
+            if ($row->type == 'numeric') {
+                $typeName = 'NUMBER';
+            } elseif ($row->type == 'text') {
+                $typeName = 'CLOB';
+            } elseif ($row->type == 'timestamp') {
+                $typeName = 'DATE'; 
+            }
+
+            $arr[] = array(
+                'name'       => strtoupper($row->name), 
+                'max_length' => 4000, 
+                'type'       => $typeName, 
+                'scale'      => 1
+            );
+        }
+
+        return $arr;
+    }
+    
     public function getObjectFields($objectName) {
         
         if (isset(self::$executedTables[$objectName])) {
@@ -3632,8 +3652,12 @@ class Mdupgrade_Model extends Model {
                 } elseif (DB_DRIVER == 'postgres9') {
 
                     $rs = $this->db->MetaColumns('public.' . $objectName);
-
-                    $fieldObjs = self::postgreSqlColumnsConvert($rs->sql);
+                    
+                    if (is_array($rs)) {
+                        $fieldObjs = self::postgreArrayColumnsConvert($rs);
+                    } else {
+                        $fieldObjs = self::postgreSqlColumnsConvert($rs->sql);
+                    }
 
                     $keyRow = $this->db->GetRow(sprintf($this->db->metaKeySQL1, strtolower($objectName)));
 
@@ -4642,31 +4666,48 @@ class Mdupgrade_Model extends Model {
             
             if (isset($decryptedArray['documents']['scripts']['@cdata']) && $decryptedArray['documents']['scripts']['@cdata']) {
                 
-                $scripts = $decryptedArray['documents']['scripts']['@cdata'];
+                $scripts = trim($decryptedArray['documents']['scripts']['@cdata']);
                 
-                $scripts = str_replace(Mdcommon::$separator . Mdcommon::$separator, Mdcommon::$separator, $scripts);
-                $scripts = str_replace(';' . Mdcommon::$separator, Mdcommon::$separator, $scripts);
-                
-                $scriptsArr = explode(Mdcommon::$separator, $scripts);
-                
-                foreach ($scriptsArr as $scrpt) {
+                if ($scripts) {
                     
-                    try {
+                    $scripts = str_replace(Mdcommon::$separator . Mdcommon::$separator, Mdcommon::$separator, $scripts);
+                    $scripts = str_replace(';' . Mdcommon::$separator, Mdcommon::$separator, $scripts);
 
-                        $this->db->Execute($scrpt);
-
-                    } catch (Exception $ex) {
+                    $scriptsArr = explode(Mdcommon::$separator, $scripts);
+                    $isScriptRun = false;
+                    
+                    foreach ($scriptsArr as $scrpt) {
                         
-                        $logs .= 'SQL:<br />';
-                        $logs .= $scrpt.'<br />';
-                        $logs .= 'Error:<br />';
-                        $logs .= $ex->msg. '<br />';
-                        $logs .= '=====================================================================<br />';
+                        $scrpt = trim($scrpt);
+                        
+                        if ($scrpt) {
+                            
+                            $isScriptRun = true;
+                            
+                            if (DB_DRIVER == 'postgres9') {
+                                $scrpt = 'DO $$ BEGIN '.$scrpt.'; EXCEPTION WHEN others THEN END; $$;';
+                            }
+                            
+                            try {
+                                
+                                $this->db->Execute($scrpt);
+                                
+                            } catch (Exception $ex) {
+                                
+                                $logs .= 'SQL:<br />';
+                                $logs .= $scrpt.'<br />';
+                                $logs .= 'Error:<br />';
+                                $logs .= $ex->msg. '<br />';
+                                $logs .= '=====================================================================<br />';
+                            }
+                        }
+                    }
+                    
+                    if ($isScriptRun) {
+                        $this->db->CommitTrans();
+                        $this->db->BeginTrans(); 
                     }
                 }
-                
-                $this->db->CommitTrans();
-                $this->db->BeginTrans(); 
             }
 
             if (isset($decryptedArray['documents']['metas']['meta'])) {
@@ -4718,15 +4759,20 @@ class Mdupgrade_Model extends Model {
                     
                     $scripts     = $meta['scripts']['@cdata'];
                     $scriptsList = explode(Mdcommon::$separator, $scripts);
-
+                    
                     foreach ($scriptsList as $script) {
 
                         $script = trim($script);
 
                         if ($script) {
+                            
+                            if ($skipError == '1' && DB_DRIVER == 'postgres9') {
+                                
+                                $script = 'DO $$ BEGIN '.$script.'; EXCEPTION WHEN others THEN END; $$;';
+                            }
 
                             try {
-
+                                
                                 $this->db->Execute($script);
 
                             } catch (Exception $ex) {
@@ -4776,12 +4822,28 @@ class Mdupgrade_Model extends Model {
                                 $createTableScript = trim($createTableScript);
 
                                 if ($createTableScript) {
-
+                                    
+                                    if (DB_DRIVER == 'postgres9') {
+                                        
+                                        $createTableScript = str_replace(' CHAR)', ')', $createTableScript);
+                                        
+                                        if (strpos($createTableScript, 'ALTER TABLE') !== false) {
+                                            
+                                            $createTableScript = str_replace(' ADD (', ' ADD COLUMN ', $createTableScript);
+                                            $createTableScript = str_replace('))', ')', $createTableScript);
+                                            $createTableScript = str_replace('CLOB)', 'CLOB', $createTableScript);
+                                            $createTableScript = str_replace('DATE)', 'DATE', $createTableScript);
+                                        }
+                                        
+                                        $createTableScript = 'DO $$ BEGIN '.$createTableScript.'; EXCEPTION WHEN others THEN END; $$;';
+                                    }
+                                    
                                     try {
 
                                         $this->db->Execute($createTableScript);
 
-                                    } catch (Exception $ex) { }
+                                    } catch (Exception $ex) { 
+                                    }
                                 }
                             }
                         }
@@ -4898,7 +4960,7 @@ class Mdupgrade_Model extends Model {
             $this->db->CommitTrans();
             
             if ($successMetas) {
-
+                
                 self::upgradeGlobeDictionary($translateList);
 
                 foreach ($successMetas as $keyMeta) {
@@ -4961,7 +5023,11 @@ class Mdupgrade_Model extends Model {
                     $cols = array();
 
                     foreach ($updateArray as $key => $val) {
-                        $cols[] = "$key = '$val'";
+                        if ($val != '') { 
+                            $cols[] = "$key = '$val'"; 
+                        } else {
+                            $cols[] = "$key = null";
+                        }
                     }
 
                     $affectedCount = self::executeQueryStr("UPDATE GLOBE_DICTIONARY SET ".implode(', ', $cols)." WHERE LOWER(CODE) = '$globeCode' AND IS_CUSTOM = 0");
@@ -5029,7 +5095,7 @@ class Mdupgrade_Model extends Model {
                         
                         $this->db->Execute($updateQry);
 
-                    } catch (ADODB_Exception $ex) {
+                    } catch (Exception $ex) {
                         
                         $message = $ex->getMessage();
                     }
@@ -5271,7 +5337,7 @@ class Mdupgrade_Model extends Model {
             
             return $this->db->affected_rows();
             
-        } catch (ADODB_Exception $ex) {
+        } catch (Exception $ex) {
             return 0;
         }
     }
@@ -5283,7 +5349,7 @@ class Mdupgrade_Model extends Model {
             $this->db->AutoExecute('GLOBE_DICTIONARY', $row);
             return true;
             
-        } catch (ADODB_Exception $ex) {
+        } catch (Exception $ex) {
             return false;
         }
     }
@@ -6643,7 +6709,9 @@ class Mdupgrade_Model extends Model {
                     $dbResult = $this->db->AutoExecute('CUSTOMER_BUG_FIXED', $fixedData);
 
                     if ($dbResult) {
-
+                        
+                        self::$isCreateRollback = true;
+                        
                         $result = self::downloadBugFixingModel($bugFixId);
                         $oldPatch = $result['result'];
                         

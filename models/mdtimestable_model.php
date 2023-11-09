@@ -206,12 +206,11 @@ class Mdtimestable_Model extends Model {
                 }                    
 
                 if (Input::postCheck('filterRules')) {
-                    $filterRules = json_decode(Str::cp1251_utf8($_POST['filterRules']));
+                    $filterRules = json_decode(Str::cp1251_utf8($_POST['filterRules']), true);
 
                     if (count($filterRules) > 0) {
 
                         foreach ($filterRules as $rule) {
-                            $rule = get_object_vars($rule);
                             $ruleValue = Input::param(Str::lower(trim($rule['value'])));
                             switch ($rule['field']) {
                                 case 'CLEAR_TIME':
@@ -692,12 +691,11 @@ class Mdtimestable_Model extends Model {
                 }                    
 
                 if (Input::postCheck('filterRules')) {
-                    $filterRules = json_decode(Str::cp1251_utf8($_POST['filterRules']));
+                    $filterRules = json_decode(Str::cp1251_utf8($_POST['filterRules']), true);
 
                     if (count($filterRules) > 0) {
 
                         foreach ($filterRules as $rule) {
-                            $rule = get_object_vars($rule);
                             $ruleValue = Input::param(Str::lower(trim($rule['value'])));
                             switch ($rule['field']) {
                                 case 'CLEAR_TIME':
@@ -1247,12 +1245,11 @@ class Mdtimestable_Model extends Model {
         }
 
         if (Input::postCheck('filterRules')) {
-            $filterRules = json_decode(Str::cp1251_utf8($_POST['filterRules']));
+            $filterRules = json_decode(Str::cp1251_utf8($_POST['filterRules']), true);
 
             if (count($filterRules) > 0) {
 
                 foreach ($filterRules as $rule) {
-                    $rule = get_object_vars($rule);
                     $ruleValue = Input::param(trim($rule['value']));
 
                     switch ($rule['field']) {
@@ -1441,12 +1438,11 @@ class Mdtimestable_Model extends Model {
                 }                    
 
                 if (Input::postCheck('filterRules')) {
-                    $filterRules = json_decode(Str::cp1251_utf8($_POST['filterRules']));
+                    $filterRules = json_decode(Str::cp1251_utf8($_POST['filterRules']), true);
 
                     if (count($filterRules) > 0) {
 
                         foreach ($filterRules as $rule) {
-                            $rule = get_object_vars($rule);
                             $ruleValue = Input::param(Str::lower(trim($rule['value'])));
                             switch ($rule['field']) {
                                 case 'CLEAR_TIME':
@@ -4311,12 +4307,11 @@ class Mdtimestable_Model extends Model {
                 $filterRuleString = ' WHERE 1 = 1 ';
 
                 if (Input::postCheck('filterRules')) {
-                    $filterRules = json_decode(Str::cp1251_utf8($_POST['filterRules']));
+                    $filterRules = json_decode(Str::cp1251_utf8($_POST['filterRules']), true);
 
                     if (count($filterRules) > 0) {
 
                         foreach ($filterRules as $rule) {
-                            $rule = get_object_vars($rule);
                             $ruleValue = Input::param(Str::lower(trim($rule['value'])));
                             switch ($rule['field']) {
                                 case 'CLEAR_TIME':
@@ -5380,12 +5375,11 @@ class Mdtimestable_Model extends Model {
                 $filterRuleString = ' WHERE 1 = 1 ';
 
                 if (Input::postCheck('filterRules')) {
-                    $filterRules = json_decode(Str::cp1251_utf8($_POST['filterRules']));
+                    $filterRules = json_decode(Str::cp1251_utf8($_POST['filterRules']), true);
 
                     if (count($filterRules) > 0) {
 
                         foreach ($filterRules as $rule) {
-                            $rule = get_object_vars($rule);
                             $ruleValue = Input::param(Str::lower(trim($rule['value'])));
                             switch ($rule['field']) {
                                 case 'CLEAR_TIME':
@@ -8614,10 +8608,9 @@ class Mdtimestable_Model extends Model {
                     }
 
                     if (Input::postCheck('filterRules')) {
-                        $filterRules = json_decode(Str::cp1251_utf8($_POST['filterRules']));                
+                        $filterRules = json_decode(Str::cp1251_utf8($_POST['filterRules']), true);                
                         if ($filterRules) {
                             foreach ($filterRules as $rule) {
-                                $rule = get_object_vars($rule);
                                 $field = $rule['field'];
                                 $value = Input::param(Str::lower($rule['value']));
                                 if (!empty($value)) {
@@ -10670,10 +10663,9 @@ class Mdtimestable_Model extends Model {
                     }                        
 
                     if (Input::postCheck('filterRules')) {
-                        $filterRules = json_decode(Str::cp1251_utf8($_POST['filterRules']));                
+                        $filterRules = json_decode(Str::cp1251_utf8($_POST['filterRules']), true);                
                         if ($filterRules) {
                             foreach ($filterRules as $rule) {
-                                $rule = get_object_vars($rule);
                                 $field = $rule['field'];
                                 $value = Input::param(Str::lower($rule['value']));
                                 if (!empty($value)) {
@@ -11178,12 +11170,11 @@ class Mdtimestable_Model extends Model {
         }
         
         if (Input::postCheck('filterRules')) {
-            $filterRules = json_decode(Str::cp1251_utf8($_POST['filterRules']));
+            $filterRules = json_decode(Str::cp1251_utf8($_POST['filterRules']), true);
 
             if (is_array($filterRules) && count($filterRules) > 0) {
 
                 foreach ($filterRules as $rule) {
-                    $rule = get_object_vars($rule);
                     $ruleValue = Input::param(trim($rule['value']));
 
                     switch ($rule['field']) {
@@ -12005,10 +11996,9 @@ class Mdtimestable_Model extends Model {
                     }
 
                     if (Input::postCheck('filterRules')) {
-                        $filterRules = json_decode(Str::cp1251_utf8($_POST['filterRules']));                
+                        $filterRules = json_decode(Str::cp1251_utf8($_POST['filterRules']), true);                
                         if ($filterRules) {
                             foreach ($filterRules as $rule) {
-                                $rule = get_object_vars($rule);
                                 $field = $rule['field'];
                                 $value = Input::param(Str::lower($rule['value']));
                                 if (!empty($value)) {
@@ -12584,12 +12574,11 @@ class Mdtimestable_Model extends Model {
         }
         
         if (Input::postCheck('filterRules')) {
-            $filterRules = json_decode(Str::cp1251_utf8($_POST['filterRules']));
+            $filterRules = json_decode(Str::cp1251_utf8($_POST['filterRules']), true);
 
             if (is_array($filterRules) && count($filterRules) > 0) {
 
                 foreach ($filterRules as $rule) {
-                    $rule = get_object_vars($rule);
                     $ruleValue = Input::param(trim($rule['value']));
 
                     switch ($rule['field']) {
@@ -13359,10 +13348,9 @@ class Mdtimestable_Model extends Model {
                 }
 
                 if (Input::postCheck('filterRules')) {
-                    $filterRules = json_decode(Str::cp1251_utf8($_POST['filterRules']));                
+                    $filterRules = json_decode(Str::cp1251_utf8($_POST['filterRules']), true);                
                     if ($filterRules) {
                         foreach ($filterRules as $rule) {
-                            $rule = get_object_vars($rule);
                             $field = $rule['field'];
                             $value = Input::param(Str::lower($rule['value']));
                             if (!empty($value)) {

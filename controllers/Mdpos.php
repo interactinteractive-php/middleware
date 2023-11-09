@@ -3171,11 +3171,14 @@ class Mdpos extends Controller {
         $getNames = $getNamesOrig['address_components'];
         
         $values = array();
-        foreach ($getNames as $row) {
-            array_push($values, array(
-                'operator' => 'like',
-                'operand' => '%'.trim(Str::replace('Дүүрэг', '', $row['long_name'])).'%'
-            ));
+        
+        if ($getNames && is_array($getNames)) {
+            foreach ($getNames as $row) {
+                array_push($values, array(
+                    'operator' => 'like',
+                    'operand' => '%'.trim(Str::replace('Дүүрэг', '', $row['long_name'])).'%'
+                ));
+            }
         }
         
         $criteria = array(
@@ -3482,7 +3485,7 @@ class Mdpos extends Controller {
         $this->load->model('mdpos', 'middleware/models/');
         $getResult = $this->model->paymentTypeLocalExpModel();
         if ($getResult) {
-            $getResult = str_replace("storecode", Session::get(SESSION_PREFIX.'storeCode'), $getResult["CRITERIA"]);
+            $getResult = str_replace("storecode", "'".Session::get(SESSION_PREFIX.'storeCode')."'", $getResult["CRITERIA"]);
             
             return @eval('return ('.$getResult.');');
         }

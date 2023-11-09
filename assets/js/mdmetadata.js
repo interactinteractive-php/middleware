@@ -2849,6 +2849,15 @@ function urlRedirectByDataView(elem, processMetaDataId, url, target, dataViewId,
                 posPrintSetlement(elem, processMetaDataId, dataViewId, selectedRow, paramData);
             }      
             return;
+        } else if (urlLower == 'printsettlementxac') {            
+            if (typeof isPosAddonScript === 'undefined') {
+                $.getScript(URL_APP + 'middleware/assets/js/pos/addon.js').done(function() {
+                    posPrintSetlementXac(elem, processMetaDataId, dataViewId, selectedRow, paramData);
+                });
+            } else {
+                posPrintSetlementXac(elem, processMetaDataId, dataViewId, selectedRow, paramData);
+            }      
+            return;
         } else if (urlLower == 'printsettlementtdb') {            
             if (typeof isPosAddonScript === 'undefined') {
                 $.getScript(URL_APP + 'middleware/assets/js/pos/addon.js').done(function() {

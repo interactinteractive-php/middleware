@@ -1218,7 +1218,7 @@ class Mdmetadata extends Controller {
             return null;
         }
         
-        if (!isset(self::$pathDefaultValues[$value])) {
+        if (!array_key_exists($value, self::$pathDefaultValues)) {
             self::$pathDefaultValues[$value] = Mdmetadata::getDefaultValue($value);
         } 
         

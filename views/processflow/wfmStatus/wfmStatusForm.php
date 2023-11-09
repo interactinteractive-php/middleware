@@ -365,7 +365,9 @@
                 {field: 'ck', checkbox: true}
             ]],
             columns: [[
-                {field:'ROLENAME',title:'Дүр',sortable:true,fixed:true, width: '68%', halign: 'center',align: 'left',},
+                {field:'ROLENAME',title:'Дүр',sortable:true,fixed:true, width: '68%', halign: 'center',align: 'left', formatter: function (value, row) {
+                    return '<a href="javascript:;" onclick="userRoleDataSelectableGrid(\''+row.ROLE_ID+'\')">'+value+'</a>';
+                }},
                 {field:'IS_EDIT',title:'<i class="fa fa-check-square-o"></i>',width: '10%', halign: 'center',align: 'center',
                     formatter: function (value, row) {
                         
@@ -641,7 +643,7 @@
                             .find("input[name=workstartdate]").addClass("dateMaskInit");                                                    
                 _thisGrid.datagrid('resize');
             }
-        });
+        });              
         
         $('#wfmStatusCfgUserProcess_<?php echo $this->wfmStatusId ?>').on("focus", 'input#userQuickCode', function(e) {
             var _this = $(this);
@@ -994,6 +996,117 @@
             $dialog.dialog('open');    
         });
     });
+    
+    function userRoleDataSelectableGrid(roleId) {
+
+        var $dialogName = 'dialog-commonmetadata-userrole';
+        if (!$("#" + $dialogName).length) {
+            $('<div id="' + $dialogName + '"></div>').appendTo('body');
+        }
+        var $dialog = $('#' + $dialogName);
+
+        $dialog.empty().append('<div class="row">'+
+                '<div class="col-md-12 jeasyuiTheme3" id="table_mdWfmStatus_rolelist_<?php echo $this->wfmStatusId ?>">'+
+                  '<table id="mdWfmStatus_userrolelist_<?php echo $this->wfmStatusId ?>"></table>'+
+                '</div>'+
+            '</div>');
+    
+        $dialog.dialog({
+            cache: false,
+            resizable: false,
+            bgiframe: true,
+            autoOpen: false,
+            title: 'Хэрэглэгчийн жагсаалт',
+            position: { my: "top", at: "top+50" },
+            width: 800,
+            height: "auto",
+            modal: true,
+            open: function() {
+                disableScrolling();
+            },
+            close: function() {
+                enableScrolling();
+                $dialog.empty().dialog('destroy').remove();
+            },
+            buttons: [
+                {
+                    text: plang.get('close_btn'),
+                    class: 'btn blue-hoki btn-sm',
+                    click: function() {
+                        $dialog.dialog('close');
+                    }
+                }
+            ]
+        });
+        $dialog.dialog('open');
+        Core.unblockUI();
+
+        $('#mdWfmStatus_userrolelist_<?php echo $this->wfmStatusId ?>').datagrid({
+            url: 'mdprocessflow/getWfmStatusUserListByRole',
+            queryParams: {roleId: roleId }, 
+            resizeHandle: 'right',
+            fitColumns: true,
+            autoRowHeight: true,
+            striped: false,
+            method: 'post',
+            nowrap: true,
+            pagination: false,
+            rownumbers: true,
+            singleSelect: false,
+            ctrlSelect: false,
+            checkOnSelect: false,
+            selectOnCheck: false,
+            pagePosition: 'bottom',
+            pageNumber: 1,
+            pageSize: 100,
+            pageList: [10, 30,40,50,100,200],
+            multiSort: false,
+            remoteSort: true,
+            showHeader: true,
+            showFooter: false,
+            scrollbarSize: 18,            
+            remoteFilter: true,
+            filterDelay: 10000000000,
+            frozenColumns: [],
+            columns: [[
+                {field:'USERNAME',title:'Нэр',sortable:true,fixed:true, width: '50%', halign: 'center',align: 'left'},
+                {field:'DEPARTMENT_NAME',title:'Хэлтэс',sortable:true,fixed:true, width: '48%', halign: 'center',align: 'left'} 
+            ]],
+            onLoadSuccess: function (data) {
+                if (data.status === 'error') {
+                    PNotify.removeAll();
+                    new PNotify({
+                        title: 'Error',
+                        text: data.message,
+                        type: 'error',
+                        sticker: false
+                    });
+                }
+                var _thisGrid = $(this);
+                showGridMessage(_thisGrid, '');
+
+                var $panelView = _thisGrid.datagrid('getPanel').children('div.datagrid-view');
+                var $panelFilterRow = $panelView.find('.datagrid-filter-row');
+
+                if (_thisGrid.datagrid('getRows').length == 0) {
+                    var tr = _thisGrid.datagrid('getPanel').children('div.datagrid-view')
+                              .find(".datagrid-view2").find(".datagrid-footer").find(".datagrid-footer-inner table")
+                              .find("tbody tr");
+                    $(tr).find('td').find('div').find('span').each(function () {
+                        this.remove();
+                    });
+                }
+
+                _thisGrid.datagrid("getPanel").children("div.datagrid-view")
+                          .find(".datagrid-htable")
+                          .find(".datagrid-filter-row")
+                          .find("input[name=workstartdate]").addClass("dateMaskInit");   
+
+                initDVClearColumnFilterBtn($panelView, $panelFilterRow);      
+                _thisGrid.datagrid('resize');
+            }
+        });       
+    }      
     
     function addUserDtlWithAccountValue (data) {
         $.ajax({

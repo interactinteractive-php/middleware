@@ -4557,7 +4557,7 @@ class Mdexpression extends Controller {
                             if (strpos($valGetPath, '.') === false) {
 
                                 $valGetPath = "['" . $valGetPath . "']";
-                                $exp = str_replace($expGet[0][$key] . '.val()', Mdexpression::$cachePrefixHeader . $valGetPath, $exp);
+                                $exp = str_replace($expGet[0][$key] . '.val()', 'returnNull('.Mdexpression::$cachePrefixHeader . $valGetPath.')', $exp);
                             } else {
                                 $valGetPath = str_replace($groupPath, '', $valGetPath);
 
@@ -4567,7 +4567,7 @@ class Mdexpression extends Controller {
                                     $valGetPath = "['" . $valGetPath . "']";
                                 }
 
-                                $exp = str_replace($expGet[0][$key] . '.val()', $prefix . $valGetPath, $exp);
+                                $exp = str_replace($expGet[0][$key] . '.val()', 'returnNull('.$prefix . $valGetPath.')', $exp);
                             }
                         }
                     }
@@ -4619,7 +4619,7 @@ class Mdexpression extends Controller {
                         } else {
 
                             $valGetPath = "['" . $valGetPath . "']";
-                            $expressionStr = str_replace($getValPath[0][$vgk], Mdexpression::$cachePrefixHeader . $valGetPath, $expressionStr);
+                            $expressionStr = str_replace($getValPath[0][$vgk], 'returnNull(' . Mdexpression::$cachePrefixHeader . $valGetPath . ')', $expressionStr);
                         }
                     } else {
 
@@ -4631,7 +4631,7 @@ class Mdexpression extends Controller {
                             $valGetPath = "['" . $valGetPath . "']";
                         }
 
-                        $valGetPath = $prefix . $valGetPath;
+                        $valGetPath = 'returnNull(' . $prefix . $valGetPath . ')';
 
                         $expressionStr = str_replace($getValPath[0][$vgk], $valGetPath, $expressionStr);
                     }
@@ -4657,7 +4657,7 @@ class Mdexpression extends Controller {
             foreach ($getValPath[1] as $vgk => $valGetPathLast) {
                 if (!empty($valGetPathLast)) {
 
-                    $valGetPath = 'issetParam(' . $prefix . "['" . $valGetPathLast . "'])";
+                    $valGetPath = 'returnNull(issetParam(' . $prefix . "['" . $valGetPathLast . "']))";
 
                     $expressionStr = str_replace($getValPath[0][$vgk], $valGetPath, $expressionStr);
                 }
@@ -4765,7 +4765,7 @@ class Mdexpression extends Controller {
         return $result;
     }
 
-    public static function statementUIExpressionParse($expressionStr)
+    public static function statementUIExpressionParse($expressionStr) 
     {
         preg_match_all('/\[([^\]]*)\].val\(\)/', $expressionStr, $getValPath);
         preg_match_all('/\[([^\]]*)\].filter\(\)/', $expressionStr, $getValPathFilter);
@@ -4865,8 +4865,7 @@ class Mdexpression extends Controller {
         return $expressionStr;
     }
 
-    public function glTemplateExpression($templateId, $uniqId)
-    {
+    public function glTemplateExpression($templateId, $uniqId) {
 
         $expression     = null;
         $expressionDb   = $this->db->GetOne("SELECT EXPRESSION FROM FIN_GENERAL_LEDGER_TMP WHERE ID = $templateId");

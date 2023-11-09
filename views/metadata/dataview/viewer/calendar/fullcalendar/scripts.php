@@ -1039,7 +1039,7 @@ function initFullCalendar_<?php echo $this->mid; ?>() {
                                         <?php 
                                         if ($tooltipPos10 && $tooltipPos9) { 
                                         ?>
-                                            content += '<div class="d-sm-flex align-item-sm-center flex-sm-nowrap mt10 ">'+
+                                            content += '<div class="d-sm-flex align-item-sm-center flex-sm-nowrap mt10">'+
                                                 '<div class="pt10 w-100" style="border-top: 1px solid #e5e5e5;">'+
                                                     '<label class="w-100"><i class="fa fa-calendar"></i> <?php echo $tooltipPos9_labelname ? $tooltipPos9_labelname : ''; ?>: ' + dvFieldValueShow(rowData.<?php echo $tooltipPos9; ?>) + '</label>'+
                                                     '<label class="w-100"><i class="fa fa-calendar"></i> <?php echo $tooltipPos10_labelname ? $tooltipPos10_labelname : ''; ?>: ' + dvFieldValueShow(rowData.<?php echo $tooltipPos10; ?>) + '</label>'+
@@ -1047,10 +1047,13 @@ function initFullCalendar_<?php echo $this->mid; ?>() {
                                             '</div>';
                                         <?php 
                                         }
+                                        ?>
+                                        content += '<div style="max-height: 200px; overflow: auto;">';
+                                        <?php
                                         if ($tooltipPos11 && $tooltipPos11_labelname) { 
                                         ?>
                                             if (typeof rowData.<?php echo $tooltipPos11; ?> !== 'undefined' && rowData.<?php echo $tooltipPos11; ?>) {
-                                                content += '<div class="d-sm-flex align-item-sm-center flex-sm-nowrap mt10 ">'+
+                                                content += '<div class="d-sm-flex align-item-sm-center flex-sm-nowrap mt10">'+
                                                     '<div class="pt10 pb10 w-100" style="border-top: 1px solid #e5e5e5;"><?php echo $tooltipPos11_labelname; ?><hr class="mt0 mb5 border-0">'+
                                                         rowData.<?php echo $tooltipPos11; ?> +
                                                     '</div>'+
@@ -1061,7 +1064,7 @@ function initFullCalendar_<?php echo $this->mid; ?>() {
                                         if ($tooltipPos12 && $tooltipPos12_labelname) { 
                                         ?>
                                             if (typeof rowData.<?php echo $tooltipPos12; ?> !== 'undefined' && rowData.<?php echo $tooltipPos12; ?>) {
-                                                content += '<div class="d-sm-flex align-item-sm-center flex-sm-nowrap mt10 ">'+
+                                                content += '<div class="d-sm-flex align-item-sm-center flex-sm-nowrap mt10">'+
                                                     '<div class="pt10 pb10 w-100 pull-left" style="border-top: 1px solid #e5e5e5;"><?php echo $tooltipPos12_labelname; ?><hr class="mt0 mb5 border-0">'+
                                                         rowData.<?php echo $tooltipPos12; ?> +
                                                     '</div>'+ 
@@ -1072,26 +1075,27 @@ function initFullCalendar_<?php echo $this->mid; ?>() {
                                         if ($tooltipPos13 && $tooltipPos13_labelname) { 
                                         ?>
                                             if (typeof rowData.<?php echo $tooltipPos13; ?> !== 'undefined' && rowData.<?php echo $tooltipPos13; ?>) {
-                                            content += '<div class="d-sm-flex align-item-sm-center flex-sm-nowrap mt10 ">'+
-                                                    '<div class="pt10 pb10 w-100" style="border-top: 1px solid #e5e5e5;"><?php echo $tooltipPos13_labelname; ?><hr class="mt0 mb5 border-0">'+
-                                                        rowData.<?php echo $tooltipPos13; ?> +
-                                                    '</div>'+ 
-                                                '</div>';
+                                                content += '<div class="d-sm-flex align-item-sm-center flex-sm-nowrap mt10">'+
+                                                        '<div class="pt10 pb10 w-100" style="border-top: 1px solid #e5e5e5;"><?php echo $tooltipPos13_labelname; ?><hr class="mt0 mb5 border-0">'+
+                                                            rowData.<?php echo $tooltipPos13; ?> +
+                                                        '</div>'+ 
+                                                    '</div>';
                                             }
                                         <?php 
                                         }
                                         if ($tooltipPos6Desc && $tooltipPos6Desc_labelname) { 
                                         ?>
                                             if (typeof rowData.<?php echo $tooltipPos6Desc; ?> !== 'undefined' && rowData.<?php echo $tooltipPos6Desc; ?>) {
-                                            content += '<div class="d-sm-flex align-item-sm-center flex-sm-nowrap mt10 ">'+
-                                                    '<div class="pt10 pb10 w-100" style="border-top: 1px solid #e5e5e5;"><?php echo $tooltipPos6Desc_labelname; ?><hr class="mt0 mb5 border-0">'+
-                                                        rowData.<?php echo $tooltipPos6Desc; ?> +
-                                                    '</div>'+ 
-                                                '</div>';
+                                                content += '<div class="d-sm-flex align-item-sm-center flex-sm-nowrap mt10">'+
+                                                        '<div class="pt10 pb10 w-100" style="border-top: 1px solid #e5e5e5;"><?php echo $tooltipPos6Desc_labelname; ?><hr class="mt0 mb5 border-0">'+
+                                                            rowData.<?php echo $tooltipPos6Desc; ?> +
+                                                        '</div>'+ 
+                                                    '</div>';
                                             }
                                         <?php 
                                         } 
                                         ?>
+                                        content += '</div>';
                                     content += '</div>'+
                                 '</div>';
                             

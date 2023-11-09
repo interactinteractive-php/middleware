@@ -773,7 +773,7 @@ class Mdprocessflow extends Controller {
                     $checkLookUp = $meta['LOOKUP_META_DATA_ID'];
                 }
                 
-                $this->view->metaList .= '<li class="d-flex" data-code="'.$meta['FIELD_PATH'].'" title="'.$meta['FIELD_PATH'].'"><span style="flex: 50%;">'.$meta['LABEL_NAME'].'</span><i class="icon-question3 ml8" onclick="wfmCriteriaMore(\''.Input::post('metaDataId').'\', \''.$checkLookUp.'\', \''.$meta['DESCRIPTION'].'\')" style="color:#1BBC9B"></i></li>';
+                $this->view->metaList .= '<li class="d-flex" data-code="'.$meta['FIELD_PATH'].'" title="'.$meta['FIELD_PATH'].'"><span style="flex: 50%;">'.$meta['LABEL_NAME'].'</span><i class="icon-arrow-right8 ml8" onclick="wfmCriteriaMore(\''.Input::post('metaDataId').'\', \''.$checkLookUp.'\', \''.$meta['DESCRIPTION'].'\')" style="color:#1BBC9B"></i></li>';
                 
                 $searchArr[] = 'p_' . $k . '_code';
                 $searchArr[] = 'p_' . $k . '_name';
@@ -948,6 +948,11 @@ class Mdprocessflow extends Controller {
     
     public function getWfmStatusRoleList() {
         $result = $this->model->getWfmStatusRoleListModel();
+        echo json_encode($result); exit;
+    }
+    
+    public function getWfmStatusUserListByRole() {
+        $result = $this->model->getWfmStatusUserListByRoleModel();
         echo json_encode($result); exit;
     }
     

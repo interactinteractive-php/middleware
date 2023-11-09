@@ -964,7 +964,7 @@ class Mdstatement_model extends Model {
         
         if (Input::postCheck('filterRules')) {
             
-            $filterRules = json_decode(Str::cp1251_utf8($_POST['filterRules']));
+            $filterRules = json_decode(Str::cp1251_utf8($_POST['filterRules']), true);
 
             if (count($filterRules) > 0) {
 
@@ -972,7 +972,6 @@ class Mdstatement_model extends Model {
 
                 foreach ($filterRules as $rule) {
 
-                    $rule = get_object_vars($rule);
                     $field = $rule['field'];
                     $value = Input::param(trim($rule['value']));
 
@@ -1134,8 +1133,6 @@ class Mdstatement_model extends Model {
                                 }
                             }
                         }
-                        
-                        $rdb->Execute(Ue::createSessionInfo());
 
                         $sqlResult = $rdb->GetAll($sql, $bindParams);
 
@@ -1169,8 +1166,6 @@ class Mdstatement_model extends Model {
                                 }
                             }
                         }
-
-                        $this->db->Execute(Ue::createSessionInfo());
                         
                         if (issetParam($getRowStatement['IS_TIMETABLE']) === '1' || $dataViewId == Config::getFromCache('staticTmsReport')) { //'1581480427654'
                             

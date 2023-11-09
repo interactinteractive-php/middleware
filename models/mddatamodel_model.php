@@ -98,7 +98,7 @@ class Mddatamodel_Model extends Model {
                     
                     $advancedCriteria = trim($row['ADVANCED_CRITERIA']);
                     
-                    if (eval(sprintf('return (%s);', $rules))) {
+                    if (Mdcommon::expressionEvalFixWithReturn($rules)) { 
                         
                         if ($advancedCriteria && strpos($advancedCriteria, 'equal=') !== false) {
                 
@@ -157,7 +157,7 @@ class Mddatamodel_Model extends Model {
                             $rules = Mdmetadata::criteriaMethodReplacer($rules);
                             $rules .= 'return true;';
                             
-                            $rulesResult = eval($rules);
+                            $rulesResult = Mdcommon::expressionEvalFix($rules);
                             
                             if ($rulesResult !== true) {
                                 $returnMessage = Str::firstUpper(Lang::line($rulesResult));
@@ -222,7 +222,7 @@ class Mddatamodel_Model extends Model {
                 $rules = Mdmetadata::defaultKeywordReplacer($rules);
                 $rules = Mdmetadata::criteriaMethodReplacer($rules);
 
-                if (trim($rules) != '' && eval(sprintf('return (%s);', $rules))) {
+                if (trim($rules) != '' && Mdcommon::expressionEvalFixWithReturn($rules)) {
                     return array('status' => 'success');
                 }
 

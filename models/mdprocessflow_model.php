@@ -2291,12 +2291,41 @@ class Mdprocessflow_model extends Model {
                 SELECT 
                     PER.ID, 
                     RO.ROLE_CODE ||' - '||RO.ROLE_NAME AS ROLENAME,  
-                    PER.IS_EDIT 
+                    PER.IS_EDIT,
+                    RO.ROLE_ID
                 FROM META_WFM_STATUS_PERMISSION PER 
                     INNER JOIN UM_ROLE RO ON RO.ROLE_ID = PER.ROLE_ID 
                 WHERE PER.WFM_STATUS_ID = $wfmStatusId
             ) RL 
             WHERE 1 = 1 $subCondition");
+
+        if ($result) {
+            $response['total'] = count($result);
+            $response['rows'] = $result;
+        } else {
+            $response = array('rows' => array(), 'total' => 0);
+        }
+        
+        return $response;
+    }
+
+    public function getWfmStatusUserListByRoleModel() {
+            
+        $roleId = Input::post('roleId');
+        $result = $this->db->GetAll("
+            SELECT 
+                R.ROLE_NAME,
+                COALESCE(SU.USER_FULL_NAME, UU.USERNAME, SU.USERNAME) AS USERNAME,
+                OD.DEPARTMENT_NAME
+              FROM UM_USER_ROLE UR 
+                INNER JOIN UM_USER UU ON UR.USER_ID = UU.USER_ID
+                LEFT JOIN UM_SYSTEM_USER SU ON UU.SYSTEM_USER_ID = SU.USER_ID
+                LEFT JOIN ORG_DEPARTMENT OD ON UU.DEPARTMENT_ID = OD.DEPARTMENT_ID
+                LEFT JOIN UM_ROLE R ON UR.ROLE_ID = R.ROLE_ID
+              WHERE UR.ROLE_ID = ".$this->db->Param(0)."
+                ORDER BY COALESCE(SU.USER_FULL_NAME, UU.USERNAME, SU.USERNAME) ASC",
+                array($roleId)
+        );
 
         if ($result) {
             $response['total'] = count($result);
@@ -5584,7 +5613,7 @@ class Mdprocessflow_model extends Model {
     }
 
     public function getWorkFlowWfmFieldModel($refStructureId) {
-        return $this->db->GetAll("SELECT ID, FIELD_PATH, LABEL_NAME, LOOKUP_META_DATA_ID, DESCRIPTION FROM META_WFM_FIELD WHERE REF_STRUCTURE_ID = $refStructureId");
+        return $this->db->GetAll("SELECT ID, FIELD_PATH, LABEL_NAME, ".$this->db->IfNull('LOOKUP_META_DATA_ID', 'SELECT_META_DATA_ID')." AS LOOKUP_META_DATA_ID, DESCRIPTION FROM META_WFM_FIELD WHERE REF_STRUCTURE_ID = $refStructureId");
     }    
 
     public function getTransitionFromWfmId($wfmStatusId) {

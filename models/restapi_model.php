@@ -116,7 +116,7 @@ class Restapi_Model extends Model {
         }
     }
     
-    public function runIndicatorFromMetaProcessDataModel($param) {
+    public function runIndicatorFromMetaProcessDataModel($param, $jsonParam) {
         
         $bpId         = $param['_metadataid'];
         $indicatorIds = $param['_indicatorid'];
@@ -195,6 +195,13 @@ class Restapi_Model extends Model {
                             }
                         }
                         
+                        $logParam = array(
+                            'indicatorId' => $indicatorId, 
+                            'affectedRows' => null,
+                            'executedQuery' => $queryString."\n\n".$jsonParam, 
+                            'errorMsg' => null
+                        );
+                        
                         try {
                             
                             /*if ($first7Char == 'declare') {
@@ -209,19 +216,19 @@ class Restapi_Model extends Model {
                                 $this->db->Execute($queryString);
                                 
                             } else {*/
+                            
                                 $this->db->Execute($queryString, $bindParams);
+                                $affectedRows = $this->db->affected_rows();
+                                
+                                $logParam['affectedRows'] = $affectedRows;
+                                
+                                self::insertCheckQueryLogModel($logParam);
                             //}
                             
                         } catch (Exception $ex) { 
                             
-                            $logMsg = 'Date: '.Date::currentDate() . "\n";
-                            $logMsg .= 'bpId: '.$bpId . "\n";
-                            $logMsg .= 'indicatorId: '.$indicatorId . "\n";
-                            $logMsg .= 'sql: '.$queryString . "\n";
-                            $logMsg .= 'error: '.$ex->getMessage() . "\n";
-                            $logMsg .= '==================' . "\n";
-                            
-                            file_put_contents('log/mv_triggered_query.log', $logMsg, FILE_APPEND);
+                            $logParam['errorMsg'] = $ex->getMessage();
+                            self::insertCheckQueryLogModel($logParam);
                         }
                     }
                     
@@ -235,6 +242,30 @@ class Restapi_Model extends Model {
         }
         
         return $response;
+    }
+    
+    public function insertCheckQueryLogModel($param) {
+        
+        try {
+            
+            $data = array(
+                'LOG_ID'       => getUID(), 
+                'INDICATOR_ID' => $param['indicatorId'], 
+                'ERROR_QTY'    => $param['affectedRows'], 
+                'LOG_MESSAGE'  => $param['errorMsg'], 
+                'CREATED_DATE' => Date::currentDate()
+            );
+            
+            $rs = $this->db->AutoExecute('V_CHECK_QUERY_EXECUTED_LOG', $data);
+            
+            if ($rs) {
+                $this->db->UpdateClob('V_CHECK_QUERY_EXECUTED_LOG', 'EXECUTED_QUERY', $param['executedQuery'], 'LOG_ID = '.$data['ID']);
+                return true;
+            }
+            
+        } catch (Exception $ex) { }
+        
+        return false;
     }
     
 }

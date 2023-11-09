@@ -62,11 +62,10 @@ class Mdlock_Model extends Model {
 
             if (Input::postCheck('filterRules')) {
 
-                $filterRules = json_decode(Str::cp1251_utf8($_POST['filterRules']));
+                $filterRules = json_decode(Str::cp1251_utf8($_POST['filterRules']), true);
 
                 foreach ($filterRules as $rule) {
 
-                    $rule = get_object_vars($rule);
                     $field = $rule['field'];
                     $value = Input::param(Str::lower($rule['value']));
 

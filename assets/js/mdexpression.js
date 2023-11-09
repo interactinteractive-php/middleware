@@ -18056,6 +18056,9 @@ function bankIpTerminalTransfer(amount, terminalId, deviceType, callback) {
         dvctype = 'databank';
       } else if (deviceType == 'golomtbank') {
         dvctype = 'glmt';
+      } else if (deviceType == 'xacbank') {
+          dvctype = 'khas_paxA35';        
+          terminalId = '123';
       } else if (deviceType == 'tdbank') {
         dvctype = 'tdb_paxs300';
       }
@@ -18134,6 +18137,21 @@ function bankIpTerminalTransfer(amount, terminalId, deviceType, callback) {
             }
           }
   
+          if (dvctype === "khas_paxA35") {
+            if (getParse["Code"] == "0") {
+                resultIpTerminal['rrn'] = getParse['RRN'];
+                resultIpTerminal['pan'] = getParse['CardNumber'];
+                resultIpTerminal['authcode'] = getParse['ApprovalCode'];
+                resultIpTerminal['terminalid'] = getParse['Terminal'];
+                resultIpTerminal['traceno'] = getParse['ApprovalCode'];
+                callback(resultIpTerminal);
+                return;
+            } else {
+                callback({status:"error", code:getParse["Code"], text:'TDB terminal: '+getParse["Description"]});
+                return;
+            }
+          }
+  
           if (dvctype === "glmt") {
             resultIpTerminal['rrn'] = getParse['RRN'];
             resultIpTerminal['pan'] = getParse['PAN'];
@@ -18181,6 +18199,11 @@ function bankCheckIpTerminal(terminalId, deviceType, callback) {
           dvctype = 'databank';
         } else if (deviceType == 'golomtbank') {
           dvctype = 'glmt';
+        } else if (deviceType == 'xacbank') {
+          dvctype = 'khas_paxA35';
+          terminalId = '123';
+          callback({status:"success", text:"IPPOS terminal холболт амжилттай хийгдлээ. [" + deviceType + "]"});
+          return;
         } else if (deviceType == 'tdbank') {
           dvctype = 'tdb_paxs300';
           callback({status:"success", text:"IPPOS terminal холболт амжилттай хийгдлээ. [" + deviceType + "]"});
@@ -18254,6 +18277,9 @@ function bankSetlementIpTerminal(terminalId, deviceType, callback) {
           dvctype = 'databank';
         } else if (deviceType == 'golomtbank') {
           dvctype = 'glmt';
+        } else if (deviceType == 'xacbank') {
+          dvctype = 'khas_paxA35';          
+          terminalId = '123';
         } else if (deviceType == 'tdbank') {
           dvctype = 'tdb_paxs300';
         }

@@ -117,10 +117,10 @@ class Mdproc_Model extends Model {
                     if ($key == 0) {
                         
                         if (isset($postData['paymentDtlTypeName'.$dtl])) {
-                            $paymentDtl{$dtl} = array();
+                            $paymentDtl[$dtl] = array();
 
                             foreach ($postData['paymentDtlTypeName'.$dtl] as $payKey => $pay) {
-                                array_push($paymentDtl{$dtl}, array(
+                                array_push($paymentDtl[$dtl], array(
                                     'typeName' => $pay,
                                     'id' => isset($postData['paymentDtlRecordId'.$dtl]) ? $postData['paymentDtlRecordId'.$dtl][$payKey] : '',
                                     'percent' => $postData['paymentDtlPercent'.$dtl][$payKey],
@@ -183,7 +183,7 @@ class Mdproc_Model extends Model {
                         'rate' => $postData['rate'.$key][$dtlKey],
                         'qty' => $postData['qty'.$key][$dtlKey],
                         'rfqId' => $postData['rfqId'.$key][$dtlKey],
-                        'paymentDtl' => issetParam($paymentDtl{$dtl}),
+                        'paymentDtl' => issetParam($paymentDtl[$dtl]),
                         'kpiDmDtl' => $kpiDmDtl
                     ));                    
                     

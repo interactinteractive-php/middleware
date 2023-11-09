@@ -3502,7 +3502,7 @@ class Mdobject_Model extends Model {
             $isParentChildResolve = false;
 
             if (Input::postCheck('filterRules')) {
-                $filterRules = json_decode(Str::cp1251_utf8($_POST['filterRules']));
+                $filterRules = json_decode(Str::cp1251_utf8($_POST['filterRules']), true);
 
                 if (is_countable($filterRules) && count($filterRules) > 0) {
 
@@ -3510,7 +3510,6 @@ class Mdobject_Model extends Model {
 
                     foreach ($filterRules as $rule) {
 
-                        $rule = get_object_vars($rule);
                         $field = $rule['field'];
                         $value = Input::param(trim($rule['value']));
 
@@ -6172,7 +6171,7 @@ class Mdobject_Model extends Model {
 
                         if (trim($rules) != '') {
                             ob_start();
-                            if (!eval(sprintf('return (%s);', $rules))) {
+                            if (!Mdcommon::expressionEvalFixWithReturn($rules)) {
                                 $processNoAccessResult = array('processNoAccess' => true, 'processName' => Lang::line($getCriteria['PROCESS_NAME']));
                                 if (isset($explodedRules[1])) {                                    
                                     $processNoAccessResult = array_merge($processNoAccessResult, array('processNoAccessMsg' => Lang::line($explodedRules[1])));
@@ -6297,7 +6296,7 @@ class Mdobject_Model extends Model {
 
                                 ob_start();
 
-                                if ($rules != '' && !eval(sprintf('return (%s);', $rules))) {
+                                if ($rules != '' && !Mdcommon::expressionEvalFixWithReturn($rules)) {
 
                                     $processNoAccessResult = array('processNoAccess' => true, 'processName' => Lang::line($getCriteria['PROCESS_NAME']));
 
@@ -6481,7 +6480,7 @@ class Mdobject_Model extends Model {
                         $rules = Mdmetadata::defaultKeywordReplacer($rules);
                         $rules = Mdmetadata::criteriaMethodReplacer($rules);
 
-                        if ($rules != '' && !eval(sprintf('return (%s);', $rules))) {
+                        if ($rules != '' && !Mdcommon::expressionEvalFixWithReturn($rules)) {
                             
                             $processNoAccessResult = array('processNoAccess' => true, 'processName' => Lang::line($getCriteria['PROCESS_NAME']));
                             
@@ -6596,7 +6595,7 @@ class Mdobject_Model extends Model {
                         $rules .= 'return true;';
 
                         if (trim($rules) != '') {
-                            $rulesResult = eval($rules);
+                            $rulesResult = Mdcommon::expressionEvalFix($rules);
                             if ($rulesResult !== true) {
                                 $result = array(
                                     'advancedCriteriaText' => Str::firstUpper(Lang::line($rulesResult))
@@ -8047,11 +8046,12 @@ class Mdobject_Model extends Model {
                         WHERE META_DATA_ID = $idPh 
                             AND IS_ACTIVE = 1 
                             AND (IS_IGNORE_TREE_GROUP IS NULL OR IS_IGNORE_TREE_GROUP = 0) 
-                    ) AS COUNT_CUSTOMER
+                    ) AS COUNT_CUSTOMER 
                 FROM META_GROUP_CONFIG GC 
                     LEFT JOIN META_DATA LMD ON LMD.META_DATA_ID = GC.LOOKUP_META_DATA_ID 
-                    LEFT JOIN META_FIELD_PATTERN MFP ON MFP.PATTERN_ID = GC.PATTERN_ID       
-                    LEFT JOIN META_GROUP_CONFIG_USER GCU ON GC.MAIN_META_DATA_ID = GCU.MAIN_META_DATA_ID AND LOWER(GCU.PARAM_NAME) = LOWER(GC.FIELD_PATH)
+                    LEFT JOIN META_FIELD_PATTERN MFP ON MFP.PATTERN_ID = GC.PATTERN_ID 
+                    LEFT JOIN META_GROUP_CONFIG_USER GCU ON GC.MAIN_META_DATA_ID = GCU.MAIN_META_DATA_ID 
+                        AND LOWER(GCU.PARAM_NAME) = LOWER(GC.FIELD_PATH) 
                 WHERE GC.MAIN_META_DATA_ID = $idPh 
                     AND (GC.IS_CRITERIA = 1 OR GCU.IS_CRITERIA = 1)
                 ORDER BY GC.SECOND_DISPLAY_ORDER ASC, GC.DISPLAY_ORDER ASC";

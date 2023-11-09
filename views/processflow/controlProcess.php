@@ -334,8 +334,9 @@
             },
             error: function() {alert("Error");}
         }).done(function() {
-            transitionCriteriaEditorParam.refresh();
-            Core.initAjax($dialog);
+            if (typeof transitionCriteriaEditorParam !== 'undefined') {
+                transitionCriteriaEditorParam.refresh();
+            }
         });        
     }
     function wfmConnectionLabelToggle(elem, isLoad) {

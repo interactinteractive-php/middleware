@@ -630,7 +630,7 @@ class Mdmeta_Model extends Model {
                         $menu .= '</a>';
                     $menu .= '</li>';  
                     
-                }  elseif ($rowMeta['linkHref'] === 'mdhelpdesk/ssoLogin') {
+                } elseif ($rowMeta['linkHref'] === 'mdhelpdesk/ssoLogin') {
                     
                     $menu .= '<li class="top-menu-link nav-item">';
                         $menu .= '<a href="javascript:;" class="tooltips navbar-nav-link" data-placement="top" data-close-others="true" aria-expanded="false" onclick="redirectFunction(this, \'mdhelpdesk/ssoLogin\')" title="HELP VERITECH">';

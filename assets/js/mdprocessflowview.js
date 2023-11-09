@@ -945,6 +945,7 @@ function runTaskFlowRenderBp(elem) {
 
     var processForm = $this.closest("form#wsForm"), responseBpJsonData = {};
     processForm.find('input[name="responseType"]').val('json');
+    var mainDvId = processForm.find('input[name="dmMetaDataId"]').val();
     
     processForm.ajaxSubmit({
         type: "post",
@@ -1060,8 +1061,10 @@ function runTaskFlowRenderBp(elem) {
                           sticker: false,
                           addclass: "pnotify-center",
                         });
-                        $dialog.dialog("close");                                                             
+                        $dialog.dialog("close");                                          
+                        _taskFlowSelectedRow = {id: responseData.resultData._taskflowinfo.previousrecordid};
                         viewVisualHtmlMetaProcessFlowData($('#mainBpId').val());
+                        dataViewReload(mainDvId);
                       } else {
                         new PNotify({
                             title: 'Warning',
