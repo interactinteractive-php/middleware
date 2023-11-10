@@ -7953,11 +7953,13 @@ class Mdobject_Model extends Model {
 
         $cache = phpFastCache();
 
-        $data = $cache->get('dvHdrData_' . $dataViewId);
+        $userId = Ue::sessionUserId();
+        $data = $cache->get('dvHdrData_' . $dataViewId . '_' . $userId);
 
         if ($data == null) {
             
-            $idPh = $this->db->Param(0);
+            $idPh1 = $this->db->Param(0);
+            $idPh2 = $this->db->Param(1);
             
             $sql = "
                 SELECT 
@@ -7966,7 +7968,7 @@ class Mdobject_Model extends Model {
                         SELECT 
                             ".$this->db->listAgg('PARAM_PATH', '|', 'PARAM_PATH')."  
                         FROM META_GROUP_PARAM_CONFIG 
-                        WHERE GROUP_META_DATA_ID = $idPh 
+                        WHERE GROUP_META_DATA_ID = $idPh1 
                             AND LOOKUP_META_DATA_ID IS NOT NULL 
                             AND (IS_GROUP = 0 OR IS_GROUP IS NULL) 
                             AND LOWER(FIELD_PATH) = LOWER(GC.FIELD_PATH) 
@@ -7975,7 +7977,7 @@ class Mdobject_Model extends Model {
                         SELECT 
                             ".$this->db->listAgg('PARAM_META_DATA_CODE', '|', 'PARAM_PATH')."  
                         FROM META_GROUP_PARAM_CONFIG  
-                        WHERE GROUP_META_DATA_ID = $idPh 
+                        WHERE GROUP_META_DATA_ID = $idPh1 
                             AND LOOKUP_META_DATA_ID IS NOT NULL 
                             AND (IS_GROUP = 0 OR IS_GROUP IS NULL) 
                             AND LOWER(FIELD_PATH) = LOWER(GC.FIELD_PATH) 
@@ -7984,7 +7986,7 @@ class Mdobject_Model extends Model {
                         SELECT 
                             ".$this->db->listAgg('FIELD_PATH', '|', 'FIELD_PATH')."  
                         FROM META_GROUP_PARAM_CONFIG 
-                        WHERE GROUP_META_DATA_ID = $idPh 
+                        WHERE GROUP_META_DATA_ID = $idPh1 
                             AND LOOKUP_META_DATA_ID IS NOT NULL 
                             AND (IS_GROUP = 0 OR IS_GROUP IS NULL) 
                             AND LOWER(PARAM_PATH) = LOWER(GC.FIELD_PATH) 
@@ -8043,7 +8045,7 @@ class Mdobject_Model extends Model {
                         SELECT 
                             COUNT(ID) 
                         FROM CUSTOMER_DV_FIELD 
-                        WHERE META_DATA_ID = $idPh 
+                        WHERE META_DATA_ID = $idPh1 
                             AND IS_ACTIVE = 1 
                             AND (IS_IGNORE_TREE_GROUP IS NULL OR IS_IGNORE_TREE_GROUP = 0) 
                     ) AS COUNT_CUSTOMER 
@@ -8052,11 +8054,12 @@ class Mdobject_Model extends Model {
                     LEFT JOIN META_FIELD_PATTERN MFP ON MFP.PATTERN_ID = GC.PATTERN_ID 
                     LEFT JOIN META_GROUP_CONFIG_USER GCU ON GC.MAIN_META_DATA_ID = GCU.MAIN_META_DATA_ID 
                         AND LOWER(GCU.PARAM_NAME) = LOWER(GC.FIELD_PATH) 
-                WHERE GC.MAIN_META_DATA_ID = $idPh 
+                        AND GCU.USER_ID = $idPh2 
+                WHERE GC.MAIN_META_DATA_ID = $idPh1 
                     AND (GC.IS_CRITERIA = 1 OR GCU.IS_CRITERIA = 1)
                 ORDER BY GC.SECOND_DISPLAY_ORDER ASC, GC.DISPLAY_ORDER ASC";
             
-            $data = $this->db->GetAll($sql, array($dataViewId));
+            $data = $this->db->GetAll($sql, array($dataViewId, $userId));
 
             if (isset($data[0]['COUNT_CUSTOMER']) && $data[0]['COUNT_CUSTOMER'] > 0) {
                 
@@ -8071,7 +8074,7 @@ class Mdobject_Model extends Model {
                 $data = $this->db->GetAll($sql, array($dataViewId));                
             }
             
-            $cache->set('dvHdrData_' . $dataViewId, $data, Mdwebservice::$expressionCacheTime);
+            $cache->set('dvHdrData_' . $dataViewId . '_' . $userId, $data, Mdwebservice::$expressionCacheTime);
         }
 
         return $data;

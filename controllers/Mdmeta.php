@@ -2749,6 +2749,10 @@ class Mdmeta extends Controller {
         foreach ($dvHeaderDataFiles as $dvHeaderDataFile) {
             @unlink($dvHeaderDataFile);
         }
+        $dvHeaderDataFiles = glob($tmp_dir."/*/dv/dvHdrData_".$dvId."_*.txt");
+        foreach ($dvHeaderDataFiles as $dvHeaderDataFile) {
+            @unlink($dvHeaderDataFile);
+        }
         $dvMandatoryCriteriaFiles = glob($tmp_dir."/*/dv/dvMandatoryCriteria_".$dvId.".txt");
         foreach ($dvMandatoryCriteriaFiles as $dvMandatoryCriteriaFile) {
             @unlink($dvMandatoryCriteriaFile);
@@ -2757,11 +2761,27 @@ class Mdmeta extends Controller {
         foreach ($dvMandatoryCriteriaFiles as $dvMandatoryCriteriaFile) {
             @unlink($dvMandatoryCriteriaFile);
         }
+        $dvMandatoryCriteriaFiles = glob($tmp_dir."/*/dv/dvMandatoryCriteria_".$dvId."_*.txt");
+        foreach ($dvMandatoryCriteriaFiles as $dvMandatoryCriteriaFile) {
+            @unlink($dvMandatoryCriteriaFile);
+        }
+        $dvMandatoryCriteriaFiles = glob($tmp_dir."/*/dv/dvMandatoryCriterias_".$dvId."_*.txt");
+        foreach ($dvMandatoryCriteriaFiles as $dvMandatoryCriteriaFile) {
+            @unlink($dvMandatoryCriteriaFile);
+        }
         $dvCriteriaFiles = glob($tmp_dir."/*/dv/dvCriteria_".$dvId.".txt");
         foreach ($dvCriteriaFiles as $dvCriteriaFile) {
             @unlink($dvCriteriaFile);
         }
         $dvCriteriaFiles = glob($tmp_dir."/*/dv/dvCriterias_".$dvId.".txt");
+        foreach ($dvCriteriaFiles as $dvCriteriaFile) {
+            @unlink($dvCriteriaFile);
+        }
+        $dvCriteriaFiles = glob($tmp_dir."/*/dv/dvCriteria_".$dvId."_*.txt");
+        foreach ($dvCriteriaFiles as $dvCriteriaFile) {
+            @unlink($dvCriteriaFile);
+        }
+        $dvCriteriaFiles = glob($tmp_dir."/*/dv/dvCriterias_".$dvId."_*.txt");
         foreach ($dvCriteriaFiles as $dvCriteriaFile) {
             @unlink($dvCriteriaFile);
         }

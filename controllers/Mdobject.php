@@ -412,13 +412,9 @@ class Mdobject extends Controller {
         $row = $this->model->getMetaDataObjectTypeRowByCodeModel($code);
 
         if ($row) {
-            echo json_encode($row);
+            echo json_encode($row, JSON_UNESCAPED_UNICODE);
         } else {
-            $response = array(
-                'META_DATA_ID' => '', 
-                'META_DATA_CODE' => '', 
-                'META_DATA_NAME' => '' 
-            );
+            $response = array('META_DATA_ID' => '', 'META_DATA_CODE' => '', 'META_DATA_NAME' => '');
             echo json_encode($response);
         }
         exit;
@@ -426,13 +422,14 @@ class Mdobject extends Controller {
     
     public static function findMandatoryCriteria($dataViewId, $dataViewHeaderData) {
         $cache = phpFastCache();
+        $userId = Ue::sessionUserId();
         
-        $data = $cache->get('dvMandatoryCriterias_' . $dataViewId);
+        $data = $cache->get('dvMandatoryCriterias_'.$dataViewId.'_'.$userId);
         
         if ($data == null) {
             $data = Arr::multidimensional_list($dataViewHeaderData, array('IS_MANDATORY_CRITERIA' => '1'));
             
-            $cache->set('dvMandatoryCriterias_' . $dataViewId, $data, Mdwebservice::$expressionCacheTime);
+            $cache->set('dvMandatoryCriterias_'.$dataViewId.'_'.$userId, $data, Mdwebservice::$expressionCacheTime);
         }
         
         return $data;
@@ -440,9 +437,10 @@ class Mdobject extends Controller {
     
     public static function findCriteria($dataViewId, $dataViewHeaderData) {
         $cache = phpFastCache();
+        $userId = Ue::sessionUserId();
         
-        $data = $cache->get('dvCriterias_' . $dataViewId);
-        $dataGroup = $cache->get('dvGroupCriterias_' . $dataViewId);
+        $data = $cache->get('dvCriterias_'.$dataViewId.'_'.$userId);
+        $dataGroup = $cache->get('dvGroupCriterias_'.$dataViewId.'_'.$userId);
         
         if ($data == null) {
             $data = $searchHeaderArr = $searchContentArr = $notShowCriteria = array();
@@ -468,14 +466,14 @@ class Mdobject extends Controller {
                 }
             }
             
-            $cache->set('dvCriterias_' . $dataViewId, $data, Mdwebservice::$expressionCacheTime);
+            $cache->set('dvCriterias_'.$dataViewId.'_'.$userId, $data, Mdwebservice::$expressionCacheTime);
             
             $dataGroup = array(
                 'header' => $searchHeaderArr, 
                 'content' => $searchContentArr, 
                 'notShowCriteria' => $notShowCriteria
             );
-            $cache->set('dvGroupCriterias_' . $dataViewId, $dataGroup, Mdwebservice::$expressionCacheTime);
+            $cache->set('dvGroupCriterias_'.$dataViewId.'_'.$userId, $dataGroup, Mdwebservice::$expressionCacheTime);
         }
         
         return array(
