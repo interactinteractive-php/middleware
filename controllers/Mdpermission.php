@@ -275,11 +275,8 @@ class Mdpermission extends Controller {
         
         global $db;
         
-        $criteriaIdPh = $db->Param('criteriaId');
-        
-        $bindVars = array(
-            'criteriaId' => $db->addQ($criteriaId)
-        );
+        $criteriaIdPh = $db->Param(0);
+        $bindVars = array($db->addQ($criteriaId));
         
         $getCriteria = $db->GetRow("
             SELECT 

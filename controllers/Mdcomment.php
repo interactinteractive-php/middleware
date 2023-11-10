@@ -91,6 +91,6 @@ class Mdcomment extends Controller {
     {
         $response = $this->model->saveCommentReactionModel();
         jsonResponse($response);
-    }
+    }    
     
 }

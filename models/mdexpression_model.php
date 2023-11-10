@@ -115,11 +115,8 @@ class Mdexpression_Model extends Model {
 
     public function setMultiPathConfigModel($processId) {
         
-        $processIdPh = $this->db->Param('processId');
-
-        $bindVars = array(
-            'processId' => $this->db->addQ($processId)
-        );
+        $processIdPh = $this->db->Param(0);
+        $bindVars = array($this->db->addQ($processId));
             
         if (Mdexpression::$isFromMetaGroup) {
             
@@ -213,11 +210,8 @@ class Mdexpression_Model extends Model {
         
         if ($cacheExpression == null) {
             
-            $processIdPh = $this->db->Param('processId');
-
-            $bindVars = array(
-                'processId' => $processId
-            );
+            $processIdPh = $this->db->Param(0);
+            $bindVars = array($processId);
             
             $data = $this->db->GetAll("
                 SELECT 
@@ -282,13 +276,10 @@ class Mdexpression_Model extends Model {
     
     public function getCacheGroupPathByExpCodeModel($processId, $cacheExpCode) {
         
-        $processIdPh    = $this->db->Param('processId');
-        $cacheExpCodePh = $this->db->Param('cacheExpCode');
+        $processIdPh    = $this->db->Param(0);
+        $cacheExpCodePh = $this->db->Param(1);
 
-        $bindVars = array(
-            'processId'    => $this->db->addQ($processId), 
-            'cacheExpCode' => $this->db->addQ($cacheExpCode)
-        );
+        $bindVars = array($this->db->addQ($processId), $this->db->addQ($cacheExpCode));
             
         $groupPath = $this->db->GetOne("
             SELECT 

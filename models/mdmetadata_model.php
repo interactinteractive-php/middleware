@@ -16,11 +16,8 @@ class Mdmetadata_Model extends Model {
 
     public function getMetaDataModel($metaDataId, $getFolder = false) {
         
-        $metaDataIdPh = $this->db->Param('metaDataId');
-
-        $bindVars = array(
-            'metaDataId' => $this->db->addQ($metaDataId)
-        );
+        $metaDataIdPh = $this->db->Param(0);
+        $bindVars = array($this->db->addQ($metaDataId));
         
         $row = $this->db->GetRow("
             SELECT 
@@ -559,8 +556,8 @@ class Mdmetadata_Model extends Model {
             $this_fol_id = '0';
         }
         
-        $folderIdPh = $db->Param('folderId');
-        $bindVars = array('folderId' => $db->addQ($this_fol_id));
+        $folderIdPh = $db->Param(0);
+        $bindVars = array($db->addQ($this_fol_id));
         
         $val = $db->GetRow("SELECT FOLDER_ID, PARENT_FOLDER_ID, FOLDER_NAME FROM FVM_FOLDER WHERE FOLDER_ID = $folderIdPh", $bindVars);
         $html = '';
@@ -586,8 +583,8 @@ class Mdmetadata_Model extends Model {
 
     public function getParentFolderBySystem($folderId) {
         
-        $folderIdPh = $this->db->Param('folderId');
-        $bindVars = array('folderId' => $this->db->addQ($folderId));
+        $folderIdPh = $this->db->Param(0);
+        $bindVars = array($this->db->addQ($folderId));
         
         $row = $this->db->GetRow("SELECT PARENT_FOLDER_ID FROM FVM_FOLDER WHERE FOLDER_ID = $folderIdPh", $bindVars);
         
@@ -1261,7 +1258,8 @@ class Mdmetadata_Model extends Model {
                     'IS_MODULE_SIDEBAR' => Input::post('isModuleSidebar'),
                     'IS_DEFAULT_OPEN' => Input::post('isDefaultOpen'),
                     'IS_OFFLINE_MODE' => Input::post('isOfflineMode'),
-                    'GLOBE_CODE' => Input::post('globeCode')
+                    'GLOBE_CODE' => Input::post('globeCode'),
+                    'MENU_CODE' => Input::post('menuCode')
                 );
                 if (isset($_FILES['menuPhotoName']) && $_FILES['menuPhotoName']['name'] != '') {
                     $newMenuPhotoName = 'metamenu_' . $metaDataId;
@@ -2257,7 +2255,8 @@ class Mdmetadata_Model extends Model {
                     'IS_MODULE_SIDEBAR' => Input::post('isModuleSidebar'),
                     'IS_DEFAULT_OPEN' => Input::post('isDefaultOpen'),
                     'IS_OFFLINE_MODE' => Input::post('isOfflineMode'),
-                    'GLOBE_CODE' => Input::post('globeCode')
+                    'GLOBE_CODE' => Input::post('globeCode'),
+                    'MENU_CODE' => Input::post('menuCode')
                 );
 
                 if (isset($_FILES['menuPhotoName']) && $_FILES["menuPhotoName"]['name'] != '') {
@@ -6031,13 +6030,10 @@ class Mdmetadata_Model extends Model {
 
     public function getMetaDataValuePhotosModel($metaDataId = 0, $metaValueId = 0) {
         
-        $metaDataIdPh  = $this->db->Param('metaDataId');
-        $metaValueIdPh = $this->db->Param('metaValueId');
+        $metaDataIdPh  = $this->db->Param(0);
+        $metaValueIdPh = $this->db->Param(1);
         
-        $bindVars = array(
-            'metaDataId'  => $this->db->addQ($metaDataId), 
-            'metaValueId' => $this->db->addQ($metaValueId)
-        );
+        $bindVars = array($this->db->addQ($metaDataId), $this->db->addQ($metaValueId));
         
         $data = $this->db->GetAll("
             SELECT 
@@ -6091,13 +6087,10 @@ class Mdmetadata_Model extends Model {
     }
     
     public function getMetaDataValuePhotosFolderModel($metaDataId = 0, $metaValueId = 0) {
-        $metaDataIdPh  = $this->db->Param('metaDataId');
-        $metaValueIdPh = $this->db->Param('metaValueId');
+        $metaDataIdPh  = $this->db->Param(0);
+        $metaValueIdPh = $this->db->Param(1);
         
-        $bindVars = array(
-            'metaDataId'  => $this->db->addQ($metaDataId), 
-            'metaValueId' => $this->db->addQ($metaValueId)
-        );
+        $bindVars = array($this->db->addQ($metaDataId), $this->db->addQ($metaValueId));
         
         $data = $this->db->GetAll("
             SELECT 
@@ -6121,13 +6114,10 @@ class Mdmetadata_Model extends Model {
             $metaValueId = 0;
         }
         
-        $metaDataIdPh  = $this->db->Param('metaDataId');
-        $metaValueIdPh = $this->db->Param('metaValueId');
+        $metaDataIdPh  = $this->db->Param(0);
+        $metaValueIdPh = $this->db->Param(1);
         
-        $bindVars = array(
-            'metaDataId'  => $this->db->addQ($metaDataId), 
-            'metaValueId' => $this->db->addQ($metaValueId)
-        );
+        $bindVars = array($this->db->addQ($metaDataId), $this->db->addQ($metaValueId));
         
         $data = $this->db->GetAll("
             SELECT 
@@ -7031,6 +7021,7 @@ class Mdmetadata_Model extends Model {
                 ML.IS_DEFAULT_OPEN,
                 ML.IS_OFFLINE_MODE, 
                 ML.GLOBE_CODE,
+                ML.MENU_CODE,
                 ML.IS_MONPASS_KEY, 
                 ML.MENU_TOOLTIP 
             FROM META_MENU_LINK ML
@@ -10629,11 +10620,8 @@ class Mdmetadata_Model extends Model {
 
     public function getMetaDataDrillModel($metaDataId, $getFolder = false) {
         
-        $metaDataIdPh = $this->db->Param('metaDataId');
-
-        $bindVars = array(
-            'metaDataId' => $this->db->addQ($metaDataId)
-        );
+        $metaDataIdPh = $this->db->Param(0);
+        $bindVars = array($this->db->addQ($metaDataId));
         
         $row = $this->db->GetRow("
             SELECT 

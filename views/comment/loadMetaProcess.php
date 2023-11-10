@@ -21,6 +21,10 @@
                 ?>
             </div>
             <div class="pl8 pt15">
+                <a href="javascript:;" class="btn fileinput-button btn-block btn-xs" style="position: absolute;top: 30px;right: 38px;width: 30px;" title="Зураг нэмэх">
+                    <i class="icon-file-picture font-size-15"></i>
+                    <input type="file" name="file" onchange="onChangeAttachFIleAddMode_<?php echo $this->uniqId; ?>(this);"/>
+                </a>                
                 <a href="javascript:;" onclick="saveBtnMdCommentProcessValue_<?php echo $this->uniqId; ?>(this);"><i class="fas fa-paper-plane font-size-15"></i></a>
             </div>
         </div>

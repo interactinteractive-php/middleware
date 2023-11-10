@@ -93,10 +93,8 @@
                       modal: true,
                       position: { my: "top", at: "top+100" },
                       open: function () {
-                        disableScrolling();
                       },
                       close: function () {
-                        enableScrolling();
                         $dialog2.empty().dialog("destroy").remove();
                       },
                       buttons: [{

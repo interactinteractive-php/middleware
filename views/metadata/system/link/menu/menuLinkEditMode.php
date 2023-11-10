@@ -21,6 +21,25 @@
                 </td>
             </tr>
             <tr>
+                <td style="width: 170px" class="left-padding">
+                    <label for="menuCode">
+                        Код:
+                    </label>
+                </td>
+                <td>
+                    <?php
+                    echo Form::text(
+                        array(
+                            'name' => 'menuCode',
+                            'id' => 'menuCode',
+                            'class' => 'form-control textInit', 
+                            'value' => $this->menuRow['MENU_CODE']
+                        )
+                    );
+                    ?>
+                </td>
+            </tr>
+            <tr>
                 <td class="left-padding">Хэлбэр:</td>
                 <td>
                     <?php

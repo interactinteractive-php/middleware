@@ -30,11 +30,8 @@ class Mdform_Model extends Model {
 
     public function getIndicatorModel($id) {
         
-        $idPh = $this->db->Param('id');
-
-        $bindVars = array(
-            'id' => $this->db->addQ($id)
-        );
+        $idPh = $this->db->Param(0);
+        $bindVars = array($this->db->addQ($id));
         
         $row = $this->db->GetRow("
             SELECT 
@@ -16919,11 +16916,8 @@ class Mdform_Model extends Model {
     
     public function kpiSetMultiPathConfigModel($indicatorId) {
         
-        $indicatorIdPh = $this->db->Param('indicatorId');
-
-        $bindVars = array(
-            'indicatorId' => $this->db->addQ($indicatorId)
-        );
+        $indicatorIdPh = $this->db->Param(0);
+        $bindVars = array($this->db->addQ($indicatorId));
             
         $data = $this->db->GetAll("
             SELECT 
@@ -19343,11 +19337,8 @@ class Mdform_Model extends Model {
         $jsonBody = file_get_contents('php://input');
         $param = json_decode($jsonBody, true);
         
-        $idPh = $this->db->Param('id');
-
-        $bindVars = array(
-            'id' => $this->db->addQ(Input::param($param['id']))
-        );
+        $idPh = $this->db->Param(0);
+        $bindVars = array($this->db->addQ(Input::param($param['id'])));
         
         $row = $this->db->GetRow("
             SELECT 

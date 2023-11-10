@@ -34,13 +34,10 @@ class Mddatamodel_Model extends Model {
 
     public function checkCriteriaProcessModel($mainMetaDataId, $batchNumber, $selectedRows, $params = array()) {
         
-        $mainMetaDataIdPh = $this->db->Param('mainMetaDataId');
-        $batchNumberPh    = $this->db->Param('batchNumber');
+        $mainMetaDataIdPh = $this->db->Param(0);
+        $batchNumberPh    = $this->db->Param(1);
 
-        $bindVars = array(
-            'mainMetaDataId' => $mainMetaDataId, 
-            'batchNumber'    => $batchNumber
-        );
+        $bindVars = array($mainMetaDataId, $batchNumber);
         
         $data = $this->db->GetAll("
             SELECT 
@@ -173,13 +170,10 @@ class Mddatamodel_Model extends Model {
 
     public function checkCriteriaProcessByOneRowModel($mainMetaDataId, $processMetaDataId, $selectedRow) {
         
-        $mainMetaDataIdPh    = $this->db->Param('mainMetaDataId');
-        $processMetaDataIdPh = $this->db->Param('processMetaDataId');
+        $mainMetaDataIdPh    = $this->db->Param(0);
+        $processMetaDataIdPh = $this->db->Param(1);
 
-        $bindVars = array(
-            'mainMetaDataId'    => $this->db->addQ($mainMetaDataId), 
-            'processMetaDataId' => $this->db->addQ($processMetaDataId) 
-        );
+        $bindVars = array($this->db->addQ($mainMetaDataId), $this->db->addQ($processMetaDataId));
         
         $row = $this->db->GetRow("
             SELECT 
@@ -242,11 +236,8 @@ class Mddatamodel_Model extends Model {
 
         if ($data == null) {
             
-            $metaDataIdPh = $this->db->Param('metaDataId');
-
-            $bindVars = array(
-                'metaDataId' => $this->db->addQ($metaDataId)
-            );
+            $metaDataIdPh = $this->db->Param(0);
+            $bindVars = array($this->db->addQ($metaDataId));
         
             $id = $this->db->GetRow("
                 SELECT 
