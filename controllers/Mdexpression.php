@@ -5295,11 +5295,16 @@ class Mdexpression extends Controller {
         $instanceExp->load->model('mdform', 'middleware/models/');
 
         if (!isset($parseExpressionEqual[1][0])) {
-            return '';
+            return null;
         }
         $getObjectCodeName = explode('new', $parseExpressionEqual[1][0]);
 
         $getObject = $instanceExp->model->getKpiIndicatorByCodeModel(trim($getObjectCodeName[1]));
+        
+        if (!$getObject) {
+            return null;
+        }
+        
         $getObjectProps = $instanceExp->model->getKpiIOIndicatorColumnsModel($getObject['ID'], null);
 
         $props = '';

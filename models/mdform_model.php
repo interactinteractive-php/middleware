@@ -4737,9 +4737,8 @@ class Mdform_Model extends Model {
     public function getKpiIndicatorTemplateModel($indicatorId, $childId = null, $isExport = false) {
         
         $langCode = Lang::getCode();
-        $bindVars = array(
-            'filterMainId' => $this->db->addQ($indicatorId)
-        );
+        $idPh1 = $this->db->Param(0);
+        $bindVars = array($this->db->addQ($indicatorId));
         $where = '';
         
         if ($columns = issetParam($_POST['param']['columns'])) {
@@ -4761,10 +4760,12 @@ class Mdform_Model extends Model {
         
         if ($childId) {
             
-            $where .= 'START WITH (M.ID = :filterChildMapId OR :filterChildMapId IS NULL) 
-                    CONNECT BY NOCYCLE PRIOR M.ID = M.PARENT_ID ';
+            $idPh2 = $this->db->Param(1);
             
-            $bindVars['filterChildMapId'] = $this->db->addQ($childId);
+            $where .= "START WITH (M.ID = $idPh2 OR $idPh2 IS NULL) 
+                    CONNECT BY NOCYCLE PRIOR M.ID = M.PARENT_ID ";
+            
+            $bindVars[] = $this->db->addQ($childId);
         }
         
         $cache = phpFastCache();
@@ -4860,9 +4861,9 @@ class Mdform_Model extends Model {
                                 INNER JOIN KPI_INDICATOR_INDICATOR_MAP M ON K.ID = M.SRC_INDICATOR_ID 
                                     AND M.SEMANTIC_TYPE_ID = 10000010 
                                 INNER JOIN KPI_INDICATOR KI ON M.TRG_INDICATOR_ID = KI.ID 
-                            WHERE K.ID = :filterMainId 
+                            WHERE K.ID = $idPh1 
                         ) KC ON KC.COMPONENT_ID = KI.ID
-                    WHERE KI.ID = :filterMainId 
+                    WHERE KI.ID = $idPh1  
 
                     UNION  
 
@@ -4974,7 +4975,7 @@ class Mdform_Model extends Model {
                             FROM KPI_INDICATOR_INDICATOR_MAP M 
                                 INNER JOIN KPI_INDICATOR_VALUE_CRITERIA C ON M.ID = C.INDICATOR_MAP_ID
                                 INNER JOIN KPI_INDICATOR_INDICATOR_MAP M1 ON C.RELATED_INDICATOR_MAP_ID = M1.ID
-                            WHERE M.MAIN_INDICATOR_ID = :filterMainId 
+                            WHERE M.MAIN_INDICATOR_ID = $idPh1  
                                 AND ".$this->db->IfNull('C.IS_CRITERIA', '0')." = 1 
                             GROUP BY M.ID 
                         ) CP ON M.ID = CP.ID 
@@ -4985,7 +4986,7 @@ class Mdform_Model extends Model {
                             FROM KPI_INDICATOR_INDICATOR_MAP M
                                 INNER JOIN KPI_INDICATOR_VALUE_CRITERIA C ON M.ID = C.INDICATOR_MAP_ID
                                 INNER JOIN KPI_INDICATOR_INDICATOR_MAP M1 ON C.RELATED_INDICATOR_MAP_ID = M1.ID
-                            WHERE M1.MAIN_INDICATOR_ID = :filterMainId 
+                            WHERE M1.MAIN_INDICATOR_ID = $idPh1  
                                 AND ".$this->db->IfNull('C.IS_CRITERIA', '0')." = 1 
                             GROUP BY M1.ID
                         ) RCP ON M.ID = RCP.ID 
@@ -4998,7 +4999,7 @@ class Mdform_Model extends Model {
                             FROM KPI_INDICATOR_MAP_CRITERIA C 
                                 INNER JOIN KPI_INDICATOR_INDICATOR_MAP M1 ON C.INDICATOR_MAP_ID = M1.ID 
                                 INNER JOIN KPI_INDICATOR_INDICATOR_MAP M2 ON C.SRC_INDICATOR_MAP_ID = M2.ID 
-                            WHERE M2.MAIN_INDICATOR_ID = :filterMainId     
+                            WHERE M2.MAIN_INDICATOR_ID = $idPh1      
                         ) MC ON MC.ID = M.ID 
                         LEFT JOIN ( 
                             SELECT 
@@ -5009,12 +5010,12 @@ class Mdform_Model extends Model {
                                 INNER JOIN KPI_INDICATOR_INDICATOR_MAP M1 ON C.INDICATOR_MAP_ID = M1.ID 
                                 INNER JOIN KPI_INDICATOR_INDICATOR_MAP M2 ON C.SRC_INDICATOR_MAP_ID = M2.ID 
                                 INNER JOIN KPI_INDICATOR_INDICATOR_MAP M3 ON C.TRG_INDICATOR_MAP_ID = M3.ID 
-                            WHERE M1.MAIN_INDICATOR_ID = :filterMainId 
+                            WHERE M1.MAIN_INDICATOR_ID = $idPh1  
                             GROUP BY 
                                 C.INDICATOR_MAP_ID 
                         ) MCMAP ON MCMAP.ID = M.ID 
                         LEFT JOIN META_WIDGET MW ON MW.ID = M.WIDGET_ID 
-                    WHERE M.MAIN_INDICATOR_ID = :filterMainId  
+                    WHERE M.MAIN_INDICATOR_ID = $idPh1 
                         AND ".$this->db->IfNull('M.IS_INPUT', '0')." = 1 
                         AND LOWER(M.COLUMN_NAME) <> 'id' 
                         $where  
@@ -5030,10 +5031,7 @@ class Mdform_Model extends Model {
     public function getIndicatorRowsParamModel($indicatorId) {
         
         $langCode = Lang::getCode();
-        
-        $bindVars = array(
-            'filterMainId' => $this->db->addQ($indicatorId)
-        );
+        $bindVars = array($this->db->addQ($indicatorId));
         
         $data = $this->db->GetAll("
             SELECT 
@@ -5048,7 +5046,7 @@ class Mdform_Model extends Model {
                 M.TAB_NAME_TOP 
             FROM KPI_INDICATOR_INDICATOR_MAP M 
                 INNER JOIN KPI_INDICATOR KI ON KI.PARENT_ID = M.MAIN_INDICATOR_ID 
-            WHERE KI.ID = :filterMainId 
+            WHERE KI.ID = ".$this->db->Param(0)." 
                 AND ".$this->db->IfNull('M.IS_INPUT', '0')." = 1 
                 AND ".$this->db->IfNull('M.IS_RENDER', '0')." = 1 
                 AND M.SHOW_TYPE = 'rows' 
