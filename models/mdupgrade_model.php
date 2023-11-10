@@ -4766,9 +4766,13 @@ class Mdupgrade_Model extends Model {
 
                         if ($script) {
                             
-                            if ($skipError == '1' && DB_DRIVER == 'postgres9') {
+                            if (DB_DRIVER == 'postgres9') {
                                 
-                                $script = 'DO $$ BEGIN '.$script.'; EXCEPTION WHEN others THEN END; $$;';
+                                preg_match_all('/INSERT INTO(.*?)\(/', $script, $parseTblName);
+                                
+                                if ($skipError == '1' || (isset($parseTblName[1][0]) && $parseTblName[1][0] && in_array(trim($parseTblName[1][0]), self::$ignoreDeleteScriptTables))) {
+                                    $script = 'DO $$ BEGIN '.$script.'; EXCEPTION WHEN others THEN END; $$;';
+                                }
                             }
 
                             try {

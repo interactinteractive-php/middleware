@@ -1659,10 +1659,6 @@ class Mddoc_Model extends Model {
             else {
                 throw new Exception($saveCache['text']);
             }
-
-            $contentName = getUID();
-            $wordFilePath = self::bpTemplateUploadGetPath(UPLOADPATH . 'signed_content/');
-            $wordFilePath .= 'file_'.$contentName.'.docx';
             
             if (file_exists($wordFilePath)) {
 
@@ -2236,6 +2232,7 @@ class Mddoc_Model extends Model {
                 throw new Exception("Файл олдсонгүй!"); 
             }
 
+            $contentId = getUID();
             $contentName = getUID();
             $wordFilePath = self::bpTemplateUploadGetPath(UPLOADPATH . 'signed_content/');
             $wordFilePath .= 'file_'.$contentName.'.docx';
