@@ -4685,7 +4685,14 @@ class Mdupgrade_Model extends Model {
                             $isScriptRun = true;
                             
                             if (DB_DRIVER == 'postgres9') {
-                                $scrpt = 'DO $$ BEGIN '.$scrpt.'; EXCEPTION WHEN others THEN END; $$;';
+                                
+                                $lastChar = substr($scrpt, -1);
+                                
+                                if ($lastChar == ';') {
+                                    $scrpt = 'DO $$ BEGIN '.$scrpt.' EXCEPTION WHEN others THEN END; $$;';
+                                } else {
+                                    $scrpt = 'DO $$ BEGIN '.$scrpt.'; EXCEPTION WHEN others THEN END; $$;';
+                                }
                             }
                             
                             try {

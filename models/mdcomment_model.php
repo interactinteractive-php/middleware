@@ -79,9 +79,16 @@ class Mdcomment_Model extends Model {
         try {
             
             $metaDataId = Input::numeric('metaDataId');
-            $metaValueId = Input::numeric('metaValueId');
+            $metaValueId = Input::numeric('metaValueId');            
 
             if ($metaDataId && $metaValueId) {
+                $commentTxt = Input::post('commentText');
+                $base64File = Input::post('commentBase64File');
+                
+                if ($base64File) {
+                    $getFilePathInfo = self::uploadFileComment($base64File);
+                    $commentTxt = '<img style="width:410px" src="'.$getFilePathInfo.'"/>';
+                }
                 
                 $commentStructureId = Input::numeric('commentStructureId');
                 $processMetaDataId = Input::numeric('processMetaDataId');
@@ -92,7 +99,7 @@ class Mdcomment_Model extends Model {
                     'ID'                  => getUID(),
                     'REF_STRUCTURE_ID'    => $metaDataId, 
                     'RECORD_ID'           => $metaValueId,
-                    'COMMENT_TEXT'        => Input::post('commentText'), 
+                    'COMMENT_TEXT'        => $commentTxt, 
                     'CREATED_COMMAND_ID'  => $processMetaDataId, 
                     'LIST_META_DATA_ID'   => $listMetaDataId, 
                     'MODULE_META_DATA_ID' => $moduleMetaDataId, 
@@ -123,6 +130,31 @@ class Mdcomment_Model extends Model {
                 $result = $this->db->AutoExecute('ECM_COMMENT', $data);
 
                 if ($result) {
+                    
+                    if ($base64File) {
+                        $attachFileId = getUID();
+                        $dataAttachFile = array(
+                            'CONTENT_ID' => $attachFileId,
+                            'FILE_NAME' => $getFilePathInfo,
+                            'PHYSICAL_PATH' => $getFilePathInfo,
+                            'FILE_EXTENSION' => $fileExtension,
+                            'FILE_SIZE' => '',
+                            'CREATED_USER_ID' => Ue::sessionUserKeyId(),
+                            'IS_PHOTO' => '1'
+                        );
+
+                        $attachFile = $this->db->AutoExecute('ECM_CONTENT', $dataAttachFile);
+                        if ($attachFile) {
+                            $dataMetaValue = array(
+                                'ID' => getUID(),
+                                'REF_STRUCTURE_ID' => $commentStructureId,
+                                'RECORD_ID' => $data['ID'],
+                                'CONTENT_ID' => Input::param($attachFileId),
+                                'ORDER_NUM' => 1
+                            );
+                            $this->db->AutoExecute('ECM_CONTENT_MAP', $dataMetaValue);
+                        }                    
+                    }
                     
                     $mentionData = Input::post('mentionData');
 
@@ -455,5 +487,30 @@ class Mdcomment_Model extends Model {
         
         return implode('', $comment);
     }
+    
+    public static function uploadFileComment($value) {
+        $value = explode(',', $value);
+        $fileData = @base64_decode($value[1]);
+
+        if ($fileData) {
+            $f = finfo_open();
+            $mimeType = finfo_buffer($f, $fileData, FILEINFO_MIME_TYPE);
+
+            if ($mimeType == 'text/plain') {
+                return array('status' => 'error', 'message' => 'Wrong content type!');
+            } else {
+                $fileExtension = mimeToExt($mimeType);
+
+                $filePath = Mdwebservice::bpUploadGetPath();
+                $fileUrl = $filePath.getUID().'.'.$fileExtension;
+
+                file_put_contents($fileUrl, $fileData);
+
+                return $fileUrl;
+            }
+
+        }
+        return '';
+    }        
 
 }

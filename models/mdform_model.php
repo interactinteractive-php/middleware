@@ -7907,10 +7907,23 @@ class Mdform_Model extends Model {
         }
         
         try {
-
-            $result = $db->Execute("SELECT * FROM $table WHERE 1 = 0");
             
-            $fieldObjs = Arr::objectToArray($result->_fieldobjs);
+            if (DB_DRIVER == 'oci8') {
+                
+                $result = $db->Execute("SELECT * FROM $table WHERE 1 = 0");
+                $fieldObjs = Arr::objectToArray($result->_fieldobjs);
+
+            } elseif (DB_DRIVER == 'postgres9') {
+
+                $rs = $db->Execute("SELECT * FROM $table WHERE 1 = 0");
+                $fieldObjects = $rs->fieldTypesArray();
+                
+                $this->load->model('mdupgrade', 'middleware/models/');
+
+                $fieldObjs = $this->model->postgreArrayColumnsConvert($fieldObjects);
+                
+                $this->load->model('mdform', 'middleware/models/');
+            }
             
             $fields = array();
             
@@ -10549,6 +10562,14 @@ class Mdform_Model extends Model {
             
             if ($isTableName == false && $isQueryString == false) {
                 return array('status' => 'error', 'message' => '', 'rows' => array(), 'total' => 0); /*Invalid table_name!*/
+            }
+            
+            if (!$isTableName && $isQueryString && strlen($queryString) <= 30) {
+                
+                $isTableName = true;
+                $isQueryString = false;
+                $tableName = $queryString;
+                $queryString = null;
             }
 
             $page = Input::numeric('page', 1);
