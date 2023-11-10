@@ -3042,10 +3042,20 @@ class Mdupgrade_Model extends Model {
         if (self::$isCreateRollback == false && self::$exportCreateTables) {
             
             $kpiDbSchemaName = Config::getFromCache('kpiDbSchemaName');
+            $srcRecordIdPh = $this->db->Param(0);
             $rowXml = null;
             
             foreach (self::$exportCreateTables as $row) {
                 
+                if (self::$isInsertData && $row['mainTableName'] == 'KPI_INDICATOR' && $row['columnName'] == 'TABLE_NAME' && $row['recordId']) {
+                    
+                   $isDefaultDataset = $this->db->GetOne("SELECT IS_DEFAULT_DATASET FROM V_DATA_SET WHERE SRC_RECORD_ID = $srcRecordIdPh", array($row['recordId']));
+                   
+                    if (!$isDefaultDataset) {
+                        continue;
+                    }
+                }
+                        
                 $createTableName = $row['tableName'];
                 
                 try {
@@ -3066,10 +3076,14 @@ class Mdupgrade_Model extends Model {
                             $scale         = $column->scale;
                             $not_null      = $column->not_null ? ' NOT NULL ENABLE' : '';
                             $default_value = $column->default_value;
+                            
+                            if ($default_value != '') {
+                                $default_value = " DEFAULT '$default_value'";
+                            }
 
                             if ($type == 'INT' || $type == 'NUMBER') {
                                 
-                                $fields .= "$name NUMBER($max_length, $scale)$not_null, ";
+                                $fields .= "$name NUMBER($max_length, $scale)".$default_value."".$not_null.", ";
                                 $createColumns .= "ALTER TABLE $dbTableName ADD ($name NUMBER($max_length, $scale))". Mdcommon::$separator . "\n";
                                 
                             } elseif ($type == 'VARCHAR2') {
@@ -3386,7 +3400,13 @@ class Mdupgrade_Model extends Model {
                         if ($dataTableName) {
                             
                             if ($tblRow['isCreateTable']) {
-                                self::$exportCreateTables[strtolower($dataTableName)] = array('mainTableName' => $tblName, 'columnName' => $tableColumnName, 'tableName' => $dataTableName);
+                                
+                                self::$exportCreateTables[strtolower($dataTableName)] = array(
+                                    'mainTableName' => $tblName, 
+                                    'columnName'    => $tableColumnName, 
+                                    'tableName'     => $dataTableName, 
+                                    'recordId'      => $row[$primaryColumn]
+                                );
                             }
                             
                             $row[$tableColumnName] = '[kpiDbSchemaName].' . str_replace($kpiDbSchemaName.'.', '', $dataTableName);
@@ -4833,6 +4853,8 @@ class Mdupgrade_Model extends Model {
                                 $createTableScript = trim($createTableScript);
 
                                 if ($createTableScript) {
+                                    
+                                    $createTableScript = str_replace('NUMBER(, )', 'NUMBER', $createTableScript);
                                     
                                     if (DB_DRIVER == 'postgres9') {
                                         
