@@ -6282,7 +6282,9 @@ class Mdexpression extends Controller {
                         break;
                     case 'standard.Rectangle':
                         if (issetParam($row['attrs']['label']['code']) == 'find-object') {
-                            $rowExp = str_replace($row['id'], self::microFindObject($row['attrs']['label'], $formData), $rowExp);
+                            $mfindObj = self::microFindObject($row['attrs']['label'], $formData);
+                            if (is_null($mfindObj)) return '';
+                            $rowExp = str_replace($row['id'], $mfindObj, $rowExp);
                         }
                         break;
                     case 'standard.Polygon':

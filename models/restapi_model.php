@@ -197,7 +197,7 @@ class Restapi_Model extends Model {
                         
                         $logParam = array(
                             'indicatorId' => $indicatorId, 
-                            'affectedRows' => null,
+                            'affectedRows' => null, 
                             'executedQuery' => $queryString."\n\n".$jsonParam, 
                             'errorMsg' => null
                         );
@@ -259,7 +259,7 @@ class Restapi_Model extends Model {
             $rs = $this->db->AutoExecute('V_CHECK_QUERY_EXECUTED_LOG', $data);
             
             if ($rs) {
-                $this->db->UpdateClob('V_CHECK_QUERY_EXECUTED_LOG', 'EXECUTED_QUERY', $param['executedQuery'], 'LOG_ID = '.$data['ID']);
+                $this->db->UpdateClob('V_CHECK_QUERY_EXECUTED_LOG', 'EXECUTED_QUERY', $param['executedQuery'], 'LOG_ID = '.$data['LOG_ID']);
                 return true;
             }
             

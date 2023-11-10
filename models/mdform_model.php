@@ -2952,7 +2952,7 @@ class Mdform_Model extends Model {
                     SELECT 
                         DM.* 
                     FROM KPI_DM_MART DM 
-                        INNER JOIN KPI_TEMPLATE_DIMENSION TD ON TD.DIMENSION_ID = DM.DIMENSION_ID 
+                        LEFT JOIN KPI_TEMPLATE_DIMENSION TD ON TD.DIMENSION_ID = DM.DIMENSION_ID 
                             AND TD.IS_MAIN = 1 
                     WHERE DM.RECORD_ID = ".$this->db->Param(0)." 
                         AND TD.TEMPLATE_ID = ".$this->db->Param(1)." 
@@ -2968,7 +2968,7 @@ class Mdform_Model extends Model {
                     SELECT 
                         DM.* 
                     FROM KPI_DM_MART DM 
-                        INNER JOIN KPI_TEMPLATE_DIMENSION TD ON TD.DIMENSION_ID = DM.DIMENSION_ID 
+                        LEFT JOIN KPI_TEMPLATE_DIMENSION TD ON TD.DIMENSION_ID = DM.DIMENSION_ID 
                             AND TD.IS_MAIN = 1 
                     WHERE DM.RECORD_ID = ".$this->db->Param(0)." 
                         AND ".$this->db->IfNull('TD.TEMPLATE_ID', 'TD.INDICATOR_ID')." = ".$this->db->Param(1)." 
