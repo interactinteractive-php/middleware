@@ -10643,7 +10643,7 @@ class Mdtimestable_Model extends Model {
                         $whereString .= " AND VE.POSITION_ID IN (" . implode(',', $params['positionId']) . ")";
                     }
 
-                    if ($params['positionGroupId'] != '') {
+                    if (isset($params['positionGroupId']) && $params['positionGroupId'] != '') {
                         $whereString .= " AND VE.POSITION_GROUP_ID = " . $params['positionGroupId'];
                     }
 
