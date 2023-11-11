@@ -8820,7 +8820,7 @@ class Mdtimestable_Model extends Model {
                                     TETPH.D21,TETPH.D22,TETPH.D23,TETPH.D24,TETPH.D25,TETPH.D26,TETPH.D27,TETPH.D28,TETPH.D29,TETPH.D30,
                                     $leftJoinAttr
                                     TETPH.D31, ek.STATUS_ID, ek.CURRENT_STATUS_ID,
-                                    ". $this->db->IfNull('TETPH.ID', "''") ." AS IS_EXIST $tableColumn2
+                                    ". $this->db->IfNull('TETPH.ID', 'null') ." AS IS_EXIST $tableColumn2
                                 FROM VW_TMS_EMPLOYEE VE
                                 INNER JOIN ( 
                                     SELECT
@@ -10850,7 +10850,7 @@ class Mdtimestable_Model extends Model {
                                             TETPH.D21,TETPH.D22,TETPH.D23,TETPH.D24,TETPH.D25,TETPH.D26,TETPH.D27,TETPH.D28,TETPH.D29,TETPH.D30,
                                             $leftJoinAttr
                                             TETPH.D31, ek.STATUS_ID, ek.CURRENT_STATUS_ID,
-                                            ". $this->db->IfNull('TETPH.ID', "''") ." AS IS_EXIST $tableColumn2                                         
+                                            ". $this->db->IfNull('TETPH.ID', 'null') ." AS IS_EXIST $tableColumn2                                         
                                         FROM VW_TMS_EMPLOYEE VE
                                         INNER JOIN ( 
                                             SELECT
@@ -12192,7 +12192,7 @@ class Mdtimestable_Model extends Model {
                                     TETPH.D21,TETPH.D22,TETPH.D23,TETPH.D24,TETPH.D25,TETPH.D26,TETPH.D27,TETPH.D28,TETPH.D29,TETPH.D30,
                                     $leftJoinAttr
                                     TETPH.D31, ek.STATUS_ID, ek.CURRENT_STATUS_ID,
-                                    ". $this->db->IfNull('TETPH.ID', "''") ." AS IS_EXIST $tableColumn2
+                                    ". $this->db->IfNull('TETPH.ID', 'null') ." AS IS_EXIST $tableColumn2
                                 FROM VW_TMS_EMPLOYEE VE
                                 INNER JOIN ( 
                                     SELECT
@@ -13525,7 +13525,7 @@ class Mdtimestable_Model extends Model {
                                 TETPH.D21,TETPH.D22,TETPH.D23,TETPH.D24,TETPH.D25,TETPH.D26,TETPH.D27,TETPH.D28,TETPH.D29,TETPH.D30,
                                 $leftJoinAttr
                                 TETPH.D31, ek.STATUS_ID, ek.CURRENT_STATUS_ID,
-                                ". $this->db->IfNull('TETPH.ID', "''") ." AS IS_EXIST $tableColumn2
+                                ". $this->db->IfNull('TETPH.ID', 'null') ." AS IS_EXIST $tableColumn2
                             FROM VW_TMS_EMPLOYEE VE
                             INNER JOIN ( 
                                 SELECT
