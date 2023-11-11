@@ -8062,7 +8062,7 @@ class Mdobject_Model extends Model {
                 $sql = str_replace('GC.DISPLAY_ORDER ASC', $this->db->IfNull('DF.DISPLAY_ORDER', 'GC.DISPLAY_ORDER').' ASC ', $sql);
                 $sql = str_replace('AND (GC.IS_CRITERIA = 1', 'AND (((GC.IS_CRITERIA = 1 AND (DF.ID IS NULL OR DF.IS_SHOW = 1)) OR (DF.IS_CRITERIA = 1 AND DF.IS_SHOW = 1) OR DF.IS_CRITERIA = 1)', $sql);            
                   
-                $data = $this->db->GetAll($sql, array($dataViewId));                
+                $data = $this->db->GetAll($sql, array($dataViewId, $userId));                
             }
             
             $cache->set('dvHdrData_' . $dataViewId . '_' . $userId, $data, Mdwebservice::$expressionCacheTime);
@@ -8079,6 +8079,8 @@ class Mdobject_Model extends Model {
 
         if ($data == null) {
             
+            $idPh = $this->db->Param(0);
+            
             $data = $this->db->GetAll("
                 SELECT 
                     0 AS GROUP_PARAM_CONFIG_TOTAL, 
@@ -8086,7 +8088,7 @@ class Mdobject_Model extends Model {
                         SELECT 
                             ".$this->db->listAgg('PARAM_PATH', '|', 'PARAM_PATH')."  
                         FROM META_GROUP_PARAM_CONFIG 
-                        WHERE GROUP_META_DATA_ID = ".$this->db->Param(0)."    
+                        WHERE GROUP_META_DATA_ID = $idPh    
                             AND LOOKUP_META_DATA_ID IS NOT NULL 
                             AND (IS_GROUP = 0 OR IS_GROUP IS NULL) 
                             AND LOWER(FIELD_PATH) = LOWER(GC.FIELD_PATH) 
@@ -8095,7 +8097,7 @@ class Mdobject_Model extends Model {
                         SELECT 
                             ".$this->db->listAgg('PARAM_META_DATA_CODE', '|', 'PARAM_PATH')."  
                         FROM META_GROUP_PARAM_CONFIG 
-                        WHERE GROUP_META_DATA_ID = ".$this->db->Param(0)."   
+                        WHERE GROUP_META_DATA_ID = $idPh   
                             AND LOOKUP_META_DATA_ID IS NOT NULL 
                             AND (IS_GROUP = 0 OR IS_GROUP IS NULL) 
                             AND LOWER(FIELD_PATH) = LOWER(GC.FIELD_PATH) 
@@ -8104,7 +8106,7 @@ class Mdobject_Model extends Model {
                         SELECT 
                             ".$this->db->listAgg('FIELD_PATH', '|', 'FIELD_PATH')."  
                         FROM META_GROUP_PARAM_CONFIG 
-                        WHERE GROUP_META_DATA_ID = ".$this->db->Param(0)."   
+                        WHERE GROUP_META_DATA_ID = $idPh   
                             AND LOOKUP_META_DATA_ID IS NOT NULL 
                             AND (IS_GROUP = 0 OR IS_GROUP IS NULL) 
                             AND LOWER(PARAM_PATH) = LOWER(GC.FIELD_PATH) 
@@ -8154,7 +8156,7 @@ class Mdobject_Model extends Model {
                 FROM META_GROUP_CONFIG GC 
                     LEFT JOIN META_DATA LMD ON LMD.META_DATA_ID = GC.LOOKUP_META_DATA_ID 
                     LEFT JOIN META_FIELD_PATTERN MFP ON MFP.PATTERN_ID = GC.PATTERN_ID        
-                WHERE GC.MAIN_META_DATA_ID = ".$this->db->Param(0)." 
+                WHERE GC.MAIN_META_DATA_ID = $idPh 
                     AND GC.IS_UM_CRITERIA = 1
                 ORDER BY GC.DISPLAY_ORDER ASC", array($dataViewId));
 
