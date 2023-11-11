@@ -2847,7 +2847,7 @@ class Mdwebservice_Model extends Model {
 
         $processMetaDataId = Input::param($postData['processMetaDataId']);
         $paramRealPath = Input::param($postData['paramRealPath']);
-        $selectedRows = $postData['selectedRows'];
+        $selectedRows = isset($postData['selectedRows']) ? $postData['selectedRows'] : array();
 
         $array = $lookupRowDatas = array();
         
