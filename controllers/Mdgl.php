@@ -2207,10 +2207,15 @@ class Mdgl extends Controller {
         
         if ($conf == null) {
             global $db;
-            $rs = $db->MetaColumns('FIN_GENERAL_LEDGER');
-            if ($rs) {
-                $conf = $rs['DEBIT_AMOUNT_BASE']->scale;
-                $cache->set('sysConfigGlAmountScale', $conf, Mdwebservice::$expressionCacheTime);
+            
+            if (DB_DRIVER == 'postgres9') {
+                $cache->set('sysConfigGlAmountScale', 6, Mdwebservice::$expressionCacheTime);
+            } else {
+                $rs = $db->MetaColumns('FIN_GENERAL_LEDGER');
+                if ($rs) {
+                    $conf = $rs['DEBIT_AMOUNT_BASE']->scale;
+                    $cache->set('sysConfigGlAmountScale', $conf, Mdwebservice::$expressionCacheTime);
+                }
             }
         }
 
