@@ -3198,18 +3198,15 @@ class Mdintegration_model extends Model {
     
     public function getLastImportIdModel($bankId, $accountCode, $billDate = null) {
         
-        $bankIdPh      = $this->db->Param('bankId');
-        $accountCodePh = $this->db->Param('accountCode');
+        $bankIdPh      = $this->db->Param(0);
+        $accountCodePh = $this->db->Param(1);
         $where         = null;
         
-        $bindVars = array(
-            'bankId'      => $this->db->addQ($bankId), 
-            'accountCode' => $this->db->addQ($accountCode)
-        );
+        $bindVars = array($this->db->addQ($bankId), $this->db->addQ($accountCode));
         
         if ($billDate) {
-            $billDatePh = $this->db->Param('billDate');
-            $bindVars['billDate'] = $billDate;
+            $billDatePh = $this->db->Param(2);
+            $bindVars[] = $billDate;
             $where = ' AND '.$this->db->SQLDate('Y-m-d', 'BILL_DATE').' = '.$billDatePh;
         }
         

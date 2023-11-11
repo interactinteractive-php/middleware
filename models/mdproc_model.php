@@ -418,13 +418,10 @@ class Mdproc_Model extends Model {
     }    
     
     public function getRowsProcFileModel($id) {
-        $metaDataIdPh  = $this->db->Param('metaDataId');
-        $metaValueIdPh = $this->db->Param('metaValueId');
+        $metaDataIdPh  = $this->db->Param(0);
+        $metaValueIdPh = $this->db->Param(1);
         
-        $bindVars = array(
-            'metaDataId'  => $this->db->addQ('1526524155528'), 
-            'metaValueId' => $this->db->addQ($id)
-        );
+        $bindVars = array($this->db->addQ('1526524155528'), $this->db->addQ($id));
         
         $data = $this->db->GetAll("
             SELECT 
@@ -448,11 +445,8 @@ class Mdproc_Model extends Model {
     }    
     
     public function getRolesModel() {
-        $userIdIdPh  = $this->db->Param('userId');
-        
-        $bindVars = array(
-            'userId'  => $this->db->addQ(Ue::sessionUserId())
-        );
+        $userIdIdPh = $this->db->Param(0);
+        $bindVars = array($this->db->addQ(Ue::sessionUserId()));
 
         $data = $this->db->GetAll("
             SELECT

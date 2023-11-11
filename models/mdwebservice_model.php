@@ -16,11 +16,8 @@ class Mdwebservice_Model extends Model {
 
         if ($row == null) {
             
-            $metaDataIdPh = $this->db->Param('metaDataId');
-        
-            $bindVars = array(
-                'metaDataId' => $this->db->addQ($metaDataId)
-            );
+            $metaDataIdPh = $this->db->Param(0);
+            $bindVars = array($this->db->addQ($metaDataId));
         
             $row = $this->db->GetRow("
                 SELECT 
@@ -148,11 +145,8 @@ class Mdwebservice_Model extends Model {
         
         if (Input::post('bpTemplateId')) {
             
-            $bpTemplateIdPh = $this->db->Param('bpTemplateId');
-        
-            $tempBindVars = array(
-                'bpTemplateId' => $this->db->addQ(Input::post('bpTemplateId'))
-            );
+            $bpTemplateIdPh = $this->db->Param(0);
+            $tempBindVars = array($this->db->addQ(Input::post('bpTemplateId')));
             
             $row['HTML_TEMPLATE_FILE'] = $this->db->GetOne("SELECT HTML_FILE_PATH FROM META_BUSINESS_PROCESS_TEMPLATE WHERE ID = $bpTemplateIdPh AND IS_ACTIVE = 1 AND IS_DEFAULT = 1", $tempBindVars);
         } 
@@ -361,11 +355,8 @@ class Mdwebservice_Model extends Model {
     
     public function getProcessParamsData($bpMetaDataId, $parentId = null, $where = null) {
         
-        $bpMetaDataIdPh = $this->db->Param('bpMetaDataId');
-        
-        $bindVars = array(
-            'bpMetaDataId' => $this->db->addQ($bpMetaDataId)
-        );
+        $bpMetaDataIdPh = $this->db->Param(0);
+        $bindVars = array($this->db->addQ($bpMetaDataId));
         
         $data = $this->db->GetAll("
             SELECT 
@@ -2461,14 +2452,14 @@ class Mdwebservice_Model extends Model {
 
     public function getProcessLookupParamFieldMap($processMetaDataId, $parentId, $paramRealPath) {
         
-        $processMetaDataIdPh = $this->db->Param('processMetaDataId');
-        $parentIdPh          = $this->db->Param('parentId');
-        $paramRealPathPh     = $this->db->Param('paramRealPath');
+        $processMetaDataIdPh = $this->db->Param(0);
+        $parentIdPh          = $this->db->Param(1);
+        $paramRealPathPh     = $this->db->Param(2);
         
         $bindVars = array(
-            'processMetaDataId' => $this->db->addQ($processMetaDataId), 
-            'parentId'          => $this->db->addQ($parentId), 
-            'paramRealPath'     => $this->db->addQ(strtolower($paramRealPath))
+            $this->db->addQ($processMetaDataId), 
+            $this->db->addQ($parentId), 
+            $this->db->addQ(strtolower($paramRealPath))
         );
         
         $data = $this->db->GetAll("
@@ -2953,13 +2944,10 @@ class Mdwebservice_Model extends Model {
 
     public function isFirstLevelProcessModel($processMetaDataId, $paramRealPath) {
         
-        $processMetaDataIdPh = $this->db->Param('processMetaDataId');
-        $paramRealPathPh     = $this->db->Param('paramRealPath');
+        $processMetaDataIdPh = $this->db->Param(0);
+        $paramRealPathPh     = $this->db->Param(1);
         
-        $bindVars = array(
-            'processMetaDataId' => $this->db->addQ($processMetaDataId), 
-            'paramRealPath'     => $this->db->addQ(strtolower($paramRealPath))
-        );
+        $bindVars = array($this->db->addQ($processMetaDataId), $this->db->addQ(strtolower($paramRealPath)));
         
         $row = $this->db->GetRow("
             SELECT 
@@ -2985,12 +2973,12 @@ class Mdwebservice_Model extends Model {
 
     public function isDepthLevelProcessModel($processMetaDataId, $paramRealPath) {
         
-        $processMetaDataIdPh = $this->db->Param('processMetaDataId');
-        $paramRealPathPh     = $this->db->Param('paramRealPath');
+        $processMetaDataIdPh = $this->db->Param(0);
+        $paramRealPathPh     = $this->db->Param(1);
         
         $bindVars = array(
-            'processMetaDataId' => $this->db->addQ($processMetaDataId), 
-            'paramRealPath'     => $this->db->addQ(strtolower($paramRealPath))
+            $this->db->addQ($processMetaDataId), 
+            $this->db->addQ(strtolower($paramRealPath))
         );
         
         $row = $this->db->GetRow("
@@ -3021,13 +3009,10 @@ class Mdwebservice_Model extends Model {
         
         if (!$ignoreDvFilter) {
             
-            $processMetaDataIdPh = $this->db->Param('processMetaDataId');
-            $groupFieldPathPh    = $this->db->Param('groupFieldPath');
+            $processMetaDataIdPh = $this->db->Param(0);
+            $groupFieldPathPh    = $this->db->Param(1);
 
-            $bindVars = array(
-                'processMetaDataId' => $this->db->addQ($processMetaDataId), 
-                'groupFieldPath'    => $this->db->addQ(strtolower($groupFieldPath))
-            );
+            $bindVars = array($this->db->addQ($processMetaDataId), $this->db->addQ(strtolower($groupFieldPath)));
 
             $data = $this->db->GetAll("
                 SELECT 
@@ -3607,13 +3592,10 @@ class Mdwebservice_Model extends Model {
             $metaValueId = 0;
         }
         
-        $metaDataIdPh  = $this->db->Param('metaDataId');
-        $metaValueIdPh = $this->db->Param('metaValueId');
+        $metaDataIdPh  = $this->db->Param(0);
+        $metaValueIdPh = $this->db->Param(1);
         
-        $bindVars = array(
-            'metaDataId'  => $this->db->addQ($metaDataId), 
-            'metaValueId' => $this->db->addQ($metaValueId)
-        );
+        $bindVars = array($this->db->addQ($metaDataId), $this->db->addQ($metaValueId));
         
         $data = $this->db->GetAll("
             SELECT 
@@ -3654,13 +3636,10 @@ class Mdwebservice_Model extends Model {
     
     public function getMetaDataValuePhotosModel($metaDataId = 0, $metaValueId = 0) {
         
-        $metaDataIdPh  = $this->db->Param('metaDataId');
-        $metaValueIdPh = $this->db->Param('metaValueId');
+        $metaDataIdPh  = $this->db->Param(0);
+        $metaValueIdPh = $this->db->Param(1);
         
-        $bindVars = array(
-            'metaDataId'  => $this->db->addQ($metaDataId), 
-            'metaValueId' => $this->db->addQ($metaValueId)
-        );
+        $bindVars = array($this->db->addQ($metaDataId), $this->db->addQ($metaValueId));
         
         $data = $this->db->GetAll("
             SELECT 
@@ -3714,13 +3693,10 @@ class Mdwebservice_Model extends Model {
     }
     
     public function getMetaDataValuePhotosFolderModel($metaDataId = 0, $metaValueId = 0) {
-        $metaDataIdPh  = $this->db->Param('metaDataId');
-        $metaValueIdPh = $this->db->Param('metaValueId');
+        $metaDataIdPh  = $this->db->Param(0);
+        $metaValueIdPh = $this->db->Param(1);
         
-        $bindVars = array(
-            'metaDataId'  => $this->db->addQ($metaDataId), 
-            'metaValueId' => $this->db->addQ($metaValueId)
-        );
+        $bindVars = array($this->db->addQ($metaDataId), $this->db->addQ($metaValueId));
         
         $data = $this->db->GetAll("
             SELECT 
@@ -5956,11 +5932,8 @@ class Mdwebservice_Model extends Model {
     
     public function getMetaDataModel($metaDataId, $getFolder = false) {
         
-        $metaDataIdPh = $this->db->Param('metaDataId');
-
-        $bindVars = array(
-            'metaDataId' => $this->db->addQ($metaDataId)
-        );
+        $metaDataIdPh = $this->db->Param(0);
+        $bindVars = array($this->db->addQ($metaDataId));
         
         $row = $this->db->GetRow("
             SELECT 
@@ -6002,11 +5975,8 @@ class Mdwebservice_Model extends Model {
 
         if ($row == null) {
             
-            $metaDataIdPh = $this->db->Param('metaDataId');
-        
-            $bindVars = array(
-                'metaDataId' => $this->db->addQ($metaDataId)
-            );
+            $metaDataIdPh = $this->db->Param(0);
+            $bindVars = array($this->db->addQ($metaDataId));
         
             $row = $this->db->GetRow("
                 SELECT 
@@ -6137,11 +6107,8 @@ class Mdwebservice_Model extends Model {
     
     public function getDVProcessParamsData($bpMetaDataId, $parentId = '', $where = '') {
         
-        $bpMetaDataIdPh = $this->db->Param('bpMetaDataId');
-        
-        $bindVars = array(
-            'bpMetaDataId' => $this->db->addQ($bpMetaDataId)
-        );
+        $bpMetaDataIdPh = $this->db->Param(0);
+        $bindVars = array($this->db->addQ($bpMetaDataId));
         
         $data = $this->db->GetAll("
             SELECT 

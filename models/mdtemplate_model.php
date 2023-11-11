@@ -10,11 +10,8 @@ class Mdtemplate_model extends Model {
 
     public function getReportTemplate($id, $isTemplateMetaId = false) {
         
-        $idPh = $this->db->Param('id');
-        
-        $bindVars = array(
-            'id' => $this->db->addQ($id)
-        );
+        $idPh = $this->db->Param(0);
+        $bindVars = array($this->db->addQ($id));
         
         if (Mdtemplate::$isKpiIndicator) {
             
@@ -49,11 +46,8 @@ class Mdtemplate_model extends Model {
 
     public function getReportTemplateByDataModel($metaDataId, $isProcess) {
         
-        $metaDataIdPh = $this->db->Param('metaDataId');
-        
-        $bindVars = array(
-            'metaDataId' => $this->db->addQ($metaDataId)
-        );
+        $metaDataIdPh = $this->db->Param(0);
+        $bindVars = array($this->db->addQ($metaDataId));
         
         if (DB_DRIVER == 'oci8') {
             $orderBy = "ORDER BY TO_NUMBER(REGEXP_SUBSTR(LMD.META_DATA_NAME, '^[0-9]+')) ASC, TO_NUMBER(REGEXP_SUBSTR(LMD.META_DATA_NAME, '$[0-9]+')) ASC, LMD.META_DATA_NAME ASC";
@@ -156,18 +150,13 @@ class Mdtemplate_model extends Model {
 
     public function getReportTemplateByIdDataModel($metaDataId, $templateId) {
         
-        $metaDataIdPh = $this->db->Param('metaDataId');
-        $templateIdPh = $this->db->Param('templateId');
+        $metaDataIdPh = $this->db->Param(0);
+        $templateIdPh = $this->db->Param(1);
 
         if (strpos($templateId, ',') === false) {
-            $bindVars = array(
-                'metaDataId' => $this->db->addQ($metaDataId),
-                'templateId' => $this->db->addQ($templateId)
-            );
+            $bindVars = array($this->db->addQ($metaDataId), $this->db->addQ($templateId));
         } else {
-            $bindVars = array(
-                'metaDataId' => $this->db->addQ($metaDataId),
-            );
+            $bindVars = array($this->db->addQ($metaDataId));
         }
         
         if (DB_DRIVER == 'oci8') {
@@ -214,11 +203,8 @@ class Mdtemplate_model extends Model {
     
     public function getReportTemplateKpiIndicatorModel($metaDataId) {
         
-        $metaDataIdPh = $this->db->Param('metaDataId');
-        
-        $bindVars = array(
-            'metaDataId' => $this->db->addQ($metaDataId)
-        );
+        $metaDataIdPh = $this->db->Param(0);
+        $bindVars = array($this->db->addQ($metaDataId));
         
         $data = $this->db->GetAll("
             SELECT 
@@ -259,11 +245,8 @@ class Mdtemplate_model extends Model {
 
     public function getDataModelByTemplate($templateId, $isTemplateMetaId = false) {
         
-        $templateIdPh = $this->db->Param('templateId');
-        
-        $bindVars = array(
-            'templateId' => $this->db->addQ(Input::param($templateId))
-        );
+        $templateIdPh = $this->db->Param(0);
+        $bindVars = array($this->db->addQ(Input::param($templateId)));
         
         if (Mdtemplate::$isKpiIndicator) {
             
@@ -2109,17 +2092,15 @@ class Mdtemplate_model extends Model {
     
     public function checkReportTemplatePermissionModel($id) {
         
-        $idPh = $this->db->Param('id');
-        
-        $bindVars = array('id' => $this->db->addQ($id));
+        $idPh = $this->db->Param(0);
+        $bindVars = array($this->db->addQ($id));
         
         $count = $this->db->GetOne("SELECT COUNT(PERMISSION_ID) FROM UM_META_PERMISSION WHERE META_DATA_ID = $idPh AND BATCH_NUMBER = 'rt'", $bindVars);
         
         if ($count) {
             
-            $sessionUserIdPh = $this->db->Param('sessionUserId');
-            
-            $bindVars['sessionUserId'] = $this->db->addQ(Ue::sessionUserId());
+            $sessionUserIdPh = $this->db->Param(1);
+            $bindVars[] = $this->db->addQ(Ue::sessionUserId());
             
             $userCount = $this->db->GetOne("SELECT COUNT(PERMISSION_ID) FROM UM_META_PERMISSION WHERE META_DATA_ID = $idPh AND USER_ID = $sessionUserIdPh AND BATCH_NUMBER = 'rt'", $bindVars);
             
@@ -2204,13 +2185,10 @@ class Mdtemplate_model extends Model {
     
     public function getShowColumnsByTemplateModel($groupPath, $dataModelId, $isGroup = false) {
         
-        $dataModelIdPh = $this->db->Param('dataModelId');
-        $groupPathPh   = $this->db->Param('groupPath');
+        $dataModelIdPh = $this->db->Param(0);
+        $groupPathPh   = $this->db->Param(1);
         
-        $bindVars = array(
-            'dataModelId' => $dataModelId, 
-            'groupPath'   => $groupPath
-        );
+        $bindVars = array($dataModelId, $groupPath);
         
         $data = $this->db->GetAll("
             SELECT 

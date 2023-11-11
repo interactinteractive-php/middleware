@@ -165,15 +165,12 @@ class Restapi_Model extends Model {
                                 LEFT JOIN KPI_INDICATOR_INDICATOR_MAP PM ON M.ID = PM.SRC_INDICATOR_MAP_ID 
                             WHERE M.SEMANTIC_TYPE_ID = 78 
                                 AND PM.TRG_META_DATA_PATH IS NOT NULL 
-                                AND M.SRC_INDICATOR_ID = ".$this->db->Param('filterindicatorid')." 
-                                AND M.LOOKUP_META_DATA_ID = ".$this->db->Param('filtermetadataid')." 
+                                AND M.SRC_INDICATOR_ID = ".$this->db->Param(0)." 
+                                AND M.LOOKUP_META_DATA_ID = ".$this->db->Param(1)." 
                             GROUP BY  
                                 PM.SRC_INDICATOR_PATH, 
                                 PM.TRG_META_DATA_PATH", 
-                            array(
-                                'filterindicatorid' => $indicatorId, 
-                                'filtermetadataid'  => $bpId
-                            )
+                            array($indicatorId, $bpId)
                         );
                         
                         $tmpParams = $bindParams = array();

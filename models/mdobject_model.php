@@ -6032,7 +6032,7 @@ class Mdobject_Model extends Model {
     public function getBpActionType($mainMetaDataIdPh, $processMetaDataIdPh, $bindVars) {
         
         $cache = phpFastCache();
-        $row = $cache->get('dvBpActionType_'.$bindVars['mainMetaDataId'].'_'.$bindVars['processMetaDataId']);
+        $row = $cache->get('dvBpActionType_'.$bindVars[0].'_'.$bindVars[1]);
 
         if ($row == null) {
             
@@ -6060,7 +6060,7 @@ class Mdobject_Model extends Model {
                     LEFT JOIN META_BUSINESS_PROCESS_LINK GBP ON GBP.META_DATA_ID = TP.GET_META_DATA_ID     
                 WHERE MD.META_DATA_ID = $processMetaDataIdPh", $bindVars);
             
-            $cache->set('dvBpActionType_'.$bindVars['mainMetaDataId'].'_'.$bindVars['processMetaDataId'], $row, Mdwebservice::$expressionCacheTime);
+            $cache->set('dvBpActionType_'.$bindVars[0].'_'.$bindVars[1], $row, Mdwebservice::$expressionCacheTime);
         }
         
         return $row;
@@ -6069,7 +6069,7 @@ class Mdobject_Model extends Model {
     public function isGetDataProcess($mainMetaDataIdPh, $processMetaDataIdPh, $bindVars) {
         
         $cache = phpFastCache();
-        $row = $cache->get('dvIsGetDataProcess_'.$bindVars['mainMetaDataId'].'_'.$bindVars['processMetaDataId']);
+        $row = $cache->get('dvIsGetDataProcess_'.$bindVars[0].'_'.$bindVars[1]);
         
         if ($row == null) {
             
@@ -6085,7 +6085,7 @@ class Mdobject_Model extends Model {
                 WHERE TP.MAIN_META_DATA_ID = $mainMetaDataIdPh 
                     AND TP.PROCESS_META_DATA_ID = $processMetaDataIdPh", $bindVars);
             
-            $cache->set('dvIsGetDataProcess_'.$bindVars['mainMetaDataId'].'_'.$bindVars['processMetaDataId'], $row, Mdwebservice::$expressionCacheTime);
+            $cache->set('dvIsGetDataProcess_'.$bindVars[0].'_'.$bindVars[1], $row, Mdwebservice::$expressionCacheTime);
         } 
         
         return $row;
@@ -6106,13 +6106,10 @@ class Mdobject_Model extends Model {
 
     public function checkProcessActionModel($mainMetaDataId, $processMetaDataId, $metaTypeId, $selectedRow, $checkCriteria = true, $checkAdvancedCriteria = false) {
         
-        $mainMetaDataIdPh    = $this->db->Param('mainMetaDataId');
-        $processMetaDataIdPh = $this->db->Param('processMetaDataId');
+        $mainMetaDataIdPh    = $this->db->Param(0);
+        $processMetaDataIdPh = $this->db->Param(1);
 
-        $bindVars = array(
-            'mainMetaDataId'    => $mainMetaDataId, 
-            'processMetaDataId' => $processMetaDataId 
-        );
+        $bindVars = array($mainMetaDataId, $processMetaDataId);
      
         if ($metaTypeId == Mdmetadata::$bookmarkMetaTypeId || $metaTypeId == Mdmetadata::$taskFlowMetaTypeId) {
 
@@ -6514,13 +6511,10 @@ class Mdobject_Model extends Model {
     
     public function checkProcessAdvancedCriteriaModel($mainMetaDataId, $processMetaDataId, $metaTypeId, $selectedRow, $advancedCriteria) {
         
-        $mainMetaDataIdPh    = $this->db->Param('mainMetaDataId');
-        $processMetaDataIdPh = $this->db->Param('processMetaDataId');
+        $mainMetaDataIdPh    = $this->db->Param(0);
+        $processMetaDataIdPh = $this->db->Param(1);
 
-        $bindVars = array(
-            'mainMetaDataId'    => $mainMetaDataId, 
-            'processMetaDataId' => $processMetaDataId 
-        );
+        $bindVars = array($mainMetaDataId, $processMetaDataId);
         
         $getActionType = self::getBpActionType($mainMetaDataIdPh, $processMetaDataIdPh, $bindVars);
         $advancedCriteria = ($getActionType && array_key_exists('ADVANCED_CRITERIA', $getActionType)) ? $getActionType['ADVANCED_CRITERIA'] : $advancedCriteria;
@@ -6916,13 +6910,10 @@ class Mdobject_Model extends Model {
 
     public function getDvProcessInfoModel($mainMetaDataId, $processMetaDataId) {
         
-        $mainMetaDataIdPh    = $this->db->Param('mainMetaDataId');
-        $processMetaDataIdPh = $this->db->Param('processMetaDataId');
+        $mainMetaDataIdPh    = $this->db->Param(0);
+        $processMetaDataIdPh = $this->db->Param(1);
 
-        $bindVars = array(
-            'mainMetaDataId'    => $this->db->addQ($mainMetaDataId), 
-            'processMetaDataId' => $this->db->addQ($processMetaDataId) 
-        );
+        $bindVars = array($this->db->addQ($mainMetaDataId), $this->db->addQ($processMetaDataId));
         
         $row = $this->db->GetRow("
             SELECT 
@@ -9003,13 +8994,10 @@ class Mdobject_Model extends Model {
     
     public function getStandartFieldModel($dataViewId, $typeCode) {
         
-        $dataViewIdPh = $this->db->Param('dataViewId');
-        $typeCodePh   = $this->db->Param('typeCode');
+        $dataViewIdPh = $this->db->Param(0);
+        $typeCodePh   = $this->db->Param(1);
 
-        $bindVars = array(
-            'dataViewId' => $this->db->addQ($dataViewId), 
-            'typeCode'   => $this->db->addQ($typeCode) 
-        );
+        $bindVars = array($this->db->addQ($dataViewId), $this->db->addQ($typeCode));
         
         $field = $this->db->GetOne("
             SELECT 

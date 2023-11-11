@@ -357,10 +357,8 @@ class Mdpos_Model extends Model {
         $itemId = Str::lower(Input::post('itemId'));
         
         if ($itemCode) {
-            $itemCodePh = $this->db->Param('itemCode');
-            $bindVars = array(
-                'itemCode' => $this->db->addQ($itemCode)
-            );
+            $itemCodePh = $this->db->Param(0);
+            $bindVars = array($this->db->addQ($itemCode));
 
             $segmentJoin = '1 = 1';
 
@@ -13284,10 +13282,8 @@ class Mdpos_Model extends Model {
         
         if ($invoiceId) {
 
-            $invoiceIdPh = $this->db->Param('invoiceId');
-            $bindVars = array(
-                'invoiceId' => $this->db->addQ($invoiceId)
-            );            
+            $invoiceIdPh = $this->db->Param(0);
+            $bindVars = array($this->db->addQ($invoiceId));            
             $invData = $isMulit ? $isMulit['loypaymentbookmap']['salesinvoiceheader'] : Input::post('responseData');
         
             $hdr     = $invData;
@@ -14433,10 +14429,8 @@ class Mdpos_Model extends Model {
         
         if ($invoiceId) {
 
-            $invoiceIdPh = $this->db->Param('invoiceId');
-            $bindVars = array(
-                'invoiceId' => $this->db->addQ($invoiceId)
-            );            
+            $invoiceIdPh = $this->db->Param(0);
+            $bindVars = array($this->db->addQ($invoiceId));            
             $invData = $isMulit ? $isMulit['loypaymentbookmap']['salesinvoiceheader'] : Input::post('responseData');
         
             $hdr     = $invData;
@@ -16951,11 +16945,8 @@ class Mdpos_Model extends Model {
     
     public function getInvoiceMainDataModel($invoiceId) {
         
-        $invoiceIdPh = $this->db->Param('invoiceId');
-
-        $bindVars = array(
-            'invoiceId' => $this->db->addQ($invoiceId)
-        );
+        $invoiceIdPh = $this->db->Param(0);
+        $bindVars = array($this->db->addQ($invoiceId));
 
         $hdr = $this->db->GetRow("
             SELECT 
