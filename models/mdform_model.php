@@ -10559,7 +10559,8 @@ class Mdform_Model extends Model {
                 return array('status' => 'error', 'message' => '', 'rows' => array(), 'total' => 0); /*Invalid table_name!*/
             }
             
-            if (!$isTableName && $isQueryString && strlen($queryString) <= 30) {
+            if (!$isTableName && $isQueryString && strlen($queryString) <= 30 
+                && stripos($queryString, 'select') === false && stripos($queryString, 'from') === false) {
                 
                 $isTableName = true;
                 $isQueryString = false;
