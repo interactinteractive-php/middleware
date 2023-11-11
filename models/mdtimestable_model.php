@@ -11830,14 +11830,14 @@ class Mdtimestable_Model extends Model {
     
                             foreach ($dateArray as $rowdatakey => $rowdata) {
                                 $this->db->Execute('INSERT INTO TMS_EMPLOYEE_PLAN_LOG_DETAIL (ID, HDR_ID, EMPLOYEE_ID, PLAN_DATE, PLAN_ID, CREATED_DATE, CREATED_USER_ID, DESCRIPTION) VALUES ('.
-                                                    $rowdatakey.getUID().', '.$data['fullTimeId'][$k].', '.$employeeId.', \''.Input::param($rowdata['planDate']).'\', '.Input::param($rowdata['planId']).', \''.Date::currentDate().'\', '.Ue::sessionUserKeyId().', \'DELETED\')');
+                                                    $rowdatakey.getUID().', '.$data['fullTimeId'][$k].', '.$employeeId.', \''.Input::param($rowdata['planDate']).'\', '.(Input::param($rowdata['planId']) ? Input::param($rowdata['planId']) : 'null').', \''.Date::currentDate().'\', '.Ue::sessionUserKeyId().', \'DELETED\')');
                             }
                         } else {
                             $this->db->Execute("DELETE FROM TMS_EMPLOYEE_TIME_PLAN_HDR WHERE ID = " . $data['fullTimeId'][$k]);
     
                             foreach ($dateArray as $rowdatakey => $rowdata) {
                                 $this->db->Execute('INSERT INTO TMS_EMPLOYEE_PLAN_LOG_DETAIL (ID, HDR_ID, EMPLOYEE_ID, PLAN_DATE, PLAN_ID, CREATED_DATE, CREATED_USER_ID, DESCRIPTION) VALUES ('.
-                                                    $rowdatakey.getUID().', null, '.$employeeId.', \''.Input::param($rowdata['planDate']).'\', '.Input::param($rowdata['planId']).', \''.Date::currentDate().'\', '.Ue::sessionUserKeyId().', \'DELETED\')');
+                                                    $rowdatakey.getUID().', null, '.$employeeId.', \''.Input::param($rowdata['planDate']).'\', '.(Input::param($rowdata['planId']) ? Input::param($rowdata['planId']) : 'null').', \''.Date::currentDate().'\', '.Ue::sessionUserKeyId().', \'DELETED\')');
                             }                            
                         }                        
                     }
