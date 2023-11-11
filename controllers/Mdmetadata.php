@@ -1635,6 +1635,11 @@ class Mdmetadata extends Controller {
             $metaDataCode = Input::post('metaDataCode');
             
             $this->view->metaRow = $this->model->getMetaDataByCodeModel($metaDataCode);
+            
+            if (!$this->view->metaRow) {
+                jsonResponse(array('status' => 'error', 'message' => '/'.$metaDataCode.'/ мета олдсонгүй!'));
+            }
+            
             $this->view->metaDataId = $this->view->metaRow['META_DATA_ID'];
             
             $this->load->model('mdobject', 'middleware/models/');
@@ -1647,6 +1652,10 @@ class Mdmetadata extends Controller {
             
             $this->view->metaDataId = $metaData['DATAVIEW_ID'];
             $this->view->metaRow = $this->model->getMetaDataModel($this->view->metaDataId);
+            
+            if (!$this->view->metaRow) {
+                jsonResponse(array('status' => 'error', 'message' => '/'.$this->view->metaDataId.'/ мета олдсонгүй!'));
+            }
             
             $this->load->model('mdobject', 'middleware/models/');
             

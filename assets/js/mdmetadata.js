@@ -15593,6 +15593,20 @@ function dataViewCustomSelectableGrid(metaDataCode, chooseType, funcName, params
             Core.blockUI({boxed: true, message: 'Loading...'});
         },
         success: function(data) {
+            
+            if (data.hasOwnProperty('status') && data.status == 'error') {
+                
+                PNotify.removeAll();
+                new PNotify({
+                    title: data.status,
+                    text: data.message,
+                    type: data.status,
+                    addclass: pnotifyPosition,
+                    sticker: false
+                });
+                Core.unblockUI();
+                return;
+            }
 
             $dialog.empty().append(data.Html);
             $dialog.dialog({
