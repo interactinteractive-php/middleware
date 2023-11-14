@@ -266,7 +266,7 @@ class Mdgl extends Controller {
                 'print_btn' => $this->lang->line('print_btn')
             );
 
-            echo json_encode($response); exit;
+            echo json_encode($response, JSON_UNESCAPED_UNICODE); exit;
             
         } else {
             
@@ -852,7 +852,7 @@ class Mdgl extends Controller {
         
         $defaultAccount1 = $this->ws->runResponse(GF_SERVICE_ADDRESS, Mddatamodel::$getDataViewCommand, $param);
         
-        if ($defaultAccount1['status'] === 'success' && $defaultAccount1['result']) {
+        if ($defaultAccount1['status'] === 'success' && isset($defaultAccount1['result'][0])) {
             if ($this->view->fillPath && array_key_exists(1, $defaultAccount1['result'])) {
                 $param = array(
                     'systemMetaGroupId' => '1459138813444931',
