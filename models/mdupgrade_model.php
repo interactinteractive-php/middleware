@@ -6767,8 +6767,6 @@ class Mdupgrade_Model extends Model {
                                 if ($fileContent && strpos($fileContent, '<meta id="') === false) {
                                     return array('status' => 'error', 'message' => 'PHP export хийсэн файл уншуулна уу!', 'logs' => '');
                                 } 
-                                
-                                file_put_contents('log/fffff.txt', $fileContent);die;
 
                                 $response = self::executeUpgradeScript(array($fileContent));
                                 
