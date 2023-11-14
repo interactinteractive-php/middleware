@@ -16189,7 +16189,7 @@ function transferSplitValueToHdrFunction(mainSelector, srcSplitPath, trgGroupPat
     
     try {
         
-        var $body = mainSelector.find('table[data-table-path="'+trgGroupPath+'"] > tbody > tr'),
+        var $body = mainSelector.find('[data-table-path="'+trgGroupPath+'"] > .tbody > .bp-detail-row'),
             $comboValues = [];
             
         $body.each(function ($index, $tr) {
