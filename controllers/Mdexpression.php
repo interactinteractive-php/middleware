@@ -3099,7 +3099,7 @@ class Mdexpression extends Controller {
                         $attr = '';
                     }
 
-                    $fullExpression = str_replace($callDataView[0][$ek], 'bpCallDataViewByExp(' . $mainSelector . ', checkElement, ' . $dvIdBySelect . ',' . $evArr[1] . $attr . ')', $fullExpression);
+                    $fullExpression = str_replace($callDataView[0][$ek], 'bpCallDataViewByExp(' . $mainSelector . ', checkElement, ' . $dvIdBySelect . ',' . (isset($evArr[1]) ? $evArr[1] : "''") . $attr . ')', $fullExpression);
                 }
             }
         }

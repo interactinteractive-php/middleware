@@ -3365,6 +3365,8 @@ class Mdupgrade_Model extends Model {
 
             $where = mb_substr($where, 0, -5);
             
+            $this->db->SetFetchMode(ADODB_FETCH_ASSOC);
+            
             if ($bindParams) {
                 $data = $this->db->GetAll("SELECT * FROM $tblName WHERE $where", $bindParams);
             } else {
@@ -4914,7 +4916,7 @@ class Mdupgrade_Model extends Model {
                                 }
 
                             } catch (Exception $ex) {
-                                
+                                        
                                 if ($skipError != '1') {
                                     
                                     $message = $ex->getMessage();
@@ -6765,6 +6767,8 @@ class Mdupgrade_Model extends Model {
                                 if ($fileContent && strpos($fileContent, '<meta id="') === false) {
                                     return array('status' => 'error', 'message' => 'PHP export хийсэн файл уншуулна уу!', 'logs' => '');
                                 } 
+                                
+                                file_put_contents('log/fffff.txt', $fileContent);die;
 
                                 $response = self::executeUpgradeScript(array($fileContent));
                                 

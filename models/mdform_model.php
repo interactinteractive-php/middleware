@@ -8356,7 +8356,7 @@ class Mdform_Model extends Model {
             /**
              * Start Microflow expression
              */
-            if (!isset($postData['isMicroFlow']) && !$isExcelImport) { 
+            if (!isset($postData['isMicroFlow'])) { 
                 $this->db->BeginTrans(); 
                 
                 $getExpIndicatorId = self::getParentIndicatorFunctionModel(issetVar($postData['kpiCrudIndicatorId']));

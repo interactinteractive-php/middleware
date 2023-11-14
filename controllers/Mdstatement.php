@@ -55,7 +55,6 @@ class Mdstatement extends Controller {
 
     public function index($metaDataId = '', $dialogMode = false) {
         
-        //Auth::handleLogin();
         Session::init();
         
         if ($metaDataId == '') {
@@ -151,7 +150,6 @@ class Mdstatement extends Controller {
     public function reportViewer() {
 
         $metaDataId = Input::numeric('metaDataId');
-
         self::dataModelReportViewer($metaDataId);
     }
     
@@ -438,6 +436,29 @@ class Mdstatement extends Controller {
                         if ($groupingCount != $rowDepth) {
                             
                             $sumVal = helperSumFieldBp($groupedRow['rows'], $groupKey);
+                        
+                            if ($typeCode == 'scale') {
+                                $sumVal = self::detailFormatMoneyScale($sumVal, $groupKey);
+                            } elseif ($typeCode == 'setscale') {
+                                $sumVal = self::detailFormatMoneySetScale($sumVal, $groupKey);
+                            } elseif ($typeCode == 'decimal') {
+                                $sumVal = self::formatAmountEmpty($sumVal);
+                            } elseif ($typeCode == 'decimal_zero') {
+                                $sumVal = self::formatDecimalZero($sumVal);
+                            } elseif ($typeCode == 'floatempty') {
+                                $sumVal = self::formatAmountFloatEmpty($sumVal);
+                            } elseif ($typeCode == 'floatemptyscale') {
+                                $sumVal = self::formatAmountFloatEmptyScale($sumVal, $groupKey);
+                            } elseif ($typeCode == 'decimal_to_time') {
+                                $sumVal = self::decimal_to_time($sumVal);
+                            } else {
+
+                                if (isset(Mdstatement::$truncAmountFields[$groupKey])) {
+                                    $sumVal = number_format(Number::truncate($sumVal, Mdstatement::$truncAmountFields[$groupKey]), Mdstatement::$truncAmountFields[$groupKey], '.', ',');
+                                } else {
+                                    $sumVal = self::detailFormatMoney($sumVal);
+                                }
+                            }
                             
                             $groupHeader = str_replace('sum(#'.$groupKey.'#)', $sumVal, $groupHeader);
                             $groupFooter = str_replace('sum(#'.$groupKey.'#)', $sumVal, $groupFooter);
@@ -698,7 +719,6 @@ class Mdstatement extends Controller {
                         
                         $html = preg_replace('/\b'.$groupKey.'_max_'.$rowDepth.'\b/u', $max, $html);
                     }
-                    
                 }
                 
                 $html = self::matchDefaultValue($html);
@@ -713,7 +733,6 @@ class Mdstatement extends Controller {
             if ($depth == 0) {
                 self::$data['groupCount_1'] = $groupCounter - 1;
             }
-            
         }
         
         return $html;
