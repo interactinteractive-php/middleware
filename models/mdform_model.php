@@ -2743,6 +2743,10 @@ class Mdform_Model extends Model {
         $this->load->model('mddatamodel', 'middleware/models/');
         $standartFields = $this->model->getCodeNameFieldNameModel($lookupMetaDataId);
         
+        if (!$standartFields['name'] && $standartFields['code'] != '') {
+            $standartFields['name'] = $standartFields['code'];
+        }
+        
         $array = array(
             'data' => $datas, 
             'id' => $standartFields['id'], 
