@@ -4675,12 +4675,12 @@ class Mdupgrade_Model extends Model {
 
         foreach ($fileSources as $fileSource) {
             
-            if (DB_DRIVER != 'oci8') {
+            /*if (DB_DRIVER != 'oci8') {
                 
                 $fileSource = str_replace('TO_CHAR(', '', $fileSource);
                 $fileSource = str_replace('TO_DATE(', '', $fileSource);
                 $fileSource = str_replace(",'YYYY-MM-DD HH24:MI:SS')", '', $fileSource);
-            }
+            }*/
             
             $fileSource = str_replace('[kpiDbSchemaName].', $kpiDbSchemaName, $fileSource);
 

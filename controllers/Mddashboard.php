@@ -3129,8 +3129,15 @@ class Mddashboard extends Controller {
         $mainArray = array();
         $check = false;
         $error = null;
-        $metaDataId = Input::numeric('metaDataId');
+        $metaDataId = Input::post('metaDataId');
         $drillField = Input::post('drillField');
+        
+        if (strpos($metaDataId, '_') !== false) {
+            $metaDataIdArr = explode('_', $metaDataId);
+            $metaDataId = (int) $metaDataIdArr[0];
+        } else {
+            $metaDataId = (int) $metaDataId;
+        }
         
         $cchartValues = $this->model->getMetaSubDiagramLinkModel($metaDataId, $drillField);
         
@@ -3141,7 +3148,10 @@ class Mddashboard extends Controller {
                 $searchCriteriaQuery = $drillCriteria = array();
                 
                 if ($buildCriteria) {
+                    $rowData = Input::post('rowData');
+                    
                     foreach ($buildCriteria as $criteria) {
+                        $criteria['TRG_PARAM'] = strtolower($criteria['TRG_PARAM']);
                         $array[$criteria['TRG_PARAM']] = array();
                         $arrayTemp = array();
                         if (isset($subCriteriaData[Str::lower($criteria['SRC_PARAM'])])) {
@@ -3153,6 +3163,11 @@ class Mddashboard extends Controller {
                             $searchCriteria[$criteria['TRG_PARAM']] = $array[$criteria['TRG_PARAM']];
                             $searchCriteriaQuery[$criteria['TRG_PARAM']] = $subCriteriaData[Str::lower($criteria['SRC_PARAM'])];
                             $drillCriteria[$criteria['TRG_PARAM']] = $arrayTemp['operand'];
+                        } elseif (is_array($rowData) && isset($rowData[$criteria['TRG_PARAM']])) {
+                            $searchCriteria[$criteria['TRG_PARAM']][] = array(
+                                'operator' => '=',
+                                'operand' => Input::param($rowData[$criteria['TRG_PARAM']])
+                            );
                         }
                     }
 
@@ -3180,7 +3195,7 @@ class Mddashboard extends Controller {
                 }
                 
                 $this->load->model('mdobject', 'middleware/models/');
-                
+
                 if (isset($searchCriteria)) {
                     $_POST['dashboardDrillDownCriteria'] = $searchCriteria;
                 }
@@ -3203,7 +3218,7 @@ class Mddashboard extends Controller {
                     'error' => '', 
                     'linkMetaDataId' => $cchartValues['LINK_META_DATA_ID'], 
                     'drillCriteria' => $drillCriteria
-                ));
+                ), JSON_UNESCAPED_UNICODE);
                 
                 break;
             case 'diagram':
@@ -3335,7 +3350,7 @@ class Mddashboard extends Controller {
                 }
 
                 header('Content-Type: application/json');
-                echo json_encode($mainArray);
+                echo json_encode($mainArray, JSON_UNESCAPED_UNICODE);
 
                 break;
         }

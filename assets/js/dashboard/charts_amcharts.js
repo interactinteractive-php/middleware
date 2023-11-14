@@ -3675,7 +3675,10 @@ var ChartsAmcharts = function () {
                         
                         var dataGridLink = window['objectdatagrid_' + response.linkMetaDataId];
                         
-                        if (typeof dataGridLink !== 'undefined' && typeof response.drillCriteria !== 'undefined' && response.drillCriteria) {
+                        if (typeof dataGridLink !== 'undefined' 
+                            && typeof $.data(dataGridLink[0], 'datagrid') != 'undefined'
+                            && typeof response.drillCriteria !== 'undefined' 
+                            && response.drillCriteria) {
                             
                             var opts = dataGridLink.datagrid('options');
                             var dvSearchParam = opts.queryParams;
