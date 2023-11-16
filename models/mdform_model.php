@@ -9927,6 +9927,8 @@ class Mdform_Model extends Model {
     public function updateKpiIndicatorTblName($kpiMainIndicatorId, $tableName) {
         
         $this->db->AutoExecute('KPI_INDICATOR', array('TABLE_NAME' => $tableName), 'UPDATE', 'ID = '.$kpiMainIndicatorId);
+        (new Mdmeta())->clearCacheKpiTemplateById($kpiMainIndicatorId);
+        
         return true;
     }
     
