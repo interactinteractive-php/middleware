@@ -75,6 +75,40 @@ $(function () {
     return false;
   });
 
+    $(document.body).on("keydown", "#sejimPhoneNumber", function (e) {
+      var keyCode = e.keyCode ? e.keyCode : e.which;
+      if (keyCode == 13 && $(this).val() != '') {
+        $("#sejimId").val("");
+        $("#sejimLastName").val("");
+        $("#sejimFirstName").val("");
+        $("#sejimEmail").val("");
+        $("#sejimGenderId").val("");
+        $("#sejimAgeRange").val("");          
+        
+        $.ajax({
+          type: "post",
+          url: "api/callProcess",
+          data: {
+            processCode: "stCrmLead_GET_004",
+            paramData: {
+              filterPhoneNumber: $(this).val()
+            }
+          },
+          dataType: "json",
+          success: function (data) {
+                $(".serjim-fields").removeClass("d-none");
+                if (data.result) {
+                    $("#sejimId").val(data.result.id);
+                    $("#sejimLastName").val(data.result.lastname);
+                    $("#sejimFirstName").val(data.result.firstname);
+                    $("#sejimEmail").val(data.result.email);
+                    $("#sejimGenderId").val(data.result.genderid);
+                    $("#sejimAgeRange").val(data.result.agerange);
+                }
+          }
+        });          
+      }
+    });
 
   $(document.body).on(
     "keydown",
@@ -4886,7 +4920,7 @@ $(function () {
         $('input[name="upointPayAmount"]').autoNumeric("set",$('input[name="upointPayAmount"]').attr("data-old"));
       }
     }
-  });
+  }); 
 
   $(document).on("click", ".pos-payment-accordion-upoint", function () {
     if (returnBillType == "") {
@@ -6299,6 +6333,48 @@ function posPayment() {
               .nextAll(".ui-widget-overlay:first")
               .removeClass("display-none");
           });
+          
+            if (isPosSejim != '') {
+              $.ajax({
+                type: "post",
+                url: "api/callDataview",
+                data: {
+                  dataviewId: "1699602708629179"
+                },
+                dataType: "json",
+                beforeSend: function () {
+                },
+                success: function (dataSub) {
+                  if (dataSub.status == "success" && dataSub.result.length) {
+                    var sejimAge = '<option value="">- Сонгох -</option>';
+                    for (var i = 0; i < dataSub.result.length; i++) {
+                        sejimAge += '<option value="'+dataSub.result[i].agerang+'">'+dataSub.result[i].agerang+'</option>';
+                    }
+                    $('#sejimAgeRange').html(sejimAge);
+                  }
+                }
+              });      
+              
+              $.ajax({
+                type: "post",
+                url: "api/callDataview",
+                data: {
+                  dataviewId: "1448432578544"
+                },
+                dataType: "json",
+                beforeSend: function () {
+                },
+                success: function (dataSub) {
+                  if (dataSub.status == "success" && dataSub.result.length) {
+                    var sejimGender = '<option value="">- Сонгох -</option>';
+                    for (var i = 0; i < dataSub.result.length; i++) {
+                        sejimGender += '<option value="'+dataSub.result[i].id+'">'+dataSub.result[i].name+'</option>';
+                    }
+                    $('#sejimGenderId').html(sejimGender);
+                  }
+                }
+              });      
+            }          
 
           Core.unblockUI();
         },
@@ -6571,6 +6647,34 @@ function posBillPrint() {
       });
       return;
     }
+  }
+  
+  if ($('#sejimPhoneNumber').val() != '') {
+      var sejimMsg = '';
+      if ($('#sejimLastName').val() == '') {
+          sejimMsg += '<li>Овог заавал утга оруулна уу!</li>';
+      }
+      if ($('#sejimFirstName').val() == '') {
+          sejimMsg += '<li>Нэр заавал утга оруулна уу!</li>';
+      }
+      if ($('#sejimEmail').val() == '') {
+          sejimMsg += '<li>Имэйл заавал утга оруулна уу!</li>';
+      }
+      if ($('#sejimGenderId').val() == '') {
+          sejimMsg += '<li>Хүйс заавал утга оруулна уу!</li>';
+      }
+      if ($('#sejimAgeRange').val() == '') {
+          sejimMsg += '<li>Насны бүлэг заавал утга оруулна уу!</li>';
+      }
+      if (sejimMsg) {
+        new PNotify({
+          title: "Warning",
+          text: "<strong>Сэжим бүртгэх шалгуурын алдаа</strong></br><ul style='margin-left: -12px;'>"+sejimMsg+"</ul>",
+          type: "warning",
+          sticker: false,
+        });          
+          return;
+      }
   }
 
   var payAmount = Number($("#posPayAmount").autoNumeric("get")),

@@ -3070,7 +3070,7 @@ class Mdupgrade_Model extends Model {
 
                         foreach ($columns as $column) {
 
-                            $name          = $column->name;
+                            $name          = strtoupper($column->name);
                             $max_length    = $column->max_length;
                             $type          = $column->type;
                             $scale         = $column->scale;
@@ -3185,7 +3185,7 @@ class Mdupgrade_Model extends Model {
             
             foreach ($columns as $column) {
                 
-                $name          = $column->name;
+                $name          = strtoupper($column->name);
                 $max_length    = $column->max_length;
                 $type          = $column->type;
                 $scale         = $column->scale;

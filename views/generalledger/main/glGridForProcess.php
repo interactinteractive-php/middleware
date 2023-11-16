@@ -817,8 +817,18 @@
                                 $row.find("input[name='gl_accounttypeCode[]']").val(accountData.ACCOUNTTYPECODE);
                                 $row.find("input[name='gl_objectId[]']").val(accountData.OBJECTID);
                                 $row.find("input[name='gl_useDetailBook[]']").val(accountData.ISUSEDETAILBOOK);
+                                $row.find("input[name='gl_accountFilterConfig[]']").val('');
+                                $row.find("input[name='gl_accountFilterConfigIsDimension[]']").val('');
 
                                 $rowMeta.val('');
+                                
+                                if (accountData.hasOwnProperty('ACCOUNTFILTER') && accountData.ACCOUNTFILTER !== '') {
+                                    $row.find("input[name='gl_accountFilterConfig[]']").val(accountData.ACCOUNTFILTER);
+                                }                                
+                                
+                                if (accountData.hasOwnProperty('ISNULLDIMENSION') && accountData.ISNULLDIMENSION !== '') {
+                                    $row.find("input[name='gl_accountFilterConfig[]']").val(accountData.ISNULLDIMENSION);
+                                }                                
 
                                 if (accountData.hasOwnProperty('ECONOMICCLASSID') && accountData.ECONOMICCLASSID !== '' && accountData.ECONOMICCLASSID !== 'null' && accountData.ECONOMICCLASSID !== null) {
                                     var rowMetaObj = {};
@@ -871,6 +881,7 @@
                     }
 
                     checkIsUseBase_<?php echo $this->uniqId; ?>($row); 
+                    checkAccountFilterConfig_<?php echo $this->uniqId; ?>($row);
                     
                     $firstRow.find('input[name="gl_rowdescription[]"]').focus();
                     bpBlockMessageStop();
@@ -2422,19 +2433,25 @@
     }
     function checkAccountFilterConfig_<?php echo $this->uniqId; ?>(elem, subId) {
         var $rowEl = $(elem), prevSubId = '', prevSubId2 = '';
+        var accTypeCode = $rowEl.find("input[name='gl_main_accounttypeid[]']").val();
+        var accTypeSubId = $rowEl.find("input[name='gl_subid[]']").val();
 
         if (subId === 'all') {
             $('#glDtl > tbody > tr', glBpMainWindow_<?php echo $this->uniqId; ?>).each(function() {
                 prevSubId = $(this).find("input[name='gl_subid[]']").val();
+                var rowaccTypeCode = $(this).find("input[name='gl_main_accounttypeid[]']").val();
 
-                if (prevSubId != prevSubId2) {
+                if (accTypeCode != rowaccTypeCode) {
                     $('#glDtl > tbody > tr', glBpMainWindow_<?php echo $this->uniqId; ?>).each(function() {
                         var $thisRow = $(this);
 
                         if ($thisRow.find("input[name='gl_subid[]']").val() == prevSubId && $thisRow.find("input[name='gl_accountFilterConfigIsDimension[]']").val() != '1' && $thisRow.find("input[name='gl_accountFilterConfig[]']").val() != '') { 
                             var $actionCell = $thisRow.find("td.gl-action-column");
                             var accFilter = $thisRow.find("input[name='gl_accountFilterConfig[]']").val().split(",");
-                            var obj = accFilter.find(o => o.trim() === accTypeCode);                
+                            if (prevSubId != accTypeSubId) {
+                                rowaccTypeCode = '';
+                            }
+                            var obj = accFilter.find(o => o.trim() === rowaccTypeCode);                
 
                             if (typeof obj === 'undefined' && $actionCell.find('.gl-dtl-meta-btn').length) {
                                 $actionCell.find('.gl-dtl-meta-btn').hide();
@@ -2451,6 +2468,16 @@
                             }      
                         }
                     });         
+                } else {
+                    if ($(this).find("input[name='gl_accountFilterConfigIsDimension[]']").val() != '1' && $(this).find("input[name='gl_accountFilterConfig[]']").val() != '') {
+                        var $actionCell = $(this).find("td.gl-action-column");
+                        if (typeof obj === 'undefined' && $actionCell.find('.gl-dtl-meta-btn').length) {
+                            $actionCell.find('.gl-dtl-meta-btn').hide();
+                            hideByAccountFilterConfig_<?php echo $this->uniqId; ?>($(this).find("input[name='gl_subid[]']").val(), $(this).find("input[name='gl_accountId[]']").val(), $(this));
+                        } else if (typeof obj === 'undefined' && $actionCell.find('#detailedMeta').length) {
+                            $actionCell.find('#detailedMeta').hide();                
+                        }
+                    }
                 }   
                 prevSubId2 = prevSubId;
             });            
@@ -2469,16 +2496,14 @@
     
         if (!$rowEl.find("input[name='gl_subid[]']").length) return;
         
-        var subId = $rowEl.find("input[name='gl_subid[]']").val();
-        var accTypeCode = $rowEl.find("input[name='gl_main_accounttypeid[]']").val();
+        var subId = $rowEl.find("input[name='gl_subid[]']").val();        
         
         $('#glDtl > tbody > tr', glBpMainWindow_<?php echo $this->uniqId; ?>).each(function() {
             var $thisRow = $(this);
 
-            if ($thisRow.find("input[name='gl_subid[]']").val() == subId && $thisRow.find("input[name='gl_accountFilterConfigIsDimension[]']").val() != '1'
-                && $thisRow.find("input[name='gl_accountFilterConfig[]']").val() != '') { 
+            if ($thisRow.find("input[name='gl_subid[]']").val() == subId && $thisRow.find("input[name='gl_accountFilterConfigIsDimension[]']").val() != '1' && $thisRow.find("input[name='gl_accountFilterConfig[]']").val() != '') { 
                 var $actionCell = $thisRow.find("td.gl-action-column");
-                var accFilter = $thisRow.find("input[name='gl_accountFilterConfig[]']").val().split(",");
+                var accFilter = $thisRow.find("input[name='gl_accountFilterConfig[]']").val().split(",");  
                 var obj = accFilter.find(o => o.trim() === accTypeCode);                
 
                 if (typeof obj === 'undefined' && $actionCell.find('.gl-dtl-meta-btn').length) {
@@ -2630,8 +2655,8 @@
                 actions: '', 
                 isdebit: '', 
                 ismetas: '',
-                accountfilter: row.accountfilter, 
-                isnulldimension: row.isnulldimension
+                accountfilter: row.accountfilter ? row.accountfilter : '', 
+                isnulldimension: row.isnulldimension ? row.isnulldimension : ''
             };
             var newRowHtml = glRowAppend_<?php echo $this->uniqId; ?>(rowAttr);
                                     
@@ -3140,7 +3165,7 @@
             $(tr).find("td.glRowExpenseCenter").empty();
         }
 
-        checkAccountFilterConfig_<?php echo $this->uniqId; ?>(tr);
+        checkAccountFilterConfig_<?php echo $this->uniqId; ?>(tr, 'all');
         
         if (typeof checkData.isOppMeta !== 'undefined') {
             $(tr).attr('data-op-meta', checkData.isOppMeta);
@@ -5084,6 +5109,7 @@
         $thisRow.closest('table').find('> tbody > tr.currentTRtarget').removeClass('currentTRtarget');
         $thisRow.addClass('currentTRtarget');                              
         glRowExpand_<?php echo $this->uniqId; ?>(tr, 'expandRemove', 'autocomplete');        
+        checkAccountFilterConfig_<?php echo $this->uniqId; ?>(tr, 'all');
         
         return false;
     }

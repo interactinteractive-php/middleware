@@ -1246,20 +1246,33 @@
                         <div class="card-body">
                             <div class="col">
                                 <div class="form-group row fom-row">
-                                    <label class="col-form-label panel-title" for="sejimLastName">Овог:</label>
-                                    <input type="text" name="sejimLastName" id="sejimLastName" class="form-control invInfoField invInfoFieldAll" placeholder="Овог" autocomplete="off" value="">
-                                </div>
-                                <div class="form-group row fom-row">
-                                    <label class="col-form-label panel-title" for="sejimFirstName">Нэр:</label>
-                                    <input type="text" name="sejimFirstName" id="sejimFirstName" class="form-control invInfoField invInfoFieldAll" placeholder="Нэр" autocomplete="off" value="">
-                                </div>
-                                <div class="form-group row fom-row">
                                     <label class="col-form-label panel-title" for="sejimPhoneNumber">Утасны дугаар:</label>
-                                    <input type="text" name="sejimPhoneNumber" id="sejimPhoneNumber" class="form-control invInfoField invInfoFieldAll" placeholder="Утасны дугаар" autocomplete="off" data-inputmask-regex="^[0-9]{1,8}$" value="">
+                                    <input type="hidden" name="sejimId" id="sejimId" class="form-control" placeholder="" value="">
+                                    <input type="text" name="sejimPhoneNumber" id="sejimPhoneNumber" class="form-control" placeholder="Утасны дугаараа оруулаад enter дарна уу." autocomplete="off" data-inputmask-regex="^[0-9]{1,8}$" value="">
+                                </div>                                
+                                <div class="form-group row fom-row serjim-fields d-none">
+                                    <label class="col-form-label panel-title" for="sejimLastName">Овог:</label>
+                                    <input type="text" name="sejimLastName" id="sejimLastName" class="form-control" placeholder="Овог" autocomplete="off" value="">
                                 </div>
-                                <div class="form-group row fom-row">
+                                <div class="form-group row fom-row serjim-fields d-none">
+                                    <label class="col-form-label panel-title" for="sejimFirstName">Нэр:</label>
+                                    <input type="text" name="sejimFirstName" id="sejimFirstName" class="form-control" placeholder="Нэр" autocomplete="off" value="">
+                                </div>
+                                <div class="form-group row fom-row serjim-fields d-none">
                                     <label class="col-form-label panel-title" for="sejimEmail">Имэйл:</label>
-                                    <input type="text" name="sejimEmail" id="sejimEmail" class="form-control invInfoField invInfoFieldAll" placeholder="Имэйл" autocomplete="off" value="">
+                                    <input type="text" name="sejimEmail" id="sejimEmail" class="form-control" placeholder="Имэйл" autocomplete="off" value="">
+                                </div>
+                                <div class="form-group row fom-row serjim-fields d-none">
+                                    <label class="col-form-label panel-title" for="sejimGenderId">Хүйс:</label>
+                                    <select name="sejimGenderId" id="sejimGenderId" class="form-control">
+                                        <option value="">- <?php echo $this->lang->line('choose_btn'); ?> -</option>
+                                    </select>
+                                </div>
+                                <div class="form-group row fom-row serjim-fields d-none">
+                                    <label class="col-form-label panel-title" for="sejimAgeRange">Насны бүлэг:</label>
+                                    <select name="sejimAgeRange" id="sejimAgeRange" class="form-control">
+                                        <option value="">- <?php echo $this->lang->line('choose_btn'); ?> -</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>    

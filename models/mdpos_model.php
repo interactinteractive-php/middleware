@@ -9350,10 +9350,13 @@ class Mdpos_Model extends Model {
     
     public function createSejim($invoiceId, $headerParams, $paymentData) {
         $params = array(
+            'id'           => $paymentData['sejimId'], 
             'lastName'     => $paymentData['sejimLastName'], 
             'firstName'    => $paymentData['sejimFirstName'], 
             'phoneNumber'  => $paymentData['sejimPhoneNumber'], 
             'email'        => $paymentData['sejimEmail'], 
+            'ageRange'     => $paymentData['sejimAgeRange'], 
+            'genderId'     => $paymentData['sejimGenderId'], 
             'stLeadAndSalesMap_DV' => array(
                 'srcRecordId ' => $invoiceId
             )

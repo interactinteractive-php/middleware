@@ -9,7 +9,7 @@ if (isset($this->row['dataViewLayoutTypes']) && isset($this->row['dataViewLayout
     $defaultImage = 'assets/core/global/img/metaicon/big/'.$typeRow['DEFAULT_IMAGE'];
     
     if (isset($typeRow['fields']['photo']) && $typeRow['fields']['photo'] != '') {
-        $photoField = "'+rowData.".strtolower($typeRow['fields']['photo'])."+'";
+        $photoField = "api/image_thumbnail?width=70&src='+rowData.".strtolower($typeRow['fields']['photo'])."+'";
     }
     
     if (isset($typeRow['fields']['groupName']) && $typeRow['fields']['groupName'] != '') {

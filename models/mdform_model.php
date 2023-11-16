@@ -9568,6 +9568,8 @@ class Mdform_Model extends Model {
                     continue;
                 }
                 
+                $row['name'] = strtoupper($row['name']);
+                
                 if ($row['type'] == 'clob') {
                     $fields .= '"'.$row['name'].'" CLOB,';
                 } else {
@@ -9589,6 +9591,11 @@ class Mdform_Model extends Model {
                 "MODIFIED_USER_ID" NUMBER(18,0), 
                 "MODIFIED_USER_NAME" VARCHAR2(256 CHAR)
             )';
+            
+            if (DB_DRIVER == 'postgres9') {
+                $createTableScript = str_replace(' CHAR)', ')', $createTableScript);
+                $createTableScript = str_replace('"', '', $createTableScript);
+            }
 
             $this->db->Execute($createTableScript);
             
@@ -9624,6 +9631,8 @@ class Mdform_Model extends Model {
                 if (!$isCorrectColumnName) {
                     continue;
                 }
+                
+                $row['name'] = strtoupper($row['name']);
                 
                 if ($row['type'] == 'clob' || $row['type'] == 'text_editor' || $row['type'] == 'html_clicktoedit') {
                     $fields .= '"'.$row['name'].'" CLOB,';
@@ -9668,6 +9677,11 @@ class Mdform_Model extends Model {
                 "COMPANY_DEPARTMENT_ID" NUMBER(18,0),
                 "GENERATED_DATE" DATE
             )';
+            
+            if (DB_DRIVER == 'postgres9') {
+                $createTableScript = str_replace(' CHAR)', ')', $createTableScript);
+                $createTableScript = str_replace('"', '', $createTableScript);
+            }
 
             $this->db->Execute($createTableScript);
             
@@ -9711,36 +9725,48 @@ class Mdform_Model extends Model {
                     continue;
                 }
                 
+                $row['name'] = strtoupper($row['name']);
+                
                 if ($row['type'] == 'clob' || $row['type'] == 'text_editor' || $row['type'] == 'html_clicktoedit') {
                     
-                    $this->db->Execute("ALTER TABLE $tblName ADD (".$row['name']." CLOB)");
+                    $alter = "ALTER TABLE $tblName ADD (".$row['name']." CLOB)";
                     
                 } elseif ($row['type'] == 'combo' || $row['type'] == 'radio' || $row['type'] == 'popup' || $row['type'] == 'number') {
                     
-                    $this->db->Execute("ALTER TABLE $tblName ADD (".$row['name']." NUMBER(18,0))");
+                    $alter = "ALTER TABLE $tblName ADD (".$row['name']." NUMBER(18,0))";
                     
                 } elseif ($row['type'] == 'date' || $row['type'] == 'datetime' || $row['type'] == 'time') {
                     
-                    $this->db->Execute("ALTER TABLE $tblName ADD (".$row['name']." DATE)");
+                    $alter = "ALTER TABLE $tblName ADD (".$row['name']." DATE)";
                     
                 } elseif ($row['type'] == 'decimal' || $row['type'] == 'decimal_zero' || $row['type'] == 'bigdecimal' || $row['type'] == 'percent') {
                     
-                    $this->db->Execute("ALTER TABLE $tblName ADD (".$row['name']." NUMBER(24,6))");
+                    $alter = "ALTER TABLE $tblName ADD (".$row['name']." NUMBER(24,6))";
                     
                 } elseif ($row['type'] == 'code' || $row['type'] == 'icon_picker') {
                     
-                    $this->db->Execute("ALTER TABLE $tblName ADD (".$row['name']." VARCHAR2(50 CHAR))");
+                    $alter = "ALTER TABLE $tblName ADD (".$row['name']." VARCHAR2(50 CHAR))";
                     
                 } elseif ($row['type'] == 'multicombo') {
                     
-                    $this->db->Execute("ALTER TABLE $tblName ADD (".$row['name']." VARCHAR2(256 CHAR))");
+                    $alter = "ALTER TABLE $tblName ADD (".$row['name']." VARCHAR2(256 CHAR))";
                     
                 } else {
                     
                     $length = ($row['name'] == 'NAME' ? 4000 : issetDefaultVal($row['length'], 4000));
                     
-                    $this->db->Execute("ALTER TABLE $tblName ADD (".$row['name']." VARCHAR2($length CHAR))");
+                    $alter = "ALTER TABLE $tblName ADD (".$row['name']." VARCHAR2($length CHAR))";
                 }
+                
+                if (DB_DRIVER == 'postgres9') {
+                    $alter = str_replace(' CHAR)', ')', $alter);
+                    $alter = str_replace(' ADD (', ' ADD COLUMN ', $alter);
+                    $alter = str_replace('))', ')', $alter);
+                    $alter = str_replace('CLOB)', 'CLOB', $alter);
+                    $alter = str_replace('DATE)', 'DATE', $alter);
+                }
+                
+                $this->db->Execute($alter);
             }
             
             $response = array('status' => 'success');
@@ -19842,36 +19868,55 @@ class Mdform_Model extends Model {
         
         try {
             
+            $sessionUserKeyId = Ue::sessionUserKeyId();
+            $categoryId       = Input::numeric('categoryId');
+            $isImportManage   = Input::numeric('isImportManage');
+            $mainIndicatorId  = Input::numeric('mainIndicatorId');
+            
+            $sessionValues = Session::get(SESSION_PREFIX . 'sessionValues');
+            $sessionName   = issetDefaultVal($sessionValues['sessionusername'], Ue::getSessionPersonWithLastName());
+            
+            $dataSetTypeId = 16641793815766;
+            
             $dataIndicator = array(
                 'ID' => $indicatorId,
                 'CODE' => $indicatorId, 
                 'NAME' => Input::post('name'),
                 'PARENT_ID' => Input::numeric('parentId'),
                 'IS_ACTIVE' => 1, 
-                'KPI_TYPE_ID' => 1000, 
-                'CREATED_DATE' => Date::currentDate('Y-m-d H:i:s'), 
-                'CREATED_USER_ID' => Ue::sessionUserKeyId()
+                'KPI_TYPE_ID' => $dataSetTypeId, 
+                'CREATED_DATE' => Date::currentDate(), 
+                'CREATED_USER_NAME' => $sessionName, 
+                'CREATED_USER_ID' => $sessionUserKeyId
             );
+            
+            if ($isImportManage && $mainIndicatorId) {
+                $dataIndicator['DATASET_ID'] = $mainIndicatorId;
+            }
+            
             $this->db->AutoExecute('KPI_INDICATOR', $dataIndicator);
             
-            $dataIndicatorCat = array(
-                'ID' => getUID(),
-                'INDICATOR_ID' => $indicatorId, 
-                'CATEGORY_ID' => Input::numeric('categoryId'),
-                'IS_DEFAULT' => 1, 
-                'CREATED_DATE' => Date::currentDate('Y-m-d H:i:s'), 
-                'CREATED_USER_ID' => Ue::sessionUserKeyId()
-            );
-            $this->db->AutoExecute('KPI_INDICATOR_CATEGORY', $dataIndicatorCat);
+            if ($categoryId) {
+                
+                $dataIndicatorCat = array(
+                    'ID' => getUID(),
+                    'INDICATOR_ID' => $indicatorId, 
+                    'CATEGORY_ID' => $categoryId,
+                    'IS_DEFAULT' => 1, 
+                    'CREATED_DATE' => Date::currentDate(), 
+                    'CREATED_USER_ID' => $sessionUserKeyId
+                );
+                $this->db->AutoExecute('KPI_INDICATOR_CATEGORY', $dataIndicatorCat);
 
-            $dataIndicatorType = array(
-                'ID' => getUID(),
-                'INDICATOR_ID' => $indicatorId, 
-                'TYPE_ID' => 1000,
-                'CREATED_DATE' => Date::currentDate('Y-m-d H:i:s'), 
-                'CREATED_USER_ID' => Ue::sessionUserKeyId()
-            );
-            $this->db->AutoExecute('KPI_INDICATOR_TYPE_MAP', $dataIndicatorType);
+                $dataIndicatorType = array(
+                    'ID' => getUID(),
+                    'INDICATOR_ID' => $indicatorId, 
+                    'TYPE_ID' => $dataSetTypeId,
+                    'CREATED_DATE' => Date::currentDate(), 
+                    'CREATED_USER_ID' => $sessionUserKeyId
+                );
+                $this->db->AutoExecute('KPI_INDICATOR_TYPE_MAP', $dataIndicatorType);
+            }
             
             $result = array('status' => 'success');
             
