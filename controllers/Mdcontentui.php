@@ -646,7 +646,7 @@ class Mdcontentui extends Controller {
     
     public function saveHtmlEditor() {
         $result = $this->model->saveHtmlEditorModel();
-        echo json_encode($result); exit;
+        echo json_encode($result, JSON_UNESCAPED_UNICODE);
     }
     
     public function ecmContentHtmlDiffViewer() {

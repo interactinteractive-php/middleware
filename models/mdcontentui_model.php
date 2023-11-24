@@ -1100,9 +1100,11 @@ class Mdcontentui_model extends Model {
             $_POST['isIgnoreFooter'] = 1;
             $_POST['isSmartShrinking'] = '1';
             
+            $htmlContent = '<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>'.$css.'</head><body>' . $htmlContent . '</body></html>';
+            
             $pdf = Pdf::createSnappyPdf('Portrait', 'A4');
 
-            Pdf::generateFromHtml($pdf, $css . $htmlContent, $fileToSave, array(), true);
+            Pdf::generateFromHtml($pdf, $htmlContent, $fileToSave, array(), true);
 
             $updateData = array(
                 'PHYSICAL_PATH'    => $fileToSave.'.pdf', 

@@ -1278,6 +1278,11 @@
                 $(document.body).on("click", ".bp-continue-taskflow-btn-<?php echo $this->uniqId; ?>", function (e) {
                     var $this = $(this);
                     $this.hide();
+                    
+                    if (!Object.keys(taskFlowSelectedRow).length && $("input[data-path='id']", bp_window_<?php echo $this->methodId; ?>).val()) {
+                        taskFlowSelectedRow = [{id: $("input[data-path='id']", bp_window_<?php echo $this->methodId; ?>).val()}];
+                    }
+                    console.log(taskFlowSelectedRow);
 
                     if (typeof _taskFlowSelectedRow === 'undefined') {                
                         $.getScript(URL_APP + 'assets/custom/addon/plugins/jsplumb/jsplumb.min.js', function() {

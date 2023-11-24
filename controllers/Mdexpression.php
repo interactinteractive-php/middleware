@@ -27,19 +27,15 @@ class Mdexpression extends Controller {
     public static $sensorBracket = '';
     public static $flowCodeString = '';
 
-    public function __construct()
-    {
+    public function __construct() {
         parent::__construct();
     }
 
-    public static function searchGenerateScripts($dataViewId)
-    {
+    public static function searchGenerateScripts($dataViewId) {
         return array('scripts' => null);
     }
 
-    public function setMultiPathConfig($processId)
-    {
-
+    public function setMultiPathConfig($processId) {
         $this->load->model('mdexpression', 'middleware/models/');
 
         $result = $this->model->setMultiPathConfigModel($processId);
@@ -50,21 +46,18 @@ class Mdexpression extends Controller {
         return;
     }
 
-    public function startReplaceResolver($fullExpression)
-    {
+    public function startReplaceResolver($fullExpression) {
         $fullExpression = str_replace('х', 'smllxlttr', $fullExpression);
         return $fullExpression;
     }
 
-    public function endReplaceResolver($fullExpression)
-    {
+    public function endReplaceResolver($fullExpression) {
         $fullExpression = str_replace('smllxlttr', 'х', $fullExpression);
         $fullExpression = str_replace('feoperator_01', '=', $fullExpression);
         return $fullExpression;
     }
 
-    public function fullExpressionConvertGet($getMetaTypeCode, $getMetaRow, $mainSelector, $sidebarExpression = '', $search, $replace, $exp, $processActionType = '')
-    {
+    public function fullExpressionConvertGet($getMetaTypeCode, $getMetaRow, $mainSelector, $sidebarExpression = '', $search, $replace, $exp, $processActionType = '') {
 
         if ($processActionType == 'view') {
 
@@ -244,8 +237,7 @@ class Mdexpression extends Controller {
         return $exp;
     }
 
-    public function fullExpressionWithoutEventConvertGet($getMetaTypeCode, $getMetaRow, $mainSelector, $sidebarExpression = '', $search, $replace, $exp, $processActionType = '')
-    {
+    public function fullExpressionWithoutEventConvertGet($getMetaTypeCode, $getMetaRow, $mainSelector, $sidebarExpression = '', $search, $replace, $exp, $processActionType = '') {
 
         if ($processActionType == 'view') {
 
@@ -3141,6 +3133,29 @@ class Mdexpression extends Controller {
                     $metaNameBySelect = $metaIdBySelectRow ? "'" . $metaIdBySelectRow['META_DATA_NAME'] . "'" : $metaCode;
 
                     $fullExpression = str_replace($callStatement[0][$ek], 'bpCallWorkspaceByExp(' . $mainSelector . ', checkElement, ' . $metaIdBySelect . ', ' . $metaNameBySelect . ')', $fullExpression);
+                }
+            }
+        }
+        
+        if (strpos($fullExpression, 'callIndicatorDataView(') !== false) {
+            preg_match_all('/callIndicatorDataView\((.*?)\)/i', $fullExpression, $callDataView);
+
+            if (count($callDataView[0]) > 0) {
+                foreach ($callDataView[1] as $ek => $ev) {
+
+                    $evArr = explode(',', $ev);
+                    $dvCode = trim(str_replace("'", '', $evArr[0]));
+                    $dvCodeLower = strtolower($dvCode);
+                    $dvIdBySelect = $this->model->getKpiIndicatorIdByCodeModel($dvCodeLower);
+                    $dvIdBySelect = $dvIdBySelect ? "'" . $dvIdBySelect . "'" : $dvCode;
+
+                    if (isset($evArr[2])) {
+                        $attr = ', ' . $evArr[2];
+                    } else {
+                        $attr = '';
+                    }
+
+                    $fullExpression = str_replace($callDataView[0][$ek], 'bpCallIndicatorDataViewByExp(' . $mainSelector . ', checkElement, ' . $dvIdBySelect . ',' . (isset($evArr[1]) ? $evArr[1] : "''") . $attr . ')', $fullExpression);
                 }
             }
         }

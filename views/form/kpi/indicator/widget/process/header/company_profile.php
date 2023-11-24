@@ -348,10 +348,50 @@
                                 }
                                 if ($pos17Label = issetParam($this->positionData[17]['LABEL_NAME'])) {
                                 ?>
-                                <div class="col-md-12">
+                                <div class="col-md-12 mb-2">
                                     <span class="mv-pw-inline-label"><?php echo $pos17Label; ?>:</span> 
                                     <span class="mv-pw-inline-value" data-edit-position="3" data-position="17" data-position-column="<?php echo $this->positionData[17]['COLUMN_NAME']; ?>" data-show-type="<?php echo $this->positionData[17]['SHOW_TYPE']; ?>">
                                         <?php echo Mdform::mvValueRender($this->positionData[17]['SHOW_TYPE'], $this->positionData[17]['VALUE']); ?> 
+                                    </span>
+                                </div>
+                                <?php
+                                }
+                                if ($pos18Label = issetParam($this->positionData[18]['LABEL_NAME'])) {
+                                ?>
+                                <div class="col-md-12 mb-2">
+                                    <span class="mv-pw-inline-label"><?php echo $pos18Label; ?>:</span> 
+                                    <span class="mv-pw-inline-value" data-edit-position="3" data-position="18" data-position-column="<?php echo $this->positionData[18]['COLUMN_NAME']; ?>" data-show-type="<?php echo $this->positionData[18]['SHOW_TYPE']; ?>">
+                                        <?php echo Mdform::mvValueRender($this->positionData[18]['SHOW_TYPE'], $this->positionData[18]['VALUE']); ?> 
+                                    </span>
+                                </div>
+                                <?php
+                                }
+                                if ($pos19Label = issetParam($this->positionData[19]['LABEL_NAME'])) {
+                                ?>
+                                <div class="col-md-12 mb-2">
+                                    <span class="mv-pw-inline-label"><?php echo $pos19Label; ?>:</span> 
+                                    <span class="mv-pw-inline-value" data-edit-position="3" data-position="19" data-position-column="<?php echo $this->positionData[19]['COLUMN_NAME']; ?>" data-show-type="<?php echo $this->positionData[19]['SHOW_TYPE']; ?>">
+                                        <?php echo Mdform::mvValueRender($this->positionData[19]['SHOW_TYPE'], $this->positionData[19]['VALUE']); ?> 
+                                    </span>
+                                </div>
+                                <?php
+                                }
+                                if ($pos20Label = issetParam($this->positionData[20]['LABEL_NAME'])) {
+                                ?>
+                                <div class="col-md-12 mb-2">
+                                    <span class="mv-pw-inline-label"><?php echo $pos20Label; ?>:</span> 
+                                    <span class="mv-pw-inline-value" data-edit-position="3" data-position="20" data-position-column="<?php echo $this->positionData[20]['COLUMN_NAME']; ?>" data-show-type="<?php echo $this->positionData[20]['SHOW_TYPE']; ?>">
+                                        <?php echo Mdform::mvValueRender($this->positionData[20]['SHOW_TYPE'], $this->positionData[20]['VALUE']); ?> 
+                                    </span>
+                                </div>
+                                <?php
+                                }
+                                if ($pos21Label = issetParam($this->positionData[21]['LABEL_NAME'])) {
+                                ?>
+                                <div class="col-md-12">
+                                    <span class="mv-pw-inline-label"><?php echo $pos21Label; ?>:</span> 
+                                    <span class="mv-pw-inline-value" data-edit-position="3" data-position="21" data-position-column="<?php echo $this->positionData[21]['COLUMN_NAME']; ?>" data-show-type="<?php echo $this->positionData[21]['SHOW_TYPE']; ?>">
+                                        <?php echo Mdform::mvValueRender($this->positionData[21]['SHOW_TYPE'], $this->positionData[21]['VALUE']); ?> 
                                     </span>
                                 </div>
                                 <?php

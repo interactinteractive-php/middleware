@@ -3365,10 +3365,10 @@ function urlRedirectByDataView(elem, processMetaDataId, url, target, dataViewId,
         } else if (urlLower == 'createmvstructurefromfile') {
             if (typeof isKpiIndicatorScript === 'undefined') {
                 $.getScript('middleware/assets/js/addon/indicator.js').done(function() {
-                    createMvStructureFromFile(elem, dataViewId, false);
+                    createMvStructureFromFile(elem, dataViewId, {isContextMenu: false});
                 });
             } else {
-                createMvStructureFromFile(elem, dataViewId, false);
+                createMvStructureFromFile(elem, dataViewId, {isContextMenu: false});
             } 
             return;
         } else if (urlLower == 'downloadfile') {
@@ -15200,6 +15200,47 @@ function workSpaceDirectURL(url, target, parameter, urlType, windowId, metaDataI
                         }).done(function() {
                             Core.initAjax($mainContainer);
                         });
+                    } else if (urlLower == 'datamartrelationconfig') {
+                        
+                        var $appendElement = $('<div class="workspace-part" data-menu-id="' + menuId + '"></div>').appendTo($mainContainer);
+                        dataMartRelationConfigInit(elem, metaDataId, metaDataId, paramResolveData, $appendElement);
+                        
+                    } else if (urlLower == 'erdconfig') {
+                        
+                        var $appendElement = $('<div class="workspace-part" data-menu-id="' + menuId + '"></div>').appendTo($mainContainer);
+                        erdConfigInit(elem, metaDataId, metaDataId, paramResolveData, $appendElement);
+                        
+                    } else if (urlLower == 'easervicedatalistview') {
+                        
+                        var $appendElement = $('<div class="workspace-part" data-menu-id="' + menuId + '"></div>').appendTo($mainContainer);
+                        eaServiceMetaRenderInit(elem, workSpaceId, metaDataId, paramResolveData, $appendElement);
+                        
+                    } else if (urlLower == 'easervicedataviewpivotview') {
+                        
+                        var $appendElement = $('<div class="workspace-part" data-menu-id="' + menuId + '"></div>').appendTo($mainContainer);
+                        eaServicePivotRenderInit(elem, workSpaceId, metaDataId, paramResolveData, $appendElement);
+
+                    } else if (urlLower === 'mdform/renderrelationkpi') {
+
+                        $.ajax({
+                            type: 'post',
+                            url: 'mdform/renderRelationKpi',
+                            data: { selectedRow: _selectedRow },
+                            async: false,
+                            dataType: 'json',
+                            beforeSend: function() {
+                                Core.blockUI({animate: true});
+                            },
+                            success: function(response) {
+                                $mainContainer.append('<div class="workspace-part" data-menu-id="' + menuId + '">' + response.html + '</div>');
+                                Core.unblockUI();
+                            },
+                            error: function(jqXHR, exception) {
+                                Core.unblockUI();
+                            }
+                        }).done(function() {
+                            Core.initAjax($mainContainer);
+                        });                        
                     } else if (urlLower == 'ntrentrustmentedit') {
                         $.ajax({
                             type: 'post',
@@ -15244,6 +15285,40 @@ function workSpaceDirectURL(url, target, parameter, urlType, windowId, metaDataI
                         }).done(function() {
                             Core.initAjax($mainContainer);
                         });
+                    } else if (urlLower === 'mdbpmn/bpmn2') {
+                        //alert("Энэ боломжоор ажиллахгүй болсон.");return;
+
+                        var $appendElement = $('<div class="workspace-part" data-menu-id="' + menuId + '"></div>').appendTo($mainContainer);
+                        Core.blockUI({animate: true});
+                        $.cachedScript('https://unpkg.com/bpmn-js@8.9.1/dist/bpmn-modeler.development.js').done(function() { 
+                            var uniqId = $(elem).closest('.workspace-main').find('div.main-action-meta').attr('data-bp-uniq-id');
+                            var domainbp = $('div[data-bp-uniq-id="'+uniqId+'"]').find('input[data-path="id"]').val();
+                            $.ajax({
+                                type: 'post',
+                                url: 'mdbpmn/bpmn2/'+domainbp,
+                                data: {
+                                    bpUniqId: uniqId
+                                },
+                                dataType: 'json',
+                                beforeSend: function() {
+                                    if ($("link[href='https://unpkg.com/bpmn-js@8.9.1/dist/assets/diagram-js.css']").length == 0) {
+                                        $('head').append('<link rel="stylesheet" type="text/css" href="https://unpkg.com/bpmn-js@8.9.1/dist/assets/diagram-js.css"/>');
+                                    }                
+                                    if ($("link[href='https://unpkg.com/bpmn-js@8.9.1/dist/assets/bpmn-font/css/bpmn.css']").length == 0) {
+                                        $('head').append('<link rel="stylesheet" type="text/css" href="https://unpkg.com/bpmn-js@8.9.1/dist/assets/bpmn-font/css/bpmn.css"/>');
+                                    }                
+                                },
+                                success: function(data) {
+                                    var bpcode = $("[data-path=\"code\"]", 'div[data-bp-uniq-id="' + uniqId + '"]').length ? $("[data-path=\"code\"]", 'div[data-bp-uniq-id="' + uniqId + '"]').val() : "";
+                                    var bpname = $("[data-path=\"name\"]", 'div[data-bp-uniq-id="' + uniqId + '"]') ? $("[data-path=\"name\"]", 'div[data-bp-uniq-id="' + uniqId + '"]').val() : "";
+                                    $appendElement.empty().append(data.html);
+                                    $appendElement.find(".bpmn-header-title").text(bpcode+' '+bpname);
+                                    Core.initSelect2($appendElement);                    
+                                    Core.unblockUI();
+                                }
+                            });
+                        });
+                        
                     } else if (urlLower == 'government/omsmeeting') {
                         if (typeof isMultiCalendar === 'undefined') {
                             $.getScript(URL_APP + 'assets/custom/gov/multiselect.js').done(function() {
@@ -15337,81 +15412,6 @@ function workSpaceDirectURL(url, target, parameter, urlType, windowId, metaDataI
                             });
                         }
                         
-                    } else if (urlLower == 'datamartrelationconfig') {
-                        
-                        var $appendElement = $('<div class="workspace-part" data-menu-id="' + menuId + '"></div>').appendTo($mainContainer);
-                        dataMartRelationConfigInit(elem, metaDataId, metaDataId, paramResolveData, $appendElement);
-                        
-                    } else if (urlLower == 'erdconfig') {
-                        
-                        var $appendElement = $('<div class="workspace-part" data-menu-id="' + menuId + '"></div>').appendTo($mainContainer);
-                        erdConfigInit(elem, metaDataId, metaDataId, paramResolveData, $appendElement);
-                        
-                    } else if (urlLower == 'easervicedatalistview') {
-                        
-                        var $appendElement = $('<div class="workspace-part" data-menu-id="' + menuId + '"></div>').appendTo($mainContainer);
-                        eaServiceMetaRenderInit(elem, workSpaceId, metaDataId, paramResolveData, $appendElement);
-                        
-                    } else if (urlLower == 'easervicedataviewpivotview') {
-                        
-                        var $appendElement = $('<div class="workspace-part" data-menu-id="' + menuId + '"></div>').appendTo($mainContainer);
-                        eaServicePivotRenderInit(elem, workSpaceId, metaDataId, paramResolveData, $appendElement);
-
-                    } else if (urlLower === 'mdform/renderrelationkpi') {
-
-                        $.ajax({
-                            type: 'post',
-                            url: 'mdform/renderRelationKpi',
-                            data: { selectedRow: _selectedRow },
-                            async: false,
-                            dataType: 'json',
-                            beforeSend: function() {
-                                Core.blockUI({animate: true});
-                            },
-                            success: function(response) {
-                                $mainContainer.append('<div class="workspace-part" data-menu-id="' + menuId + '">' + response.html + '</div>');
-                                Core.unblockUI();
-                            },
-                            error: function(jqXHR, exception) {
-                                Core.unblockUI();
-                            }
-                        }).done(function() {
-                            Core.initAjax($mainContainer);
-                        });                        
-                    } else if (urlLower === 'mdbpmn/bpmn2') {
-                        //alert("Энэ боломжоор ажиллахгүй болсон.");return;
-
-                        var $appendElement = $('<div class="workspace-part" data-menu-id="' + menuId + '"></div>').appendTo($mainContainer);
-                        Core.blockUI({animate: true});
-                        $.cachedScript('https://unpkg.com/bpmn-js@8.9.1/dist/bpmn-modeler.development.js').done(function() { 
-                            var uniqId = $(elem).closest('.workspace-main').find('div.main-action-meta').attr('data-bp-uniq-id');
-                            var domainbp = $('div[data-bp-uniq-id="'+uniqId+'"]').find('input[data-path="id"]').val();
-                            $.ajax({
-                                type: 'post',
-                                url: 'mdbpmn/bpmn2/'+domainbp,
-                                data: {
-                                    bpUniqId: uniqId
-                                },
-                                dataType: 'json',
-                                beforeSend: function() {
-                                    if ($("link[href='https://unpkg.com/bpmn-js@8.9.1/dist/assets/diagram-js.css']").length == 0) {
-                                        $('head').append('<link rel="stylesheet" type="text/css" href="https://unpkg.com/bpmn-js@8.9.1/dist/assets/diagram-js.css"/>');
-                                    }                
-                                    if ($("link[href='https://unpkg.com/bpmn-js@8.9.1/dist/assets/bpmn-font/css/bpmn.css']").length == 0) {
-                                        $('head').append('<link rel="stylesheet" type="text/css" href="https://unpkg.com/bpmn-js@8.9.1/dist/assets/bpmn-font/css/bpmn.css"/>');
-                                    }                
-                                },
-                                success: function(data) {
-                                    var bpcode = $("[data-path=\"code\"]", 'div[data-bp-uniq-id="' + uniqId + '"]').length ? $("[data-path=\"code\"]", 'div[data-bp-uniq-id="' + uniqId + '"]').val() : "";
-                                    var bpname = $("[data-path=\"name\"]", 'div[data-bp-uniq-id="' + uniqId + '"]') ? $("[data-path=\"name\"]", 'div[data-bp-uniq-id="' + uniqId + '"]').val() : "";
-                                    $appendElement.empty().append(data.html);
-                                    $appendElement.find(".bpmn-header-title").text(bpcode+' '+bpname);
-                                    Core.initSelect2($appendElement);                    
-                                    Core.unblockUI();
-                                }
-                            });
-                        });
-                        
                     } /*else if (urlLower == 'mdprocessflow/renderworkflow') {
                         
                         var $appendElement = $('<div class="workspace-part" data-menu-id="' + menuId + '"></div>').appendTo($mainContainer);
@@ -15451,7 +15451,7 @@ function workSpaceDirectURL(url, target, parameter, urlType, windowId, metaDataI
                             },
                             error: function() { alert('Error'); }
                             
-                        }).done(function() { Core.initAjax($mainContainer); });
+                        }).done(function() { /*Core.initAjax($mainContainer);*/ });
                     }
                 },
                 error: function() {
@@ -22143,6 +22143,32 @@ function initBusinessProcessMaskEvent(_parentForm) {
                 return this.value == '';
             } 
         });
+        
+        var $requiredRadios = _parentForm.find('input:radio[required]');
+        
+        if ($requiredRadios.length) {
+            var radioNames = {};
+            $requiredRadios.each(function() {
+                var $thisRadio = $(this);
+                if ($thisRadio.hasAttr('name') && !$thisRadio.is(':checked')) {
+                    var radioName = $thisRadio.attr('name');
+                    radioNames[radioName] = 1;
+                }
+            });
+            $requiredRadios.each(function() {
+                var $thisRadio = $(this);
+                if ($thisRadio.hasAttr('name') && $thisRadio.is(':checked')) {
+                    var radioName = $thisRadio.attr('name');
+                    delete radioNames[radioName];
+                }
+            });
+            if (Object.keys(radioNames).length) {
+                for (var r in radioNames) {
+                    var $input = $('<input type="radio" data-path="'+r+'" class="radio">');
+                    $requiredInputs = $requiredInputs.add($input);
+                }
+            }
+        }
         
         var $rangeSliderInputs = _parentForm.find('input.rangeSliderInit[required]');
         

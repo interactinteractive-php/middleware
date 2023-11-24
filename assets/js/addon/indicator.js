@@ -3937,7 +3937,15 @@ function mvOpenDialog(opts) {
     if (!$("#" + $dialogName).length) {
         $('<div id="' + $dialogName + '"></div>').appendTo('body');
     }
-    var $dialog = $('#' + $dialogName);
+    var $dialog = $('#' + $dialogName), dialogWidth = 1500, dialogHeight = $(window).height() - 40;
+    
+    if (opts.hasOwnProperty('dialogWidth') && opts.dialogWidth) {
+        dialogWidth = opts.dialogWidth;
+    }
+    
+    if (opts.hasOwnProperty('dialogHeight') && opts.dialogHeight) {
+        dialogHeight = opts.dialogHeight;
+    }
 
     $dialog.empty().append(opts.content);
     $dialog.dialog({
@@ -3946,8 +3954,8 @@ function mvOpenDialog(opts) {
         bgiframe: true,
         autoOpen: false,
         title: opts.title,
-        width: 1500,
-        height: $(window).height() - 40,
+        width: dialogWidth,
+        height: dialogHeight,
         modal: true,
         closeOnEscape: isCloseOnEscape, 
         position: {my: 'top', at: 'top+20'}, 
@@ -3974,6 +3982,10 @@ function mvOpenDialog(opts) {
             "restore": "ui-icon-newwin"
         }
     });
+    
+    if (opts.hasOwnProperty('isFullScreen') && opts.isFullScreen) {
+        $dialog.dialogExtend('maximize');
+    }
 
     $dialog.dialog('open');
     
@@ -5039,17 +5051,20 @@ function mvRowsGetValueFromDataMart(elem, indicatorId, rowId, columnPath) {
         }
     });
 }
-function createMvStructureFromFile(elem, dataViewId, isContentMenu) {
+function createMvStructureFromFile(elem, dataViewId, opts) {
     
-    var postData = {}, indicatorId = '';
+    PNotify.removeAll();
     
-    if (!isContentMenu) {
+    var postData = {}, indicatorId = '', 
+        isContextMenu = opts.isContextMenu, 
+        isImportManage = opts.hasOwnProperty('isImportManage') ? opts.isImportManage : false;
+    
+    if (!isContextMenu && !isImportManage) {
         var rows = getRowsDataView(dataViewId);
         if (rows.length > 0 && rows.hasOwnProperty(0) && (rows[0]).hasOwnProperty('id')) {
             indicatorId = rows[0]['id'];
             postData.indicatorId = indicatorId;
         } else {
-            PNotify.removeAll();
             new PNotify({
                 title: 'Info',
                 text: 'Дата олдсонгүй!',
@@ -5061,6 +5076,8 @@ function createMvStructureFromFile(elem, dataViewId, isContentMenu) {
         }
     } 
         
+    postData.isImportManage = isImportManage ? 1 : 0;
+    
     $.ajax({
         type: 'post',
         url: 'mdform/createMvStructureFromFileForm',
@@ -5125,7 +5142,7 @@ function createMvStructureFromFile(elem, dataViewId, isContentMenu) {
                                         sheetRange.s.c = skipColumns; //start column
                                         getSheet['!ref'] = XLSX.utils.encode_range(sheetRange);
 
-                                        var rowsData = XLSX.utils.sheet_to_json(getSheet, {header: 1, raw: false, dateNF: 'YYYY-MM-DD'});
+                                        var rowsData = XLSX.utils.sheet_to_json(getSheet, {header: 1, raw: false, defval: '', dateNF: 'YYYY-MM-DD'});
                                     }
 
                                     var rowsLength = rowsData.length;
@@ -5172,6 +5189,10 @@ function createMvStructureFromFile(elem, dataViewId, isContentMenu) {
                                                         showType = 'bigdecimal';
                                                     }
                                                 }
+                                                
+                                                if (isImportManage) {
+                                                    showType = 'text';
+                                                }
 
                                                 headerData.push({'labelName': firstRow[f], 'showType': showType});
                                             }
@@ -5193,6 +5214,10 @@ function createMvStructureFromFile(elem, dataViewId, isContentMenu) {
                                                         showType = 'bigdecimal';
                                                     }
                                                 }
+                                                
+                                                if (isImportManage) {
+                                                    showType = 'text';
+                                                }
 
                                                 headerData.push({'labelName': 'Column'+(Number(f) + 1), 'showType': showType});
                                             }
@@ -5200,10 +5225,16 @@ function createMvStructureFromFile(elem, dataViewId, isContentMenu) {
                                         
                                         var createPostData = {indicatorId: indicatorId, headerData: headerData, isOnlyTableCreate: 1};
                                         
-                                        if (isContentMenu) {
+                                        if (isContextMenu) {
                                             createPostData.name = $form.find('input[name="name"]').val();
                                             createPostData.parentId = bpGetVisiblePanelSelectedRowVal('secondList', 'id');
                                             createPostData.categoryId = bpGetVisiblePanelSelectedRowVal('firstList', 'id');
+                                        }
+                                        
+                                        if (isImportManage) {
+                                            createPostData.name = $form.find('input[name="name"]').val();
+                                            createPostData.isImportManage = 1;
+                                            createPostData.mainIndicatorId = opts.mainIndicatorId; 
                                         }
 
                                         $.ajax({
@@ -5215,8 +5246,8 @@ function createMvStructureFromFile(elem, dataViewId, isContentMenu) {
                                             success: function(data) {
 
                                                 if (data.status == 'success') {
-
-                                                    var isSuccess = true;
+                                                    
+                                                    var isSuccess = true, importedIds = '';
 
                                                     for (var p = 1; p <= pages; p++) {
 
@@ -5248,11 +5279,12 @@ function createMvStructureFromFile(elem, dataViewId, isContentMenu) {
                                                             }); 
                                                             isSuccess = false;
                                                             
-                                                            if (isContentMenu) {
+                                                            if (isContextMenu) {
                                                                 removeTempIndicatorById(indicatorId);
                                                             }
-                                                            break;
-                                                        }
+                                                            
+                                                            break;  
+                                                        } 
                                                     }
 
                                                     if (isSuccess) {
@@ -5265,11 +5297,34 @@ function createMvStructureFromFile(elem, dataViewId, isContentMenu) {
                                                             delay: 1000000000, 
                                                             addclass: 'pnotify-center'
                                                         }); 
-                                                        $dialog.dialog('close');
                                                         
-                                                        if (isContentMenu) {
+                                                        if (isImportManage) {
+                                                            
+                                                            mvRenderChildDataSets(opts.mainIndicatorId);
+                                                            
+                                                            /*var formData = new FormData();
+                                                            formData.append('indicatorId', indicatorId);
+                                                            formData.append('file', $form.find('input[name="importStructureFile"]').get(0).files[0]);
+
+                                                            $.ajax({
+                                                                type: 'post',
+                                                                url: 'mdform/importFileUpload',
+                                                                data: formData,
+                                                                processData: false,
+                                                                contentType: false,
+                                                                dataType: 'json',
+                                                                success: function(dataFile) {
+                                                                    console.log(dataFile); 
+                                                                }
+                                                            });*/
+                                                            
+                                                            $dialog.dialog('close');
+                                                            
+                                                        } else if (isContextMenu) {
+                                                            $dialog.dialog('close');
                                                             bpVisiblePanelDataViewReload('secondList');
                                                         } else {
+                                                            $dialog.dialog('close');
                                                             dataViewReload(dataViewId);
                                                         }
                                                     }
@@ -5326,7 +5381,7 @@ function removeTempIndicatorById(id) {
 }
 
 function createMvStructureFromFileInit(elem, processMetaDataId, dataViewId, selectedRow, paramData) {
-    createMvStructureFromFile(elem, dataViewId, true);
+    createMvStructureFromFile(elem, dataViewId, {isContextMenu: true});
 }
 function reportTemplateKpiIndicatorValue(elem, indicatorId) {
     var rows = getDataViewSelectedRows(indicatorId);

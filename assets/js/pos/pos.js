@@ -20791,6 +20791,8 @@ function appendItem(itemPostData, renderType, callback) {
           internalId = "",
           isown = "",
           discountId = "",
+          packageId = "",
+          packageName = "",
           copperCartDiscount = 0,
           lineTotalBonusAmount = "",
           selectedCusId = $('input[name="empCustomerId"]').length
@@ -20816,6 +20818,16 @@ function appendItem(itemPostData, renderType, callback) {
         }
         if (rowData.hasOwnProperty("stateregnumber")) {
           registerNo = rowData.stateregnumber;
+        }
+        if (rowData.hasOwnProperty("mainpackageid")) {
+          packageId = rowData.mainpackageid;
+        }
+        if (rowData.hasOwnProperty("mainpackagename")) {
+          packageName = rowData.mainpackagename;
+        }
+        if (rowData.hasOwnProperty("positempackagelist") && rowData.positempackagelist) {
+          appendItemPackage(rowData.positempackagelist, rowData);
+          return;
         }
 
         if (
@@ -20906,16 +20918,8 @@ function appendItem(itemPostData, renderType, callback) {
           }
         }
 
-        var isIgnoreEndQty =
-          rowData.hasOwnProperty("isignoreendqty") &&
-            rowData.isignoreendqty == "1"
-            ? true
-            : false;
-        var concatItemName = (
-          rowData.itemcode +
-          "" +
-          serialNumber
-        ).toLowerCase();
+        var isIgnoreEndQty = rowData.hasOwnProperty("isignoreendqty") && rowData.isignoreendqty == "1" ? true : false;
+        var concatItemName = (rowData.itemcode + "" + serialNumber).toLowerCase();
 
         if (rowData.hasOwnProperty("endqty")) {
           endQty = Number(rowData.endqty);
@@ -20928,9 +20932,7 @@ function appendItem(itemPostData, renderType, callback) {
         }
 
         if (isConfigItemCheckDuplicate) {
-          var $addedRow = $tbody.find(
-            'tr[data-item-code="' + concatItemName + '"]'
-          );
+          var $addedRow = $tbody.find('tr[data-item-code="' + concatItemName + '"]');
           if (posTypeCode == "3") {
             $addedRow = $tbody.find(
               'tr[data-item-id-customer-id="' +
@@ -20941,10 +20943,8 @@ function appendItem(itemPostData, renderType, callback) {
             );
           }
 
-          if ($addedRow.length) {
-            var alreadyEndQty = isIgnoreEndQty
-              ? 1000
-              : Number($addedRow.find('input[data-field-name="endQty"]').val());
+          if ($addedRow.length && itemPostData.hasOwnProperty("packageIdItem") && itemPostData.packageIdItem) {
+            var alreadyEndQty = isIgnoreEndQty ? 1000 : Number($addedRow.find('input[data-field-name="endQty"]').val());
             var qty = Number(
               $addedRow.find("input.pos-quantity-input").autoNumeric("get")
             );
@@ -21230,6 +21230,8 @@ function appendItem(itemPostData, renderType, callback) {
           '<input type="hidden" name="salesorderdetailid[]">' +
           '<input type="hidden" name="discountTypeId[]">' +
           '<input type="hidden" name="salesPersonId[]" value="'+salesPersonId+'">' +
+          '<input type="hidden" name="packageId[]" value="'+packageId+'">' +
+          '<input type="hidden" name="packageName[]" value="'+packageName+'">' +
           '<input type="hidden" name="discountDescription[]">' +
           '<input type="hidden" data-field-name="endQty" value="' +
           endQty +
@@ -21372,6 +21374,12 @@ function appendItem(itemPostData, renderType, callback) {
             '<td colspan="2"></td>' +
             '<td colspan="6" data-item-gift-cell="true"></td>' +
             "</tr>";
+        }
+        
+        if ($tbody.find('tr.item-package').length && !$tbody.find('tr.item-nopackage').length && rowData.hasOwnProperty("mainpackageid") && rowData.mainpackageid == '') {
+            $tbody.append(
+              '<tr style="height: 20px;" class="item-nopackage"><td style="font-size: 12px;background-color: #ffcc0099;"></td><td colspan="5" style="font-size: 12px;background-color: #ffcc0099;">Багцгүй</td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td></tr>'
+            );            
         }
 
         if (posTypeCode == "3" && selectedCusId) {
@@ -24532,6 +24540,22 @@ function createBillResultDataFromInvoice(
   }
 
   return;
+}
+
+function appendItemPackage(packageItems, item) {
+    var $tbody = $("#posTable").find("> tbody");
+    $tbody.append(
+      '<tr style="height: 20px;" class="item-package"><td style="font-size: 12px;background-color: #ffcc0099;"></td><td colspan="5" style="font-size: 12px;background-color: #ffcc0099;">'+item.itemname+'</td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td></tr>'
+    );
+    var itemPostData;
+    for (var i = 0; i < packageItems.length; i++) {
+        itemPostData = {
+          code: packageItems[i]['itemcode'],
+          packageIdItem: item.itemid
+        };  
+        appendItem(itemPostData, "", function () {            
+        });         
+    }
 }
 
 function appendQuickItem(elem, itemCode, itemId) {

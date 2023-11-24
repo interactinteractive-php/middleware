@@ -5245,7 +5245,9 @@ class Mdform_Model extends Model {
                     if ($arrRow['FILTER_INDICATOR_ID'] && $arrRow['SEMANTIC_TYPE_NAME'] == 'Sub хүснэгт') {
 
                         $savedSubTableRows = self::getKpiSubTableRowsModel($indicatorId, $arrRow['FILTER_INDICATOR_ID'], Mdform::$defaultTplSavedId, $arrRow['COLUMN_NAME']);
-
+                        
+                        Mdform::$kpiDmMart[$arrRow['COLUMN_NAME']] = array();
+                        
                         if ($savedSubTableRows) {
                             Mdform::$kpiDmMart[$arrRow['COLUMN_NAME'] . '_subTableRows'] = $savedSubTableRows;
                         }
@@ -6788,11 +6790,11 @@ class Mdform_Model extends Model {
                 $labelTooltip = '';
                 $controlRender = array();
                 
+                if ($arrRow['IS_RENDER'] != '1') {
+                    continue;
+                }
+                
                 if ($arrRow['SHOW_TYPE'] != 'label' && $arrRow['SHOW_TYPE'] != 'rows') {
-                    
-                    if ($arrRow['IS_RENDER'] != '1') {
-                        continue;
-                    }
                     
                     if ($arrRow['SHOW_TYPE'] == 'config' && $arrRow['DEFAULT_VALUE'] == 'ORGANIZATION_LOGO_PATH') {
                         $configValue = Config::get($arrRow['DEFAULT_VALUE']);
@@ -7016,16 +7018,16 @@ class Mdform_Model extends Model {
             
             if ((Mdform::$recordId || Mdform::$defaultTplSavedId) && Mdform::$kpiDmMart) {
                 
-                if ($rowJson = issetParam(Mdform::$kpiDmMart[$parentColumnName])) {
+                if ($rowJson = issetParam(Mdform::$kpiDmMart[$parentColumnName . '_subTableRows'])) {
                     
                     $savedDataJson = $rowJson;
                     $isSavedDataJson = true;
                     
-                } elseif ($rowJson = issetParam(Mdform::$kpiDmMart[$parentColumnName . '_subTableRows'])) {
+                } elseif ($rowJson = issetParam(Mdform::$kpiDmMart[$parentColumnName])) {
                     
                     $savedDataJson = $rowJson;
-                    $isSavedDataJson = true;
-                }
+                    $isSavedDataJson = true;  
+                } 
                 
             } elseif ($rowDatas) {
                 
@@ -7198,6 +7200,7 @@ class Mdform_Model extends Model {
                                 } else {
                                     
                                     $columnWidth = $arrRow['COLUMN_WIDTH'];
+                                    $labelName = Lang::line($arrRow['NAME']);
                                     
                                     if ($columnWidth) {
                                         
@@ -7218,8 +7221,14 @@ class Mdform_Model extends Model {
                                     
                                     $render[] = '<th class="text-center" style="'.$columnStyle.'" data-cell-path="'.$arrRow['COLUMN_NAME_PATH'].'" data-merge-cell="true" data-aggregate="'.$arrRow['COLUMN_AGGREGATE'].'">';
                                         
-                                        $render[] = Lang::line($arrRow['NAME']);
+                                        $render[] = $labelName;
                                         
+                                        if ($arrRow['DEFAULT_FILE'] && file_exists($arrRow['DEFAULT_FILE'])) {
+                                            
+                                            $href = 'mdobject/downloadFile?fDownload=1&file='.$arrRow['DEFAULT_FILE'].'&fileName='.$labelName;
+                                            $render[] = html_tag('a', array('href'=>$href,'title'=>Lang::line('download_btn'),'class'=>'btn btn-sm btn-light rounded-0 ml-1'), '<i class="icon-download"></i>');
+                                        }
+                
                                         if ($arrRow['JSON_CONFIG']) {
 
                                             $jsonExp = json_decode($arrRow['JSON_CONFIG'], true);
@@ -8973,7 +8982,7 @@ class Mdform_Model extends Model {
                  
                 $uniqueColumns = trim(rtrim(trim($uniqueColumns), ','));
             
-                $globeMessage = $this->lang->lineDefault('PF_CHECK_UNIQUE_MESSAGE', 'Тухайн өгөгдөл өмнө нь үүссэн байна. /[uniquecolumns]/');
+                $globeMessage = $this->lang->lineDefault('PF_CHECK_UNIQUE_MESSAGE', 'Тухайн өгөгдөл өмнө нь үүссэн байна.<br />/[uniquecolumns]/');
                 $globeMessage = str_ireplace('[uniquecolumns]', $uniqueColumns, $globeMessage);
                 
                 return array('status' => 'warning', 'message' => $globeMessage);
@@ -9965,6 +9974,7 @@ class Mdform_Model extends Model {
                 $data = $this->db->GetAll("
                     SELECT 
                         UPPER(KIIM.COLUMN_NAME) AS COLUMN_NAME, 
+                        KIIM.ID, 
                         KIIM.CODE, 
                         FNC_TRANSLATE('$langCode', KIIM.TRANSLATION_VALUE, 'LABEL_NAME', KIIM.LABEL_NAME) AS LABEL_NAME, 
                         FNC_TRANSLATE('$langCode', KIIM.TRANSLATION_VALUE, 'PLACEHOLDER_NAME', KIIM.PLACEHOLDER_NAME) AS PLACEHOLDER_NAME, 
@@ -9993,6 +10003,7 @@ class Mdform_Model extends Model {
                         KIIM.MAX_VALUE, 
                         KIIM.IS_TRANSLATE, 
                         KIIM.ORDER_NUMBER AS ORDER_NUM, 
+                        KIIM.AI_KEYWORD, 
                         LOWER(KIIM.BODY_ALIGN) AS BODY_ALIGN, 
                         MST.NAME AS SEMANTIC_TYPE_NAME, 
                         KI.TABLE_NAME AS TRG_TABLE_NAME, 
@@ -10048,6 +10059,7 @@ class Mdform_Model extends Model {
             if (strpos($tableName, '.D_') !== false || substr($tableName, 0, 2) == 'D_') {
                 $configRow['isIgnoreStandardFields'] = true;
             }
+            
         } elseif (issetParam($configRow['QUERY_STRING'])) {
             $configRow['isIgnoreStandardFields'] = true;
         }
@@ -10172,9 +10184,11 @@ class Mdform_Model extends Model {
         return $data;
     }
     
-    public function renderKpiIndicatorColumnsModel($indicatorId, $isCheckSystemTable, $columnsData) {
+    public function renderKpiIndicatorColumnsModel($indicatorId, $isCheckSystemTable, $opts) {
         
-        $columns = $mergeColumns = array();
+        $columns = $mergeColumns = $comboColumns = array();
+        $columnsData = $opts['columnsData'];
+        $headerCombo = issetParam($opts['headerCombo']);
         
         $dm = &getInstance();
         $dm->load->model('Mdobject', 'middleware/models/');        
@@ -10182,7 +10196,9 @@ class Mdform_Model extends Model {
         $mergedGridData = $dm->model->resolveHtmlTableMergeHeader($columnsData, $indicatorId, [], 'COLUMN_NAME');
         
         foreach ($mergedGridData as $mergeIndex => $mergeRow) {
+            
             $columns[] = '[';
+            
             foreach ($mergeRow as $mrowIndex => $column) { 
 
                 if ($column['IS_RENDER'] == '1' && $column['SHOW_TYPE'] != 'label') {                         
@@ -10193,6 +10209,7 @@ class Mdform_Model extends Model {
                     }                                
                     
                     $rowspan = '';
+                    
                     if (isset($column['_COLSPAN'])) {
                         $rowspan .= 'colspan:'.$column['_COLSPAN'].',';
                     }
@@ -10270,6 +10287,44 @@ class Mdform_Model extends Model {
                             $columns[] = "align: '$bodyAlign', ";
                             $columns[] = "formatter: function(v, r, i) { return ".$startAnchor."v$endAnchor; },";
                         }
+                        
+                        if ($headerCombo) {
+                            
+                            $titleCombo      = str_replace('class="', 'data-match-field="'.$columnName.'" class="', $headerCombo);
+                            $labelNameLower  = Str::lower($labelName);
+                            $mainColumnsData = $opts['mainColumnsData'];
+                            $selectedColumn  = '';
+                            
+                            foreach ($mainColumnsData as $mainCol) {
+                                
+                                if ($AIkeyword = Str::lower($mainCol['AI_KEYWORD'])) {
+                                    
+                                    $AIkeywordArr = explode(',', $AIkeyword);
+                                    
+                                    foreach ($AIkeywordArr as $AIkeywordVal) {
+                                        if ($labelNameLower == $AIkeywordVal) {
+                                            $selectedColumn = $mainCol['COLUMN_NAME'];
+                                            break 2;
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            if ($selectedColumn == '') {
+                                foreach ($mainColumnsData as $mainCol) {
+                                    if (Str::lower($mainCol['LABEL_NAME']) == $labelNameLower) {
+                                        $selectedColumn = $mainCol['COLUMN_NAME'];
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            if ($selectedColumn) {
+                                $titleCombo = str_replace('value="'.$selectedColumn.'">', 'value="'.$selectedColumn.'" selected>', $titleCombo);
+                            }
+                            
+                            $comboColumns[] = "{title: '$titleCombo', fixed: true, width: '$width', halign: 'center'},";
+                        }
                     }
 
                     if (isset(Mdform::$gridStyler['cell'][$column['COLUMN_NAME']])) {
@@ -10283,13 +10338,19 @@ class Mdform_Model extends Model {
                     }
                 }
             }
+            
             $columns[] = '],';
         }
         
         $colString = implode('', $columns);
         $colString = ltrim(rtrim($colString, '],'), '[');
+        $comboColumnsString = '';
         
-        return array('columnsRender' => $colString, 'mergeColumns' => $mergeColumns);
+        if ($headerCombo) {
+            $comboColumnsString = '['.implode('', $comboColumns).'],';
+        }
+        
+        return array('columnsRender' => $colString, 'mergeColumns' => $mergeColumns, 'comboColumnsRender' => $comboColumnsString);
     }
     
     public function mvGridStylerModel($indicatorId) {
@@ -11068,14 +11129,6 @@ class Mdform_Model extends Model {
                 $tableName = "(SELECT * FROM $tableName WHERE $permissionCriteria)";
             }
             
-            /*if (Ue::sessionRoleId() != 1) {
-                if (!self::getUmPermissionKeyPrecheckModel($indicatorId)) {
-                    $tableName = "(SELECT * FROM $tableName WHERE 1=0)";
-                } elseif ($permissionCriteria) {                    
-                    $tableName = "(SELECT * FROM $tableName WHERE $permissionCriteria)";
-                }
-            }*/
-            
             if ($groupColumns = Input::post('groupColumns')) {
                 
                 $groupByColumns = '';
@@ -11420,7 +11473,7 @@ class Mdform_Model extends Model {
             $data = $this->db->GetAll("
             SELECT 
                 DISTINCT 
-                TO_CHAR(R.CRITERIA) as INDICATOR_CRITERIA
+                TO_CHAR(R.CRITERIA) AS INDICATOR_CRITERIA
             FROM UM_PERMISSION_KEY K
             INNER JOIN REF_SEGMENTATION R ON K.SEGMENTATION_ID = R.ID
                 WHERE 
@@ -15144,14 +15197,15 @@ class Mdform_Model extends Model {
                 $subCondition = 'DELETED_USER_ID IS NULL';
             }
             
-            if ($isUseCompanyDepartmentId) { 
+            if ($isUseCompanyDepartmentId && Input::numeric('isIgnoreCompanyDepartmentId') != 1) { 
                 
                 $sessionValues = Session::get(SESSION_PREFIX.'sessionValues');
-            
-                if ($sessionCompanyDepartmentId = issetParam($sessionValues['sessioncompanydepartmentid'])) {
+                $sessionCompanyDepartmentId = issetParam($sessionValues['sessioncompanydepartmentid']);
+                
+                if ($sessionCompanyDepartmentId && $sessionCompanyDepartmentId != '1') {                    
                     $subCondition .= ' AND COMPANY_DEPARTMENT_ID = '.$sessionCompanyDepartmentId;
                 }
-            }
+            }   
             
             if ($isChartList == 1 || $ignoreColName) {
                 
@@ -17160,6 +17214,22 @@ class Mdform_Model extends Model {
                         AND K.ID = M1.SRC_INDICATOR_ID 
                         AND M1.SEMANTIC_TYPE_ID = 10000009 
                 WHERE K.ID = $idPh 
+                    AND (
+                        LOWER(KI.TYPE_CODE) NOT IN ('config', '360') 
+                        OR 
+                        (
+                            LOWER(KI.TYPE_CODE) IN ( 
+                                SELECT 
+                                    CASE WHEN T10.SEMANTIC_TYPE_ID = 79 THEN 'config' 
+                                    ELSE '360' END AS TYPE_CODE 
+                                FROM KPI_INDICATOR_INDICATOR_MAP T10 
+                                    INNER JOIN KPI_INDICATOR T11 ON T11.ID = T10.TRG_INDICATOR_ID 
+                                WHERE T10.SRC_INDICATOR_ID = $idPh 
+                                    AND T10.SEMANTIC_TYPE_ID IN (79, 113) 
+                                GROUP BY T10.SEMANTIC_TYPE_ID 
+                            ) 
+                        ) 
+                    ) 
                     $where 
                     AND (
                         K.CREATED_USER_ID = $userIdPh 
@@ -17198,6 +17268,7 @@ class Mdform_Model extends Model {
         $data = array(
             array(
                 'structure_indicator_id' => $srcId, 
+                'label_name' => 'add_btn', 
                 'type_code' => 'create', 
                 'kpi_type_id' => '2008', 
                 'map_id' => $mapId, 
@@ -17205,6 +17276,7 @@ class Mdform_Model extends Model {
             ), 
             array(
                 'structure_indicator_id' => $srcId, 
+                'label_name' => 'edit_btn', 
                 'type_code' => 'update', 
                 'kpi_type_id' => '2008', 
                 'map_id' => $mapId, 
@@ -17212,6 +17284,7 @@ class Mdform_Model extends Model {
             ), 
             array(
                 'structure_indicator_id' => $srcId, 
+                'label_name' => 'delete_btn', 
                 'type_code' => 'delete', 
                 'kpi_type_id' => '2008', 
                 'map_id' => $mapId, 
@@ -18919,7 +18992,7 @@ class Mdform_Model extends Model {
                                     } else {
                                         
                                         $getDetailData = self::getKpiIndicatorDetailDataModel($dataJson['GET_INDICATOR_ID'], $equalVal, $trg);
-                                    
+                                        
                                         if ($detailData = issetParam($getDetailData['detailData'])) {
                                             return isset($setRowsPath) ? array($setRowsPath => $detailData) : $detailData;                
                                         }
@@ -19689,7 +19762,7 @@ class Mdform_Model extends Model {
             
             $configRow = self::getKpiIndicatorRowModel($indicatorId);
             
-            if (!$configRow && Input::postCheck('name')) {
+            if (!$configRow && (Input::postCheck('name') || Input::postCheck('isImportManage'))) {
                 
                 $createIndicator = self::createIndicatorStructure($indicatorId);
                 if ($createIndicator['status'] != 'success') {
@@ -19704,9 +19777,11 @@ class Mdform_Model extends Model {
             $schemaName = self::getKpiDbSchemaName($indicatorId);
             $tblName = $kpiDataTblName ? $kpiDataTblName : $schemaName . 'V_'.$indicatorId;
             $kpiTblIdField  = 'ID';
+            
             $sessionUserKeyId = Ue::sessionUserKeyId();
-            $sessionValues = Session::get(SESSION_PREFIX . 'sessionValues');
-            $sessionName   = issetDefaultVal($sessionValues['sessionusername'], Ue::getSessionPersonWithLastName());
+            $sessionValues    = Session::get(SESSION_PREFIX . 'sessionValues');
+            $sessionName      = issetDefaultVal($sessionValues['sessionusername'], Ue::getSessionPersonWithLastName());
+            $importedIds      = array();
             
             if ($isOnlyTableCreate) {
 
@@ -19824,8 +19899,10 @@ class Mdform_Model extends Model {
                             $row = $rowsData;
                         }
                         
+                        $newRowId = getUIDAdd($n);
+                        
                         $insertData = array(
-                            $kpiTblIdField      => getUIDAdd($n), 
+                            $kpiTblIdField      => $newRowId, 
                             'INDICATOR_ID'      => $indicatorId,
                             'CREATED_DATE'      => Date::currentDate('Y-m-d H:i:s'), 
                             'CREATED_USER_ID'   => $sessionUserKeyId, 
@@ -19847,6 +19924,8 @@ class Mdform_Model extends Model {
                         self::dbExecuteMetaVerseData("INSERT INTO $tblName (".rtrim($insertColumns, ',').") VALUES (".rtrim($insertValues, ',').")");
                         
                         $n++;
+                        
+                        $importedIds[] = $newRowId;
                     }
                 }
                 
@@ -19855,7 +19934,7 @@ class Mdform_Model extends Model {
                 Mdform::clearCacheData($indicatorId);
             }
             
-            $response = array('status' => 'success');
+            $response = array('status' => 'success', 'importedIds' => implode(',', $importedIds));
             
         } catch (Exception $ex) {
             
@@ -19892,11 +19971,21 @@ class Mdform_Model extends Model {
                 'CREATED_USER_ID' => $sessionUserKeyId
             );
             
-            if ($isImportManage && $mainIndicatorId) {
-                $dataIndicator['DATASET_ID'] = $mainIndicatorId;
-            }
-            
             $this->db->AutoExecute('KPI_INDICATOR', $dataIndicator);
+            
+            if ($isImportManage && $mainIndicatorId) {
+                
+                $data = array(
+                    'ID' => getUID(), 
+                    'SRC_INDICATOR_ID' => $mainIndicatorId, 
+                    'TRG_INDICATOR_ID' => $indicatorId, 
+                    'SEMANTIC_TYPE_ID' => 10000019, 
+                    'ORDER_NUMBER' => 100, 
+                    'CREATED_DATE' => Date::currentDate(), 
+                    'CREATED_USER_ID' => Ue::sessionUserKeyId()
+                );
+                $this->db->AutoExecute('KPI_INDICATOR_INDICATOR_MAP', $data);
+            }
             
             if ($categoryId) {
                 
@@ -19939,7 +20028,7 @@ class Mdform_Model extends Model {
             
             $idPh = $this->db->Param(0);
             $row = $this->db->GetRow("
-                SELECT ID FROM KPI_INDICATOR WHERE ID = $idPh AND CREATED_USER_ID = ".$this->db->Param(1), 
+                SELECT ID, TABLE_NAME FROM KPI_INDICATOR WHERE ID = $idPh AND CREATED_USER_ID = ".$this->db->Param(1), 
                 array($id, Ue::sessionUserKeyId())
             );
             
@@ -19949,6 +20038,19 @@ class Mdform_Model extends Model {
                 $this->db->Execute("DELETE FROM KPI_INDICATOR_CATEGORY WHERE INDICATOR_ID = $idPh", array($id));
                 $this->db->Execute("DELETE FROM KPI_INDICATOR_INDICATOR_MAP WHERE MAIN_INDICATOR_ID = $idPh", array($id));
                 $this->db->Execute("DELETE FROM KPI_INDICATOR WHERE ID = $idPh", array($id));
+                
+                if ($tableName = $row['TABLE_NAME']) {
+                    
+                    try {
+                        
+                        if (DB_DRIVER == 'postgres9') {
+                            $this->db->Execute('DO $$ BEGIN DROP TABLE '.$tableName.'; EXCEPTION WHEN others THEN END; $$;');
+                        } else {
+                            $this->db->Execute("DROP TABLE $tableName");
+                        }
+                    
+                    } catch (Exception $ex) { }
+                }
                 
                 $result = array('status' => 'success');
             } else {
@@ -21059,5 +21161,600 @@ class Mdform_Model extends Model {
     public function getKpiIndicatorExpressionModel($templateId) {        
         return $this->db->GetRow("SELECT ".$this->db->IfNull("VAR_FNC_EXPRESSION_STRING", "FLOWCHART_EXPRESSION")." AS VAR_FNC_EXPRESSION_STRING, ".$this->db->IfNull("VAR_FNC_EXPRESSION_STRING_JSON", "FLOWCHART_EXPRESSION_RAW")." AS VAR_FNC_EXPRESSION_STRING_JSON FROM KPI_INDICATOR WHERE ID = ".$this->db->Param(0), array($templateId));
     }    
+    
+    public function getChildDataSetsModel($mainIndicatorId) {
+        
+        $data = $this->db->GetAll("
+            SELECT 
+                T1.ID, 
+                T1.NAME, 
+                T1.CREATED_DATE, 
+                T1.CREATED_USER_NAME 
+            FROM KPI_INDICATOR_INDICATOR_MAP T0 
+                INNER JOIN KPI_INDICATOR T1 ON T1.ID = T0.TRG_INDICATOR_ID 
+            WHERE T0.SRC_INDICATOR_ID = ".$this->db->Param(0)." 
+                AND T0.SEMANTIC_TYPE_ID = 10000019 
+            ORDER BY T0.ORDER_NUMBER ASC", 
+            array($mainIndicatorId)
+        );
+        
+        return $data;
+    }
+    
+    public function getKpiIndicatorProcessImportManageModel($srcId) {
+        
+        $data = array(
+            array(
+                'structure_indicator_id' => $srcId, 
+                'label_name' => 'edit_btn', 
+                'type_code' => 'update', 
+                'kpi_type_id' => '2008', 
+                'crud_indicator_id' => '999'
+            ), 
+            array(
+                'structure_indicator_id' => $srcId, 
+                'label_name' => 'delete_btn', 
+                'type_code' => 'delete', 
+                'kpi_type_id' => '2008', 
+                'crud_indicator_id' => '999'
+            )
+        );
+        
+        return $data;
+    }
+    
+    public function importManageDataCheckModel() {
+        
+        try {
+            
+            $indicatorId     = Input::numeric('indicatorId');
+            $mainIndicatorId = Input::numeric('mainIndicatorId');
+            
+            $row       = self::getKpiIndicatorRowModel($indicatorId); 
+            $tableName = $row['TABLE_NAME'];
+            
+            $mainRow       = self::getKpiIndicatorRowModel($mainIndicatorId); 
+            $mainTableName = $mainRow['TABLE_NAME'];
+            
+            $matchColumns  = $this->db->GetAll("
+                SELECT 
+                    T0.COLUMN_NAME AS SRC_COLUMN_NAME, 
+                    T0.SHOW_TYPE AS SRC_SHOW_TYPE, 
+                    T2.COLUMN_NAME AS TRG_COLUMN_NAME 
+                FROM KPI_INDICATOR_INDICATOR_MAP T0 
+                    INNER JOIN KPI_INDICATOR_INDICATOR_MAP T1 ON T1.SRC_INDICATOR_MAP_ID = T0.ID 
+                        AND T1.TRG_INDICATOR_ID = T0.MAIN_INDICATOR_ID 
+                    INNER JOIN KPI_INDICATOR_INDICATOR_MAP T2 ON T2.ID = T1.TRG_INDICATOR_MAP_ID    
+                WHERE T0.MAIN_INDICATOR_ID = ".$this->db->Param(0)." 
+                    AND T1.SRC_INDICATOR_ID = ".$this->db->Param(1)."  
+                    AND T0.IS_UNIQUE = 1     
+                    AND T0.COLUMN_NAME IS NOT NULL 
+                ORDER BY T0.ORDER_NUMBER ASC", array($mainIndicatorId, $indicatorId));
+            
+            if (!$matchColumns) {
+                throw new Exception('Та UNIQUE талбарын тохиргоог хийнэ үү!'); 
+            }
+            
+            $join = 'LEFT JOIN '.$mainTableName.' T1 ON';
+            
+            foreach ($matchColumns as $matchColumn) {
+                
+                $join .= ' LOWER(TO_CHAR(T1.'.$matchColumn['SRC_COLUMN_NAME'].')) = LOWER(TO_CHAR(T0.'.$matchColumn['TRG_COLUMN_NAME'].')) AND';
+            }
+            
+            $join = rtrim(trim($join), 'AND');
+            
+            $sql = "SELECT T3.* "; 
+            $sql .= "FROM (";
+            
+                $sql .= "SELECT ";
+                    $sql .= "T0.ID, 'add' AS DATA_MODE ";
+                    $sql .= "FROM $tableName T0 ";
+                    $sql .= $join . ' '; 
+                $sql .= "WHERE T1.ID IS NULL ";
+                
+                    $sql .= "UNION "; 
+                    
+                $sql .= "SELECT ";
+                    $sql .= "T0.ID, 'update' AS DATA_MODE ";
+                    $sql .= "FROM $tableName T0 ";
+                    $sql .= $join . ' ';
+                $sql .= "WHERE T1.ID IS NOT NULL ";
+                
+            $sql .= ") T3";
+            
+            $data = $this->db->GetAll($sql);
+            $arr = array();
+            
+            foreach ($data as $row) {
+                $id = $row['ID'];
+                $dataMode = $row['DATA_MODE'];
+                
+                $arr[$dataMode][$id] = 1;
+            }
+            
+            $result = array('status' => 'success', 'add' => array('count' => 0, 'ids' => ''), 'update' => array('count' => 0, 'ids' => ''));
+            
+            if (isset($arr['add'])) {
+                $result['add']['count'] = count($arr['add']);
+                $result['add']['ids'] = implode(',', array_keys($arr['add']));
+            }
+            
+            if (isset($arr['update'])) {
+                $result['update']['count'] = count($arr['update']);
+                $result['update']['ids'] = implode(',', array_keys($arr['update']));
+            }
+            
+        } catch (Exception $ex) {
+            $result = array('status' => 'error', 'message' => $ex->getMessage());
+        }
+        
+        return $result;
+    }
+    
+    public function importManageFieldsConfigModel($mainIndicatorId, $indicatorId) {
+        
+        $data = $this->db->GetAll("
+            SELECT 
+                T1.ID, 
+                T0.ID AS SRC_MAP_ID, 
+                T0.LABEL_NAME, 
+                T0.COLUMN_NAME, 
+                T0.SHOW_TYPE, 
+                T0.IS_UNIQUE, 
+                T1.TRG_INDICATOR_MAP_ID AS TRG_MAP_ID, 
+                T2.COLUMN_NAME AS TRG_COLUMN_NAME, 
+                T2.SHOW_TYPE AS TRG_SHOW_TYPE, 
+                T2.IS_UNIQUE AS TRG_IS_UNIQUE 
+            FROM KPI_INDICATOR_INDICATOR_MAP T0 
+                LEFT JOIN KPI_INDICATOR_INDICATOR_MAP T1 ON T1.SRC_INDICATOR_MAP_ID = T0.ID 
+                    AND T1.TRG_INDICATOR_ID = T0.MAIN_INDICATOR_ID 
+                    AND T1.SRC_INDICATOR_ID = ".$this->db->Param(0)." 
+                LEFT JOIN KPI_INDICATOR_INDICATOR_MAP T2 ON T2.ID = T1.TRG_INDICATOR_MAP_ID         
+            WHERE T0.MAIN_INDICATOR_ID = ".$this->db->Param(1)." 
+                AND T0.COLUMN_NAME IS NOT NULL 
+            ORDER BY T0.ORDER_NUMBER ASC", array($indicatorId, $mainIndicatorId));
+        
+        return $data;
+    }
+    
+    public function importManageFieldsConfigSaveModel() {
+        
+        try {
+            
+            $indicatorId = Input::numeric('indicatorId');
+            $mainIndicatorId = Input::numeric('mainIndicatorId');
+            $mapIds = Input::post('mapId');
+            $srcIds = Input::post('srcId');
+            $trgIds = Input::post('trgId');
+            $idPh = $this->db->Param(0);
+            $addColumn = array();
+            
+            foreach ($srcIds as $k => $val) {
+                
+                $val = explode('|', $val);
+                $srcId = $val[0];
+                $srcColumnName = $val[1];
+                $mapId = $mapIds[$k];
+                $trgId = $trgIds[$k];
+                
+                if (!$mapId && $trgId) {
+                    
+                    $data = array(
+                        'ID' => getUIDAdd($k), 
+                        'SRC_INDICATOR_MAP_ID' => $srcId, 
+                        'TRG_INDICATOR_MAP_ID' => $trgId, 
+                        'TRG_INDICATOR_ID' => $mainIndicatorId, 
+                        'SRC_INDICATOR_ID' => $indicatorId
+                    );
+                    $this->db->AutoExecute('KPI_INDICATOR_INDICATOR_MAP', $data);
+                    
+                } elseif ($trgId) {
+                    
+                    $data = array(
+                        'SRC_INDICATOR_MAP_ID' => $srcId, 
+                        'TRG_INDICATOR_MAP_ID' => $trgId
+                    );
+                    $this->db->AutoExecute('KPI_INDICATOR_INDICATOR_MAP', $data, 'UPDATE', 'ID = '.$mapId);
+                    
+                } elseif ($mapId && !$trgId) {
+                    
+                    $this->db->Execute("DELETE FROM KPI_INDICATOR_INDICATOR_MAP WHERE ID = ".$idPh, array($mapId));
+                }
+                
+                if (!$trgId) {
+                    $addColumn[] = strtoupper($srcColumnName);
+                }
+            }
+            
+            if ($addColumn) {
+                self::importDataTblAddColumn($indicatorId, $mainIndicatorId, $addColumn);
+            }
+            
+            $result = array('status' => 'success');
+            
+        } catch (Exception $ex) {
+            $result = array('status' => 'error', 'message' => $ex->getMessage());
+        }
+        
+        return $result;
+    }
+    
+    public function importDataTblAddColumn($indicatorId, $mainIndicatorId, $addColumn) {
+        
+        $row     = self::getKpiIndicatorRowModel($indicatorId); 
+        $tblName = $row['TABLE_NAME'];
+            
+        foreach ($addColumn as $k => $col) {
+
+            try {
+                
+                $columnName = 'I_'.$col;
+                $alter = "ALTER TABLE $tblName ADD ($columnName VARCHAR2(256 CHAR))";
+
+                if (DB_DRIVER == 'postgres9') {
+                    $alter = str_replace(' CHAR)', ')', $alter);
+                    $alter = str_replace(' ADD (', ' ADD COLUMN ', $alter);
+                    $alter = str_replace('))', ')', $alter);
+                    
+                    $alter = 'DO $$ BEGIN '.$alter.'; EXCEPTION WHEN others THEN END; $$;';
+                }
+
+                $this->db->Execute($alter);
+                
+                $data = array(
+                    'ID' => getUIDAdd($k), 
+                    'MAIN_INDICATOR_ID' => $indicatorId, 
+                    'COLUMN_NAME' => $columnName, 
+                    'COLUMN_NAME_PATH' => $columnName, 
+                    'LABEL_NAME' => $columnName,  
+                    'IS_RENDER' => 1, 
+                    'IS_INPUT' => 1, 
+                    'SHOW_TYPE' => 'text', 
+                    'ORDER_NUMBER' => 100, 
+                    'CREATED_DATE' => Date::currentDate(), 
+                    'CREATED_USER_ID' => Ue::sessionUserKeyId()
+                );
+                $this->db->AutoExecute('KPI_INDICATOR_INDICATOR_MAP', $data);
+                    
+            } catch (Exception $ex) { }
+        }
+        
+        return true;
+    }
+    
+    public function importManageDataUpdateModel() {
+        
+        try {
+            
+            $indicatorId     = Input::numeric('indicatorId');
+            $mainIndicatorId = Input::numeric('mainIndicatorId');
+            
+            $row       = self::getKpiIndicatorRowModel($indicatorId); 
+            $tableName = $row['TABLE_NAME'];
+            
+            $mainRow       = self::getKpiIndicatorRowModel($mainIndicatorId); 
+            $mainTableName = $mainRow['TABLE_NAME'];
+            
+            $mainColumnsData = self::getKpiIndicatorColumnsModel($mainIndicatorId, array('isGridRender' => 1, 'isIgnoreStandardFields' => true));
+            $mainLookupColumns = array();
+            $idPh = $this->db->Param(0);
+            $mainIdField = null;
+            
+            foreach ($mainColumnsData as $mainColRow) {
+                
+                $columnName = $mainColRow['COLUMN_NAME'];
+                $showType   = $mainColRow['SHOW_TYPE'];
+                $lookupId   = $mainColRow['LOOKUP_META_DATA_ID'];
+                $inputName  = $mainColRow['INPUT_NAME'];
+                
+                if ($columnName != '' && $lookupId && !isset($mainLookupColumns[$columnName]) && ($showType == 'combo' || $showType == 'popup' || $showType == 'radio')) {
+                    
+                    $fieldConfigs = $this->db->GetAll("
+                        SELECT 
+                            UPPER(KIIM.COLUMN_NAME) AS COLUMN_NAME, 
+                            KIIM.INPUT_NAME, 
+                            KIIM.SHOW_TYPE, 
+                            KI.QUERY_STRING, 
+                            KI.TABLE_NAME
+                        FROM KPI_INDICATOR_INDICATOR_MAP KIIM 
+                            INNER JOIN KPI_INDICATOR KI ON KI.ID = KIIM.MAIN_INDICATOR_ID 
+                        WHERE KIIM.MAIN_INDICATOR_ID = $idPh 
+                            AND KIIM.INPUT_NAME IN ('META_VALUE_ID', 'META_VALUE_CODE', 'META_VALUE_NAME') 
+                        ORDER BY KIIM.INPUT_NAME ASC", 
+                        array($lookupId)
+                    );
+                    
+                    $lookupIdField = $lookupCodeField = $lookupNameField = null;
+                    
+                    foreach ($fieldConfigs as $fieldConfig) {
+                        
+                        if ($fieldConfig['INPUT_NAME'] == 'META_VALUE_ID' && $fieldConfig['COLUMN_NAME'] != '') {
+                            $lookupIdField = $fieldConfig['COLUMN_NAME'];
+                        } elseif ($fieldConfig['INPUT_NAME'] == 'META_VALUE_CODE' && $fieldConfig['COLUMN_NAME'] != '') {
+                            $lookupCodeField = $fieldConfig['COLUMN_NAME'];
+                        } elseif ($fieldConfig['INPUT_NAME'] == 'META_VALUE_NAME' && $fieldConfig['COLUMN_NAME'] != '') {
+                            $lookupNameField = $fieldConfig['COLUMN_NAME'];
+                        }
+                    }
+                    
+                    if ($lookupIdField && ($lookupCodeField || $lookupNameField)) {
+                        
+                        $mainLookupColumns[$columnName] = array(
+                            'showType'  => $showType, 
+                            'lookupId'  => $lookupId, 
+                            'idField'   => $lookupIdField, 
+                            'codeField' => $lookupCodeField, 
+                            'nameField' => $lookupNameField, 
+                            'tableName' => $fieldConfig['TABLE_NAME'], 
+                            'qryString' => $fieldConfig['QUERY_STRING']
+                        );
+                    }
+                }
+                
+                if ($inputName == 'META_VALUE_ID') {
+                    $mainIdField = $columnName;
+                }
+            }
+            
+            $executeIndicators = $this->db->GetAll("
+                SELECT 
+                    T1.ID, 
+                    T1.QUERY_STRING 
+                FROM KPI_INDICATOR_INDICATOR_MAP T0 
+                    INNER JOIN KPI_INDICATOR T1 ON T1.ID = T0.TRG_INDICATOR_ID 
+                WHERE T0.SRC_INDICATOR_ID = ".$this->db->Param(0)." 
+                    AND T0.SEMANTIC_TYPE_ID = 73 
+                    AND T1.KPI_TYPE_ID = 1043 
+                    AND T1.QUERY_STRING IS NOT NULL 
+                ORDER BY T0.ORDER_NUMBER ASC", array($mainIndicatorId));
+            
+            if ($mainLookupColumns) {
+                
+                if (!$mainIdField) {
+                    throw new Exception('Үндсэн бүтэц дээр стандарт талбар /META_VALUE_ID/ тохиргоо олдсонгүй!'); 
+                }
+                
+                $fieldsConfigs = self::importManageFieldsConfigModel($mainIndicatorId, $indicatorId);
+                
+                if (!$fieldsConfigs) {
+                    throw new Exception('Талбарын тохиргоо олдсонгүй!'); 
+                }
+                
+                $fieldsConfigMap = array();
+                
+                foreach ($fieldsConfigs as $fieldsConfig) {
+                    if ($fieldsConfig['SHOW_TYPE'] == 'combo' || $fieldsConfig['SHOW_TYPE'] == 'popup' || $fieldsConfig['SHOW_TYPE'] == 'radio') {
+                        $fieldsConfigMap[$fieldsConfig['COLUMN_NAME']] = array('columnName' => $fieldsConfig['TRG_COLUMN_NAME'], 'showType' => $fieldsConfig['SHOW_TYPE']);
+                    }
+                }
+                
+                foreach ($mainLookupColumns as $mainLookupCol => $mainLookupColRow) {
+                    
+                    $lookupTblName = $mainLookupColRow['tableName'];
+                    
+                    if ($lookupTblName) {
+                        
+                        $lookupIdField = $mainLookupColRow['idField'];
+                        $lookupCodeField = $mainLookupColRow['codeField'];
+                        $lookupNameField = $mainLookupColRow['nameField'];
+                        $mainLookupColMap = $fieldsConfigMap[$mainLookupCol]['columnName'];
+                        
+                        $joinFields = null;
+                        
+                        if (stripos(' ', $lookupTblName) !== false && stripos('select', $lookupTblName) !== false && stripos('from', $lookupTblName) !== false) {
+                            $lookupTblName = self::replaceNamedParameters('('.$lookupTblName.')'); 
+                        }
+                        
+                        if ($lookupCodeField && $lookupNameField) {
+                            $joinFields = "LOWER(TO_CHAR(T2.$lookupCodeField)) = LOWER(TO_CHAR(T1.$mainLookupColMap)) OR LOWER(TO_CHAR(T2.$lookupNameField)) = LOWER(TO_CHAR(T1.$mainLookupColMap))"; 
+                        } elseif ($lookupCodeField && !$lookupNameField) {
+                            $joinFields = "LOWER(TO_CHAR(T2.$lookupCodeField)) = LOWER(TO_CHAR(T1.$mainLookupColMap))"; 
+                        } elseif (!$lookupCodeField && $lookupNameField) {
+                            $joinFields = "LOWER(TO_CHAR(T2.$lookupNameField)) = LOWER(TO_CHAR(T1.$mainLookupColMap))"; 
+                        }
+                        
+                        $mergeSql = "MERGE INTO $tableName SRC USING 
+                                ( 
+                                    SELECT 
+                                        T1.$mainIdField AS ID, 
+                                        TO_CHAR(T2.$lookupIdField) AS LOOKUP_ID 
+                                    FROM $tableName T1 
+                                        INNER JOIN $lookupTblName T2 ON $joinFields 
+                                ) TRG ON (SRC.ID = TRG.ID) 
+                                WHEN MATCHED THEN UPDATE SET 
+                                    SRC.I_$mainLookupCol = TRG.LOOKUP_ID";
+                        
+                        $this->db->Execute($mergeSql);
+                    }
+                }
+            }
+            
+            /*foreach ($executeIndicators as $row) {
+                
+                $queryStr = $row['QUERY_STRING'];
+                $queryStr = self::replaceNamedParameters($queryStr); 
+                
+                $queryStr = str_ireplace('[SRC_TABLE]', $mainTableName, $queryStr);
+                $queryStr = str_ireplace('[TRG_TABLE]', $tableName, $queryStr);
+                
+                $this->db->Execute($queryStr);
+            }*/
+            
+            $result = array('status' => 'success');
+            
+        } catch (Exception $ex) {
+            $result = array('status' => 'error', 'message' => $ex->getMessage());
+        }
+        
+        return $result;
+    }
+    
+    public function importManageDataCommitModel() {
+        
+        try {
+            
+            $mainIndicatorId = Input::numeric('mainIndicatorId');
+            
+            $mainRow       = self::getKpiIndicatorRowModel($mainIndicatorId); 
+            $mainTableName = $mainRow['TABLE_NAME'];
+            
+            $dbMainFields = DBSql::get_fields($this->db, DB_DRIVER, $mainTableName);
+            
+            if ($dbMainFields['status'] != 'success') {
+                throw new Exception($dbMainFields['message']); 
+            }
+            
+            $mainDbFields = $dbMainFields['fields'];
+            $indicatorId  = Input::numeric('indicatorId');
+            $row          = self::getKpiIndicatorRowModel($indicatorId); 
+            $tableName    = $row['TABLE_NAME'];
+            
+            $isCheckSystemTable = self::isCheckSystemTable($mainTableName);
+            $fieldsConfigs      = self::importManageFieldsConfigModel($mainIndicatorId, $indicatorId);
+            
+            if (!$fieldsConfigs) {
+                throw new Exception('Талбарын тохиргоо олдсонгүй!'); 
+            }
+            
+            $sessionUserKeyId = Ue::sessionUserKeyId();
+            $sessionValues    = Session::get(SESSION_PREFIX . 'sessionValues');
+            $sessionName      = issetDefaultVal($sessionValues['sessionusername'], Ue::getSessionPersonWithLastName());
+            $insert = $values = $equal = $update = null;
+            
+            if (!$isCheckSystemTable) {
+                
+                $insert = 'SRC.ID, SRC.INDICATOR_ID, SRC.CREATED_DATE, SRC.CREATED_USER_ID, SRC.CREATED_USER_NAME, ';
+                $values = "TRG.ID, $indicatorId, ".$this->db->ToDate("'".Date::currentDate()."'", 'YYYY-MM-DD HH24:MI:SS').", $sessionUserKeyId, '$sessionName', ";
+                
+            } else {
+                
+                $mainColumnsData = self::getKpiIndicatorColumnsModel($mainIndicatorId, array('isGridRender' => 1, 'isIgnoreStandardFields' => true));
+                $fieldConfig     = self::getKpiIndicatorIdFieldModel($mainIndicatorId, $mainColumnsData);
+                $mainIdField     = $fieldConfig['idField'];
+                
+                if (!$mainIdField) {
+                    throw new Exception('Үндсэн бүтэц дээр стандарт талбар /META_VALUE_ID/ тохиргоо олдсонгүй!'); 
+                }
+                
+                $insert = 'SRC.'.$mainIdField.', ';
+                $values = 'TRG.ID, ';
+            }
+            
+            foreach ($fieldsConfigs as $fieldsConfig) {
+                
+                if ($fieldsConfig['COLUMN_NAME'] && $fieldsConfig['TRG_COLUMN_NAME'] && $dbField = issetParam($mainDbFields[$fieldsConfig['COLUMN_NAME']])) {
+                    
+                    $dbFieldType = $dbField['type'];
+                    
+                    if ($fieldsConfig['IS_UNIQUE'] == '1') {
+                        
+                        if ($dbFieldType == 'NUMBER' || $dbFieldType == 'INT') {
+                            $equal .= 'SRC.'.$fieldsConfig['COLUMN_NAME'].' = TO_NUMBER(TRG.'.$fieldsConfig['TRG_COLUMN_NAME'].') AND ';
+                        } elseif ($dbFieldType == 'DATE') {
+                            $equal .= 'SRC.'.$fieldsConfig['COLUMN_NAME'].' = TO_DATE(TRG.'.$fieldsConfig['TRG_COLUMN_NAME'].', \'YYYY-MM-DD HH24:MI:SS\') AND ';
+                        } else {
+                            $equal .= 'LOWER(SRC.'.$fieldsConfig['COLUMN_NAME'].') = LOWER(TRG.'.$fieldsConfig['TRG_COLUMN_NAME'].') AND ';
+                        }
+                    }
+                    
+                    $insert .= 'SRC.'.$fieldsConfig['COLUMN_NAME'].', ';
+                    
+                    if (!$isCheckSystemTable && ($fieldsConfig['SHOW_TYPE'] == 'combo' || $fieldsConfig['SHOW_TYPE'] == 'popup' || $fieldsConfig['SHOW_TYPE'] == 'radio')) {
+                        $insert .= 'SRC.'.$fieldsConfig['COLUMN_NAME'].'_DESC, ';
+                    }
+                    
+                    if ($fieldsConfig['SHOW_TYPE'] == 'combo' || $fieldsConfig['SHOW_TYPE'] == 'popup' || $fieldsConfig['SHOW_TYPE'] == 'radio') {
+                        $values .= 'TO_NUMBER(TRG.I_'.$fieldsConfig['COLUMN_NAME'].'), ';
+                        
+                        if ($fieldsConfig['IS_UNIQUE'] != '1') {
+                            $update .= 'SRC.'.$fieldsConfig['COLUMN_NAME'].' = TO_NUMBER(TRG.I_'.$fieldsConfig['COLUMN_NAME'].'), ';
+                        }
+                        
+                        if (!$isCheckSystemTable) {
+                            $values .= 'TRG.'.$fieldsConfig['TRG_COLUMN_NAME'].', ';
+                            
+                            if ($fieldsConfig['IS_UNIQUE'] != '1') {
+                                $update .= 'SRC.'.$fieldsConfig['COLUMN_NAME'].'_DESC = TRG.'.$fieldsConfig['TRG_COLUMN_NAME'].', ';
+                            }
+                        }
+                        
+                    } elseif ($dbFieldType == 'NUMBER' || $dbFieldType == 'INT') {
+                        
+                        $values .= 'TO_NUMBER(TRG.'.$fieldsConfig['TRG_COLUMN_NAME'].'), ';
+                        
+                        if ($fieldsConfig['IS_UNIQUE'] != '1') {
+                            $update .= 'SRC.'.$fieldsConfig['COLUMN_NAME'].' = TO_NUMBER(TRG.'.$fieldsConfig['TRG_COLUMN_NAME'].'), ';
+                        }
+                    } elseif ($dbFieldType == 'DATE') {
+                        
+                        $values .= 'TO_DATE(TRG.'.$fieldsConfig['TRG_COLUMN_NAME'].', \'YYYY-MM-DD HH24:MI:SS\'), ';
+                        
+                        if ($fieldsConfig['IS_UNIQUE'] != '1') {
+                            $update .= 'SRC.'.$fieldsConfig['COLUMN_NAME'].' = TO_DATE(TRG.'.$fieldsConfig['TRG_COLUMN_NAME'].', \'YYYY-MM-DD HH24:MI:SS\'), ';
+                        }
+                    } else {
+                        
+                        $values .= 'TRG.'.$fieldsConfig['TRG_COLUMN_NAME'].', ';
+                        
+                        if ($fieldsConfig['IS_UNIQUE'] != '1') {
+                            $update .= 'SRC.'.$fieldsConfig['COLUMN_NAME'].' = TRG.'.$fieldsConfig['TRG_COLUMN_NAME'].', '; 
+                        }
+                    }
+                }
+            }
+            
+            if (!$equal) {
+                throw new Exception('Үндсэн бүтэц дээр UNIQUE талбарын тохиргоо хийгдээгүй байна!'); 
+            }
+            
+            $equal = rtrim(trim($equal), 'AND');
+            $insert = rtrim(trim($insert), ',');
+            $values = rtrim(trim($values), ',');
+            $update = rtrim(trim($update), ',');
+            
+            $mergeSql = "MERGE INTO $mainTableName SRC USING 
+                ( 
+                    SELECT * FROM $tableName 
+                ) TRG ON ($equal) 
+                WHEN MATCHED THEN 
+                    UPDATE SET $update  
+                WHEN NOT MATCHED THEN 
+                    INSERT($insert) 
+                    VALUES($values)";
+            
+            $this->db->Execute($mergeSql);
+            
+            $executeIndicators = $this->db->GetAll("
+                SELECT 
+                    T1.ID, 
+                    T1.QUERY_STRING 
+                FROM KPI_INDICATOR_INDICATOR_MAP T0 
+                    INNER JOIN KPI_INDICATOR T1 ON T1.ID = T0.TRG_INDICATOR_ID 
+                WHERE T0.SRC_INDICATOR_ID = ".$this->db->Param(0)." 
+                    AND T0.SEMANTIC_TYPE_ID = 74 
+                    AND T1.KPI_TYPE_ID = 1043 
+                    AND T1.QUERY_STRING IS NOT NULL 
+                ORDER BY T0.ORDER_NUMBER ASC", array($mainIndicatorId)); 
+            
+            foreach ($executeIndicators as $row) {
+                
+                $queryStr = $row['QUERY_STRING'];
+                $queryStr = self::replaceNamedParameters($queryStr); 
+                
+                $queryStr = str_ireplace('[SRC_TABLE]', $mainTableName, $queryStr);
+                $queryStr = str_ireplace('[TRG_TABLE]', $tableName, $queryStr);
+                
+                $this->db->Execute($queryStr);
+            }
+            
+            $result = array('status' => 'success');
+            
+        } catch (Exception $ex) {
+            $result = array('status' => 'error', 'message' => $ex->getMessage());
+        }
+        
+        return $result;
+    }
     
 }

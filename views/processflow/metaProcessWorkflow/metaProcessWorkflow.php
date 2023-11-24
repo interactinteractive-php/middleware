@@ -81,7 +81,7 @@ if (!$this->isAjax) {
     
     $(function () {
         $('#metaProcessDetial').on('click', '.addVisualMetaData', function () {
-            commonMetaDataGrid('multi', 'metaGroup', 'autoSearch=1&metaTypeId=<?php echo Mdmetadata::$businessProcessMetaTypeId;?>|<?php echo Mdmetadata::$taskFlowMetaTypeId; ?>&isComplexProcess=1');
+            commonMetaDataGrid('multi', 'metaGroup', 'autoSearch=1&metaTypeId=<?php echo Mdmetadata::$businessProcessMetaTypeId;?>|<?php echo Mdmetadata::$taskFlowMetaTypeId; ?>|<?php echo Mdmetadata::$bookmarkMetaTypeId; ?>&isComplexProcess=1');
         });
 
         $('#metaProcessDetial').on('click', '.removeAllArrowData', function () {

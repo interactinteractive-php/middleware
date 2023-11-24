@@ -114,7 +114,11 @@ $(function() {
             complexProcessClass = ' wfcomplexbp';
         }
         
-        var html = '<div id="' + elem['id'] + '" data-taskFlowId="' + (elem.hasOwnProperty('taskFlowId') && elem['taskFlowId'] ? elem['taskFlowId'] : '') + '" ' +
+        if (elem.hasOwnProperty('bookmark_url') && elem.bookmark_url) {
+            isComplexProcess = '<span class="is-complex-bp" title=""><i class="icon-share2" style="color: #00c500;font-size: 13px;"></i></span>';
+        }
+        
+        var html = '<div id="' + elem['id'] + '" data-bookmarkurl="' + (elem.hasOwnProperty('bookmark_url') && elem['bookmark_url'] ? elem['bookmark_url'] : '') + '" data-taskFlowId="' + (elem.hasOwnProperty('taskFlowId') && elem['taskFlowId'] ? elem['taskFlowId'] : '') + '" ' +
                 'class="wfposition wfMenu ' + elem['type'] + complexProcessClass + ' wf-tf-'+elem['taskflowType']+' wf-tf-view-UI" onclick="runTaskFlowRenderBp(this)" ' +
                 'style=" width: ' + elem['width'] + 'px; height: ' + elem['height'] + 'px; display: inline-block; top: ' + _top + 'px; left: ' + _left + 'px;">' +
                 isComplexProcess + 
@@ -912,6 +916,11 @@ function runTaskFlowRenderBp(elem) {
     var workSpaceId = '', workSpaceParams = '';    
     var $dialogName = "dialog-taskflow-render-bp";
     var metaDataId = $this.find('[data-dobpid]').attr('data-dobpid');
+    
+    if ($this.attr('data-bookmarkurl')) {
+        window.open(URL_APP+$this.attr('data-bookmarkurl'), '_blank');
+        return;
+    }
 
     if ($this.hasClass('wfcomplexbpWorked')) {
         runTaskFlowBpLogRender(metaDataId, $this.attr('data-taskflowid'), $this);
@@ -965,7 +974,9 @@ function runTaskFlowRenderBp(elem) {
           alert("Error");
         },
     });
-    responseBpJsonData['id'] = _taskFlowSelectedRow ? _taskFlowSelectedRow.id : '';
+    if (_taskFlowSelectedRow) {
+        responseBpJsonData['id'] = _taskFlowSelectedRow.id;
+    }
   
     $.ajax({
       type: "post",
@@ -1062,7 +1073,9 @@ function runTaskFlowRenderBp(elem) {
                           addclass: "pnotify-center",
                         });
                         $dialog.dialog("close");                                          
-                        _taskFlowSelectedRow = {id: responseData.resultData._taskflowinfo.previousrecordid};
+                        if (responseData.resultData) {
+                            _taskFlowSelectedRow = {id: responseData.resultData._taskflowinfo.previousrecordid};
+                        }
                         viewVisualHtmlMetaProcessFlowData($('#mainBpId').val());
                         dataViewReload(mainDvId);
                       } else {

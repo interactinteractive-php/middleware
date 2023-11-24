@@ -5951,7 +5951,7 @@
                     var defaultCriteriaData = $("div#object-value-list-<?php echo $this->metaDataId; ?> form#default-criteria-form, form.mandatory-criteria-form-<?php echo $this->metaDataId; ?>").serialize();
                 }
             }
-            
+            var queryParams = $op.queryParams;
             var $dvMultiFilterCriteria = $(windowId_<?php echo $this->metaDataId; ?>).find('.multiple_filter_values');
             if ($dvMultiFilterCriteria.length) {
                 defaultCriteriaData += '&' + $dvMultiFilterCriteria.find('textarea').serialize();
@@ -5973,7 +5973,11 @@
                 subQueryId: $('#subQueryId-<?php echo $this->metaDataId; ?>').val(), 
                 ignoreFirstLoad: false,
                 filterColumn: $fieldName
-            };                  
+            };
+            
+            if (queryParams.hasOwnProperty('drillDownDefaultCriteria')) {
+                dvSearchParam.drillDownDefaultCriteria = queryParams.drillDownDefaultCriteria;
+            }
             
             $.ajax({
                 type: 'post',

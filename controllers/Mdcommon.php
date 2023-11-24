@@ -1943,4 +1943,18 @@ class Mdcommon extends Controller {
         } 
     }
     
+    public static function checkMatchValue($glue, $needle, $checkVal) {
+        
+        if ($needle != '') {
+            $needleArr = explode($glue, $needle);
+            foreach ($needleArr as $equalVal) {
+                if ($equalVal == $checkVal) {
+                    return true;
+                }
+            }
+        }
+        
+        return false;
+    }
+    
 }

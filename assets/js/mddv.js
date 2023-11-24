@@ -2213,6 +2213,8 @@ function dvProcessButtonsShow(dvId, selectedRow) {
                     }
                 });
                 
+                evalcriteria = evalcriteria.replace(/match\(/g, 'checkMatchValue(');
+                
                 try {
                     if (!eval(evalcriteria)) {
                         ticket = false;
@@ -2229,6 +2231,19 @@ function dvProcessButtonsShow(dvId, selectedRow) {
         
     }
     return;
+}
+function checkMatchValue(glue, needle, checkVal) {
+        
+    if (needle != '') {
+        var needleArr = needle.split(glue);
+        for (var c in needleArr) {
+            if (needleArr[c] == checkVal) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 function dvFieldValueShow(val) {
     return val != null ? val : '';

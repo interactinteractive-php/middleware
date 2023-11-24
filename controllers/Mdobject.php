@@ -3013,7 +3013,8 @@ class Mdobject extends Controller {
             $allowedExtentions = array(
                 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'xlsm', 'ppt', 'pptx', 'rtx', 'rtf', 'vsd', 'vsdx', 'json', 
                 'bmp', 'png', 'gif', 'jpg', 'jpeg', 'tiff', 'tif', 'heif', 'hevc', 'svg', 'rar', 'zip', 'ifc', 
-                'mp3', 'mp4', '3gp', 'mpeg', 'mpg', 'mpe', 'mov', 'qt', 'avi', 'movie', 'webp', 'wmv', 'db', 'html'
+                'mp3', 'mp4', '3gp', 'mpeg', 'mpg', 'mpe', 'mov', 'qt', 'avi', 'movie', 'webp', 'wmv', 'db', 'html', 
+                'dwg'
             );
 
             if (isset($readFile) && in_array($ext, $allowedExtentions)) {

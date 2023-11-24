@@ -4158,8 +4158,10 @@ class Mdprocessflow_model extends Model {
                 MPW.TASKFLOW_TYPE 
             FROM META_PROCESS_WORKFLOW MPW 
                 INNER JOIN META_DATA MD ON MD.META_DATA_ID = MPW.DO_BP_ID
-                INNER JOIN META_BUSINESS_PROCESS_LINK MBPL ON MBPL.META_DATA_ID = MD.META_DATA_ID
-            WHERE MPW.MAIN_BP_ID = $idPh", array($mainBpId));
+                LEFT JOIN META_BUSINESS_PROCESS_LINK MBPL ON MBPL.META_DATA_ID = MD.META_DATA_ID 
+                LEFT JOIN META_BOOKMARK_LINKS MBM ON MBM.META_DATA_ID = MD.META_DATA_ID
+            WHERE MPW.MAIN_BP_ID = $idPh 
+                AND (MBPL.META_DATA_ID IS NOT NULL OR MBM.META_DATA_ID IS NOT NULL)", array($mainBpId));
 
         $positionData = json_decode($metaData['ADDON_DATA']);
 
@@ -4341,11 +4343,12 @@ class Mdprocessflow_model extends Model {
                     ELSE 0 
                 END AS IS_WORKED,
                 MPW.TASKFLOW_TYPE,
+                MBM.BOOKMARK_URL,
                 T3.TASKFLOW_ID 
             FROM META_PROCESS_WORKFLOW MPW 
                 INNER JOIN META_DATA MD ON MD.META_DATA_ID = MPW.DO_BP_ID
                 INNER JOIN META_DATA MD2 ON MD2.META_DATA_ID = MPW.MAIN_BP_ID
-                INNER JOIN META_BUSINESS_PROCESS_LINK MBPL ON MBPL.META_DATA_ID = MD.META_DATA_ID
+                LEFT JOIN META_BUSINESS_PROCESS_LINK MBPL ON MBPL.META_DATA_ID = MD.META_DATA_ID
                 LEFT JOIN (
                     SELECT 
                         MTUIL.META_DATA_ID,
@@ -4354,7 +4357,9 @@ class Mdprocessflow_model extends Model {
                     LEFT JOIN META_TASKFLOW_UI_LOG MTUIL ON MTL.ID = MTUIL.TASKFLOW_LOG_ID
                     WHERE MTL.ID = ".$this->db->Param(1)."
                 ) T3 ON T3.META_DATA_ID = MD.META_DATA_ID
-            WHERE MPW.MAIN_BP_ID = $idPh", array($mainBpId, issetParam($getLastTaskFlowRow['ID'])));
+                LEFT JOIN META_BOOKMARK_LINKS MBM ON MBM.META_DATA_ID = MD.META_DATA_ID
+            WHERE MPW.MAIN_BP_ID = $idPh 
+                AND (MBPL.META_DATA_ID IS NOT NULL OR MBM.META_DATA_ID IS NOT NULL)", array($mainBpId, issetParam($getLastTaskFlowRow['ID'])));
 
         $positionData = json_decode($metaData['ADDON_DATA']);
 
@@ -4416,6 +4421,7 @@ class Mdprocessflow_model extends Model {
                     'isWorked' => $row['IS_WORKED'], 
                     'taskFlowId' => $row['TASKFLOW_ID'], 
                     'taskflowType' => $row['TASKFLOW_TYPE'], 
+                    'bookmark_url' => $row['BOOKMARK_URL'], 
                     'metaTypeId' => $row['META_TYPE_ID']
                 ));
                 $positionLeft += 300;

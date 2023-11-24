@@ -166,7 +166,8 @@ class Restapi extends Controller {
                     case 'kpiIndicatorDataListFilterConfig':
                     {
                         $kpiMainIndicatorId = Input::param($parameters['indicatorId']);
-
+                        $_POST['ignoreColName'] = Input::param($parameters['ignoreColName']);
+                        
                         $this->load->model('mdform', 'middleware/models/');
                         $result = $this->model->filterKpiIndicatorValueFormModel($kpiMainIndicatorId);
 

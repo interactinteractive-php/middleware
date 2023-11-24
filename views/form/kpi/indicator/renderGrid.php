@@ -16,7 +16,7 @@
                 <div class="col-md-12">
                     
                     <?php
-                    if (!isset($this->isBasket) && Input::post('isIgnoreTitle') != '1') {
+                    if (!isset($this->isBasket) && Input::numeric('isIgnoreTitle') != '1') {
                     ?>
                     <div class="text-uppercase font-weight-bold mt-0 mb-2">
                         <?php echo $this->title; ?>
@@ -263,6 +263,8 @@
                                                             $opt = ', {fillSelectedRow: true, mode: \'view\'}';
                                                         } elseif ($isDfillRelation) {
                                                             $opt = ', {fillDynamicSelectedRow: true, mode: \'view\'}';
+                                                        } else {
+                                                            $opt = ', {mode: \'view\'}';
                                                         }
                                                         
                                                         $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '$srcIndicatorId', true$opt);";
@@ -340,10 +342,55 @@
                                                 '<i class="far fa-database"></i> iFrame', false
                                             ); 
                                         }
+                                        
+                                        if (isset($this->isImportManage) && $this->isImportManage) {
+                                            
+                                            echo html_tag('a', 
+                                                array(
+                                                    'class' => 'btn btn-info btn-circle btn-sm', 
+                                                    'onclick' => 'mvImportManageFieldsConfig(this, \''.$this->indicatorId.'\', \''.$this->mainIndicatorId.'\');', 
+                                                    'href' => 'javascript:;'
+                                                ), 
+                                                '<i class="far fa-cogs"></i> Талбарын тохиргоо', true
+                                            ); 
+                                            
+                                            echo html_tag('a', 
+                                                array(
+                                                    'class' => 'btn btn-warning btn-circle btn-sm', 
+                                                    'onclick' => 'mvImportManageDataCheck(this, \''.$this->indicatorId.'\', \''.$this->mainIndicatorId.'\');', 
+                                                    'href' => 'javascript:;'
+                                                ), 
+                                                '<i class="far fa-check"></i> Шалгах', true
+                                            ); 
+                                            
+                                            echo html_tag('a', 
+                                                array(
+                                                    'class' => 'btn btn-success btn-circle btn-sm', 
+                                                    'onclick' => 'mvImportManageDataUpdate(this, \''.$this->indicatorId.'\', \''.$this->mainIndicatorId.'\');', 
+                                                    'href' => 'javascript:;'
+                                                ), 
+                                                '<i class="far fa-database"></i> Update', true
+                                            ); 
+                                            
+                                            echo html_tag('a', 
+                                                array(
+                                                    'class' => 'btn btn-success btn-circle btn-sm', 
+                                                    'onclick' => 'mvImportManageDataCommit(this, \''.$this->indicatorId.'\', \''.$this->mainIndicatorId.'\');', 
+                                                    'href' => 'javascript:;'
+                                                ), 
+                                                '<i class="far fa-database"></i> Commit', true
+                                            ); 
+                                        ?>
+                                        <div class="mv-imp-manage-info d-inline-block ml-4"></div>
+                                        <?php
+                                        }
                                         ?>
                                     </div>
                                 </div>
                             </div>
+                            <?php    
+                            if (Input::numeric('isIgnoreRightTools') != 1) {
+                            ?>
                             <div class="dv-right-tools-btn ml-2 text-right">
                                 <div class="btn-group btn-group-devided">
                                     <?php
@@ -373,6 +420,9 @@
                                     ?>
                                 </div>
                             </div>
+                            <?php
+                            }
+                            ?>
                         </div>
                     </div>
                 </div>    
@@ -521,8 +571,13 @@ $(function() {
             }
         }
         ?> 
-        frozenColumns: [[{field: 'ck', rowspan:1, checkbox: true }]],
-        columns: [[<?php echo $this->columns['columnsRender']; ?>]],
+        frozenColumns: [
+            [{field: 'ck', rowspan:1, checkbox: true }]
+        ],
+        columns: [
+            <?php echo $this->columns['comboColumnsRender']; ?> 
+            [<?php echo $this->columns['columnsRender']; ?>]
+        ],
         onSelectAll: function() {
             dvSelectionCountToFooter_<?php echo $this->indicatorId; ?>();
         }, 
@@ -597,7 +652,7 @@ $(function() {
                     
                     $menu['onClick'] = str_replace('this', '$a', $menu['onClick']);
                     
-                    $menuCallBack .= 'if (key === \''.$menu['crudIndicatorId'].'\') { ';
+                    $menuCallBack .= 'if (key === \''.$menu['crudIndicatorId'].'_'.$menu['data-actiontype'].'\') { ';
                         
                         $menuCallBack .= 'var $a = $(\'<a />\'); ';
                         $menuCallBack .= '$a.attr(\'data-actiontype\', \''.$menu['data-actiontype'].'\')';
@@ -611,7 +666,7 @@ $(function() {
                         $menuCallBack .= $menu['onClick'];
                     $menuCallBack .= '} ';
                     
-                    $menuItems .= '"'.$menu['crudIndicatorId'].'": {name: \''.$menu['labelName'].'\', icon: \''.$menu['iconName'].'\'}, ';
+                    $menuItems .= '"'.$menu['crudIndicatorId'].'_'.$menu['data-actiontype'].'": {name: \''.$menu['labelName'].'\', icon: \''.$menu['iconName'].'\'}, ';
                 }
             ?>
             $.contextMenu({
@@ -653,6 +708,16 @@ $(function() {
         <?php
         } else {
         ?>
+        onBeforeLoad: function(param) { 
+            <?php
+            if (isset($this->isImportManage) && $this->isImportManage) {
+            ?>
+            var $panelView = objectdatagrid_<?php echo $this->indicatorId; ?>.datagrid('getPanel').children('div.datagrid-view');
+            Core.initSelect2($panelView.find('.datagrid-view2 .datagrid-header-row:eq(0)'));
+            <?php
+            }
+            ?>
+        },
         onLoadSuccess: function(data) {
         <?php
         }
@@ -702,8 +767,8 @@ $(function() {
                 ?>
             }
 
-            $('div.div-objectdatagrid-<?php echo $this->indicatorId; ?>').find("input.datagrid-filter[data-filter='1']").removeAttr('data-filter');                               
-
+            $('div.div-objectdatagrid-<?php echo $this->indicatorId; ?>').find("input.datagrid-filter[data-filter='1']").removeAttr('data-filter');
+                                    
             if ($panelFilterRow.length) {
                 Core.initNumberInput($panelFilterRow);
                 Core.initDateInput($panelFilterRow);

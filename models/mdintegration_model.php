@@ -1885,6 +1885,7 @@ class Mdintegration_model extends Model {
         
         if ($getTokenUrl) {
             
+            $authToken = Config::getFromCache('bankIntegrationGetTokenCustomURLKhaanAuthToken');
             $curl = curl_init();
 
             $opts = array(
@@ -1894,9 +1895,11 @@ class Mdintegration_model extends Model {
                 CURLOPT_MAXREDIRS => 10,
                 CURLOPT_TIMEOUT => 10,
                 CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_SSL_VERIFYHOST => false,
                 CURLOPT_CUSTOMREQUEST => 'GET',
                 CURLOPT_HTTPHEADER => array(
-                    "Authorization: Bearer ae5ybrt28c68rjbo3yywu56npwtxc19d",
+                    "Authorization: Bearer $authToken",
                     "Content-Type: application/json; charset=utf-8"
                 )
             );

@@ -211,7 +211,7 @@ function renderAddModeIndicatorTab(uniqId, indicatorId, type, elem) {
 }
 
 <?php echo $this->fullExp['varFnc']; ?>   
-    
+
 $(function() {
     
     $kpiTmp_<?php echo $this->uniqId; ?>.on('keyup paste cut', 'input.kpiDecimalInit', function(e){
@@ -858,6 +858,11 @@ $(function() {
         
         dtlAggregateFunction_<?php echo $this->uniqId; ?>();
     });   
+    
+    $kpiTmp_<?php echo $this->uniqId; ?>.on('click', '.bp-tabs > ul > li > a', function () {
+        var $this = $(this), $target = $kpiTmp_<?php echo $this->uniqId; ?>.find($this.attr('href'));
+        Core.initTextareaAutoHeight($target);
+    });
     
     <?php
     if (Mdform::$isRowsReplacePath) {

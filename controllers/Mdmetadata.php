@@ -1426,6 +1426,7 @@ class Mdmetadata extends Controller {
     public static function criteriaMethodReplacer($rules) {
         $rules = str_replace('isclosedfiscalperiod', '(new Mdcommon())->isClosedFiscalPeriod', $rules);
         $rules = str_replace('checkdatapermission', '(new Mdcommon())->checkDataPermission', $rules);
+        $rules = str_replace('match(', 'Mdcommon::checkMatchValue(', $rules);
         return $rules;        
     }
 

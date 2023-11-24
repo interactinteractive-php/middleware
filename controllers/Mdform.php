@@ -1208,13 +1208,7 @@ class Mdform extends Controller {
                 $this->view->isKpiIndicatorRender = issetParam($paramData['isKpiIndicatorRender']); 
                 $this->view->actionType = issetParam($paramData['actionType']); 
                 $this->view->recordMapRender = '';
-                $this->view->uniqId = getUID();   
-                
-                if (Mdform::$defaultTplSavedId) {
-                    $this->view->addonTabs = self::renderEditModeIndicatorTab($this->view->uniqId, $dataFirstRow, Mdform::$defaultTplSavedId); 
-                } else {
-                    $this->view->addonTabs = self::renderAddModeIndicatorTab($this->view->uniqId, $dataFirstRow); 
-                }
+                $this->view->uniqId = getUID();                  
                 
                 if (isset($structureIndicatorRow)) {
                     
@@ -1249,6 +1243,13 @@ class Mdform extends Controller {
                 
                 $this->view->fullExp = self::indicatorFullExpression($this->view->uniqId, $this->view->indicatorId, $this->view->kpiTypeId);
                 $this->view->flowchartscripts = '';
+                
+                $rid = Mdform::$defaultTplSavedId ? Mdform::$defaultTplSavedId : Mdform::$firstTplId;
+                if ($rid) {
+                    $this->view->addonTabs = self::renderEditModeIndicatorTab($this->view->uniqId, $dataFirstRow, $rid); 
+                } else {
+                    $this->view->addonTabs = self::renderAddModeIndicatorTab($this->view->uniqId, $dataFirstRow); 
+                }                
                 
                 $this->view->mainTabName = 'Үндсэн';
                 $this->view->componentRenderType = 'tab';
@@ -1287,6 +1288,7 @@ class Mdform extends Controller {
                 }
                 
                 if ($this->view->kpiTypeId == '2013') {
+                    
                     $this->view->additionalInfo = $this->model->getIndicatorAdditionalInfoModel($this->view->kpiTypeId, $this->view->indicatorId);
                     
                     if (isset($this->view->additionalInfo['STRUCTURE_LIMIT']) && isset($this->view->additionalInfo['STRUCTURE_TAB_NAME'])) {
@@ -1721,7 +1723,7 @@ class Mdform extends Controller {
                 $this->view->filter = $this->model->validateFilters($this->view->indicatorId, $filter);
             }
         
-            $this->view->columns = $this->model->renderKpiIndicatorColumnsModel($this->view->indicatorId, $this->view->row['isCheckSystemTable'], $this->view->columnsData);
+            $this->view->columns = $this->model->renderKpiIndicatorColumnsModel($this->view->indicatorId, $this->view->row['isCheckSystemTable'], array('columnsData' => $this->view->columnsData));
             $this->view->renderGrid = $this->view->renderPrint('kpi/indicator/renderGrid', self::$viewPath);
         }
         
@@ -1905,7 +1907,7 @@ class Mdform extends Controller {
         }
         
         $this->view->process = $expression['buttons'];
-        $this->view->columns = $this->model->renderKpiIndicatorColumnsModel($this->view->indicatorId, $this->view->row['isCheckSystemTable'], $this->view->columnsData);
+        $this->view->columns = $this->model->renderKpiIndicatorColumnsModel($this->view->indicatorId, $this->view->row['isCheckSystemTable'], array('columnsData' => $this->view->columnsData));
 
         $this->view->renderGrid = $this->view->renderPrint('kpi/indicator/renderGrid', self::$viewPath);
         
@@ -3423,7 +3425,7 @@ class Mdform extends Controller {
                 }
 
                 $this->view->process = $this->model->getKpiIndicatorProcessWidgetModel($this->view->indicatorId, $mapId);
-                $this->view->columns = $this->model->renderKpiIndicatorColumnsModel($this->view->indicatorId, $this->view->row['isCheckSystemTable'], $this->view->columnsData);
+                $this->view->columns = $this->model->renderKpiIndicatorColumnsModel($this->view->indicatorId, $this->view->row['isCheckSystemTable'], array('columnsData' => $this->view->columnsData));
                 
                 $this->view->postHiddenParams = $postHiddenParams;
                 $this->view->renderGrid = $this->view->renderPrint('kpi/indicator/renderGrid', self::$viewPath);
@@ -5181,6 +5183,7 @@ class Mdform extends Controller {
     
     public function createMvStructureFromFileForm() {
         $this->view->indicatorId = Input::numeric('indicatorId');
+        $this->view->isImportManage = Input::numeric('isImportManage');
         
         if ($this->view->indicatorId) {
             $configRow = $this->model->getKpiIndicatorRowModel($this->view->indicatorId);
@@ -5458,16 +5461,6 @@ class Mdform extends Controller {
         $components = $this->model->getKpiIndicatorMapWithoutTypeModel($this->view->indicatorId, 10000009);                    
                     
         $this->view->savedComponentRows = $this->model->getSavedRecordMapKpiModel($this->view->indicatorId, $this->view->indicatorId, $components);
-        
-        // $componentTabs = Arr::groupByArray($components, 'DESCRIPTION');
-        
-        // foreach ($componentTabs as $componentTabName => $componentTab) {
-            
-        //     $this->view->componentUniqId = getUID();
-        //     $this->view->components = $componentTab['rows'];
-            
-        //     Mdform::$topTabRenderShow[$this->lang->line($componentTabName)] = array($this->view->renderPrint('kpi/indicator/recordmap/recordmap', self::$viewPath));
-        // }
 
         $this->view->componentUniqId = getUID();
         $this->view->fromWebLink = true;
@@ -5867,12 +5860,161 @@ class Mdform extends Controller {
     
     public function runPivotDataMartTest() {
         $rs = $this->model->runPivotDataMartModel('16980343878036');
-        var_dump($rs);die;
+        var_dump($rs);
     }
     
     public function getKpiIOIndicatorColumns() {
         $getParamInput = $this->model->getKpiIOIndicatorColumnsModel(Input::post('mainIndicatorId'), 1);
         echo json_encode($getParamInput, JSON_UNESCAPED_UNICODE);
     }
+    
+    public function importManage() {
+        $selectedRow = Arr::decode(Input::post('selectedRow'));
+        
+        $this->view->mainIndicatorId = $selectedRow['dataRow']['id'];
+        $this->view->renderChildDataSets = self::renderChildDataSets($this->view->mainIndicatorId, true);
+        
+        $this->view->render('kpi/indicator/importfile/importManage', self::$viewPath);
+    }
+    
+    public function renderChildDataSets($mainIndicatorId, $isReturn = false) {
+        $this->view->dataList = $this->model->getChildDataSetsModel($mainIndicatorId);
+        
+        if ($isReturn) {
+            return $this->view->renderPrint('kpi/indicator/importfile/renderChildDataSets', self::$viewPath);
+        } else {
+            $this->view->render('kpi/indicator/importfile/renderChildDataSets', self::$viewPath);
+        }
+    }
+    
+    public function indicatorImportList() {
+        
+        $this->load->model('mdform', 'middleware/models/');
+        
+        $this->view->indicatorId = Input::numeric('indicatorId');
+        $this->view->mainIndicatorId = Input::numeric('mainIndicatorId');
+        
+        if ($this->view->indicatorId == '' || $this->view->mainIndicatorId == '') {
+            echo 'Invalid indicatorId!'; exit;
+        }
+        
+        $this->view->row = $this->model->getKpiIndicatorRowModel($this->view->indicatorId);
+        
+        if (!isset($this->view->row['NAME'])) {
+            Message::add('e', '', 'back');
+        }
+        
+        $this->view->isAjax = is_ajax_request();
+        
+        $this->view->title = $this->lang->line($this->view->row['NAME']);
+        $this->view->indicatorCode = $this->view->row['CODE'];
+        
+        $this->view->row['isGridRender'] = 1;
+        $this->view->row['isIgnoreStandardFields'] = true;
+        
+        $this->view->columnsData = $this->model->getKpiIndicatorColumnsModel($this->view->indicatorId, $this->view->row);
+        
+        $this->view->row['isGridRender'] = 0;
+        $this->view->mainColumnsData = $this->model->getKpiIndicatorColumnsModel($this->view->mainIndicatorId, $this->view->row);
+        $this->view->mainRow = $this->model->getKpiIndicatorRowModel($this->view->mainIndicatorId);
+        
+        $fieldConfig = $this->model->getKpiIndicatorIdFieldModel($this->view->indicatorId, $this->view->columnsData);
+        
+        $this->view->idField = $fieldConfig['idField'];
+        $this->view->codeField = $fieldConfig['codeField'];
+        $this->view->nameField = $fieldConfig['nameField'];
+        $this->view->parentField = $fieldConfig['parentField'];
+        $this->view->coordinateField = $fieldConfig['coordinateField'];
+        
+        $this->view->isGridType = 'datagrid';
+        $this->view->isTreeGridData = '';
+        $this->view->isUseWorkflow = $this->view->row['IS_USE_WORKFLOW'];
+        $this->view->isFilterShowData = $this->view->row['IS_FILTER_SHOW_DATA'];
+        $this->view->isPrint = $this->view->row['COUNT_REPORT_TEMPLATE'] ? true : false;
+        
+        $this->view->isDataMart = $this->view->row['KPI_TYPE_ID'] == '1040' ? true : false; 
+        $this->view->isCallWebService = ($this->view->row['KPI_TYPE_ID'] == '1080' || $this->view->row['KPI_TYPE_ID'] == '1160' || $this->view->row['KPI_TYPE_ID'] == '1161');
+        $this->view->isRawDataMart = $this->view->row['KPI_TYPE_ID'] == '1044' ? true : false;
+        $this->view->isCheckQuery = $this->view->row['KPI_TYPE_ID'] == '1200' ? true : false;
+        $this->view->drillDownCriteria = '';
+        $this->view->postHiddenParams = '';
+        $this->view->filter = '';
+        $this->view->isIgnoreFilter = true;
+        $this->view->isImportManage = true;
+        
+        $_POST['isIgnoreTitle'] = 1;
+        $_POST['isIgnoreRightTools'] = 1;
+        
+        $this->view->process = array(); //$this->model->getKpiIndicatorProcessImportManageModel($this->view->indicatorId);
+        
+        /*foreach ($this->view->mainColumnsData as $k => $mainColumnsData) {
+            
+            if (!$this->view->mainRow['isCheckSystemTable'] && ($mainColumnsData['SHOW_TYPE'] == 'combo' || $mainColumnsData['SHOW_TYPE'] == 'popup' || $mainColumnsData['SHOW_TYPE'] == 'radio')) {
+                $this->view->mainColumnsData[$k]['COLUMN_NAME'] = $mainColumnsData['COLUMN_NAME'] . '_DESC';
+            } 
+            
+            if ($mainColumnsData['IS_UNIQUE'] == '1') {
+                $this->view->mainColumnsData[$k]['ICON_LABEL_NAME'] = '🔑 ' . $mainColumnsData['LABEL_NAME'];
+            } else {
+                $this->view->mainColumnsData[$k]['ICON_LABEL_NAME'] = $mainColumnsData['LABEL_NAME'];
+            }
+        }
+        
+        $headerCombo = Form::select(array(
+            'data'     => $this->view->mainColumnsData, 
+            'class'    => 'form-control form-control-sm select2', 
+            'op_value' => 'COLUMN_NAME', 
+            'op_text'  => 'ICON_LABEL_NAME'
+        ));*/
+        
+        $this->model->mvGridStylerModel($this->view->indicatorId);
 
+        $this->view->columns = $this->model->renderKpiIndicatorColumnsModel($this->view->indicatorId, $this->view->row['isCheckSystemTable'], array(
+            'columnsData' => $this->view->columnsData, 
+            //'headerCombo' => $headerCombo, 
+            //'mainColumnsData' => $this->view->mainColumnsData
+        ));
+
+        $this->view->renderGrid = $this->view->renderPrint('kpi/indicator/renderGrid', self::$viewPath);
+        
+        $this->view->render('kpi/indicator/list', self::$viewPath);
+    }
+    
+    public function importManageFieldsConfig() {
+        $this->view->indicatorId = Input::numeric('indicatorId');
+        $this->view->mainIndicatorId = Input::numeric('mainIndicatorId');
+        $this->view->srcFields = $this->model->importManageFieldsConfigModel($this->view->mainIndicatorId, $this->view->indicatorId);
+        $this->view->trgFields = $this->model->getKpiIndicatorColumnsModel($this->view->indicatorId, array('isGridRender' => 1, 'isIgnoreStandardFields' => true));
+        
+        $this->view->trgCombo = Form::select(array(
+            'name'     => 'trgId[]', 
+            'data'     => $this->view->trgFields, 
+            'class'    => 'form-control form-control-sm select2', 
+            'op_value' => 'ID', 
+            'op_text'  => 'COLUMN_NAME| |-| |LABEL_NAME'
+        ));
+        
+        $this->view->render('kpi/indicator/importfile/importManageFieldsConfig', self::$viewPath);
+    }
+    
+    public function importManageFieldsConfigSave() {
+        $response = $this->model->importManageFieldsConfigSaveModel();
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+    }
+    
+    public function importManageDataCheck() {
+        $response = $this->model->importManageDataCheckModel();
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+    }
+    
+    public function importManageDataUpdate() {
+        $response = $this->model->importManageDataUpdateModel();
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+    }
+    
+    public function importManageDataCommit() {
+        $response = $this->model->importManageDataCommitModel();
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+    }
+    
 }

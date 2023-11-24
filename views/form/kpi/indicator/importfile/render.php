@@ -203,6 +203,7 @@ var mvFileReader = new FileReader();
 var mvFileReaderExtention = '';
 var mvFileWorkbook;
 var mvFileRowsdata;
+var mvFileIsImportManage = <?php echo $this->isImportManage; ?>;
     
 $(function() {
     
@@ -210,7 +211,13 @@ $(function() {
         
         var $fileInput = $(this);
         var file = $fileInput[0].files[0];
-        mvFileReaderExtention = ((file.name).split('.').pop()).toLowerCase();
+        var fileName = file.name;
+        
+        if (mvFileIsImportManage) {
+            $form.find('input[name="name"]').val(fileName);
+        }
+        
+        mvFileReaderExtention = (fileName.split('.').pop()).toLowerCase();
         
         if (mvFileReaderExtention == 'txt') {
             mvFileReader.readAsText(file, 'UTF-8');
@@ -291,7 +298,7 @@ function mvFileToHtmlTable(isInputRead) {
             sheetRange.s.c = skipColumns; //start column
             getSheet['!ref'] = XLSX.utils.encode_range(sheetRange);
             
-            mvFileRowsdata = XLSX.utils.sheet_to_json(getSheet, {header: 1, raw: false, dateNF: 'YYYY-MM-DD'});
+            mvFileRowsdata = XLSX.utils.sheet_to_json(getSheet, {header: 1, raw: false, defval: '', dateNF: 'YYYY-MM-DD'});
         }
         
         var rowsData = mvFileRowsdata;

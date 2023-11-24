@@ -7466,7 +7466,8 @@ function setBpRowParamDisable(mainSelector, elem, fieldPath) {
     if (elem === 'open' && $selectPath.length) {
         if ($selectPath.prop('tagName') == 'SELECT') {
             if ($selectPath.hasClass('select2')) {                
-                $selectPath.select2('readonly', true);
+                //$selectPath.select2('readonly', true);
+                mainSelector.find("div[data-s-path='"+fieldPath+"']").addClass('select2-container-disabled');
             } else {
                 $selectPath.attr('style', 'pointer-events: none; background-color: #eeeeee !important;');
             }
@@ -13901,6 +13902,75 @@ function bpCallStatementByExp(mainSelector, elem, statementId, params, dialogSiz
 function bpCallWorkspaceByExp(mainSelector, elem, workSpaceId, workSpaceName) {
     appMultiTab({metaDataId: workSpaceId, title: workSpaceName, type: 'workspace'}, elem);
 }
+function bpCallIndicatorDataViewByExp(mainSelector, elem, dvId, params, dialogSize) {
+    var drillDownCriteria = '';
+    
+    if (params) {
+        var paramsArr = params.split('|'), paramsLength = paramsArr.length;
+        
+        for (var i = 0; i < paramsLength; i++) {
+            
+            var fieldPathArr = paramsArr[i].split('@'), 
+                fieldPath = fieldPathArr[0].trim(), 
+                inputPath = fieldPathArr[1].trim(), 
+                fieldValue = '', 
+                $bpElem = getBpElement(mainSelector, elem, fieldPath),
+                $bpViewElem = getBpRowParamViewVal(mainSelector, elem, fieldPath);
+
+            if ($bpElem) {
+                if ($bpElem.hasClass('popupInit')) {
+                    var $parent = $bpElem.closest('.meta-autocomplete-wrap'), 
+                        $hiddenInputs = $parent.find('input[type=hidden]');
+
+                    fieldValue = $hiddenInputs.map(function(){ return this.value; }).get().join(',');
+                } else {
+                    fieldValue = getBpRowParamNum(mainSelector, elem, fieldPath);
+                }
+            } else if ($bpViewElem) {
+                fieldValue = $bpViewElem;
+            } else {
+                fieldValue = fieldPath;
+            }
+            drillDownCriteria += inputPath + '=' + fieldValue + '&';
+        }
+        
+        drillDownCriteria = rtrim(drillDownCriteria, '&');
+    }
+    
+    var isFullScreen = false, dialogWidth = 800, dataGridDefaultHeight = 450, isNewTab = false;
+            
+    if (typeof dialogSize !== 'undefined' && dialogSize != '') {
+        if (dialogSize == 'fullscreen') {
+            isFullScreen = true;
+            dataGridDefaultHeight = $(window).height() - 160;
+        } else if (dialogSize.indexOf('width:') !== -1) {
+            dialogWidth = dialogSize.replace('width:', '').trim();
+        } else if (dialogSize == 'tab') {
+            isNewTab = true;
+        }
+    }
+    
+    var drillPostParam = {indicatorId: dvId, drillDownCriteria: drillDownCriteria, isJson: 1};
+                                
+    if (isNewTab == false) {
+        drillPostParam.isDrilldown = 1;
+        drillPostParam.isIgnoreTitle = 1;
+    }
+
+    $.ajax({
+        type: 'post',
+        url: 'mdform/indicatorList/'+dvId+'/1',
+        data: drillPostParam,
+        dataType: 'json', 
+        success: function(content) {
+            if (isNewTab) {
+                appMultiTabByContent({ metaDataId: dvId, title: content.title, type: 'indicator', content: content.html });
+            } else {
+                mvOpenDialog({ metaDataId: dvId, title: content.title, type: 'indicatorList', content: content.html });
+            }
+        }
+    });
+}
 function bpGetWhat3words(mainSelector, elem, coordinate) {
     
     if (typeof coordinate === 'undefined' || coordinate == null || coordinate == '') {
@@ -16216,16 +16286,26 @@ function transferSplitValueToHdrFunction(mainSelector, srcSplitPath, trgGroupPat
             } 
             
         } else {
-            if ($bpElemHdr.hasClass('popupInit') || $bpElemHdr.hasClass('combogridInit')) {
-                var valIds = $comboValues.join(',');
-                /*if (valIds.indexOf(',') !== -1) {
-                    setLookupPopupValueMulti($parent, $codeField, _processId, _lookupId, _paramRealPath, valId);
-                } else {
+            var $comboValuesTmp = [];
+            $.each($comboValues, function (ci, cr) {
+                if (cr) {
+                    $comboValuesTmp.push(cr);
+                }
+            });
+            
+            $comboValues = $comboValuesTmp;
+            if ($comboValues) {
+                if ($bpElemHdr.hasClass('popupInit') || $bpElemHdr.hasClass('combogridInit')) {
+                    var valIds = $comboValues.join(',');
+                    /*if (valIds.indexOf(',') !== -1) {
+                        setLookupPopupValueMulti($parent, $codeField, _processId, _lookupId, _paramRealPath, valId);
+                    } else {
+                        setLookupPopupValue($bpElemHdr, valIds);
+                    }*/
                     setLookupPopupValue($bpElemHdr, valIds);
-                }*/
-                setLookupPopupValue($bpElemHdr, valIds);
-            } else {
-                $bpElemHdr.val($comboValues.join(','));
+                } else {
+                    $bpElemHdr.val($comboValues.join(','));
+                }
             }
         } 
         
@@ -18550,9 +18630,6 @@ function codeFormatter(type, sourceXml) {
 }
 function detectCustomerFromRegion(lookupKeyDv, dtlPath, region, elem) {
     if (!region) return;
-    //console.log('customerCoordinate', customerCoordinate);
-//    console.log('lookupKeyDv', lookupKeyDv);
-//    console.log('dtlPath', dtlPath);
     
     var $this = $(elem);
     var googleMapDrawStaticDataList = [], customerIds = [];
@@ -18560,110 +18637,15 @@ function detectCustomerFromRegion(lookupKeyDv, dtlPath, region, elem) {
     var $bpWrapper = $this.closest('form').parent();
     var bpUniqId = $bpWrapper.attr('data-bp-uniq-id');
     var bpId = $bpWrapper.attr('data-process-id');
-//    console.log('regionRows', regionRows);
     
     if (window.google && google.maps && currentPolygon && window['kpiMarkerObject']) {
         for (var i = 0; i < window['kpiMarkerObject'].length; i++) {
             if (google.maps.geometry.poly.containsLocation(window['kpiMarkerObject'][i].getPosition(), currentPolygon)) {
                 customerIds.push({"customerid":window['kpiMarkerObject'][i]['rowData']['CUSTOMERID']});
             }
-        }    
-//        var $table = mainSelector.find("[data-table-path='"+dtlPath+"']");
-//        var $savedRows = $table.find("> .tbody > .bp-detail-row.saved-bp-row");
-//        var $unSavedRows = $table.find("> .tbody > .bp-detail-row:not(.saved-bp-row)");
-//        
-//        if ($unSavedRows.length) {
-//            $unSavedRows.remove();
-//        }
-        
-//        if ($savedRows.length) {
-//            for (var cus = 0; cus < customerIds.length; cus++) {
-//                if ($savedRows.find('[value="1453771193757"]').length) {
-//                    
-//                }
-//            }
-//            $savedRows.addClass('removed-tr d-none');
-//            $savedRows.find('input[data-field-name="rowState"]').val('removed');
-//            $savedRows.find("input.bigdecimalInit, input.decimalInit, input.numberInit, input.integerInit, input.longInit, input[data-path*='_bigdecimal']").attr('data-not-aggregate', '1');
-//            bpDetailRowNumbering($table);
-//        } else {        
-            window['selectedRowsBpAddRow_'+bpUniqId]($("table[data-table-path='" + dtlPath + "']", "div[data-bp-uniq-id='"+bpUniqId+"']"), bpId, dtlPath, lookupKeyDv, customerIds, 'autocomplete');
-//        }
+        }       
+        window['selectedRowsBpAddRow_'+bpUniqId]($("table[data-table-path='" + dtlPath + "']", "div[data-bp-uniq-id='"+bpUniqId+"']"), bpId, dtlPath, lookupKeyDv, customerIds, 'autocomplete');
         return;
-    
-//        var bounds = new google.maps.LatLngBounds(
-//          new google.maps.LatLng(37.7749, -122.4194), // Southwest corner of the region (San Francisco)
-//          new google.maps.LatLng(37.8094, -122.3925) // Northeast corner of the region
-//        );
-//
-//        if (!$('#md-detectcustomermap-canvas').length) {
-//          $('<div id="md-detectcustomermap-canvas"></div>').appendTo("body");
-//        }        
-//        // Create a map object centered on the region
-//        var map = new google.maps.Map(document.getElementById("md-detectcustomermap-canvas"), {
-//            zoom: 5,
-//            center: { lat: 24.886, lng: -70.268 }
-//        });
-//
-//        for (var mm = 0; mm < customerCoordinate.length; mm++) {
-//            var laln = customerCoordinate[mm]['coordinate'].split('|');
-//            var marker = new google.maps.Marker({
-//                position: new google.maps.LatLng(laln[0], laln[1]),
-//                customerId: customerCoordinate[mm]['rowData']['CUSTOMERID'],
-//                icon: 'mdcommon/svgIconByColor/green/marker',
-//                animation: google.maps.Animation.DROP,
-//                map: map
-//            });
-//            marker.setMap(map);    
-//            googleMapDrawStaticDataList.push(marker);
-//        }
-//
-//        // Define the LatLng coordinates for the polygon's path.
-//        const triangleCoords = regionRows.coordinates;
-//
-//        var polArr = [];
-//        // Construct the polygon.
-//        const bermudaTriangle = new google.maps.Polygon({
-//          paths: triangleCoords,
-//          poool: 1,
-//          strokeColor: "#FF0000",
-//          strokeOpacity: 0.8,
-//          strokeWeight: 2,
-//          fillColor: "#FF0000",
-//          fillOpacity: 0.35
-//        });
-//
-//        bermudaTriangle.setMap(map);    
-//        polArr.push(bermudaTriangle);
-//
-//        // Loop through all markers on the map
-//        var markers = googleMapDrawStaticDataList;
-//
-//        setTimeout(function() {
-//            for (var i=0; i<markers.length; i++) {
-//                if (google.maps.geometry.poly.containsLocation(markers[i].getPosition(), bermudaTriangle)) {
-//                    customerIds.push({"customerid":markers[i]['customerId']});
-//                }
-//            }    
-//            console.log('found customer', customerIds);
-//            window['selectedRowsBpAddRow_'+bpUniqId]($("table[data-table-path='" + dtlPath + "']", "div[data-bp-uniq-id='"+bpUniqId+"']"), bpId, dtlPath, lookupKeyDv, customerIds, 'autocomplete');
-//        }, 1000);
-
-//        setTimeout(function() {
-//            for (var i=0; i<polArr.length; i++) {
-//                if (google.maps.geometry.poly.containsLocation(markers[1].getPosition(), polArr[i])) {
-//                    console.log(polArr[i]);
-//                }
-//            }    
-//        }, 1000);
-
-        // Filter the markers to those within the bounds of the region
-    //    var markersInBounds = markers.filter(function(marker) {
-    //      return bounds.contains(marker.getPosition());
-    //    });
-    //
-    //    // Use the markersInBounds array as needed
-    //    console.log(markersInBounds);
     }
 }
 function refreshCustomerRegion(segmentid, segmentnamepath, segmentnamevalue, segmentcolorvaluepath, segmentcolorvalue) {
@@ -18763,12 +18745,43 @@ function bpPanelSelectedRowRemoveBoldStyle(mainSelector) {
     return;
 }
 function bpSetMetaVerseFieldValue(mainSelector, elem, field, val) {
-    var $form = mainSelector.find('.kpi-ind-tmplt-section');
+    if (mainSelector.hasClass('kpi-ind-tmplt-section')) {
+        var $form = mainSelector;
+    } else {
+        var $form = mainSelector.find('.kpi-ind-tmplt-section');
+    }
+    
     if ($form.length) {
         if (field.toLowerCase() == 'primaryid') {
             $form.find('input[name="kpiTblId"], input[name="sf[ID]"]').val(val);
         } else {
-            $form.find('[data-path="'+field+'"]').val(val);
+            var $field = $form.find('[data-path="'+field+'"]');
+            if ($field.length) { 
+                if ($field.hasClass('select2')) {
+                    $field.select2('val', val);
+                    var $descName = $field.next('input[name*="_DESC]"]');
+                    if ($descName.length) {
+                        var descName = '';
+                        if ($field.val() != '') {
+                            if ($field.hasAttr('data-name')) {
+                                var $option = $field.find('option:selected');
+                                var rowData = $option.data('row-data');
+
+                                if (typeof rowData !== 'object') {
+                                    rowData = JSON.parse(html_entity_decode(rowData, 'ENT_QUOTES'));
+                                } 
+
+                                descName = rowData[$field.attr('data-name')];
+                            } else {
+                                descName = $field.find('option:selected').text();
+                            }
+                        }
+                        $descName.val(descName);
+                    }
+                } else {
+                    $field.val(val);
+                }
+            }
         }
     }
     return;

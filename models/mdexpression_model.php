@@ -203,6 +203,10 @@ class Mdexpression_Model extends Model {
         return $this->db->GetOne("SELECT ID FROM KPI_TEMPLATE WHERE LOWER(CODE) = ".$this->db->Param(0), array($code));
     }
     
+    public function getKpiIndicatorIdByCodeModel($code) {
+        return $this->db->GetOne("SELECT ID FROM KPI_INDICATOR WHERE LOWER(CODE) = ".$this->db->Param(0), array($code));
+    }
+    
     public function getCacheExpressionModel($processId) {
         
         $cache = phpFastCache();

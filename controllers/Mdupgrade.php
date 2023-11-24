@@ -698,9 +698,9 @@ class Mdupgrade extends Controller {
     
     public function decryptFile() {
         includeLib('Compress/Compression');
-        $fileContent = Compression::gzinflate(file_get_contents('DB_COMPARE_169926060944410.txt'));
+        $fileContent = Compression::gzinflate(file_get_contents('hrPatch.txt'));
         
-        file_put_contents('meta.txt', $fileContent);die;
+        file_put_contents('hrPatch-decryptFile.txt', $fileContent);die;
     }
     
     public function encryptFile() {
