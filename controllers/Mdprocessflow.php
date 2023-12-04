@@ -923,7 +923,7 @@ class Mdprocessflow extends Controller {
             'data' => array(), 
             'isLock' => $this->view->isLock
         );
-        echo json_encode($response); exit;
+        echo json_encode($response, JSON_UNESCAPED_UNICODE); 
     }
     
     public function getWfmTransitionUserList() {

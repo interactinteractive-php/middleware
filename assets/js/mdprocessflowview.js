@@ -1,4 +1,4 @@
-var selectedObj, strokeCommon, drawRowCount = 0, wfIconAddPositionTop = 20, wfIconAddPostionLeft = 20, _taskFlowSelectedRow = [];
+var selectedObj, strokeCommon, drawRowCount = 0, wfIconAddPositionTop = 20, wfIconAddPostionLeft = 20, _taskFlowSelectedRow = [], isAllNotUI = false;
 
 $(function() {
 
@@ -91,9 +91,11 @@ $(function() {
         var _top = elem['positionTop'];
         var linkTitle = elem['title'] + ' (' + elem['metaDataCode'] + ')';
         var isComplexProcess = '', complexProcessClass = ' wfcomplexbpWillWork';
+        var linkAction = 'runTaskFlowRenderBp(this)';
         if (elem['id'] == '0') {
             linkTitle = 'Эхлэл';
             complexProcessClass = '';
+            linkAction = 'javascript:;';
         }
         if (elem['id'] == 'endObject001') {
             linkTitle = 'Төгсгөл';
@@ -119,7 +121,7 @@ $(function() {
         }
         
         var html = '<div id="' + elem['id'] + '" data-bookmarkurl="' + (elem.hasOwnProperty('bookmark_url') && elem['bookmark_url'] ? elem['bookmark_url'] : '') + '" data-taskFlowId="' + (elem.hasOwnProperty('taskFlowId') && elem['taskFlowId'] ? elem['taskFlowId'] : '') + '" ' +
-                'class="wfposition wfMenu ' + elem['type'] + complexProcessClass + ' wf-tf-'+elem['taskflowType']+' wf-tf-view-UI" onclick="runTaskFlowRenderBp(this)" ' +
+                'class="wfposition wfMenu ' + elem['type'] + complexProcessClass + ' wf-tf-'+elem['taskflowType']+' wf-tf-view-UI" onclick="'+linkAction+'" ' +
                 'style=" width: ' + elem['width'] + 'px; height: ' + elem['height'] + 'px; display: inline-block; top: ' + _top + 'px; left: ' + _left + 'px;">' +
                 isComplexProcess + 
                 '<a href="javascript:;" title="">' +
@@ -164,7 +166,10 @@ $(function() {
             data: {metaDataId: metaDataId},
             dataType: 'json',
             beforeSend: function () {
-                Core.blockUI({animate: true});
+                Core.blockUI({
+                  message: "Loading...",
+                  boxed: true,
+                });
             },
             success: function (data) {
 
@@ -358,6 +363,12 @@ $(function() {
                         url: 'mdprocessflow/drawProcessHtmlView',
                         data: {processData: data, mainBpId: mainBpId, recordId: _taskFlowSelectedRow ? _taskFlowSelectedRow.id : ''},
                         dataType: 'json',
+                        beforeSend: function () {
+                          Core.blockUI({
+                            message: "Loading...",
+                            boxed: true,
+                          });
+                        },                        
                         success: function (data) {
 
                             $.each(data['object'], function (index, value) {
@@ -372,17 +383,40 @@ $(function() {
                             });
 
                             jsPlumb.detachEveryConnection();
-                            var tempArray = [];
+                            var tempArray = [], startTaskFlow = '';
                             
                             $.each(data['connect'], function (index, value) {
                                 var getBpId = value['SOURCE'] + '_' + value['TARGET'];
                                 $('.heigh-editor', '#metaProcessDetial').append('<input type="hidden" value="' + dvFieldValueShow(value.CRITERIA) + '" name="' + getBpId + '" id="' + getBpId + '">');
                                 workflowConnectionImport({source: value['SOURCE'], target: value['TARGET']});
                                 workflow({source: value['SOURCE'], target: value['TARGET']});
+                                
+                                if (value['SOURCE'] == 0) {
+                                    startTaskFlow = value['TARGET'];
+                                }
                             });
 
                             if (data.lastRunTaskFlow) {
                                 $('div[data-dobpid="'+data.lastRunTaskFlow._taskflowinfo.doprocessid+'"]', '#metaProcessDetial').eq(0).closest('.wfposition').removeClass('wfcomplexbpWillWork');
+                            }
+
+                            if (data.hasOwnProperty("allNotUiTaskFlow") && data.allNotUiTaskFlow) {
+                                if ($('div[id="'+startTaskFlow+'"]', '#metaProcessDetial').length) {
+                                    Core.blockUI({
+                                      message: "Auto running taskflow...",
+                                      boxed: true
+                                    });                                    
+                                    isAllNotUI = true;
+                                    var startTask = $('div[id="'+startTaskFlow+'"]', '#metaProcessDetial');
+                                    autoRunTaskFlowRenderBp(startTask);
+                                }
+                            } else {
+                                var baseBpId = $('input[name="mainBpId_valueField"]').val();
+                                try {
+                                    if ($('#dialog-businessprocess-'+baseBpId).length) {
+                                        $('#dialog-businessprocess-'+baseBpId).closest('.ui-dialog').removeClass("hidden");
+                                    }
+                                } catch (e) { }                                
                             }
                             
                             $('div[data-dobpid="'+mainBpId+'"]', '#metaProcessDetial').eq(0).closest('.wfposition').addClass('d-none');
@@ -398,6 +432,7 @@ $(function() {
                             //         setControlVal(selectedObj);
                             //     }
                             // });
+                            Core.unblockUI();
                         },
                         error: function () {
                             $('#metaProcessDetial').html('');
@@ -911,6 +946,253 @@ function returnDoneProcessListF(doProcessId, connections, getConnections) {
     });
     return connections;
 }
+function autoRunTaskFlowRenderBp(elem) {
+    var $this = elem;
+    var workSpaceId = '', workSpaceParams = '';    
+    var $dialogName = "dialog-taskflow-render-bp";
+    var metaDataId = $this.find('[data-dobpid]').attr('data-dobpid');
+    var baseBpId = $('input[name="mainBpId_valueField"]').val();
+    
+    if ($this.attr('data-bookmarkurl')) {
+        window.open(URL_APP+$this.attr('data-bookmarkurl'), '_blank');
+        return;
+    }
+
+    if ($this.hasClass('wfcomplexbpWorked')) {
+        new PNotify({
+            title: 'Warning',
+            text: 'Ажилласан байна!',
+            type: 'warning',
+            sticker: false
+        });            
+        return '';
+    }
+
+    if ($this.hasClass('wfcomplexbpWillWork')) {
+        PNotify.removeAll();
+        new PNotify({
+            title: 'Warning',
+            text: 'Ажиллах боломжгүй байна!',
+            type: 'warning',
+            sticker: false
+        });        
+        return '';
+    }
+
+    if (!$("#" + $dialogName).length) {
+      $('<div id="' + $dialogName + '" class="display-none"></div>').appendTo(
+        "body"
+      );
+    }
+    var $dialog = $("#" + $dialogName);
+  
+    if ($this.closest("div.ws-area").length > 0) {
+        var wsArea = $this.closest("div.ws-area");
+        var workSpaceIdAttr = wsArea.attr("id").split("-");
+        workSpaceId = workSpaceIdAttr[2];
+        workSpaceParams = $("div.ws-hidden-params", wsArea).find("input[type=hidden]").serialize();
+    }  
+
+    var processForm = $this.closest("form#wsForm"), responseBpJsonData = {};
+    processForm.find('input[name="responseType"]').val('json');
+    var mainDvId = processForm.find('input[name="dmMetaDataId"]').val();
+    
+    processForm.ajaxSubmit({
+        type: "post",
+        url: "mdwebservice/runProcess",
+        dataType: "json",
+        async: false,
+        beforeSend: function () {
+        },
+        success: function (responseData) {
+            if (responseData.status === 'success') {
+                if (Object.keys(responseData.paramData).length) {
+                    responseBpJsonData = responseData.paramData;
+                }
+            }
+        },
+        error: function () {
+          alert("Error");
+        },
+    });
+    
+    if (_taskFlowSelectedRow) {
+        responseBpJsonData['id'] = _taskFlowSelectedRow.id;
+    }
+  
+    $.ajax({
+      type: "post",
+      url: "mdprocessflow/callTaskFlow",
+      data: {
+        metaDataId: metaDataId,
+        dmMetaDataId: 1603425715727,
+        isDialog: true,
+        isSystemMeta: false,
+        oneSelectedRow: [responseBpJsonData],
+        responseType: "",
+        workSpaceId: workSpaceId,
+        workSpaceParams: workSpaceParams,
+        taskFlowCode: $('input[name="mainBpId_displayField"]').val(),
+        isTaskFlowView: 1
+      },
+      dataType: "json",
+      beforeSend: function () {
+      },
+      success: function (data) {
+        if (data.status === 'error') {
+            PNotify.removeAll();
+            new PNotify({
+                title: 'Warning',
+                text: data.message,
+                type: "warning",
+                sticker: false,
+            });                   
+            try {
+                if ($('#dialog-businessprocess-'+baseBpId).length) {
+                    $('#dialog-businessprocess-'+baseBpId).dialog("close");
+                }
+            } catch (e) { }
+            Core.unblockUI();   
+            return;
+        }
+        $dialog.empty().append(data.Html);
+  
+        var processForm = $("#wsForm", "#" + $dialogName);
+        var processUniqId = processForm.parent().attr("data-bp-uniq-id");
+  
+        var buttons = [
+          {
+            text: data.run_btn,
+            class: "btn green-meadow btn-sm bp-btn-save",
+            click: function (e) {
+              if (window["processBeforeSave_" + processUniqId]($(e.target))) {
+                processForm.validate({
+                  ignore: "",
+                  highlight: function (element) {
+                    $(element).addClass("error");
+                    $(element).parent().addClass("error");
+                    if (processForm.find("div.tab-pane:hidden:has(.error)").length) {
+                        processForm.find("div.tab-pane:hidden:has(.error)").each(function (index, tab) {
+                          var tabId = $(tab).attr("id");
+                          processForm.find('a[href="#' + tabId + '"]').tab("show");
+                        });
+                    }
+                  },
+                  unhighlight: function (element) {
+                    $(element).removeClass("error");
+                    $(element).parent().removeClass("error");
+                  },
+                  errorPlacement: function () { },
+                });
+  
+                var isValidPattern = initBusinessProcessMaskEvent(processForm);
+  
+                if (processForm.valid() && isValidPattern.length === 0) {
+                  processForm.ajaxSubmit({
+                    type: "post",
+                    url: "mdwebservice/runProcess",
+                    dataType: "json",
+                    beforeSend: function () {
+                    },
+                    success: function (responseData) {
+                      if (responseData.status === "success") {
+                        var responseParam = responseData.paramData;
+  
+                        PNotify.removeAll();
+                        new PNotify({
+                          title: "Амжилттай",
+                          text: responseData.message,
+                          type: "success",
+                          sticker: false,
+                          addclass: "pnotify-center",
+                        });
+                        if (responseData.resultData) {
+                            _taskFlowSelectedRow = {id: responseData.resultData._taskflowinfo.previousrecordid};
+                        }
+                        dataViewReload(mainDvId);
+                      } else {
+                        new PNotify({
+                            title: 'Warning',
+                            text: responseData.message,
+                            type: 'warning',
+                            sticker: false, 
+                            addclass: 'pnotify-center'
+                        });                           
+                      }
+                      $dialog.dialog("close");
+                      Core.unblockUI();   
+                    },
+                    error: function () {
+                      alert("Error");
+                    },
+                  });
+                }
+              }
+            },
+          },
+          {
+            text: data.close_btn,
+            class: "btn blue-madison btn-sm",
+            click: function () {
+              $dialog.dialog("close");
+            },
+          },
+        ];
+  
+        var dialogWidth = data.dialogWidth,
+          dialogHeight = data.dialogHeight;
+  
+        if (data.isDialogSize === "auto") {
+          dialogWidth = 1200;
+          dialogHeight = "auto";
+        }
+  
+        $dialog
+          .dialog({
+            cache: false,
+            resizable: true,
+            bgiframe: true,
+            autoOpen: false,
+            title: data.Title,
+            width: dialogWidth,
+            height: dialogHeight,
+            modal: true,
+            closeOnEscape:
+              typeof isCloseOnEscape == "undefined" ? true : isCloseOnEscape,
+            close: function () {
+              $dialog.empty().dialog("destroy").remove();
+            },
+            buttons: buttons,
+          })
+          .dialogExtend({
+            closable: true,
+            maximizable: true,
+            minimizable: true,
+            collapsable: true,
+            dblclick: "maximize",
+            minimizeLocation: "left",
+            icons: {
+              close: "ui-icon-circle-close",
+              maximize: "ui-icon-extlink",
+              minimize: "ui-icon-minus",
+              collapse: "ui-icon-triangle-1-s",
+              restore: "ui-icon-newwin",
+            },
+          });
+        if (data.dialogSize === "fullscreen") {
+          $dialog.dialogExtend("maximize");
+        }
+        $dialog.dialog("open");
+        $dialog.closest('.ui-dialog').find('.ui-dialog-buttonset').find('.bp-btn-save').trigger('click');
+      },
+      error: function () {
+        alert("Error");
+      },
+    }).done(function () {
+      Core.initBPAjax($dialog);
+      Core.unblockUI();
+    });
+}
 function runTaskFlowRenderBp(elem) {
     var $this = $(elem);
     var workSpaceId = '', workSpaceParams = '';    
@@ -974,6 +1256,7 @@ function runTaskFlowRenderBp(elem) {
           alert("Error");
         },
     });
+    
     if (_taskFlowSelectedRow) {
         responseBpJsonData['id'] = _taskFlowSelectedRow.id;
     }
@@ -1008,7 +1291,7 @@ function runTaskFlowRenderBp(elem) {
                 text: data.message,
                 type: "warning",
                 sticker: false,
-            });            
+            });       
             return;
         }
         $dialog.empty().append(data.Html);
@@ -1086,7 +1369,7 @@ function runTaskFlowRenderBp(elem) {
                             sticker: false, 
                             addclass: 'pnotify-center'
                         });                           
-                      }                    
+                      }             
                       Core.unblockUI();   
                     },
                     error: function () {

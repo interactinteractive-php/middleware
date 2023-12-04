@@ -294,7 +294,7 @@ $(function() {
         }
     });
     
-    $kpiTmp_<?php echo $this->uniqId; ?>.on('change', "select.linked-combo, select[data-criteria-param]", function(e, isTrigger){
+    $kpiTmp_<?php echo $this->uniqId; ?>.on('change', "select.linked-combo, select[data-criteria-param], input.popupInit.linked-combo", function(e, isTrigger){
         var $this = $(this), attrToJson = '';
 
         if ((isTrigger === true && isTrigger !== 'linked-combo') || ($this.hasClass('linked-combo-worked') && isTrigger === 'EDIT')) {
@@ -474,7 +474,7 @@ $(function() {
             
         } else {
 
-            if ($this.hasAttr('data-criteria-param')) {
+            if ($this.hasAttr('data-criteria-param') && $this.attr('data-criteria-param') != '') {
                 return;
             }
 

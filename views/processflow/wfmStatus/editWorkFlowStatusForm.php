@@ -408,7 +408,6 @@
                         <?php echo Form::checkbox(array('name' => 'isSendMail', 'id' => 'isSendMail', 'class' => 'form-control', 'value' => '1', 'saved_val' => $this->metaWfmStatus['IS_SEND_MAIL'])); ?>
                     </td>
                 </tr> 
-                
                 <tr>
                     <td style="width: 140px; height: 30px;" class="left-padding">
                         <label for="isSendNotifWithEmail">Имейлээр илгээсэн нотификешнг web дээр давхар харуулах:</label>
@@ -417,7 +416,12 @@
                         <?php echo Form::checkbox(array('name' => 'isSendNotifWithEmail', 'id' => 'isSendNotifWithEmail', 'class' => 'form-control', 'value' => '1', 'saved_val' => $this->metaWfmStatus['IS_SEND_NOTIF_WITH_EMAIL'])); ?>
                     </td>
                 </tr>  
-                
+                <tr>
+                    <td style="width: 140px; height: 30px;" class="left-padding"><label for="isSendSms">SMS илгээх эсэх:</label></td>
+                    <td>
+                        <?php echo Form::checkbox(array('name' => 'isSendSms', 'id' => 'isSendSms', 'class' => 'form-control', 'value' => '1', 'saved_val' => $this->metaWfmStatus['IS_SEND_SMS'])); ?>
+                    </td>
+                </tr> 
                 <tr>
                     <td style="height: 30px;" class="left-padding">Хүсэлтийн эзэнд очих:</td>
                     <td>

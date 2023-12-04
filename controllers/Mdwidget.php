@@ -3897,5 +3897,267 @@ class Mdwidget extends Controller {
             echo 'Widget олдсонгүй';
         }        
     }
+
+    public function render ($widgetId = '') {
+        $pageJson = file_get_contents(self::$viewPath . '/render/data/page.json');
+        
+        $this->view->title = $this->lang->line('WidgetRender');
+        $this->view->uniqId = getUID();
+        $this->view->isAjax = is_ajax_request();
+        $this->view->pageJson = json_decode($pageJson, true);
+        if ($widgetId === '1') {
+            convJson($this->view->pageJson);
+            die;
+        }
+        if ($this->view->isAjax == false) {
+            
+            $this->view->css = AssetNew::metaCss();
+            $this->view->js = AssetNew::metaOtherJs();
+            $this->view->fullUrlJs = AssetNew::amChartJs();
+            
+            $this->view->render('header');
+        } 
+
+        $this->view->render('/render/index', self::$viewPath);
+        
+        if ($this->view->isAjax == false) {
+            $this->view->render('footer');
+        }
+    }
+
+    public function renderShowFields($body, $tagCode, $uniqId, $prefix = '', $parentRow = array()) {
+        
+        (String) $pageHtml = $pageCss = '';
+        foreach ($body as $key => $row) {
+            
+            switch (issetParam($row['type'])) {
+                case 'row':
+                case 'column':
+                case 'row_column':
+                case 'card':
+                case 'chart':
+                    if ($row['type'] === 'card') {
+                        $pageCss .= ".widgetCode_" . $row['widgetCode'] . $prefix . " > .card { ";
+                    } else {
+                        $pageCss .= ".widgetCode_" . $row['widgetCode'] . $prefix . " { ";
+                    }
+
+                    if (issetParamArray($row['itemStyle'])) {
+                        foreach ($row['itemStyle'] as $key => $style) {
+                            switch ($key) {
+                                case 'minHeight':
+                                    $pageCss .= " min-height: ". $style ."; ";
+                                    break;
+                                case 'maxHeight':
+                                    $pageCss .= " max-height: ". $style ."; ";
+                                    break;
+                                case 'borderRadius':
+                                    $pageCss .= " border-radius: ". $style ."; ";
+                                    break;
+                                case 'borderBottom':
+                                    $pageCss .= " border-bottom: ". $style ."; ";
+                                    break;
+                                case 'backgroundColor':
+                                    $pageCss .= " background-color: ". $style ."; ";
+                                    break;
+                                case 'boxShadow':
+                                    $pageCss .= " box-shadow: ". $style ."; ";
+                                    break;
+                                case 'marginBottom':
+                                    $pageCss .= " margin-bottom: ". $style ."; ";
+                                    break;
+                                case 'marginVertical':
+                                    $pageCss .= " margin: ". $style ." 0; ";
+                                    break;
+                                case 'marginHorizontal':
+                                    $pageCss .= " margin: 0 ". $style ."; ";
+                                    break;
+                                case 'paddingLeft':
+                                    $pageCss .= " padding-left: ". $style ."; ";
+                                    break;
+                                case 'paddingVertical':
+                                    $pageCss .= " padding: ". $style ." 0; ";
+                                    break;
+                                case 'paddingHorizontal':
+                                    $pageCss .= " padding: 0 ". $style ."; ";
+                                    break;
+                                case 'rowGap':
+                                    $pageCss .= " row-gap: ". $style ."; ";
+                                    break;
+                                default:
+                                    if (!is_array($style)) {
+                                        $pageCss .= $key .": ". $style ."; ";
+                                    }
+                                    break;
+                            }
+                        }
+                    }
+
+                    if (issetParam($parentRow['itemCount']) > '0' && $prefix !== '' && issetParamArray($parentRow['itemStyle']['backgroundColors'])) {
+                        $prefixCounter = str_replace('_', '', $prefix);
+                        $pageCss .= " background-color: " . checkDefaultVal($parentRow['itemStyle']['backgroundColors'][$prefixCounter], $parentRow['itemStyle']['backgroundColors']['0']) . " !important; ";
+                    }
+
+                    $pageHtml .= '<div class="'. (issetParam($row['type']) === 'row' ? 'row' : '') .' '. issetParam($row['rowItemCount']) . ' widgetCode_' . issetParam($row['widgetCode']) . $prefix .'">';
+
+                    if ($row['type'] === 'card') {
+                        $pageHtml .= '<div class="card">';
+                        $pageCss .= " margin: 0; ";
+                    }
+
+                    if ($row['type'] === 'row_column') {
+                        if (issetParam($row['itemStyle']['padding']) === '') {
+                            $pageCss .= "padding: 0;";
+                        }
+                        $pageCss .= " display: flex; flex-wrap: wrap;";
+                    }
+
+                    if (issetParamArray($row['showFields'])) {
+                        if (issetParam($row['itemStyle']['padding']) === '') {
+                            $pageCss .= "padding: 0;";
+                        }
+                        $pageCss .= " display: flex; flex-wrap: wrap; flex-direction: row; -ms-flex-direction: row; row-gap: 1rem;";
+                        foreach ($row['showFields'] as $fields) {
+                            $pageCss .= " .position_". $fields['position'] ." { ";
+                            if (issetParam($fields['position'])) {
+                                $pageHtml .= '<div class="'. issetParam($fields['rowItemCount']) .' position_'. $fields['position'] .'" id="widgetCode_' . issetParam($row['widgetCode']) . $prefix .'_position_'. $fields['position'] .'">';
+
+                                switch (issetParam($fields['rendertype'])) {
+                                    case 'icon':
+                                        $iconCss = '';
+                                        if (issetParam($fields['style']['color'])) {
+                                            $fieldStyles = str_replace(array('Colors.'), array(''), $fields['style']['color']);
+                                            $iconCss .= "color: var(--". $fieldStyles .");";
+                                        }
+                                        if (issetParam($fields['style']['iconBackgroundColor'])) {
+                                            $fieldStyles = str_replace(array('Colors.'), array('#'), $fields['style']['iconBackgroundColor']);
+                                            $iconCss .= "background: ". $fieldStyles .";";
+                                        }
+
+                                        $pageHtml .= '<a href="javascript:;" style="background: #FFFFFF4D; '. $iconCss .'; font-size: 14px; padding: 6px 8px; border-radius: 6px;" > ';
+                                            if (issetParam($fields['defaultVal'])) {
+                                                $pageHtml .= '<i class="'. checkDefaultVal($row['defaultRawData']['0'][$fields['defaultVal']], '') .'"></i>';
+                                            } else {
+                                                $pageHtml .= $fields['position'];
+                                            }
+                                        $pageHtml .= '</a>';
+                                        # code...
+                                        break;
+                                    case 'button':
+                                        $iconCss = '';
+                                        if (issetParam($fields['style']['color'])) {
+                                            $fieldStyles = str_replace(array('Colors.'), array(''), $fields['style']['color']);
+                                            $iconCss .= "color: var(--". $fieldStyles .");";
+                                        }
+                                        if (issetParam($fields['style']['iconBackgroundColor'])) {
+                                            $fieldStyles = str_replace(array('Colors.'), array('#'), $fields['style']['iconBackgroundColor']);
+                                            $iconCss .= "background: ". $fieldStyles .";";
+                                        }
+                                        $pageHtml .= '<a href="javascript:;" style="background: #FFFFFF4D; '. $iconCss .'; font-size: 14px; padding: 6px 8px; border-radius: 6px;" ><i class="fa fa-link"></i> ';
+                                            if (issetParam($fields['defaultVal'])) {
+                                                $pageHtml .= checkDefaultVal($row['defaultRawData']['0'][$fields['defaultVal']], '');
+                                            } else {
+                                                $pageHtml .= $fields['position'];
+                                            }
+                                        $pageHtml .= '</a>';
+                                        break;
+                                    case 'image':
+                                        break;
+                                    default:
+                                        if (issetParam($fields['defaultVal'])) {
+                                            $pageHtml .= checkDefaultVal($row['defaultRawData']['0'][$fields['defaultVal']], '');
+                                        } else {
+                                            $pageHtml .= $fields['position'];
+                                        }
+                                        break;
+                                }
+                                
+                                $pageHtml .= '</div>';
+                                if (issetParamArray($fields['chartoption'])) {
+                                    $chartUniqId = getUID();
+                                    $pageHtml .= '<script type="text/javascript">
+                                        $(function () {
+                                            var chartDom'. $chartUniqId .' = document.getElementById(\'widgetCode_' . issetParam($row['widgetCode']) . $prefix .'_position_'. $fields['position'] .'\');
+                                            var myChart'. $chartUniqId .' = echarts.init(chartDom'. $chartUniqId .');
+                                            var option'. $chartUniqId .' = '. json_encode($fields['chartoption']) .';
+                                            option'. $chartUniqId .' && myChart'. $chartUniqId .'.setOption(option'. $chartUniqId .');
+                                        });
+                                    </script>';
+                                }
+                                if (issetParam($fields['style'])) {
+                                    foreach ($fields['style'] as $styleKey => $fieldStyles) {
+                                        switch ($styleKey) {
+                                            case 'color':
+                                                $fieldStyles = str_replace(array('Colors.'), array(''), $fieldStyles);
+                                                $pageCss .= $styleKey .": var(--". $fieldStyles ."); ";
+                                                break;
+                                            case 'fontSize':
+                                                $fieldStyles = str_replace(array('FontSize[', ']'), array('', 'px'), $fieldStyles);
+                                                $pageCss .= "font-size: ". $fieldStyles ."; ";
+                                                break;
+                                            case 'fontWeight':
+                                                $fieldStyles = str_replace(array('FontWeight[', ']'), array('', ''), $fieldStyles);
+                                                $pageCss .= "font-weight: ". $fieldStyles ."; ";
+                                                break;
+                                            case 'maxHeight':
+                                                $fieldStyles = str_replace(array('MaxHeight[', ']'), array('', ''), $fieldStyles);
+                                                $pageCss .= "max-height: ". $fieldStyles ."; ";
+                                                break;
+                                            case 'textAlign':
+                                                $pageCss .= "text-align: ". $fieldStyles ."; ";
+                                                break;
+                                            case 'alignItems':
+                                                $pageCss .= "align-items: ". $fieldStyles ."; ";
+                                                break;
+                                            case 'justifyContent':
+                                                $pageCss .= "justify-content: ". $fieldStyles ."; ";
+                                            case 'marginBottom':
+                                                $pageCss .= "margin-bottom: ". $fieldStyles ."; ";
+                                                break;
+                                            default:
+                                                if (!is_array($fieldStyles)) {
+                                                    $pageCss .= $styleKey .": ". $fieldStyles ."; ";
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                            }
+                            $pageCss .= "} ";
+                        }
+                    }
+                    
+                    if (issetParamArray($row['children'])) {
+                        if (issetParam($row['itemCount']) > '0') {
+                            for ($i = 0; $i < $row['itemCount']; $i++) {
+                                $pageAttr = Mdwidget::renderShowFields($row['children'], $row['widgetCode'], $uniqId, '_' . $i, $row);
+                                $pageHtml .= issetParam($pageAttr['html']);
+                                $pageCss .= issetParam($pageAttr['css']);
+                            }
+                        } else {
+                            $pageAttr = Mdwidget::renderShowFields($row['children'], $row['widgetCode'], $uniqId);
+                            $pageHtml .= issetParam($pageAttr['html']);
+                            $pageCss .= issetParam($pageAttr['css']);
+                        }
+                    }
+                    
+                    $pageCss .= "} ";
+                    
+                    if ($row['type'] === 'card') {
+                        $pageHtml .= '</div>';
+                    }
+                    $pageHtml .= '</div>';
+                    break;
+                
+                default:
+                    break;
+            }
+        }
+
+        return array('html' => $pageHtml, 'css' => $pageCss);
+
+    }
+
+
     
 }

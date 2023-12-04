@@ -1792,6 +1792,41 @@ span.memberposition {
     overflow: hidden;
     max-width: 300px;
 }
+.intranet.menucolumn .sidebar-main .nav-sidebar:not(.panel-dv-tree-icon) .nav-link:not(.disabled):hover, 
+.intranet.menucolumn .sidebar-main .nav-sidebar:not(.panel-dv-tree-icon) .nav-link.dv-twocol-f-selected, 
+.intranet.menucolumn .sidebar-main .nav-sidebar:not(.panel-dv-tree-icon) .nav-item-open>.nav-link:not(.disabled) {
+    background-color: #E8EBF0 !important;
+    color: #468CE2;
+}  
+.intranet.menucolumn .step {
+    background: #A0A0A0;
+    height: 3px;
+    border-radius: 5px;
+    width: calc(100% / 5);
+}  
+.intranet.menucolumn .step.active {
+    background: #468CE2;
+    height: 3px;
+    border-radius: 5px;
+    width: calc(100% / 5);
+}  
+.intranet.menucolumn .sidebar-main {
+    overflow: hidden !important;
+}  
+.intranet.menucolumn .menu-description {
+    color: #67748E
+}  
+.intranet.menucolumn .ea-content-sidebar-tabs,
+.intranet.menucolumn .page-header-light {
+    border-bottom: none;
+}
+.intranet.menucolumn .nav-tabs.v2 .nav-item .nav-link {
+    color: #3C3C3C;
+}
+.intranet.menucolumn .breadcrumb-line.v2 {
+    height: 25px;
+    padding-bottom: 0px;
+}
 /*@media (min-width: 768px) {
     .sidebar.dv-onecol-first-sidebar {
         width: 14rem;

@@ -120,13 +120,19 @@
 </div>  
 <script type="text/javascript">
     var $listViewFile_<?php echo $this->uniqId; ?> = $('#bp_filetab_wrap_<?php echo $this->uniqId; ?> .list-view-file-new');
-    var $tabName = $('body').find('.bp-addon-tab > li > a[data-addon-type="file"]');
-    var $customext = $tabName.attr('data-ext');
+    var $tabName_<?php echo $this->uniqId; ?> = $('div[data-bp-uniq-id="<?php echo $this->uniqId; ?>"]').find('.bp-addon-tab > li > a[data-addon-type="file"]');
+    var $customext = $tabName_<?php echo $this->uniqId; ?>.attr('data-ext');
     var $exttype = <?php echo json_encode(explode(',', Str::remove_whitespace(Config::getFromCache('CONFIG_FILE_EXT')))); ?>;
+    var $fileSize_<?php echo $this->uniqId; ?> = Number('<?php echo Config::getFromCacheDefault('CONFIG_FILE_EXT', null, '20000000'); ?>');
+    var $customFileSize_<?php echo $this->uniqId; ?> = $tabName_<?php echo $this->uniqId; ?>.attr('data-file-size');
 	
     if ($customext) {
         var customexts = $customext.split(',');
         $exttype = customexts;
+    }
+    
+    if ($customFileSize_<?php echo $this->uniqId; ?>) {
+        $fileSize_<?php echo $this->uniqId; ?> = Number($customFileSize_<?php echo $this->uniqId; ?>);
     }
 
     $(function(){
@@ -143,7 +149,7 @@
         <?php
         if ($this->actionType != 'view') {
         ?> 
-        $listViewFile_<?php echo $this->uniqId; ?>.on('click', '.updateFileNameBtn', function(){
+        $listViewFile_<?php echo $this->uniqId; ?>.on('click', '.updateFileNameBtn', function() {
             updateBpTabFileInline_<?php echo $this->uniqId; ?>($(this).closest('li.meta'));
         });                
 
@@ -257,108 +263,132 @@
             }
         });
     }
-    function onChangeAttachFIle(input){
-      if($(input).hasExtension($exttype)){
-        $(input).closest("form").ajaxSubmit({
-          type: 'post',
-          url: 'mdwebservice/renderBpTabUploadFile',
-          dataType: 'json',
-          beforeSend: function(){
-            Core.blockUI({
-              animate: true
-            });
-          },
-          success: function(data){
-            PNotify.removeAll();
-            new PNotify({
-                title: data.status,
-                text: data.message,
-                type: data.status,
-                sticker: false
-            });
-            if(data.status === 'success'){
+    function onChangeAttachFIle(input) {
+        PNotify.removeAll();
+        if ($(input).hasExtension($exttype)) {
+            
+            var f = 0;
+            
+            for (f; f < input.files.length; f++) {
+                var fileName = input.files[f].name;
+                var fileSize = Number(input.files[f].size);
                 
-                var i = 0, fdata = data.fileRows, fdataLen = fdata.length;
-                for (i; i < fdataLen; i++) {
-                    data = fdata[i];
-                    var li='<li class="meta" data-attach-id="' + data.attachId + '">' +
-                            '<figure class="directory">' +
-                            '<div class="img-precontainer">' +
-                            '<div class="img-container directory">';
-
-                    if(data.attachFile != ''){
-                      if(data.extension == 'png' ||
-                              data.extension == 'gif' ||
-                              data.extension == 'jpeg' ||
-                              data.extension == 'pjpeg' ||
-                              data.extension == 'jpg' ||
-                              data.extension == 'x-png' ||
-                              data.extension == 'bmp'){
-                        li+='<a href="' + data.attachFile +'" class="fancybox-img main" data-rel="fancybox-button">';
-                        li+='<img src="' + data.attachFile + '"/>';
-                        li+='</a>';
-                      } else {
-                        li+='<a href="' + data.attachFile + '" target="_blank" title="' + data.fileName + '">';
-                        li+='<img src="assets/core/global/img/filetype/64/' + data.fileExtension + '.png"/>';
-                        li+='</a>';
-                      }
-                    }
-
-                    li+='</div>' +
-                            '</div>' +
-                            '<div class="box">' +
-                            '<h4 class="ellipsis"><input type="text" name="bp_file_name[]" value="' + data.attachName + '" class="form-control col-md-12 bp_file_name title-photo" placeholder="Тайлбар"/><i class="fa fa-check updateFileNameBtn"></i></h4>' +
-                            '</div>' +
-                            '</a>' +
-                            '</figure>' +
-                            '</li>';
-                    var $listViewFile=$('#bp_filetab_wrap_<?php echo $this->uniqId; ?> .list-view-file-new');
-                    $listViewFile.append(li);
-                    Core.initFancybox($listViewFile);
-
-                    initFileContentMenu_<?php echo $this->uniqId; ?>();
-                    initFileNameHoverEvent_<?php echo $this->uniqId; ?>();
+                if (fileSize > $fileSize_<?php echo $this->uniqId; ?>) {
+                    new PNotify({
+                        title: 'Info',
+                        text: plang.getVar('PF_FILE_SIZE_EXCEEDED_MSG', {
+                            'fileName': fileName, 
+                            'maxFileSize': parseInt($fileSize_<?php echo $this->uniqId; ?> / 1000000) + 'mb'
+                        }),
+                        type: 'info',
+                        addclass: 'pnotify-center',
+                        sticker: false, 
+                        delay: 10000000000
+                    });    
+                    return false;
                 }
-                
-                setBpTabFileCount_<?php echo $this->uniqId; ?>();
-            } 
-            Core.unblockUI();
-          }
-        });
-      }
-      else {
-        if($customext){
-            PNotify.removeAll();
-            new PNotify({
-            title: 'Файл хавсаргах',
-            text: 'Та ' + $exttype + ' өргөтгөлтэй файл хавсаргана уу.',
-            type: 'info',
-            //sticker: false
-          });
-          //alert('Та ' + $exttype + ' өргөтгөлтэй файл хавсаргана уу.');
-          $(input).val('');
-        } else{
-          alert('Та ' + $exttype + ' өргөтгөлтэй файл хавсаргана уу.')
+            }
+            
+            $(input).closest("form").ajaxSubmit({
+                type: 'post',
+                url: 'mdwebservice/renderBpTabUploadFile',
+                dataType: 'json',
+                beforeSend: function(){
+                    Core.blockUI({animate: true});
+                },
+                success: function(data){
+                    PNotify.removeAll();
+                    new PNotify({
+                        title: data.status,
+                        text: data.message,
+                        type: data.status,
+                        sticker: false
+                    });
+                    
+                    if (data.status == 'success') {
+
+                        var i = 0, fdata = data.fileRows, fdataLen = fdata.length;
+                        
+                        for (i; i < fdataLen; i++) {
+                            data = fdata[i];
+                            
+                            var li = '<li class="meta" data-attach-id="' + data.attachId + '">' +
+                                    '<figure class="directory">' +
+                                    '<div class="img-precontainer">' +
+                                    '<div class="img-container directory">';
+
+                            if (data.attachFile != '') {
+                                if (data.extension == 'png' ||
+                                        data.extension == 'gif' ||
+                                        data.extension == 'jpeg' ||
+                                        data.extension == 'pjpeg' ||
+                                        data.extension == 'jpg' ||
+                                        data.extension == 'x-png' ||
+                                        data.extension == 'bmp') {
+                                    li+='<a href="' + data.attachFile +'" class="fancybox-img main" data-rel="fancybox-button">';
+                                    li+='<img src="' + data.attachFile + '"/>';
+                                    li+='</a>';
+                                } else {
+                                    li+='<a href="' + data.attachFile + '" target="_blank" title="' + data.fileName + '">';
+                                    li+='<img src="assets/core/global/img/filetype/64/' + data.fileExtension + '.png"/>';
+                                    li+='</a>';
+                                }
+                            }
+
+                            li+='</div>' +
+                                    '</div>' +
+                                    '<div class="box">' +
+                                    '<h4 class="ellipsis"><input type="text" name="bp_file_name[]" value="' + data.attachName + '" class="form-control col-md-12 bp_file_name title-photo" placeholder="Тайлбар"/><i class="fa fa-check updateFileNameBtn"></i></h4>' +
+                                    '</div>' +
+                                    '</a>' +
+                                    '</figure>' +
+                                    '</li>';
+                            
+                            var $listViewFile = $('#bp_filetab_wrap_<?php echo $this->uniqId; ?> .list-view-file-new');
+                            $listViewFile.append(li);
+                            Core.initFancybox($listViewFile);
+
+                            initFileContentMenu_<?php echo $this->uniqId; ?>();
+                            initFileNameHoverEvent_<?php echo $this->uniqId; ?>();
+                        }
+
+                        setBpTabFileCount_<?php echo $this->uniqId; ?>();
+                    } 
+                    Core.unblockUI();
+                }
+            });
+        } else {
+            if ($customext) {
+                PNotify.removeAll();
+                new PNotify({
+                    title: 'Файл хавсаргах',
+                    text: 'Та ' + $exttype + ' өргөтгөлтэй файл хавсаргана уу.',
+                    type: 'info',
+                    //sticker: false
+                });
+                $(input).val('');
+            } else {
+                alert('Та ' + $exttype + ' өргөтгөлтэй файл хавсаргана уу.')
+            }
         }
-      }
     }
     function initFileContentMenu_<?php echo $this->uniqId; ?>(){
-      $.contextMenu({
-        selector: '#bp_filetab_wrap_<?php echo $this->uniqId; ?> ul.list-view-file-new li.meta',
-        callback: function(key, opt){
-          if(key === 'delete'){
-            deleteBpTabFile_<?php echo $this->uniqId; ?>(opt.$trigger);
-          } else if(key === 'edit'){
-            updateBpTabFile_<?php echo $this->uniqId; ?>(opt.$trigger);
-          }
-        },
-        items: {
-          "edit": {name: plang.get('edit_btn'), icon: "edit"},
-          "delete": {name: plang.get('delete_btn'), icon: "trash"}
-        }
-      });
+        $.contextMenu({
+            selector: '#bp_filetab_wrap_<?php echo $this->uniqId; ?> ul.list-view-file-new li.meta',
+            callback: function(key, opt) {
+                if (key == 'edit') {
+                    updateBpTabFile_<?php echo $this->uniqId; ?>(opt.$trigger, $fileSize_<?php echo $this->uniqId; ?>);
+                } else if (key == 'delete') {
+                    deleteBpTabFile_<?php echo $this->uniqId; ?>(opt.$trigger);
+                } 
+            },
+            items: {
+                "edit": {name: plang.get('edit_btn'), icon: "edit"},
+                "delete": {name: plang.get('delete_btn'), icon: "trash"}
+            }
+        });
     }
-    function updateBpTabFile_<?php echo $this->uniqId; ?>(li){
+    function updateBpTabFile_<?php echo $this->uniqId; ?>(li, fileSize){
       var dialogName='#update-form-dialog';
       if(!$(dialogName).length){
         $('<div id="' + dialogName.replace('#', '') + '"></div>').appendTo('body');
@@ -367,7 +397,7 @@
       $.ajax({
         type: 'post',
         url: 'mdwebservice/renderBpTabUpdateFileForm',
-        data: {metaDataId: '<?php echo $this->metaDataId; ?>', metaValueId: '<?php echo $this->metaValueId; ?>', attachId: li.attr('data-attach-id')},
+        data: {metaDataId: '<?php echo $this->metaDataId; ?>', metaValueId: '<?php echo $this->metaValueId; ?>', attachId: li.attr('data-attach-id'), fileSize: fileSize},
         dataType: "json",
         beforeSend: function(){
           $("head").prepend('<link rel="stylesheet" type="text/css" href="assets/custom/addon/plugins/jquery-file-upload/css/jquery.fileupload.css"/>');
@@ -376,7 +406,7 @@
           });
         },
         success: function(data){
-          $(dialogName).html(data.Html);
+          $(dialogName).empty().append(data.Html);
           $(dialogName).dialog({
             cache: false,
             resizable: true,

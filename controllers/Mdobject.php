@@ -1583,8 +1583,8 @@ class Mdobject extends Controller {
         }
         
         $this->view->title = $this->lang->line($this->view->row['LIST_NAME']);
-        $isAjax = Input::post('isAjax');
-        $this->view->isAjax = $isAjax ? true : is_ajax_request();
+        $this->view->description = $this->lang->line(issetParam($this->view->row['DESCRIPTION']));
+        $this->view->isAjax = Input::post('isAjax') ? true : is_ajax_request();
         
         $this->view->css = AssetNew::metaCss();
         $this->view->js = AssetNew::metaOtherJs();
@@ -4556,6 +4556,12 @@ class Mdobject extends Controller {
             
             $this->view->panel = $this->view->renderPrint('viewer/panel/oneColumn', self::$dataViewPath);
             
+        } elseif ($panelType == 'menuView') {
+            
+            $this->view->mainColumn = self::panelMenuView();
+            
+            $this->view->panel = $this->view->renderPrint('viewer/panel/menuColumn', self::$dataViewPath);
+            
         } elseif ($panelType == 'twoColumn') {
             
             if (Input::isEmpty('drillDownDefaultCriteria') == false) {
@@ -4608,6 +4614,47 @@ class Mdobject extends Controller {
         }
 
         exit;
+    }
+    
+    public function panelMenuView($getResult = '') {
+        
+        $this->view->isPanelDvChangeTreeIcon = Config::getFromCache('isPanelDvChangeTreeIcon');
+        
+        if ($getResult) {
+            
+            if ($dvId = Input::numeric('dvId')) {
+                
+                $this->view->metaDataId = $dvId;
+                
+                $row = $this->model->getDataViewConfigRowModel($this->view->metaDataId);
+                $this->view->idField = $row['idField'];
+                $this->view->nameField = $row['nameField'];
+        
+                $this->view->mainColumnData = $this->model->getPanelDataListModel($this->view->metaDataId);
+                $this->view->render('viewer/panel/menuView', self::$dataViewPath);
+            }
+            
+        } else {
+            
+            if (issetParam($this->view->row['IS_FIRST_COL_FILTER']) == '1') {
+                loadPhpQuery();
+                
+                $filterHtml = phpQuery::newDocumentHTML($this->view->filter);
+                $filterParam = $filterHtml->find('input, select, textarea')->serializeArray();
+                $params = '';
+                
+                foreach ($filterParam as $row) {
+                    $params .= $row['name'] . '=' . $row['value'] . '&';
+                }
+                
+                $_POST['formFilter'] = 1;
+                $_POST['params'] = $params;
+            }
+            
+            $this->view->mainColumnData = $this->model->getPanelDataListModel($this->view->metaDataId);
+
+            return $this->view->renderPrint('viewer/panel/menuView', self::$dataViewPath);
+        }
     }
     
     public function panelMainColumn($getResult = '') {

@@ -65,6 +65,7 @@ class Mdform extends Controller {
     public static $kpiDmDtlData = array();
     public static $kpiDmMart = array();
     public static $kpiTempCriteria = array();
+    public static $kpiDefaultValues = array();
     public static $resultIndicator = array();
     public static $resultFacts = array();
     public static $pfTranslationValue = array();
@@ -1704,6 +1705,7 @@ class Mdform extends Controller {
         $this->view->isRawDataMart = $this->view->row['KPI_TYPE_ID'] == '1044' ? true : false;
         $this->view->isCheckQuery = $this->view->row['KPI_TYPE_ID'] == '1200' ? true : false;
         $this->view->drillDownCriteria = Input::post('drillDownCriteria');
+        $this->view->hiddenParams = Input::post('hiddenParams');
         $this->view->postHiddenParams = '';
         $this->view->filter = '';
         
@@ -1721,6 +1723,10 @@ class Mdform extends Controller {
             
             if ($filter = Input::get('filter')) {
                 $this->view->filter = $this->model->validateFilters($this->view->indicatorId, $filter);
+            }
+            
+            if (Input::numeric('isIgnoreFilter')) {
+                $this->view->isIgnoreFilter = true;
             }
         
             $this->view->columns = $this->model->renderKpiIndicatorColumnsModel($this->view->indicatorId, $this->view->row['isCheckSystemTable'], array('columnsData' => $this->view->columnsData));
@@ -1898,6 +1904,7 @@ class Mdform extends Controller {
         $this->view->isUseWorkflow = $this->view->row['IS_USE_WORKFLOW'];
         $this->view->isCallWebService = ($this->view->row['KPI_TYPE_ID'] == '1080' || $this->view->row['KPI_TYPE_ID'] == '1160' || $this->view->row['KPI_TYPE_ID'] == '1161');
         $this->view->isFilterShowData = $this->view->row['IS_FILTER_SHOW_DATA'];
+        $this->view->hiddenParams = '';
         $this->view->postHiddenParams = '';
         $this->view->filter = '';
         
@@ -3427,6 +3434,7 @@ class Mdform extends Controller {
                 $this->view->process = $this->model->getKpiIndicatorProcessWidgetModel($this->view->indicatorId, $mapId);
                 $this->view->columns = $this->model->renderKpiIndicatorColumnsModel($this->view->indicatorId, $this->view->row['isCheckSystemTable'], array('columnsData' => $this->view->columnsData));
                 
+                $this->view->hiddenParams = '';
                 $this->view->postHiddenParams = $postHiddenParams;
                 $this->view->renderGrid = $this->view->renderPrint('kpi/indicator/renderGrid', self::$viewPath);
 
@@ -4449,16 +4457,31 @@ class Mdform extends Controller {
     }
     
     public function callWebservice() {
+        
         $postData = Input::postData();
+        $indicatorId = Input::numeric('indicatorId');
         
-        $this->load->model('mdwebservice', 'middleware/models/');
-        $response = $this->model->execProcessModel($postData);
+        $data = $this->model->getKpiIndicatorTemplateModel($indicatorId);
         
-        if (issetParam($response['status']) == 'success' && $indicatorId = issetVar($postData['paramData'][0]['value'])) {
-            self::clearCacheData($indicatorId);
+        if ($data && isset($data[1])) {
+            
+            $_POST['isResponseArray'] = 1;
+            $_POST['param']['indicatorId'] = $indicatorId;
+            $_POST['param']['actionType'] = 'create';
+
+            $response = self::kpiIndicatorTemplateRender(); 
+            
+        } else {
+        
+            $this->load->model('mdwebservice', 'middleware/models/');
+            $response = $this->model->execProcessModel($postData);
+
+            if (issetParam($response['status']) == 'success' && $indicatorId = issetVar($postData['paramData'][0]['value'])) {
+                self::clearCacheData($indicatorId);
+            }
         }
         
-        echo json_encode($response);
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
     public function getColumnDrillDownConfig() {
@@ -5937,6 +5960,7 @@ class Mdform extends Controller {
         $this->view->isRawDataMart = $this->view->row['KPI_TYPE_ID'] == '1044' ? true : false;
         $this->view->isCheckQuery = $this->view->row['KPI_TYPE_ID'] == '1200' ? true : false;
         $this->view->drillDownCriteria = '';
+        $this->view->hiddenParams = '';
         $this->view->postHiddenParams = '';
         $this->view->filter = '';
         $this->view->isIgnoreFilter = true;
@@ -6015,6 +6039,62 @@ class Mdform extends Controller {
     public function importManageDataCommit() {
         $response = $this->model->importManageDataCommitModel();
         echo json_encode($response, JSON_UNESCAPED_UNICODE);
+    }
+    
+    public function mapKpiIndicatorValueRender() {
+        
+        $this->view->uniqId = getUID();
+        $this->view->mainIndicatorId = Input::numeric('mainIndicatorId');
+        $this->view->recordId = Input::numeric('dynamicRecordId');
+        $this->view->typeCode = Input::post('typeCode');
+        $this->view->selectedRow = Arr::changeKeyLower(Input::post('selectedRow'));
+        $this->view->selectedRowEncode = Arr::encode($this->view->selectedRow);
+        $this->view->standartField = $this->model->getKpiIndicatorStandartFieldModel($this->view->mainIndicatorId);
+        $this->view->structureList = $this->model->getChildRenderStructureModel($this->view->mainIndicatorId, ($this->view->typeCode == 'config' ? 79 : 113), $this->view->selectedRow);
+
+        $response = array(
+            'status' => 'success', 
+            'html' => $this->view->renderPrint('kpi/indicator/recordmap/valuemap', self::$viewPath)
+        );
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+    }
+    
+    public function renderValueMapStructure() {
+        
+        $srcRefStructureId = Input::numeric('mainIndicatorId');
+        $trgRefStructureId = Input::numeric('structureIndicatorId');
+        $srcRecordId       = Input::numeric('recordId');
+        
+        $trgRecordId = $this->model->trgRecordIdMetaDmRecordMapModel($srcRefStructureId, $trgRefStructureId, $srcRecordId);
+        
+        $_POST['isResponseArray'] = 1;
+        $_POST['param']['indicatorId'] = $trgRefStructureId; 
+        $_POST['param']['actionType'] = 'create';
+        
+        if ($trgRecordId) {
+            
+            $_POST['param']['dynamicRecordId'] = $trgRecordId; 
+            $_POST['param']['idField'] = 'IDFIELD';
+            $_POST['param']['actionType'] = 'update';
+            
+        } else {
+            
+            $trgIndicatorId = Input::numeric('trgIndicatorId');
+            $srcMapId       = Input::numeric('srcMapId');
+        
+            $mapData = $this->model->getSrcTrgPathModel($srcMapId, $trgIndicatorId);
+            
+            if ($mapData) {
+                $selectedRow = Arr::decode(Input::post('selectedRow'));
+                foreach ($mapData as $mapRow) {
+                    $_POST['transferSelectedRow'][strtoupper($mapRow['TRG_INDICATOR_PATH'])] = issetParam($selectedRow[strtolower($mapRow['SRC_INDICATOR_PATH'])]);
+                }
+            }
+        }
+
+        $indicatorContent = self::kpiIndicatorTemplateRender(); 
+        
+        echo $indicatorContent['html'];
     }
     
 }

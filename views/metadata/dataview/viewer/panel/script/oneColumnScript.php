@@ -22,8 +22,13 @@ $(function () {
     
     dvOneFixHeight_<?php echo $this->uniqId; ?> = $(window).height() - firstList_<?php echo $this->uniqId; ?>.offset().top - 40;
     dvOneFirstListHeight_<?php echo $this->uniqId; ?> = dvOneFixHeight_<?php echo $this->uniqId; ?> - subQueryHeight_<?php echo $this->uniqId; ?>;
+    var dh = 50;
     
-    panelDv_<?php echo $this->uniqId; ?>.find('.dv-onecol-first-sidebar').css({'overflow': 'auto', 'height': dvOneFixHeight_<?php echo $this->uniqId; ?> + 50});
+    if (panelDv_<?php echo $this->uniqId; ?>.find('.menucolumn').length) {
+        dh = 120;
+    }
+    
+    panelDv_<?php echo $this->uniqId; ?>.find('.dv-onecol-first-sidebar').css({'overflow': 'auto', 'height': dvOneFixHeight_<?php echo $this->uniqId; ?> + dh});
     firstList_<?php echo $this->uniqId; ?>.css({'display': 'block', 'overflow': 'auto', 'max-height': dvOneFirstListHeight_<?php echo $this->uniqId; ?>});
     
     panelDv_<?php echo $this->uniqId; ?>.on('click', 'a[data-listmetadataid]:not(.click-disabled)', function() {
@@ -50,6 +55,10 @@ $(function () {
             if ($dates.length == 2) {
                 thisText += ' ' + $dates.eq(0).val() + ' / ' + $dates.eq(1).val();
             }
+        }
+        
+        if (panelDv_<?php echo $this->uniqId; ?>.find('.menu-description').length) {
+            panelDv_<?php echo $this->uniqId; ?>.find('.menu-description').text(rowData.description);
         }
         
         panelDv_<?php echo $this->uniqId; ?>.find('#dv-twocol-view-title').text(thisText);

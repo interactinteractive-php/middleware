@@ -318,7 +318,8 @@ class Mdobject_Model extends Model {
                     GL.IS_FIRST_COL_FILTER, 
                     GL.COLOR_SCHEMA, 
                     GL.IS_IGNORE_CLEAR_FILTER, 
-                    GL.WS_URL AS DV_WS_URL 
+                    GL.WS_URL AS DV_WS_URL, 
+                    MD.DESCRIPTION 
                 FROM META_GROUP_LINK GL 
                     INNER JOIN META_DATA MD ON MD.META_DATA_ID = GL.META_DATA_ID 
                     LEFT JOIN META_DATA_FOLDER_MAP MFM ON MFM.META_DATA_ID = GL.META_DATA_ID 

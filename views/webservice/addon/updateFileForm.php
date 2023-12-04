@@ -1,6 +1,8 @@
-<?php $row = $this->getMetaDataValueOneFile; ?>
-<?php echo Form::create(array('class' => 'form-horizontal', 'id' => 'update-attach-file-form', 'method' => 'post', 'enctype' => 'multipart/form-data')); ?>
-<?php echo Form::hidden(array('name' => 'attachId', 'id' => 'attachId', 'value' => $this->attachId)); ?>
+<?php 
+$row = $this->getMetaDataValueOneFile; 
+echo Form::create(array('class' => 'form-horizontal', 'id' => 'update-attach-file-form', 'method' => 'post', 'enctype' => 'multipart/form-data')); 
+echo Form::hidden(array('name' => 'attachId', 'id' => 'attachId', 'value' => $this->attachId)); 
+?>
 <div class="col-md-12">
     <table class="table table-hover table-light">
         <tbody>
@@ -59,12 +61,37 @@
             </tr>
         </tbody>
     </table>
-
 </div>
 <?php echo Form::close(); ?>
 
 <script type="text/javascript">
-    $(function(){
-        Core.initUniform();
+$(function(){
+    Core.initUniform();
+    
+    <?php
+    if (isset($this->fileSize) && $this->fileSize) {
+    ?>
+    $('#update-attach-file-form').on('change', 'input#bp_file', function() {
+        var $this = $(this);
+        
+        if (Number($this[0].files[0].size) > <?php echo $this->fileSize; ?>) {
+            new PNotify({
+                title: 'Info',
+                text: plang.getVar('PF_FILE_SIZE_EXCEEDED_MSG', {
+                    'fileName': $this[0].files[0].name, 
+                    'maxFileSize': parseInt(<?php echo $this->fileSize; ?> / 1000000) + 'mb'
+                }),
+                type: 'info',
+                addclass: 'pnotify-center',
+                sticker: false, 
+                delay: 10000000000
+            });    
+            $this.val('');
+            return false;
+        }
     });
+    <?php
+    }
+    ?>
+});
 </script>

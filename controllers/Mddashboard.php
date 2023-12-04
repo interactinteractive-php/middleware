@@ -1048,6 +1048,9 @@ class Mddashboard extends Controller {
         
         $this->load->model('mdobject', 'middleware/models/');
         $dataGridOptionData = $this->model->getDVGridOptionsModel($metaDataId);
+        
+        WebService::$isUseReport = true;
+        
         switch ($type) {
             case 'columnOne' : {
                     $param = array_merge($param, array(
@@ -1681,6 +1684,8 @@ class Mddashboard extends Controller {
                 $criteria = $param['criteria'];
             }
         }
+        
+        WebService::$isUseReport = true;
         
         if ($metaData['META_TYPE_ID'] === Mdmetadata::$businessProcessMetaTypeId) {
             
@@ -2792,7 +2797,9 @@ class Mddashboard extends Controller {
         );
         $series = array();
         // вебсервис дуудах
+        WebService::$isUseReport = true;
         $data = $this->ws->runResponse(GF_SERVICE_ADDRESS, 'PL_MDVIEW_004', $param);
+        
         if ($data['status'] == 'success') {
             if (isset($data['result'])) {
                 unset($data['result']['aggregatecolumns']); // aggregatecolumns хасаж байна   
@@ -3397,6 +3404,8 @@ class Mddashboard extends Controller {
             $returnMethod = 'flotchart/renderDashboard';
             
         } elseif ($diagram['DASHBOARD_TYPE'] == 'custom') {
+            
+            WebService::$isUseReport = true;
             
             if ($diagram['DIAGRAM_TYPE'] == 'custom_water_gauge') {
                 

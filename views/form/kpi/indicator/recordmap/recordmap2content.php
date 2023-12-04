@@ -1,8 +1,8 @@
 <div class="col p-0">
     <div class="dv-process-buttons">
       <div class="btn-group btn-group-devided">
-        <a class="btn btn-success btn-circle btn-sm" title="Нэмэх" onclick="runKpiRelatonBp(this, '16425125580661');" data-actiontype="update" data-dvbtn-processcode="data_IndicatorMapDV_006" data-ismain="0" href="javascript:;"><i class="far fa-plus-square" style="color:"></i> </a>
-        <a class="btn btn-warning btn-circle btn-sm" title="Засах" onclick="runKpiRelatonBp(this, '16660589496259');" data-actiontype="update" data-dvbtn-processcode="data_IndicatorMapDV_006" data-ismain="0" href="javascript:;"><i class="far fa-edit" style="color:"></i> </a>
+        <a class="btn btn-success btn-circle btn-sm" title="Нэмэх" onclick="runKpiRelatonBp(this, '16425125580661');" data-actiontype="update" data-dvbtn-processcode="data_IndicatorMapDV_006" data-ismain="0" href="javascript:;"><i class="far fa-plus"></i></a>
+        <a class="btn btn-warning btn-circle btn-sm" title="Засах" onclick="runKpiRelatonBp(this, '16660589496259');" data-actiontype="update" data-dvbtn-processcode="data_IndicatorMapDV_006" data-ismain="0" href="javascript:;"><i class="far fa-edit"></i></a>
       </div>                                    
     </div>
 </div>

@@ -2596,6 +2596,7 @@ class Mdexpression extends Controller {
         $fullExpression = str_replace('setAddonTabFileExtension(', 'bpSetAddonTabFileExtension(' . $mainSelector . ', ', $fullExpression);
         $fullExpression = str_replace('setAddonTabMessage(', 'bpSetAddonTabMessage(' . $mainSelector . ', ', $fullExpression);
         $fullExpression = str_replace('setAddonActionControl(', 'bpSetAddonActionControl(' . $mainSelector . ', ', $fullExpression);
+        $fullExpression = str_replace('setAddonTabFileSize(', 'bpSetAddonTabFileSize(' . $mainSelector . ', ', $fullExpression);
         $fullExpression = str_replace('setMetaPopupField(', 'bpSetMetaPopupField(' . $mainSelector . ', checkElement, ', $fullExpression);
         $fullExpression = str_replace('setDetailMergeCount(', 'bpSetDetailMergeCount(' . $mainSelector . ', checkElement, ', $fullExpression);
         $fullExpression = str_replace('setDetailMergeVisibler(', 'bpSetDetailMergeVisibler(' . $mainSelector . ', checkElement, ', $fullExpression);

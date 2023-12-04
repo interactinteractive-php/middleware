@@ -123,7 +123,7 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt) {
         postData.param.uxFlowActionIndicatorId = $this.attr('data-uxflow-action-indicatorid');
     }
     
-    var isMapId = false;
+    var isMapId = false, isMapHidden = false;
     
     if ($this.hasAttr('data-mapid') && $this.attr('data-mapid') != '') {
         
@@ -133,6 +133,12 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt) {
         postData.param.hiddenParams = $widgetParent.find('input[name="hiddenParams"]').val();
         
         isMapId = true;
+        
+    } else if ($this.closest('.mv-value-map-render-child').length) {
+        var $active = $this.closest('.mv-value-map-render-parent').find('ul.nav-sidebar > li.nav-item > a.nav-link.active');
+        postData.param.mapHiddenParams = $active.attr('data-hidden-params');
+        postData.param.mapHiddenSelectedRow = $active.attr('data-selected-row');
+        isMapHidden = true;
     }
     
     /*if ($this.hasAttr('data-statusconfig') && $this.attr('data-statusconfig') != '') {
@@ -200,9 +206,14 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt) {
                                     url: 'mdform/saveKpiDynamicDataByList',
                                     dataType: 'json',
                                     beforeSubmit: function(formData, jqForm, options) {
+                                        
                                         if (isMapId) {
                                             formData.push({name: 'mapId', value: postData.param.mapId});
                                             formData.push({name: 'hiddenParams', value: postData.param.hiddenParams});
+                                        }
+                                        if (isMapHidden) {
+                                            formData.push({name: 'mapHidden[params]', value: postData.param.mapHiddenParams});
+                                            formData.push({name: 'mapHidden[selectedRow]', value: postData.param.mapHiddenSelectedRow});
                                         }
 
                                         if ($this.hasAttr('data-statusconfig') && $this.attr('data-statusconfig') != '') {
@@ -270,6 +281,10 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt) {
                                             if (isMapId) {
                                                 formData.push({name: 'mapId', value: postData.param.mapId});
                                                 formData.push({name: 'hiddenParams', value: postData.param.hiddenParams});
+                                            }
+                                            if (isMapHidden) {
+                                                formData.push({name: 'mapHidden[params]', value: postData.param.mapHiddenParams});
+                                                formData.push({name: 'mapHidden[selectedRow]', value: postData.param.mapHiddenSelectedRow});
                                             }
                                         },
                                         beforeSend: function () {
@@ -358,6 +373,96 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt) {
                 
                 $dialog.dialog('open');
             
+            } else {
+                new PNotify({
+                    title: data.status,
+                    text: data.message,
+                    type: data.status,
+                    sticker: false, 
+                    addclass: pnotifyPosition
+                });
+            }
+            
+            Core.unblockUI();
+        },
+        error: function () { alert('Error'); Core.unblockUI(); }
+    });
+}
+function mapKpiIndicatorValue(elem, kpiTypeId, mainIndicatorId, typeCode) {
+    var $this = $(elem);
+    var postData = {mainIndicatorId: mainIndicatorId, actionType: $this.attr('data-actiontype')}; 
+    var selectedRows = getDataViewSelectedRows(mainIndicatorId);
+    
+    if (selectedRows.length) {
+
+        var selectedRow = selectedRows[0];
+        postData.dynamicRecordId = selectedRow[window['idField_'+mainIndicatorId]];
+        postData.idField = window['idField_'+mainIndicatorId];
+        postData.structureIndicatorId = $this.attr('data-structure-indicatorid');
+        postData.typeCode = typeCode;
+        postData.selectedRow = selectedRow;
+
+    } else {
+        alert(plang.get('msg_pls_list_select'));
+        return;
+    }
+    
+    $.ajax({
+        type: 'post',
+        url: 'mdform/mapKpiIndicatorValueRender',
+        data: postData, 
+        dataType: 'json',
+        beforeSend: function () {
+            Core.blockUI({message: 'Loading...', boxed: true});
+        },
+        success: function (data) {
+            PNotify.removeAll();
+            if (data.status == 'success') {
+                
+                var $dialogName = 'dialog-valuemap-'+mainIndicatorId;
+                if (!$("#" + $dialogName).length) {
+                    $('<div id="' + $dialogName + '"></div>').appendTo('body');
+                }
+                var $dialog = $('#' + $dialogName);
+                
+                $dialog.empty().append(data.html);
+                $dialog.dialog({
+                    /*dialogClass: 'no-padding-dialog',*/
+                    cache: false,
+                    resizable: true,
+                    bgiframe: true,
+                    autoOpen: false,
+                    title: typeCode,
+                    width: 1000,
+                    height: 'auto',
+                    modal: true,
+                    close: function() {
+                        $dialog.empty().dialog('destroy').remove();
+                    },
+                    buttons: [
+                        {text: plang.get('close_btn'), class: 'btn btn-sm blue-hoki bp-btn-close', click: function () {
+                            $dialog.dialog('close');
+                        }}
+                    ]
+                }).dialogExtend({
+                    "closable": true,
+                    "maximizable": true,
+                    "minimizable": true,
+                    "collapsable": true,
+                    "dblclick": "maximize",
+                    "minimizeLocation": "left",
+                    "icons": {
+                        "close": "ui-icon-circle-close",
+                        "maximize": "ui-icon-extlink",
+                        "minimize": "ui-icon-minus",
+                        "collapse": "ui-icon-triangle-1-s",
+                        "restore": "ui-icon-newwin"
+                    }
+                });
+                
+                $dialog.dialogExtend('maximize');
+                $dialog.dialog('open');
+                
             } else {
                 new PNotify({
                     title: data.status,
@@ -1010,22 +1115,110 @@ function callWebServiceKpiIndicatorValue(elem, indicatorId) {
     $.ajax({
         type: 'post',
         url: 'mdform/callWebservice',
-        data: {processCode: 'KPI_CALL_WEBSERVICE', paramData: paramData},
+        data: {processCode: 'KPI_CALL_WEBSERVICE', indicatorId: indicatorId, paramData: paramData},
         dataType: 'json',
         beforeSend: function() {
             Core.blockUI({message: 'Loading...', boxed: true});
         },
         success: function(data) {
             
-            if (data.status == 'success') {
-                new PNotify({
-                    title: data.status,
-                    text: 'Successfuly',
-                    type: data.status,
-                    addclass: pnotifyPosition,
-                    sticker: false
+            if (data.hasOwnProperty('html') && data.html) {
+                
+                var $dialogName = 'dialog-businessprocess-'+indicatorId;
+                if (!$("#" + $dialogName).length) {
+                    $('<div id="' + $dialogName + '"></div>').appendTo('body');
+                }
+                var $dialog = $('#' + $dialogName), dialogWidth = 950, dialogHeight = 'auto', dialogTitle = data.name, uniqId = data.uniqId;
+                
+                if (data.windowWidth) {
+                    dialogWidth = data.windowWidth;
+                }
+                
+                if (data.windowHeight) {
+                    dialogHeight = data.windowHeight;
+                }
+                
+                var buttons = [
+                    {text: plang.get('save_btn'), class: 'btn btn-sm green-meadow bp-btn-save', click: function (e) {
+
+                        var $form = $dialog.find('form');    
+                        var $dialogSaveBtn = $(e.target);
+
+                        $dialogSaveBtn.attr('disabled', 'disabled').prepend('<i class="fa fa-spinner fa-pulse fa-fw"></i>');
+                        
+                        if (window['kpiIndicatorBeforeSave_' + uniqId]($dialogSaveBtn) && bpFormValidate($form)) {
+
+                            $form.ajaxSubmit({
+                                type: 'post',
+                                url: 'mdform/saveKpiDynamicDataByList',
+                                dataType: 'json',
+                                beforeSend: function () {
+                                    Core.blockUI({message: 'Loading...', boxed: true});
+                                },
+                                success: function (data) {
+
+                                    PNotify.removeAll();
+                                    new PNotify({
+                                        title: data.status,
+                                        text: data.message,
+                                        type: data.status,
+                                        sticker: false, 
+                                        addclass: pnotifyPosition
+                                    });
+
+                                    if (data.status == 'success') {
+                                        $dialog.dialog('close');
+                                        dataViewReload(indicatorId);
+                                    } 
+
+                                    Core.unblockUI();
+                                }
+                            });
+                        }
+                        
+                        $dialogSaveBtn.removeAttr('disabled').find('i').remove();
+                    }},
+                    {text: plang.get('close_btn'), class: 'btn btn-sm blue-hoki bp-btn-close', click: function () {
+                        $dialog.dialog('close');
+                    }}
+                ];
+    
+                $dialog.empty().append('<form method="post" enctype="multipart/form-data">' + data.html + '</form>');
+                $dialog.dialog({
+                    cache: false,
+                    resizable: true,
+                    bgiframe: true,
+                    autoOpen: false,
+                    title: dialogTitle,
+                    width: dialogWidth,
+                    height: dialogHeight,
+                    modal: true,
+                    close: function() {
+                        $dialog.empty().dialog('destroy').remove();
+                    },
+                    buttons: buttons
+                }).dialogExtend({
+                    "closable": true,
+                    "maximizable": true,
+                    "minimizable": true,
+                    "collapsable": true,
+                    "dblclick": "maximize",
+                    "minimizeLocation": "left",
+                    "icons": {
+                        "close": "ui-icon-circle-close",
+                        "maximize": "ui-icon-extlink",
+                        "minimize": "ui-icon-minus",
+                        "collapse": "ui-icon-triangle-1-s",
+                        "restore": "ui-icon-newwin"
+                    }
                 });
-                dataViewReload(indicatorId);
+                
+                if (data.windowSize === 'fullscreen') {
+                    $dialog.dialogExtend('maximize');
+                }
+                
+                $dialog.dialog('open');
+                
             } else {
                 new PNotify({
                     title: data.status,
@@ -1034,6 +1227,10 @@ function callWebServiceKpiIndicatorValue(elem, indicatorId) {
                     addclass: pnotifyPosition,
                     sticker: false
                 });
+
+                if (data.status == 'success') {
+                    dataViewReload(indicatorId);
+                } 
             }
             
             Core.unblockUI();
@@ -1056,25 +1253,18 @@ function mvExecuteCheckQuery(elem, indicatorId) {
         },
         success: function(data) {
             
+            new PNotify({
+                title: data.status,
+                text: data.text,
+                type: data.status,
+                addclass: pnotifyPosition,
+                sticker: false
+            });
+                
             if (data.status == 'success') {
-                new PNotify({
-                    title: data.status,
-                    text: 'Successfuly',
-                    type: data.status,
-                    addclass: pnotifyPosition,
-                    sticker: false
-                });
                 dataViewReload(indicatorId);
                 bpVisiblePanelDataViewReload('secondList');
-            } else {
-                new PNotify({
-                    title: data.status,
-                    text: data.text,
-                    type: data.status,
-                    addclass: pnotifyPosition,
-                    sticker: false
-                });
-            }
+            } 
             
             Core.unblockUI();
         }
@@ -1096,25 +1286,18 @@ function mvExecuteFixQuery(elem, indicatorId) {
         },
         success: function(data) {
             
+            new PNotify({
+                title: data.status,
+                text: data.text,
+                type: data.status,
+                addclass: pnotifyPosition,
+                sticker: false
+            });
+                
             if (data.status == 'success') {
-                new PNotify({
-                    title: data.status,
-                    text: 'Successfuly',
-                    type: data.status,
-                    addclass: pnotifyPosition,
-                    sticker: false
-                });
                 dataViewReload(indicatorId);
                 bpVisiblePanelDataViewReload('secondList');
-            } else {
-                new PNotify({
-                    title: data.status,
-                    text: data.text,
-                    type: data.status,
-                    addclass: pnotifyPosition,
-                    sticker: false
-                });
-            }
+            } 
             
             Core.unblockUI();
         }
@@ -5121,7 +5304,7 @@ function createMvStructureFromFile(elem, dataViewId, opts) {
 
                             if ($form.valid()) {
 
-                                Core.blockUI({message: 'Loading...', boxed: true});
+                                Core.blockUI({message: 'Importing... (<span id="mv-file-import-rows-count">0</span> / <span id="mv-file-import-total-count">0</span>)', boxed: true});
 
                                 setTimeout(function() {
 
@@ -5158,7 +5341,7 @@ function createMvStructureFromFile(elem, dataViewId, opts) {
                                             rowsLength = rowsData.length;
                                         }
 
-                                        var pageSize = 1000;
+                                        var pageSize = 500;
                                         var total = Number(rowsLength);
 
                                         if (mvFileReaderExtention == 'txt') {
@@ -5170,7 +5353,8 @@ function createMvStructureFromFile(elem, dataViewId, opts) {
                                         var headerData = [];
 
                                         if (isHeader) {
-                                            var pages = Math.ceil((total - 1) / pageSize) || 1;
+                                            total = total - 1;
+                                            var pages = Math.ceil(total / pageSize) || 1;
 
                                             if (mvFileReaderExtention == 'txt') {
                                                 var secondRow = (rowsData[1]).split(delimiter);
@@ -5223,6 +5407,8 @@ function createMvStructureFromFile(elem, dataViewId, opts) {
                                             }
                                         }
                                         
+                                        $('#mv-file-import-total-count').text(total);
+                                        
                                         var createPostData = {indicatorId: indicatorId, headerData: headerData, isOnlyTableCreate: 1};
                                         
                                         if (isContextMenu) {
@@ -5242,16 +5428,13 @@ function createMvStructureFromFile(elem, dataViewId, opts) {
                                             url: 'mdform/createMvStructureFromFile',
                                             data: createPostData,
                                             dataType: 'json', 
-                                            async: false, 
                                             success: function(data) {
 
                                                 if (data.status == 'success') {
                                                     
-                                                    var isSuccess = true, importedIds = '';
-
-                                                    for (var p = 1; p <= pages; p++) {
-
-                                                        var response = $.ajax({
+                                                    function mvInsertDataFromFileLoop(p) {
+                                                        
+                                                        $.ajax({
                                                             type: 'post',
                                                             url: 'mdform/createMvStructureFromFile',
                                                             data: {
@@ -5262,72 +5445,61 @@ function createMvStructureFromFile(elem, dataViewId, opts) {
                                                                 rowsData: rowsData.slice((p - 1) * pageSize, p * pageSize)
                                                             },
                                                             dataType: 'json',
-                                                            async: false
-                                                        });
-
-                                                        var responseValue = response.responseJSON;
-
-                                                        if (responseValue.status != 'success') {
-                                                            PNotify.removeAll();
-                                                            new PNotify({
-                                                                title: responseValue.status,
-                                                                text: responseValue.message,
-                                                                type: responseValue.status,
-                                                                sticker: false, 
-                                                                delay: 1000000000, 
-                                                                addclass: 'pnotify-center'
-                                                            }); 
-                                                            isSuccess = false;
-                                                            
-                                                            if (isContextMenu) {
-                                                                removeTempIndicatorById(indicatorId);
-                                                            }
-                                                            
-                                                            break;  
-                                                        } 
-                                                    }
-
-                                                    if (isSuccess) {
-                                                        PNotify.removeAll();
-                                                        new PNotify({
-                                                            title: 'Success',
-                                                            text: plang.get('msg_save_success'),
-                                                            type: 'success',
-                                                            sticker: false, 
-                                                            delay: 1000000000, 
-                                                            addclass: 'pnotify-center'
-                                                        }); 
+                                                            success: function(loopResponse) {
+                                                                
+                                                                if (loopResponse.status == 'success') {
+                                                                    
+                                                                    if (p == pages) {
+                                                                        
+                                                                        PNotify.removeAll();
+                                                                        new PNotify({
+                                                                            title: loopResponse.status,
+                                                                            text: plang.get('msg_save_success'),
+                                                                            type: loopResponse.status,
+                                                                            sticker: false, 
+                                                                            delay: 1000000000, 
+                                                                            addclass: 'pnotify-center'
+                                                                        }); 
+                                                                        
+                                                                        if (isImportManage) {
+                                                                            mvRenderChildDataSets(opts.mainIndicatorId);
+                                                                            $dialog.dialog('close');
+                                                                        } else if (isContextMenu) {
+                                                                            $dialog.dialog('close');
+                                                                            bpVisiblePanelDataViewReload('secondList');
+                                                                        } else {
+                                                                            $dialog.dialog('close');
+                                                                            dataViewReload(dataViewId);
+                                                                        }
+                                                                        
+                                                                        Core.unblockUI();
                                                         
-                                                        if (isImportManage) {
-                                                            
-                                                            mvRenderChildDataSets(opts.mainIndicatorId);
-                                                            
-                                                            /*var formData = new FormData();
-                                                            formData.append('indicatorId', indicatorId);
-                                                            formData.append('file', $form.find('input[name="importStructureFile"]').get(0).files[0]);
-
-                                                            $.ajax({
-                                                                type: 'post',
-                                                                url: 'mdform/importFileUpload',
-                                                                data: formData,
-                                                                processData: false,
-                                                                contentType: false,
-                                                                dataType: 'json',
-                                                                success: function(dataFile) {
-                                                                    console.log(dataFile); 
+                                                                    } else {
+                                                                        $('#mv-file-import-rows-count').text(p * pageSize);
+                                                                        mvInsertDataFromFileLoop(p + 1);
+                                                                    }
+                                                                    
+                                                                } else {
+                                                                    PNotify.removeAll();
+                                                                    new PNotify({
+                                                                        title: loopResponse.status,
+                                                                        text: loopResponse.message,
+                                                                        type: loopResponse.status,
+                                                                        sticker: false, 
+                                                                        delay: 1000000000, 
+                                                                        addclass: 'pnotify-center'
+                                                                    }); 
+                                                                    Core.unblockUI();
+                                                                    
+                                                                    if (isContextMenu) {
+                                                                        removeTempIndicatorById(indicatorId);
+                                                                    }
                                                                 }
-                                                            });*/
-                                                            
-                                                            $dialog.dialog('close');
-                                                            
-                                                        } else if (isContextMenu) {
-                                                            $dialog.dialog('close');
-                                                            bpVisiblePanelDataViewReload('secondList');
-                                                        } else {
-                                                            $dialog.dialog('close');
-                                                            dataViewReload(dataViewId);
-                                                        }
+                                                            }
+                                                        });
                                                     }
+                                                    
+                                                    mvInsertDataFromFileLoop(1);
 
                                                 } else {
                                                     PNotify.removeAll();
@@ -5338,12 +5510,15 @@ function createMvStructureFromFile(elem, dataViewId, opts) {
                                                         sticker: false, 
                                                         addclass: 'pnotify-center'
                                                     }); 
+                                                    Core.unblockUI();
                                                 }
                                             }
                                         });
+                                        
+                                    } else {
+                                        Core.unblockUI();
                                     }
 
-                                    Core.unblockUI();
                                 }, 100);
                             }
                         }},

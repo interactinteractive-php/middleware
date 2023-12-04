@@ -3665,7 +3665,7 @@
         }
     }
     
-    function dataViewPrintPreview_<?php echo $this->metaDataId; ?>(mainMetaDataId, isDialog, whereFrom, elem, isOneRow) {
+    function dataViewPrintPreview_<?php echo $this->metaDataId; ?>(mainMetaDataId, isDialog, whereFrom, elem, isOneRow, isbasket) {
         
         setTimeout(function () {        
             if (typeof isOneRow !== 'undefined' && isOneRow) {
@@ -3675,12 +3675,15 @@
                 rows[0] = typeof getRows[_datagridRowIndex] === 'undefined' ? getRows[0] : getRows[_datagridRowIndex];
             } else {
                 var rows = getDataViewSelectedRows(mainMetaDataId);
+                if (typeof isbasket !== 'undefined' && isbasket) {
+                    rows = _selectedRows_<?php echo $this->metaDataId; ?>;
+                }                
             }
             
-            if (rows.length === 0) {
+            if (rows.length === 0 && typeof isbasket === 'undefined' && !isbasket) {
                 alert(plang.get('msg_pls_list_select'));
                 return;
-            }
+            }            
             
             $.ajax({
                 type: 'post',

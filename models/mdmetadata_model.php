@@ -7227,6 +7227,7 @@ class Mdmetadata_Model extends Model {
                     }
                 }
                 
+                WebService::$isUseReport = true;
                 $data = $this->ws->runSerializeResponse(self::$gfServiceAddress, Mddatamodel::$getDataViewCommand, $param);
 
                 $row['CARD_RESULT'] = '';

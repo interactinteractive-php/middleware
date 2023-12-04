@@ -13937,12 +13937,11 @@ function bpCallIndicatorDataViewByExp(mainSelector, elem, dvId, params, dialogSi
         drillDownCriteria = rtrim(drillDownCriteria, '&');
     }
     
-    var isFullScreen = false, dialogWidth = 800, dataGridDefaultHeight = 450, isNewTab = false;
+    var isFullScreen = false, dialogWidth = 0, isNewTab = false;
             
     if (typeof dialogSize !== 'undefined' && dialogSize != '') {
         if (dialogSize == 'fullscreen') {
             isFullScreen = true;
-            dataGridDefaultHeight = $(window).height() - 160;
         } else if (dialogSize.indexOf('width:') !== -1) {
             dialogWidth = dialogSize.replace('width:', '').trim();
         } else if (dialogSize == 'tab') {
@@ -13964,9 +13963,16 @@ function bpCallIndicatorDataViewByExp(mainSelector, elem, dvId, params, dialogSi
         dataType: 'json', 
         success: function(content) {
             if (isNewTab) {
-                appMultiTabByContent({ metaDataId: dvId, title: content.title, type: 'indicator', content: content.html });
+                appMultiTabByContent({metaDataId: dvId, title: content.title, type: 'indicator', content: content.html});
             } else {
-                mvOpenDialog({ metaDataId: dvId, title: content.title, type: 'indicatorList', content: content.html });
+                var opts = {metaDataId: dvId, title: content.title, type: 'indicatorList', content: content.html};
+                if (isFullScreen) {
+                    opts.isFullScreen = true;
+                }
+                if (dialogWidth > 0) {
+                    opts.dialogWidth = dialogWidth;
+                }
+                mvOpenDialog(opts);
             }
         }
     });
@@ -15995,6 +16001,20 @@ function bpSetAddonActionControl(mainSelector, tabName, controls) {
         }
     }
     
+    return;
+}
+function bpSetAddonTabFileSize(mainSelector, tabName, fileSize) {
+    var $tab = mainSelector.find('.bp-addon-tab > li > a[data-addon-type="'+tabName+'"]');
+    if ($tab.length) {
+        fileSize = fileSize.toString();
+        fileSize = fileSize.replace(/\s/g, '');
+        fileSize = fileSize.toLowerCase();
+        var byteSize = fileSize;
+        if (fileSize.indexOf('mb') !== -1) {
+            byteSize = (parseFloat(fileSize) * 1000000).toFixed(2);
+        }
+        $tab.attr('data-file-size', byteSize);
+    }
     return;
 }
 function bpSetComboSelectedValue(mainSelector, elem, fieldPath, id, name) {

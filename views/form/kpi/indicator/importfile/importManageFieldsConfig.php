@@ -20,7 +20,7 @@
                     echo ($row['IS_UNIQUE'] == '1' ? '🔑 ' : '');
                     echo $row['COLUMN_NAME']; 
                     echo Form::hidden(array('name' => 'mapId[]', 'value' => $row['ID']));
-                    echo Form::hidden(array('name' => 'srcId[]', 'value' => $row['SRC_MAP_ID'].'|'.$row['COLUMN_NAME']));
+                    echo Form::hidden(array('name' => 'srcId[]', 'value' => $row['SRC_MAP_ID'].'|'.$row['COLUMN_NAME'].'|'.$row['SHOW_TYPE']));
                     ?>
                 </th>
                 <td><?php echo $row['SHOW_TYPE']; ?></td>

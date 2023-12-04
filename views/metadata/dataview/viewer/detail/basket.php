@@ -19,6 +19,17 @@
                             $commandBtn = str_replace('d-flex', '', $commandBtn);
                         }
                         
+                        if ($this->isPrint) {
+
+                            $invoicePrintBtn = html_tag('button', array(
+                                'type' => 'button', 
+                                'class' => 'btn btn-sm btn-circle green', 
+                                'onclick' => 'dataViewPrintPreview_'.$this->metaDataId.'(\''.$this->metaDataId.'\', true, \'toolbar\', this, undefined, true);'
+                            ), '<i class="far fa-print"></i> '.($this->lang->line('printTemplate'.$this->metaDataId) == 'printTemplate'.$this->metaDataId ? $this->lang->line('printTemplate') : $this->lang->line('printTemplate'.$this->metaDataId)));
+
+                            $commandBtn .= $invoicePrintBtn;
+                        }                        
+                        
                         echo $commandBtn;
                         
                         if (isset($this->dataViewWorkFlowBtn) && $this->dataViewWorkFlowBtn == true) { 

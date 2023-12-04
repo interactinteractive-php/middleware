@@ -2,10 +2,10 @@
     <?php include_once "recordmap2content.php"; ?>
 </div>
 
-<style>
-  #kpi-component-<?php echo $this->componentUniqId; ?> .reldetail.active {
+<style type="text/css">
+#kpi-component-<?php echo $this->componentUniqId; ?> .reldetail.active {
     background-color: #afe4fb !important;
-  }
+}
 </style>
 <script type="text/javascript">
 $(function() {
@@ -42,7 +42,27 @@ $(function() {
         $this.addClass('active');
     });
     
-});  
+    $.contextMenu({
+        selector: "#kpi-component-<?php echo $this->componentUniqId; ?> .col.reldetail",
+        events: {
+            show: function(opt) {
+                var $this = $(opt.$trigger);
+                $this.trigger('click');
+            }
+        },
+        callback: function(key, opt) {
+            if (key == 'edit') {
+                var $this = $(opt.$trigger);
+                runKpiRelatonBp($this, '16660589496259');
+            }
+        },
+        items: {
+            "edit": {name: plang.get('edit_btn'), icon: 'edit'}
+        }
+    });
+    
+}); 
+
 function kpiIndicatorMainRelationFillRows(elem, indicatorId, rows, idField, codeField, nameField, chooseType) {
     
     var html = [], $tbody = elem.closest('.reldetail').find('table.mv-record-map-tbl > tbody:eq(0)');
@@ -237,10 +257,7 @@ function runKpiRelatonBp(elem, metaDataId) {
     },
     dataType: "json",
     beforeSend: function () {
-      Core.blockUI({
-        message: "Loading...",
-        boxed: true,
-      });
+      Core.blockUI({message: "Loading...", boxed: true});
     },
     success: function (data) {
       $dialog.empty().append(data.Html);
@@ -253,35 +270,9 @@ function runKpiRelatonBp(elem, metaDataId) {
           text: data.run_btn,
           class: "btn green-meadow btn-sm bp-btn-save",
           click: function (e) {
-            if (window["processBeforeSave_" + processUniqId]($(e.target))) {
-              processForm.validate({
-                ignore: "",
-                highlight: function (element) {
-                  $(element).addClass("error");
-                  $(element).parent().addClass("error");
-                  if (
-                    processForm.find("div.tab-pane:hidden:has(.error)").length
-                  ) {
-                    processForm
-                      .find("div.tab-pane:hidden:has(.error)")
-                      .each(function (index, tab) {
-                        var tabId = $(tab).attr("id");
-                        processForm
-                          .find('a[href="#' + tabId + '"]')
-                          .tab("show");
-                      });
-                  }
-                },
-                unhighlight: function (element) {
-                  $(element).removeClass("error");
-                  $(element).parent().removeClass("error");
-                },
-                errorPlacement: function () { },
-              });
+            var $saveBtn = $(e.target);
+            if (window['processBeforeSave_' + processUniqId]($saveBtn) && bpFormValidate(processForm)) {  
 
-              var isValidPattern = initBusinessProcessMaskEvent(processForm);
-
-              if (processForm.valid() && isValidPattern.length === 0) {
                 processForm.ajaxSubmit({
                   type: "post",
                   url: "mdwebservice/runProcess",
@@ -294,47 +285,45 @@ function runKpiRelatonBp(elem, metaDataId) {
                   },
                   success: function (responseData) {
                     if (responseData.status === "success") {
-                      var responseParam = responseData.paramData;
 
                       PNotify.removeAll();
                       new PNotify({
-                        title: "Амжилттай",
+                        title: responseData.status,
                         text: responseData.message,
-                        type: "success",
+                        type: responseData.status,
                         sticker: false,
-                        addclass: "pnotify-center",
+                        addclass: "pnotify-center"
                       });
+                      window['processAfterSave_' + processUniqId]($saveBtn, responseData.status, responseData);
+                      
                       $dialog.dialog("close");
 
                       $.ajax({
                         type: "post",
                         url: "mdform/renderRelationKpiReload",
-                        data: {
-                          indicatorId: '<?php echo $this->indicatorId; ?>'
-                        },
+                        data: {indicatorId: '<?php echo $this->indicatorId; ?>'},
                         dataType: "json",                 
                         success: function (data) {
                           $("#kpi-component-<?php echo $this->componentUniqId; ?>").empty().append(data.html);
                           Core.unblockUI();
-                        },
+                        }
                       });                                            
                     }                    
                   },
                   error: function () {
                     alert("Error");
-                  },
+                  }
                 });
-              }
             }
-          },
+          }
         },
         {
           text: data.close_btn,
           class: "btn blue-madison btn-sm",
           click: function () {
             $dialog.dialog("close");
-          },
-        },
+          }
+        }
       ];
 
       var dialogWidth = data.dialogWidth,
@@ -355,12 +344,11 @@ function runKpiRelatonBp(elem, metaDataId) {
           width: dialogWidth,
           height: dialogHeight,
           modal: true,
-          closeOnEscape:
-            typeof isCloseOnEscape == "undefined" ? true : isCloseOnEscape,
+          closeOnEscape: typeof isCloseOnEscape == "undefined" ? true : isCloseOnEscape,
           close: function () {
             $dialog.empty().dialog("destroy").remove();
           },
-          buttons: buttons,
+          buttons: buttons
         })
         .dialogExtend({
           closable: true,
@@ -375,7 +363,7 @@ function runKpiRelatonBp(elem, metaDataId) {
             minimize: "ui-icon-minus",
             collapse: "ui-icon-triangle-1-s",
             restore: "ui-icon-newwin",
-          },
+          }
         });
       if (data.dialogSize === "fullscreen") {
         $dialog.dialogExtend("maximize");

@@ -9936,7 +9936,6 @@ function runBusinessProcess(elem, dataViewId, uniqId, isEditMode, runMode, callb
                 type: 'post',
                 url: 'mdwebservice/runProcess',
                 dataType: 'json',
-                async: false,
                 beforeSend: function() {
                     Core.blockUI({message: 'Loading...', boxed: true});
                 },
@@ -10229,18 +10228,16 @@ function runBusinessProcess(elem, dataViewId, uniqId, isEditMode, runMode, callb
                     bpIgnoreGroupRemove($parentForm);
 
                     Core.unblockUI();
+                    $saveBtn.removeAttr('disabled').find('i:eq(0)').remove();
                 },
-                error: function() {
-                    alert('Error');
-                }
+                error: function() { alert('Error'); }
             });
 
         } else {
             bpIgnoreGroupRemove($parentForm);
+            Core.unblockUI();
+            $saveBtn.removeAttr('disabled').find('i:eq(0)').remove();
         }
-
-        Core.unblockUI();
-        $saveBtn.removeAttr('disabled').find('i:eq(0)').remove();
 
     }, 200);
 }

@@ -66,6 +66,7 @@ var buildOneColSecondPart = function(uniqId, dvId, $this) {
                 isDialog: false,
                 isHeaderName: false,
                 isBackBtnIgnore: 1, 
+                isIgnoreSetRowId: 1, 
                 oneSelectedRow: rowData, 
                 callerType: 'dv', 
                 openParams: '{"callerType":"dv","afterSaveNoAction":true}'
@@ -330,5 +331,95 @@ var buildOneColSecondPart = function(uniqId, dvId, $this) {
                 });
             }
         });
+    } else if (metaTypeId == 'indicator') {
+        
+        var rowData = $this.data('rowdata');
+
+        if (typeof rowData !== 'object') {
+            rowData = JSON.parse(rowData);
+        }
+        
+        $.ajax({
+            type: 'post',
+            url: 'mdform/indicatorDataList/' + metaDataId,
+            beforeSend: function() {
+                Core.blockUI({message: 'Loading...', boxed: true});
+            },
+            success: function(data) {
+                window['viewProcess_'+uniqId].empty().append(data).promise().done(function() {});
+            }
+        }).done(function() {
+            Core.unblockUI();
+        });
+    } else if (metaTypeId == 'method') {
+        
+        var rowData = $this.data('rowdata');
+        var getIds = metaDataId.split('_');
+
+        if (typeof rowData !== 'object') {
+            rowData = JSON.parse(rowData);
+        }
+        
+        var postData = {param: {indicatorId: getIds[1], crudIndicatorId: getIds[0]}};
+        
+        $.ajax({
+            type: 'post',
+            url: 'mdform/kpiIndicatorTemplateRender',
+            data: postData, 
+            dataType: 'json',
+            beforeSend: function () {
+                Core.blockUI({message: 'Loading...', boxed: true});
+            },
+            success: function (data) {
+                PNotify.removeAll();
+                
+                if (data.status == 'success') {
+                    window['viewProcess_'+uniqId].empty().append('<form method="post" enctype="multipart/form-data" class="dv-process-buttons"><button type="button" class="btn btn-sm btn-circle btn-success" style="position: absolute;right: 0;top: 45px;" onclick="runMetaverseCrud(this);"><i class="icon-checkmark-circle2"></i> Хадгалах</button>' + data.html + '</form>').promise().done(function() {});                
+                } else {
+                    new PNotify({
+                        title: data.status,
+                        text: data.message,
+                        type: data.status,
+                        sticker: false, 
+                        addclass: pnotifyPosition
+                    });
+                }
+                
+                Core.unblockUI();
+            },
+            error: function () { alert('Error'); Core.unblockUI(); }
+        });
     }
 };
+
+function runMetaverseCrud (elem) {
+    var $form = $(elem).closest('form');    
+    $form.validate({errorPlacement: function () {}});
+
+    if ($form.valid()) {
+        $form.ajaxSubmit({
+            type: 'post',
+            url: 'mdform/saveKpiDynamicDataByList',
+            dataType: 'json',
+            beforeSend: function () {
+                Core.blockUI({message: 'Loading...', boxed: true});
+            },
+            success: function (data) {
+
+                PNotify.removeAll();
+                new PNotify({
+                    title: data.status,
+                    text: data.message,
+                    type: data.status,
+                    sticker: false, 
+                    addclass: pnotifyPosition
+                });
+
+                if (data.status == 'success') {
+                } 
+
+                Core.unblockUI();
+            }
+        });
+    }    
+}

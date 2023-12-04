@@ -11,7 +11,7 @@
                 $subMenu = $subMenuOpen = $icon = $menuSelected = '';
 
                 if (issetParam($row['icon']) && issetParam($row['bgcolor'])) {
-                    $icon = '<div style="background-color: '.$row['bgcolor'].';height: 23px;width: 23px;border-radius: 20px;"><i class="'.$row['icon'].'" style="padding: 9px 9px 9px 4px;color: '.issetParam($row['color']).';"></i></div>&nbsp;&nbsp; ';
+                    $icon = '<div style="background-color: '.$row['bgcolor'].';height: 16px;width: 16px;border-radius: 20px;"><i class="'.$row['icon'].'" style="font-size: 13px;padding: 6px 4px 4px 3px;color: '.issetParam($row['color']).';"></i></div>&nbsp;&nbsp; ';
                 } elseif ($iconName = issetParam($row['icon'])) {
                     $icon = '<i class="'.$iconName.' font-weight-bold" style="color: '.issetParam($row['color']).';"></i> ';
                 }
@@ -29,7 +29,7 @@
                     $subMenuOpen .= ' nav-item-menu-click';
                 }
     ?>
-    <li class="nav-item<?php echo $subMenu . $subMenuOpen; ?>" style="<?php echo issetParam($row['style']) ?>">
+    <li class="nav-item<?php echo $subMenu . $subMenuOpen; ?>" style="border: none;<?php echo issetParam($row['style']) ?>">
         <a href="javascript:;" class="nav-link font-weight-bold<?php echo $menuSelected; ?>" data-id="<?php echo $row[$this->idField]; ?>" data-listmetadataid="<?php echo $row['metadataid']; ?>" data-listmetadatacriteria="<?php echo issetParam($row['listmetadatacriteria']); ?>" data-metatypeid="<?php echo issetParam($row['metatypeid']); ?>" data-rowdata="<?php echo $rowJson; ?>">
             <?php echo $icon; ?>
             <span><?php echo $row[$this->nameField]; ?></span>

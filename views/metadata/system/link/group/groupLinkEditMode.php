@@ -1003,6 +1003,10 @@
                                             array(
                                                 'code' => 'twoColumn', 
                                                 'name' => 'Two column'
+                                            ),
+                                            array(
+                                                'code' => 'menuView', 
+                                                'name' => 'Menu view'
                                             )
                                         ),
                                         'op_value' => 'code',

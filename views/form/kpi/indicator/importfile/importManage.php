@@ -125,6 +125,9 @@ function mvImportManageDataCheck(elem, indicatorId, mainIndicatorId) {
         url: 'mdform/importManageDataCheck',
         data: {indicatorId: indicatorId, mainIndicatorId: mainIndicatorId}, 
         dataType: 'json', 
+        beforeSend: function() {
+            Core.blockUI({message: 'Loading...', boxed: true});
+        },
         success: function(data) {
             if (data.status == 'success') {
 
@@ -160,8 +163,30 @@ function mvImportManageDataCheckFilter(elem, indicatorId, mainIndicatorId) {
     if (ids != '') {
         var op = window['objectdatagrid_' + indicatorId].datagrid('options');
         var queryParams = op.queryParams;
+        var idsArr = ids.split(',');
+        var total = idsArr.length;
+        var pageSize = 500;
         
-        queryParams.whereClause = 'ID IN ('+ids+')';
+        if (total > 500) {
+            var pages = Math.ceil(total / pageSize);
+            var idsOr = '';
+            
+            for (var p = 1; p <= pages; p++) {
+                var chunkIdsArr = idsArr.slice((p - 1) * pageSize, p * pageSize);
+                var chunkIds = '';
+                
+                for (var c in chunkIdsArr) {
+                    chunkIds += chunkIdsArr[c] + ',';
+                }
+                
+                idsOr += 'ID IN (' + rtrim(chunkIds, ',') + ') OR ';
+            }
+            
+            idsOr = rtrim(trim(idsOr), 'OR');
+            queryParams.whereClause = '('+idsOr+')';
+        } else {
+            queryParams.whereClause = 'ID IN ('+ids+')';
+        }
         
         window['objectdatagrid_' + indicatorId].datagrid('load', queryParams);
     }

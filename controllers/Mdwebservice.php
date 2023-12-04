@@ -4343,7 +4343,7 @@ class Mdwebservice extends Controller {
                         $this->view->sourceId = is_array($this->view->fillParamData['id']) ? $this->view->fillParamData['id']['id'] : $this->view->fillParamData['id'];
                         $_POST['recordId'] = $this->view->sourceId;
                         
-                    } elseif (isset($selectedRowData['id'])) {
+                    } elseif (isset($selectedRowData['id']) && !Input::numeric('isIgnoreSetRowId')) {
                         
                         $this->view->sourceId = $selectedRowData['id'];
                         $_POST['recordId'] = $this->view->sourceId;   
@@ -4494,7 +4494,7 @@ class Mdwebservice extends Controller {
                 } else {
                     $workSpaceParamsType = Input::postCheck('workSpaceParamsType') ? Input::post('workSpaceParamsType') : '';
                     $fillParamData = $this->model->getRunDefaultGetDataProcessModel($this->view->methodId, Input::numeric('workSpaceId'), Input::post('workSpaceParams'), null, $workSpaceParamsType);
-                    
+
                     if (is_null($fillParamData)) {
                         $fillParamData = $this->model->getRunDefaultGetDataProcessModel($this->view->methodId, null, null, Input::post('recordId'));
                     }
@@ -13864,6 +13864,7 @@ class Mdwebservice extends Controller {
         $this->view->metaDataId = Input::numeric('metaDataId');
         $this->view->metaValueId = Input::post('metaValueId');
         $this->view->attachId = Input::post('attachId');
+        $this->view->fileSize = Input::numeric('fileSize');
         $this->view->getMetaDataValueOneFile = $this->model->getMetaDataValueOneFileModel($this->view->metaDataId, $this->view->metaValueId, $this->view->attachId);
         
         $response = array(

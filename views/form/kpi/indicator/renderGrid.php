@@ -182,6 +182,50 @@
                                                             'data-mapid' => issetParam($process['map_id'])
                                                         );
                                                         
+                                                    } elseif ($typeCode == 'config') {
+                                                        
+                                                        $isDelete = true;
+                                                        $className = 'btn blue-steel btn-circle btn-sm';
+                                                        $buttonName = '<i class="far fa-tools"></i> '.$this->lang->line('Config');
+                                                        $onClick = "mapKpiIndicatorValue(this, '$kpiTypeId', '".$this->indicatorId."', 'config');";
+                                                        
+                                                        $contextMenu[] = array(
+                                                            'crudIndicatorId' => $crudIndicatorId, 
+                                                            'labelName' => $this->lang->line('Config'),
+                                                            'onClick' => $onClick,
+                                                            'actionName' => 'config',
+                                                            'iconName' => 'tools', 
+                                                            'data-actiontype' => $typeCode, 
+                                                            'data-main-indicatorid' => $this->indicatorId, 
+                                                            'data-structure-indicatorid' => $this->indicatorId, 
+                                                            'data-crud-indicatorid' => $crudIndicatorId,
+                                                            'data-uxflow-indicatorid' => issetParam($this->uxFlowIndicatorId),
+                                                            'data-uxflow-action-indicatorid' => $uxFlowActionIndicatorId, 
+                                                            'data-mapid' => issetParam($process['map_id'])
+                                                        );
+                                                        
+                                                    } elseif ($typeCode == '360') {
+                                                        
+                                                        $isDelete = true;
+                                                        $className = 'btn blue-steel btn-circle btn-sm';
+                                                        $buttonName = '<i class="far fa-tools"></i> '.$this->lang->line('360');
+                                                        $onClick = "mapKpiIndicatorValue(this, '$kpiTypeId', '".$this->indicatorId."', '360');";
+                                                        
+                                                        $contextMenu[] = array(
+                                                            'crudIndicatorId' => $crudIndicatorId, 
+                                                            'labelName' => $this->lang->line('360'),
+                                                            'onClick' => $onClick,
+                                                            'actionName' => '360',
+                                                            'iconName' => 'tools', 
+                                                            'data-actiontype' => $typeCode, 
+                                                            'data-main-indicatorid' => $this->indicatorId, 
+                                                            'data-structure-indicatorid' => $this->indicatorId, 
+                                                            'data-crud-indicatorid' => $crudIndicatorId,
+                                                            'data-uxflow-indicatorid' => issetParam($this->uxFlowIndicatorId),
+                                                            'data-uxflow-action-indicatorid' => $uxFlowActionIndicatorId, 
+                                                            'data-mapid' => issetParam($process['map_id'])
+                                                        );
+                                                        
                                                     } elseif ($typeCode == 'excel') {
                                                         
                                                         $className = 'btn green btn-circle btn-sm';
@@ -498,6 +542,10 @@ if (Input::numeric('isDrilldown') == '1') {
 ?>
 dynamicHeight = dynamicHeight - 50;
 <?php
+} elseif ($dynamicHeight = Input::numeric('dynamicHeight')) {
+?>
+dynamicHeight = <?php echo $dynamicHeight; ?>;
+<?php
 }
 ?>
 
@@ -529,6 +577,7 @@ $(function() {
             ignoreFirstLoad: isFilterShowData_<?php echo $this->indicatorId; ?>, 
             drillDownCriteria: drillDownCriteria_<?php echo $this->indicatorId; ?>, 
             postHiddenParams: '<?php echo $this->postHiddenParams; ?>', 
+            hiddenParams: '<?php echo $this->hiddenParams; ?>', 
             filter: '<?php echo $this->filter; ?>'
         }, 
         <?php

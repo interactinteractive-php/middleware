@@ -103,19 +103,46 @@ $(function(){
 var $tabName_<?php echo $this->uniqId; ?> = $('div[data-bp-uniq-id="<?php echo $this->uniqId; ?>"]').find('.bp-addon-tab > li > a[data-addon-type="file"]');
 var $customext_<?php echo $this->uniqId; ?> = $tabName_<?php echo $this->uniqId; ?>.attr('data-ext');
 var $exttype_<?php echo $this->uniqId; ?> = <?php echo json_encode(explode(',', Str::remove_whitespace(Config::getFromCache('CONFIG_FILE_EXT')))); ?>;
+var $fileSize_<?php echo $this->uniqId; ?> = Number('<?php echo Config::getFromCacheDefault('CONFIG_FILE_EXT', null, '20000000'); ?>');
+var $customFileSize_<?php echo $this->uniqId; ?> = $tabName_<?php echo $this->uniqId; ?>.attr('data-file-size');
 
 if ($customext_<?php echo $this->uniqId; ?>) {
     var customexts_<?php echo $this->uniqId; ?> = $customext_<?php echo $this->uniqId; ?>.split(',');
     var $exttype_<?php echo $this->uniqId; ?> = customexts_<?php echo $this->uniqId; ?>;
 }
+if ($customFileSize_<?php echo $this->uniqId; ?>) {
+    $fileSize_<?php echo $this->uniqId; ?> = Number($customFileSize_<?php echo $this->uniqId; ?>);
+}
 
 function onChangeAttachFIleAddMode_<?php echo $this->uniqId; ?>(input) {
     
+    PNotify.removeAll();
+    
     if ($(input).hasExtension($exttype_<?php echo $this->uniqId; ?>)) {
         
-        var ext = input.value.match(/\.([^\.]+)$/)[1], i = 0;
+        var ext = input.value.match(/\.([^\.]+)$/)[1], f = 0, i = 0;
         
         if (typeof ext !== "undefined") {
+            
+            for (f; f < input.files.length; f++) {
+                var fileName = input.files[f].name;
+                var fileSize = Number(input.files[f].size);
+                
+                if (fileSize > $fileSize_<?php echo $this->uniqId; ?>) {
+                    new PNotify({
+                        title: 'Info',
+                        text: plang.getVar('PF_FILE_SIZE_EXCEEDED_MSG', {
+                            'fileName': fileName, 
+                            'maxFileSize': parseInt($fileSize_<?php echo $this->uniqId; ?> / 1000000) + 'mb'
+                        }),
+                        type: 'info',
+                        addclass: 'pnotify-center',
+                        sticker: false, 
+                        delay: 10000000000
+                    });    
+                    return false;
+                }
+            }
 
             for (i; i < input.files.length; i++) {
                 var fileName = input.files[i].name;
@@ -173,11 +200,10 @@ function onChangeAttachFIleAddMode_<?php echo $this->uniqId; ?>(input) {
             $('.hiddenFileDiv > input').each(function(){
                $(this).attr('name', 'bp_file[]');
             });
-
         }
+        
     } else {
         if ($customext_<?php echo $this->uniqId; ?>) {
-            PNotify.removeAll();
             new PNotify({
                 title: 'Файл хавсаргах',
                 text: 'Та ' + $exttype_<?php echo $this->uniqId; ?> + ' өргөтгөлтэй файл хавсаргана уу.',

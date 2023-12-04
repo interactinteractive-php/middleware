@@ -2389,6 +2389,7 @@ class Mdprocessflow_model extends Model {
                 AA.IS_DESC_REQUIRED, 
                 AA.IS_SEND_MAIL,
                 AA.IS_MAIL_ACTION,
+                AA.IS_SEND_SMS, 
                 AA.FROM_NOTIFICATION_ID, 
                 AA.TO_NOTIFICATION_ID, 
                 AA.CREATED_USER_NOTIFICATION_ID, 
@@ -2475,8 +2476,9 @@ class Mdprocessflow_model extends Model {
                 'FROM_NOTIFICATION_ID' => Input::post('fromNotificationId'),
                 'CREATED_USER_NOTIFICATION_ID' => Input::post('createdUserNotificationId'),
                 'IS_NOTIFY_TO_CREATED_USER' => Input::postCheck('isNotifyToCreatedUser') ? '1' : '0',
-                'IS_SEND_MAIL' => Input::postCheck('isSendMail') ? '1' : '0',
-                'IS_MAIL_ACTION' => Input::postCheck('isMailAction') ? '1' : '0',
+                'IS_SEND_MAIL' => Input::postCheck('isSendMail') ? 1 : null,
+                'IS_MAIL_ACTION' => Input::postCheck('isMailAction') ? 1 : null,
+                'IS_SEND_SMS' => Input::postCheck('isSendSms') ? 1 : null,
                 'IS_USERDEF_ASSIGN' => Input::postCheck('isUserDefAssign') ? '1' : '0',
                 'IS_USERDEF_RULE' => Input::postCheck('isUserdefRule') ? '1' : '0',
                 'IS_INHERIT_ASSIGN' => Input::postCheck('isInheritAssign') ? '1' : '0',
@@ -4377,6 +4379,7 @@ class Mdprocessflow_model extends Model {
         $connect = array();
         $positionLeft = 110;
         $positionTop = 80;
+        $t = 0;
 
         array_push($object, array(
             'id' => '0',
@@ -4401,6 +4404,7 @@ class Mdprocessflow_model extends Model {
         if ($processWorkflowList) {
 
             $lastRunTaskFlow = [];
+            $allFlowCount =  count($processWorkflowList);            
             foreach ($processWorkflowList as $row) {
                 $pId = $row['META_PROCESS_WORKFLOW_ID'];
 
@@ -4425,6 +4429,10 @@ class Mdprocessflow_model extends Model {
                     'metaTypeId' => $row['META_TYPE_ID']
                 ));
                 $positionLeft += 300;
+                
+                if (!$row['TASKFLOW_TYPE']) {
+                    $t++;
+                }
 
                 if ($row['IS_WORKED'] == '1') {
                     $lastRunTaskFlow = $row;
@@ -4471,7 +4479,13 @@ class Mdprocessflow_model extends Model {
             ));
         }
 
-        return array('object' => $object, 'connect' => $connect, 'lastRunTaskFlow' => issetParam($getTaskFlowResult['result']), 'paramMapLinks' => array(array('id' => '1626661933302760', 'id2' => '1626661978451871')));
+        return array(
+            'object' => $object, 
+            'connect' => $connect, 
+            'lastRunTaskFlow' => issetParam($getTaskFlowResult['result']), 
+            'allNotUiTaskFlow' => $allFlowCount == $t, 
+            'paramMapLinks' => array(array('id' => '1626661933302760', 'id2' => '1626661978451871'))
+        );
     }
 
     public function saveVisualMetaProcessWorkflowModel($object = '', $connect = '') {

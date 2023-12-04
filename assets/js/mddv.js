@@ -395,6 +395,126 @@ function gridFileTabViewField(val, row) {
     
     return '';
 }
+function gridFileUrlField(val, row) {
+    if (val !== '' && typeof val !== 'undefined' && val !== null) {
+        
+        val = val.toString();
+        var splitedVal = val.split(',');
+        
+        var fieldName = this.field, 
+            ext = ['jpg', 'jpeg', 'png', 'gif', 'tif', 'tiff'], 
+            fileViewLabel = plang.get('see_btn'), 
+            isFileNameShow = true, 
+            contentId = '';
+        
+        if (row.hasOwnProperty(fieldName+'_isignorefilename') && row[fieldName+'_isignorefilename'] == '1') {
+            isFileNameShow = false;
+            fileViewLabel = '';
+        }
+        
+        if (splitedVal.length > 1) {
+            
+            var tmpVal = '', isCustomFileName = false, isSplitedEcmContentId = false;
+            
+            if (isFileNameShow && row.hasOwnProperty('attachfilename') && row.attachfilename) {
+                var splitedFileName = (row.attachfilename).split(',');
+                isCustomFileName = true;
+            }
+            
+            if (row.hasOwnProperty(fieldName+'_ecmcontentid')) {
+                var splitedEcmContentId = (row[fieldName+'_ecmcontentid']).split(',');
+                isSplitedEcmContentId = true;
+            } 
+            
+            $.each(splitedVal, function (key, value) {
+                
+                value = value.trim();
+                
+                if (value !== '') {
+                    
+                    var fileViewLabelRename = fileViewLabel;
+                    var lowerExtension = value.split('.').pop().toLowerCase();
+                    var ecmContentId = contentId;
+                    
+                    if (['mp4', 'ogg', 'avi', 'mov', 'm4p', 'm4v'].indexOf(lowerExtension) !== -1) {
+                        fileViewLabel = plang.get('show_btn');
+                    } else if (['mp3'].indexOf(lowerExtension) !== -1) {
+                        fileViewLabel = plang.get('Сонсох');
+                    } else {
+                        lowerExtension = 'png';
+                    }
+                    
+                    if (isCustomFileName && typeof splitedFileName[key] != 'undefined') {
+                        
+                        fileViewLabelRename = (splitedFileName[key]).trim();
+                        
+                        if (!fileViewLabelRename) {
+                            fileViewLabelRename = fileViewLabel;
+                        }
+                    }
+                    
+                    if (isSplitedEcmContentId && typeof splitedEcmContentId[key] != 'undefined') {
+                        ecmContentId = (splitedEcmContentId[key]).trim();
+                    }
+                    
+                    var opts = {ext: ext, val: value, fileViewLabel: fileViewLabelRename, contentid: ecmContentId};
+            
+                    if (row.hasOwnProperty(fieldName+'_isignoredownload')) {
+                        opts.isIgnoreDownload = row[fieldName+'_isignoredownload'];
+                    }
+                    
+                    tmpVal += getGridFileFieldByType(opts);
+                    
+                    if (isCustomFileName) {
+                        tmpVal += '<br />';
+                    }
+                }
+            });
+            
+            return tmpVal;
+            
+        } else {
+            
+            var lowerExtension = val.split('.').pop().toLowerCase();
+                    
+            if (['mp4', 'ogg', 'avi', 'mov', 'm4p', 'm4v'].indexOf(lowerExtension) !== -1) {
+                fileViewLabel = plang.get('show_btn');
+            } else if (['mp3'].indexOf(lowerExtension) !== -1) {
+                fileViewLabel = plang.get('Сонсох');
+            } else {
+                lowerExtension = 'png';
+            }
+                    
+            if (isFileNameShow && row.hasOwnProperty('attachfilename') && row.attachfilename) {
+                fileViewLabel = row.attachfilename;
+            }
+            
+            var ecmContentId = '';
+            
+            if (row.hasOwnProperty(fieldName+'_ecmcontentid')) {
+                ecmContentId = row[fieldName+'_ecmcontentid'];
+            } else if (row.hasOwnProperty('contentid')) {
+                ecmContentId = row.contentid;
+            }
+            
+            var opts = {ext: ext, val: val, fileViewLabel: fileViewLabel, contentid: ecmContentId, realextension: lowerExtension};
+            
+            if (row.hasOwnProperty(fieldName+'_isignoredownload')) {
+                opts.isIgnoreDownload = row[fieldName+'_isignoredownload'];
+            }
+            if (row.hasOwnProperty(fieldName+'_isignoretoolbarprint')) {
+                opts.isIgnoreToolbarPrint = row[fieldName+'_isignoretoolbarprint'];
+            }
+            if (row.hasOwnProperty(fieldName+'_printlogprocess')) {
+                opts.printLogProcess = row[fieldName+'_printlogprocess'];
+            }
+            
+            return getGridFileFieldByType(opts);
+        }
+    }
+    
+    return '';
+}
 function gridStarField(val, row) {
     if (val == 'nostar') {
         return '';
@@ -424,10 +544,18 @@ function gridHtmlDecode(htmlstring, row) {
 }
 function getGridFileFieldByType(opts) {
     
-    var lowerExtension = (opts.val).split('.').pop().toLowerCase();
+    var isFullUrl = false;
+    if (opts.hasOwnProperty('realextension')) {
+        var lowerExtension = opts.realextension;
+        isFullUrl = true;
+    } else {
+        var lowerExtension = (opts.val).split('.').pop().toLowerCase();
+    }
     
     if ((opts.ext).indexOf(lowerExtension) !== -1) {
-        if (typeof (opts.isicon) !== 'undefined' && opts.isicon === 'icon') {
+        if (isFullUrl) {
+            return '<a href="' + opts.val + '" class="fancybox-button" data-fancybox="images" data-rel="fancybox-button" data-contentid="'+opts.contentid+'"><img src="' + opts.val + '" class="rounded-circle dataview-list-icon" onerror="onUserImgError(this);" height="32" width="32"></a> ';
+        } else if (typeof (opts.isicon) !== 'undefined' && opts.isicon == 'icon') {
             return '<a href="' + opts.val + '" class="fancybox-button p-0" data-rel="fancybox-button" data-contentid="'+opts.contentid+'"><i class="icon-file-picture text-danger-400" style="font-size: 13.9px;"></i><div class="d-none"><img src="api/image_thumbnail?width=32&src=' + opts.val + '" class="rounded-circle dataview-list-icon" onerror="onUserImgError(this);" height="32" width="32"></div></a> ';
         } else {
             return '<a href="' + opts.val + '" class="fancybox-button" data-fancybox="images" data-rel="fancybox-button" data-contentid="'+opts.contentid+'"><img src="api/image_thumbnail?width=32&src=' + opts.val + '" class="rounded-circle dataview-list-icon" onerror="onUserImgError(this);" height="32" width="32"></a> ';
