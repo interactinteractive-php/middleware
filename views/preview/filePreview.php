@@ -31,7 +31,7 @@ if ($this->fileExtension == 'pdf') {
         || $this->fileExtension == 'm4p' 
         || $this->fileExtension == 'm4v') {
 ?>
-<video width="420" height="340" controls>
+<video width="420" height="340" controls id="bp-video-id">
     <source src="<?php echo $this->fullPath; ?>" type="video/<?php echo $this->fileExtension; ?>">
     Your browser does not support HTML5 video.
 </video>

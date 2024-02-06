@@ -214,7 +214,7 @@ class Mdobject extends Controller {
                     }
 
                     $result = $this->model->getDataViewByCriteriaModel($loopupMetaId, $criteria, $idField, 'id');
-
+                    
                     if ($result) {
                         
                         $codeField = strtolower($attributes['code']);
@@ -570,7 +570,6 @@ class Mdobject extends Controller {
             } else {
                 
                 parse_str(Input::post('drillDownDefaultCriteria'), $postParam);
-                $parseArr = explode('&', Input::post('drillDownDefaultCriteria'));
 
                 $addonJsonParam = isset($_POST['addonJsonParam']) ? json_decode($_POST['addonJsonParam'], true) : array();
                 $defaultCriteriaParams = isset($_POST['defaultCriteriaParams']) ? json_decode($_POST['defaultCriteriaParams'], true) : array();
@@ -600,7 +599,7 @@ class Mdobject extends Controller {
                 }
 
                 $this->view->fillPath = $postParam;
-                $this->view->drillDownDefaultCriteria = json_encode($postParam);   
+                $this->view->drillDownDefaultCriteria = json_encode($postParam, JSON_UNESCAPED_UNICODE);   
                 
                 Mdobject::$pfKpiTemplateDynamicColumn = issetParam($postParam['pfKpiTemplateDynamicColumn']);
             }
@@ -1076,58 +1075,6 @@ class Mdobject extends Controller {
         }
 
         $viewPath = 'viewer/explorer/index';
-        
-        /*if (issetParam($this->view->layoutTheme) == 'ganttchart' || $viewtype == 'ganttchart') {
-            $this->view->isDynamicHeight = '1';
-            $this->view->layoutType = 'ecommerce';
-            $this->view->viewType = 'ganttchart';
-            $this->view->row['LAYOUT_TYPE'] = 'ecommerce';
-            $this->view->dataGridOptionData['HIDELAYOUTVIEWER'] = 'false';
-            $this->view->dataViewWorkFlowBtn = false;
-            
-            $this->view->defaultCriteria = $this->view->renderPrint('search/defaultCriteria', self::$dataViewPath);
-            $this->view->defaultCriteriaMandatory = $this->view->renderPrint('search/defaultCriteriaMandatory', self::$dataViewPath);
-            $this->view->ganttChartView = false;
-            $this->view->notuseSidebars = false;
-            $this->view->isUseSidebar = $this->view->row['IS_USE_SIDEBAR'];
-            $this->view->buttonBarStyle = $this->view->row['BUTTON_BAR_STYLE'];
-            $this->view->refreshTimer = $this->view->row['REFRESH_TIMER'];
-            $this->view->layoutLink = array();
-            $this->view->appendClass = 'mt-0';
-            $this->view->getChildDataviewData = $this->model->getChildDataviewDataModel($this->view->metaDataId);
-            $this->view->getIsCountCardData = $this->model->getDataViewCountCardModel($this->view->metaDataId);
-            
-            $advancedCriteria = ($this->view->dataViewHeaderData) ? Arr::multidimensional_list($this->view->dataViewHeaderData, array('IS_ADVANCED' => '1')) : array();
-        
-            includeLib('Compress/Compression');
-            $this->view->advancedCriteria = Compression::encode_string_array(array('fillPath' => isset($this->view->fillPath) ? $this->view->fillPath : array(), 'advancedCriteria' => $advancedCriteria));
-            
-            if ($this->view->getChildDataviewData) {
-                $this->view->getChildDataviewData = $this->model->getEcommerceCountModel($this->view->getChildDataviewData, $this->view->title, $this->view->metaDataId);
-            }
-            
-            if (!empty($this->view->row['LAYOUT_META_DATA_ID'])) {
-                $ml = &getInstance();
-                $ml->load->model('mdmetadata', 'middleware/models/');
-                $getType = $ml->model->getMetaTypeById($this->view->row['LAYOUT_META_DATA_ID']);
-
-                if (Mdmetadata::$layoutMetaTypeId == $getType) {
-                    $ml = &getInstance();
-                    $ml->load->model('mdlayoutrender', 'middleware/models/');
-                    $this->view->layoutLink = $ml->model->getLayoutLinkModel($this->view->row['LAYOUT_META_DATA_ID']);
-
-                } elseif (Mdmetadata::$metaGroupMetaTypeId == $getType) {
-
-                    $ml = &getInstance();
-                    $ml->load->model('mdobject', 'middleware/models/');
-                    $this->view->layoutLink = $ml->model->getDataViewConfigRowModel($this->view->row['LAYOUT_META_DATA_ID']);
-                    $this->view->layoutLink['META_DATA_NAME'] = $this->lang->line($this->view->layoutLink['LIST_NAME']);
-                }
-            }
-            
-            $viewPath = 'viewer/detail/ecommerce';
-            $this->view->layoutType = 'list';
-        }*/
         
         $this->view->contextSelector = 'div#object-value-list-'. $this->view->metaDataId .' div.product-item';
         $this->view->contextSelector = self::explorerViewContextSelector($this->view->layoutTheme, $this->view->metaDataId, $this->view->contextSelector);
@@ -1656,6 +1603,10 @@ class Mdobject extends Controller {
             $this->view->uriParams = Input::post('uriParams');
         }
         
+        if ($kpiIndicatorMapConfig = Input::post('kpiIndicatorMapConfig')) {
+            $this->view->kpiIndicatorMapConfig = json_encode($kpiIndicatorMapConfig, JSON_UNESCAPED_UNICODE);
+        }
+        
         if (Input::postCheck('params')) {
             $requestParams = urldecode(Input::post('params'));
             parse_str($requestParams, $params);
@@ -1667,7 +1618,7 @@ class Mdobject extends Controller {
         }
         
         if (isset($_GET['dv'])) {
-            $this->view->uriParams = json_encode($_GET['dv']);
+            $this->view->uriParams = json_encode($_GET['dv'], JSON_UNESCAPED_UNICODE);
         }
         
         $this->view->calendarParams = Input::get('startParamPath');
@@ -3013,8 +2964,8 @@ class Mdobject extends Controller {
             $allowedExtentions = array(
                 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'xlsm', 'ppt', 'pptx', 'rtx', 'rtf', 'vsd', 'vsdx', 'json', 
                 'bmp', 'png', 'gif', 'jpg', 'jpeg', 'tiff', 'tif', 'heif', 'hevc', 'svg', 'rar', 'zip', 'ifc', 
-                'mp3', 'mp4', '3gp', 'mpeg', 'mpg', 'mpe', 'mov', 'qt', 'avi', 'movie', 'webp', 'wmv', 'db', 'html', 
-                'dwg'
+                'mp3', 'mp4', '3gp', 'mpeg', 'mpg', 'mpe', 'mov', 'qt', 'avi', 'movie', 'webp', 'wmv', 'db', 
+                'html', 'dwg', 'msg'
             );
 
             if (isset($readFile) && in_array($ext, $allowedExtentions)) {
@@ -3089,7 +3040,6 @@ class Mdobject extends Controller {
         if (Input::isEmpty('drillDownDefaultCriteria') === false) {
             
             parse_str(Input::post('drillDownDefaultCriteria'), $postParam);
-            $parseArr = explode('&', Input::post('drillDownDefaultCriteria'));
  
             $addonJsonParam = isset($_POST['addonJsonParam']) ? json_decode($_POST['addonJsonParam'], true) : array();
             $defaultCriteriaParams = isset($_POST['defaultCriteriaParams']) ? json_decode($_POST['defaultCriteriaParams'], true) : array();
@@ -3657,6 +3607,23 @@ class Mdobject extends Controller {
         
             $this->view->render('viewer/explorer/layout/kanban_board', self::$dataViewPath);
             exit;  
+            
+        } elseif ($this->view->layoutTheme == 'ganttchart') {
+            
+            $this->view->uid = getUID();
+            $this->view->metaDataCode = $this->view->row['META_DATA_CODE'];
+            $this->view->dataViewProcessCommand = $this->model->dataViewProcessCommandModel($this->view->dataViewId, $this->view->metaDataCode, false, false, $this->view->dataViewId);
+
+            $this->view->fieldConfigs = $this->model->getDataViewGridCriteriaRowModel($this->view->dataViewId, 'pf_all_field');
+            
+            $this->view->name1 = issetParam($this->view->row['dataViewLayoutTypes']['explorer']['fields']['name1']);
+            $this->view->name2 = issetParam($this->view->row['dataViewLayoutTypes']['explorer']['fields']['name2']);
+            $this->view->name3 = issetParam($this->view->row['dataViewLayoutTypes']['explorer']['fields']['name3']);
+            
+            $this->view->defaultCriteriaData = base64_encode(Input::post('defaultCriteriaData'));
+            
+            $this->view->render('viewer/explorer/layout/ganttchart', self::$dataViewPath);
+            exit;
         } 
 
         $this->view->recordList = $this->model->getDataViewRecordListModel($this->view->dataViewId, $this->view->filtedField, $this->view->folderId);
@@ -3722,36 +3689,6 @@ class Mdobject extends Controller {
             $this->view->photo = issetParam($this->view->row['dataViewLayoutTypes']['explorer']['fields']['photo']);
             
             $this->view->render('viewer/explorer/layout/'.$this->view->layoutTheme, self::$dataViewPath);
-            
-        } elseif ($this->view->layoutTheme == 'ganttchart') {
-            
-            $this->view->uid = getUID();
-            $this->view->metaDataCode = $this->view->row['META_DATA_CODE'];
-            $this->view->dataViewProcessCommand = $this->model->dataViewProcessCommandModel($this->view->dataViewId, $this->view->metaDataCode, false, false, $this->view->dataViewId);
-
-            $this->view->fieldConfigs = $this->model->getDataViewGridCriteriaRowModel($this->view->dataViewId, 'pf_all_field');
-            
-            $this->view->name1 = issetParam($this->view->row['dataViewLayoutTypes']['explorer']['fields']['name1']);
-            $this->view->name2 = issetParam($this->view->row['dataViewLayoutTypes']['explorer']['fields']['name2']);
-            $this->view->name3 = issetParam($this->view->row['dataViewLayoutTypes']['explorer']['fields']['name3']);
-            $relationDvId = issetParam($this->view->row['dataViewLayoutTypes']['explorer']['fields']['relationDvId']);
-            
-            $dataSource = $this->model->buildGanttChartDataSource($this->view->row, $this->view->recordList);
-            
-            $this->view->dataSourceJson = array('data' => $dataSource);
-            
-            if ($relationDvId) {
-                $_POST['metaDataId'] = $relationDvId;
-                $_POST['rows']       = 1000;
-
-                $result = $this->model->dataViewDataGridModel(true);
-
-                if ($result['status'] == 'success' && isset($result['rows'][0])) {
-                    $this->view->dataSourceJson['links'] = $result['rows'];
-                }
-            }
-            
-            $this->view->render('viewer/explorer/layout/ganttchart', self::$dataViewPath);
             
         } elseif ($this->view->layoutTheme == 'cleangrid' || $this->view->layoutTheme == 'tasklist') {
             
@@ -3845,9 +3782,68 @@ class Mdobject extends Controller {
             $this->view->render('viewer/explorer/layout/lifecycle_card', self::$dataViewPath);
 
         } else {
-            
             $this->view->render('viewer/explorer/layout/'.$this->view->layoutTheme, self::$dataViewPath);
         } 
+    }
+    
+    public function getGanttChartData($dataViewId) {
+        
+        if (!is_numeric($dataViewId)) {
+            echo json_encode(array('data' => array())); exit;
+        }
+        
+        $row = $this->model->getDataViewConfigRowModel($dataViewId);
+        $relationDvId = issetParam($row['dataViewLayoutTypes']['explorer']['fields']['relationDvId']);
+        $parentId = Input::get('parent_id');
+        $isParentFilter = Input::get('isParentFilter');
+        
+        $_POST['metaDataId']  = $dataViewId;
+        $_POST['treeGrid']    = 1;
+        $_POST['treeConfigs'] = $row['TREE_GRID'];
+        $_POST['rows']        = 1000;
+        
+        if (is_numeric($parentId)) {
+            $_POST['id'] = $parentId;
+        }
+        
+        if ($isParentFilter == 1) {
+            $_POST['isParentFilter'] = 1;
+        }
+        
+        if ($param = Input::get('param')) {
+            $_POST['defaultCriteriaData'] = base64_decode($param);
+        }
+        
+        $result = $this->model->dataViewDataGridModel(true);
+        
+        if (isset($result['status']) && $result['status'] == 'success' && isset($result['rows'])) {
+            $recordList = $result['rows'];
+        } elseif (isset($result[0])) {
+            $recordList = $result;
+        } else {
+            echo json_encode(array('status' => 'error', 'message' => $result['message'])); exit;
+        }
+        
+        $dataSource = $this->model->buildGanttChartDataSource($row, $recordList);
+        $dataSourceJson = array('data' => $dataSource);
+
+        if ($relationDvId) {
+            
+            unset($_POST['treeGrid']);
+            unset($_POST['treeConfigs']);
+            unset($_POST['id']);
+            
+            $_POST['metaDataId'] = $relationDvId;
+            $_POST['rows']       = 10000;
+
+            $result = $this->model->dataViewDataGridModel(true);
+
+            if ($result['status'] == 'success' && isset($result['rows'][0])) {
+                $dataSourceJson['links'] = $result['rows'];
+            }
+        }
+        
+        echo json_encode($dataSourceJson, JSON_UNESCAPED_UNICODE);
     }
     
     public function explorerBackList() {
@@ -4771,6 +4767,10 @@ class Mdobject extends Controller {
     
     public function getDataviewTemplateData() {
         jsonResponse($this->model->dataviewSavedCriteriaModel(Input::post('metaDataId'), false));
+    }
+    
+    public function deleteDataviewTemplateData() {
+        jsonResponse($this->model->dataviewDeleteCriteriaModel(Input::post('templateId')));
     }
     
     public function getDataviewCriteriaTemplate() {

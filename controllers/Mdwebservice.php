@@ -4477,30 +4477,35 @@ class Mdwebservice extends Controller {
                 $this->view->plainText = Input::param($_POST['signerParams']['plainText']);
             }
             
-            if ($this->view->isEditMode == false && $this->view->methodRow['GETDATA_PROCESS_ID'] != '') {
+            if ($this->view->isEditMode == false && (Input::isEmpty('kpiIndicatorMapConfig') == false || $this->view->methodRow['GETDATA_PROCESS_ID'] != '')) {
+                
+                if (Input::isEmpty('kpiIndicatorMapConfig') == false) {
                     
-                if ((Input::isEmpty('workSpaceId') == true && Input::isEmpty('workSpaceParams') == true && Input::isEmpty('recordId') == false) || $this->view->methodRow['COUNT_CALENDAR_LINK'] != '0') {
-
-                    $fillParamData = $this->model->getRunDefaultGetDataProcessModel($this->view->methodId, null, null, Input::post('recordId'));
-                    $this->view->sourceId = isset($fillParamData['id']) ? $fillParamData['id'] : null;
-
-                } elseif (Input::postCheck('runDefaultGet') && Input::post('runDefaultGet')) {
+                    $fillParamData = $this->model->getRunKpiIndicatorGetDataProcessModel($this->view->methodId);
                     
-                    $runDfGetData = array();
-                    parse_str($_POST['runDefaultGetParam'], $runDfGetData);
-
-                    $fillParamData = $this->model->getRunDefaultGetDataProcessModel($this->view->methodId, null, null, $runDfGetData['id']);
+                } elseif ($this->view->methodRow['GETDATA_PROCESS_ID'] != '') {
                     
-                } else {
-                    $workSpaceParamsType = Input::postCheck('workSpaceParamsType') ? Input::post('workSpaceParamsType') : '';
-                    $fillParamData = $this->model->getRunDefaultGetDataProcessModel($this->view->methodId, Input::numeric('workSpaceId'), Input::post('workSpaceParams'), null, $workSpaceParamsType);
+                    if ((Input::isEmpty('workSpaceId') == true && Input::isEmpty('workSpaceParams') == true && Input::isEmpty('recordId') == false) || $this->view->methodRow['COUNT_CALENDAR_LINK'] != '0') {
 
-                    if (is_null($fillParamData)) {
                         $fillParamData = $this->model->getRunDefaultGetDataProcessModel($this->view->methodId, null, null, Input::post('recordId'));
-                    }
-                    
-                    $this->view->sourceId = isset($fillParamData['id']) ? $fillParamData['id'] : null;
-                } 
+                        $this->view->sourceId = isset($fillParamData['id']) ? $fillParamData['id'] : null;
+
+                    } elseif (Input::postCheck('runDefaultGet') && Input::post('runDefaultGet')) {
+
+                        parse_str($_POST['runDefaultGetParam'], $runDfGetData);
+                        $fillParamData = $this->model->getRunDefaultGetDataProcessModel($this->view->methodId, null, null, $runDfGetData['id']);
+
+                    } else {
+                        $workSpaceParamsType = Input::postCheck('workSpaceParamsType') ? Input::post('workSpaceParamsType') : '';
+                        $fillParamData = $this->model->getRunDefaultGetDataProcessModel($this->view->methodId, Input::numeric('workSpaceId'), Input::post('workSpaceParams'), null, $workSpaceParamsType);
+
+                        if (is_null($fillParamData)) {
+                            $fillParamData = $this->model->getRunDefaultGetDataProcessModel($this->view->methodId, null, null, Input::post('recordId'));
+                        }
+
+                        $this->view->sourceId = isset($fillParamData['id']) ? $fillParamData['id'] : null;
+                    } 
+                }
 
                 if (is_array($fillParamData)) {
 
@@ -4627,16 +4632,16 @@ class Mdwebservice extends Controller {
                     $rowExp = $this->model->getMethodExpressionModel($this->view->methodId);
 
                     $fullExp = new Mdexpression();
-
-                    $this->view->bpFullScriptsVarFnc = $fullExp->fullExpressionConvertWithoutEvent($rowExp['VAR_FNC_EXPRESSION_STRING'], $this->view->methodId, $this->view->processActionType, true);
+                    
+                    $this->view->bpFullScriptsVarFnc = $fullExp->fullExpressionConvertWithoutEvent($rowExp['VAR_FNC_EXPRESSION_STRING'], $this->view->methodId, $this->view->processActionType, true, 'var_fnc');
                     $this->view->cache->set('processFullExpressionVarFnc_' . $this->view->methodId, $this->view->bpFullScriptsVarFnc, self::$expressionCacheTime);
-
+                    
                     $this->view->bpFullScriptsEvent = $fullExp->fullExpressionConvertEvent($rowExp['EVENT_EXPRESSION_STRING'], $this->view->methodId, $this->view->processActionType);
                     $this->view->cache->set('processFullExpression_' . $this->view->methodId, $this->view->bpFullScriptsEvent, self::$expressionCacheTime);
-
-                    $this->view->bpFullScriptsWithoutEvent = $fullExp->fullExpressionConvertWithoutEvent($rowExp['LOAD_EXPRESSION_STRING'], $this->view->methodId, $this->view->processActionType, false);
+                    
+                    $this->view->bpFullScriptsWithoutEvent = $fullExp->fullExpressionConvertWithoutEvent($rowExp['LOAD_EXPRESSION_STRING'], $this->view->methodId, $this->view->processActionType, false, 'load');
                     $this->view->cache->set('processFullExpressionWithoutEvent_' . $this->view->methodId, $this->view->bpFullScriptsWithoutEvent, self::$expressionCacheTime);
-
+                    
                     $this->view->bpFullScriptsSave = $fullExp->fullExpressionConvertWithoutEvent($rowExp['SAVE_EXPRESSION_STRING'], $this->view->methodId, $this->view->processActionType, false, 'before_save');
 
                     preg_match_all('/startAfterSave(.*?)endAfterSave/ms', $this->view->bpFullScriptsSave, $afterSaveExpression);
@@ -4928,7 +4933,7 @@ class Mdwebservice extends Controller {
                 'metaDataId' => $this->view->methodId 
             );
         }
-        
+
         if ($metaDataId === null && $isJson === null) {
             echo json_encode($response); 
         } else {
@@ -8176,6 +8181,14 @@ class Mdwebservice extends Controller {
                         $setRowsWfmValue = array();
                     
                         foreach ($wfmStringRowParams as $keyWfm => $rowValWfm) {
+                            
+                            foreach ($param as $wfmKey => $rowWfm) {
+                                $lowerWfmKey = strtolower($wfmKey);
+                                if (!is_array($rowWfm) && !array_key_exists($lowerWfmKey, $rowValWfm)) {
+                                    $rowValWfm[$lowerWfmKey] = $rowWfm;
+                                }
+                            }
+
                             $setRowsWfmValue[$keyWfm] = array_merge($wfmStatusParam, $rowValWfm);
                         }
 
@@ -8336,7 +8349,7 @@ class Mdwebservice extends Controller {
                     
                 } else {
                     
-                    $result = Mdwebservice::call($row, $param);
+                    $result = Mdwebservice::call($row, $param);                    
                 
                     if ($this->ws->isException()) {
 
@@ -8457,11 +8470,13 @@ class Mdwebservice extends Controller {
     
     public function saveKpiIndicator($rowId) {
         
-        if (Input::postCheck('kpiTbl')) {
+        if (Input::postCheck('mvParam')) {
             
-            if (isset($_POST['kpiTbl']['bpAddonInfo'])) {
+            FileUpload::$uploadedFiles = [];
+            
+            if (isset($_POST['mvParam']['bpAddonInfo'])) {
                 
-                $bpAddonInfos = $_POST['kpiTbl']['bpAddonInfo'];
+                $bpAddonInfos = $_POST['mvParam']['bpAddonInfo'];
                 $mvSysPath = $_POST['mvSysPath'];
                 
                 foreach ($bpAddonInfos as $indicatorId => $indicatorDatas) {
@@ -8469,7 +8484,7 @@ class Mdwebservice extends Controller {
                     $indicatorId = Input::paramNum($indicatorId);
                     
                     $mvSysPaths = $mvSysPath[$indicatorId];
-                    $postParam = array();
+                    $postParam = [];
                     
                     foreach ($mvSysPaths as $mvPath => $mvPathVal) {
                         if (strpos($mvPath, 'sf[') !== false) {
@@ -8479,7 +8494,7 @@ class Mdwebservice extends Controller {
                         }
                     }
                     
-                    $postParam['kpiTbl'] = $indicatorDatas;
+                    $postParam['mvParam'] = $indicatorDatas;
                     $_POST = $postParam;
                     
                     (new Mdform())->saveKpiDynamicData($rowId);
@@ -9595,7 +9610,7 @@ class Mdwebservice extends Controller {
         return true;
     }
     
-    public static function bpFileUpload($input, $fileAttr, $prefix = 1) {
+    public static function bpFileUpload(array $input, array $fileAttr, int $prefix = 1) {
         
         if (isset($input['uploadPath']) && $input['uploadPath']) {
             $filePath = $input['uploadPath'];
@@ -10322,7 +10337,13 @@ class Mdwebservice extends Controller {
 
                                 $rowDatas = $responseData[$groupFieldPathLower];
                                 
-                                parse_str($_POST['headerData'], $headerDataArr);
+                                if (is_array($_POST['headerData'])) {
+                                    $headerDataArr = $_POST['headerData'];
+                                } else {
+                                    $headerData = str_replace('¶', 'param', $_POST['headerData']);
+                                    parse_str(urldecode($headerData), $headerDataArr);
+                                }
+            
                                 $headerData = isset($headerDataArr['param']) ? Arr::changeKeyLower($headerDataArr['param']) : $headerDataArr;
 
                                 $groupExpression = str_replace(
@@ -10372,7 +10393,7 @@ class Mdwebservice extends Controller {
             }
         }
 
-        echo json_encode($response); exit;
+        echo json_encode($response, JSON_UNESCAPED_UNICODE); exit;
     }
     
     public function fillGroupByDv() {
@@ -13600,6 +13621,7 @@ class Mdwebservice extends Controller {
             $this->view->processId = Input::post('processId');
             $this->view->metaDataId = Input::post('refStructureId');
             $this->view->metaValueId = Input::post('sourceId');
+            $this->view->listMetaDataId = Input::numeric('listMetaDataId');
             
             $this->view->render('addon/viewComment', self::$viewPath);
             
@@ -15440,7 +15462,7 @@ class Mdwebservice extends Controller {
                                             $replaceTagHtml .= '<span class="detail-template-body-rows">';
                                                 $replaceTagHtml .= '<a href="javascript:;" onclick="templateDtlAddExpressionRowParty_'. $methodId .'(this, \'\', \''.urlencode(json_encode(array($getBody))).'\')" class="btn btn-xs btn-circle purple-plum float-left mt5 bp-tmp-idcard-part-add-sidebar" style="margin-left: -65px;">&nbsp;<i class="icon-plus3 font-size-12"></i>&nbsp;</a>';
                                                 if ($showCopyBtn === '1') {
-                                                    $replaceTagHtml .= '<a href="javascript:;" onclick="bpCopyPrevData(this, \''.urlencode(json_encode(array($getBody))).'\', \'1\')" class="btn btn-xs btn-circle purple-plum float-left mt5 bp-tmp-idcard-part-add-sidebar" style="margin-left: -23px;">&nbsp;<i class="fa fa-copy font-size-12"></i>&nbsp;</a>';
+                                                    $replaceTagHtml .= '<a href="javascript:;" onclick="bpCopyPrevData(this, \'\', \'1\', \''.urlencode(json_encode(array($getBody))).'\', \'1\')" class="btn btn-xs btn-circle purple-plum float-left mt5 bp-tmp-idcard-part-add-sidebar" style="margin-left: -23px;">&nbsp;<i class="fa fa-copy font-size-12"></i>&nbsp;</a>';
                                                 }
                                             $replaceTagHtml .= '</span>';
                                         $replaceTagHtml .= '</span>';
@@ -15455,7 +15477,7 @@ class Mdwebservice extends Controller {
                                         $replaceTagHtml = '<span data-dtl-template-path="'.$tagVal.'" data-dtl-taxconfig-id="'.$getBody['CONFIG_ID'].'" data-display-picture="'.$getBody['IS_PICTURE'].'" class="'.$tagVal.' detail-template-body detail-template-child-'.$getGroupInfo['recordtype'].'">';
                                             $replaceTagHtml .= '<span class="detail-template-body-rows">';
                                                 if ($showCopyBtn === '1') {
-                                                    $replaceTagHtml .= '<a href="javascript:;" onclick="bpCopyPrevData(this, \''.urlencode(json_encode(array($getBody))).'\', \'1\')" class="btn btn-xs btn-circle purple-plum float-left mt5 bp-tmp-idcard-part-add-sidebar" style="margin-left: -23px;">&nbsp;<i class="fa fa-copy font-size-12"></i>&nbsp;</a>';
+                                                    $replaceTagHtml .= '<a href="javascript:;" onclick="bpCopyPrevData(this, \'\', \'1\', \''.urlencode(json_encode(array($getBody))).'\', \'1\')" class="btn btn-xs btn-circle purple-plum float-left mt5 bp-tmp-idcard-part-add-sidebar" style="margin-left: -23px;">&nbsp;<i class="fa fa-copy font-size-12"></i>&nbsp;</a>';
                                                 }
                                             $replaceTagHtml .= '</span>';
                                         $replaceTagHtml .= '</span>';
@@ -15486,7 +15508,7 @@ class Mdwebservice extends Controller {
                                     $replaceTagHtml .= '<span class="detail-template-body-rows">';
                                         $replaceTagHtml .= '<a href="javascript:;" onclick="templateDtlAddExpressionRowParty_'. $methodId .'(this, \'\', \''.urlencode(json_encode(array($getBody))).'\')" class="btn btn-xs btn-circle purple-plum float-left mt5 bp-tmp-idcard-part-add-sidebar" style="margin-left: -65px;">&nbsp;<i class="icon-plus3 font-size-12"></i>&nbsp;</a>';
                                         if ($showCopyBtn === '1') {
-                                            $replaceTagHtml .= '<a href="javascript:;" title="Хуулах" onclick="bpCopyPrevData(this, \''.urlencode(json_encode(array($getBody))).'\', \'1\')" class="btn btn-xs btn-circle purple-plum float-left mt5 bp-tmp-idcard-part-add-sidebar" style="margin-left: -23px;">&nbsp;<i class="fa fa-copy font-size-12"></i>&nbsp;</a>';
+                                            $replaceTagHtml .= '<a href="javascript:;" title="Хуулах" onclick="bpCopyPrevData(this, \'\', \'1\', \''.urlencode(json_encode(array($getBody))).'\', \'1\')" class="btn btn-xs btn-circle purple-plum float-left mt5 bp-tmp-idcard-part-add-sidebar" style="margin-left: -23px;">&nbsp;<i class="fa fa-copy font-size-12"></i>&nbsp;</a>';
                                         }
                                     $replaceTagHtml .= '</span>';
                                 $replaceTagHtml .= '</span>';
@@ -15503,7 +15525,7 @@ class Mdwebservice extends Controller {
                                 $replaceTagHtml = '<span data-dtl-template-path="mainWidget" data-dtl-taxconfig-id="'.$getBody['CONFIG_ID'].'" data-display-picture="'.$getBody['IS_PICTURE'].'" class="mainWidget detail-template-body detail-template-child-header">';
                                     $replaceTagHtml .= '<span class="detail-template-body-rows">';
                                         if ($showCopyBtn === '1') {
-                                            $replaceTagHtml .= '<a href="javascript:;" title="Хуулах" onclick="bpCopyPrevData(this, \''.urlencode(json_encode(array($getBody))).'\', \'1\')" class="btn btn-xs btn-circle purple-plum float-left mt5 bp-tmp-idcard-part-add-sidebar" style="margin-left: -23px;">&nbsp;<i class="fa fa-copy font-size-12"></i>&nbsp;</a>';
+                                            $replaceTagHtml .= '<a href="javascript:;" title="Хуулах" onclick="bpCopyPrevData(this, \'\', \'1\', \''.urlencode(json_encode(array($getBody))).'\', \'1\')" class="btn btn-xs btn-circle purple-plum float-left mt5 bp-tmp-idcard-part-add-sidebar" style="margin-left: -23px;">&nbsp;<i class="fa fa-copy font-size-12"></i>&nbsp;</a>';
                                         }
                                     $replaceTagHtml .= '</span>';
                                 $replaceTagHtml .= '</span>';
@@ -18161,7 +18183,6 @@ class Mdwebservice extends Controller {
     }
     
     public function widgetBpDetailRender($methodId, $uniqId, $row, $fillParamData) {
-        
         $result = (new Mdwidget())->runBpDetail(
             array(
                 'methodId'      => $methodId, 
@@ -18359,10 +18380,12 @@ class Mdwebservice extends Controller {
                 || $dtlThemeCode == 'detail_user_card_001' 
                 || $dtlThemeCode == 'detail_buttons' 
                 || $dtlThemeCode == 'detail_circle_icon' 
+                || $dtlThemeCode == 'detail_cart_slider' 
                 || $dtlThemeCode == 'detail_circle_file' 
                 || $dtlThemeCode == 'detail_notes' 
                 || $dtlThemeCode == 'detail_frame_paper_001' 
                 || $dtlThemeCode == 'detail_frame_paper_tree' 
+                || $dtlThemeCode == 'detail_calendar_sidebar' 
                 || $dtlThemeCode == 'detail_file_preview_001') {
             
             $gridBodyData = self::widgetBpDetailRender($processMetaDataId, $uniqId, $row, $fillParamData);
@@ -18372,7 +18395,6 @@ class Mdwebservice extends Controller {
     }
     
     public function renderCustomParent($row, $gridBodyData = '', $bottomCustomAddRow = '') {
-        
         $html = '<div data-table-path="'.$row['code'].'" data-table-path-lower="'. Str::lower($row['code']).'" data-row-id="'.$row['id'].'" class="bprocess-table-dtl bprocess-div-dtl-'.$row['dtlTheme'].' bpdtl-widget-'.$row['widgetCode'].'" data-dtltheme="'.$row['dtlTheme'].'">
             <div class="tbody">'.$gridBodyData.'</div> 
             '.$bottomCustomAddRow.'    

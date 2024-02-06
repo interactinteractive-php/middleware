@@ -66,19 +66,21 @@
                                 var html = '';
                                 html += '<tr>';
                                 html += '<td>';
-                                html += rowNum;
-                                html += '<input type="hidden" name="contentId[]" value="' + $("#contentId").val() + '">';
-                                html += '<input type="hidden" name="rowId[]" value="' + $("#rowId").val() + '">';
+                                    html += rowNum;
+                                    html += '<input type="hidden" name="contentId[]" value="' + $("#contentId").val() + '">';
+                                    html += '<input type="hidden" name="rowId[]" value="' + $("#rowId").val() + '">';
                                 html += '</td>';
-                                html += '<td><img src="assets/core/global/img/process_content/' + $("#contentType").val() + '/' + $("#contentData").val() + '" style="max-height:45px;"></td>';
+                                html += '<td>';
+                                    html += '<a href="'+ $("#contentFilePath").val() + '" data-fancybox="images"><img src="'+ $("#contentFilePath").val() + '" class="d-block w-auto" alt="img name" style="max-height:45px;"/></a>    ';
+                                html += '</td>';
                                 html += '<td>' + $("#contentName").val() + '</td>';
                                 html += '<td>';
                                 html += '<select name="positionType[]" class="form-control select2">';
-                                html += '<option value="">- Сонгох -</option>';
-                                html += '<option value="top"><?php echo $this->lang->line('META_00131') ?></option>';
-                                html += '<option value="right"><?php echo $this->lang->line('META_00055') ?></option>';
-                                html += '<option value="bottom"><?php echo $this->lang->line('META_00054') ?></option>';
-                                html += '<option value="left"><?php echo $this->lang->line('META_00082') ?></option>';
+                                    html += '<option value="">- Сонгох -</option>';
+                                    html += '<option value="top"><?php echo $this->lang->line('META_00131') ?></option>';
+                                    html += '<option value="right"><?php echo $this->lang->line('META_00055') ?></option>';
+                                    html += '<option value="bottom"><?php echo $this->lang->line('META_00054') ?></option>';
+                                    html += '<option value="left"><?php echo $this->lang->line('META_00082') ?></option>';
                                 html += '</select>';
                                 html += '</td>';
                                 html += '<td><input type="text" name="orderNum[]" class="form-control longInit"></td>';
@@ -94,9 +96,10 @@
                                 html += '<a href="javascript:;" class="btn red btn-xs" onclick="deleteProcessContent(this)"><i class="fa fa-trash"></i></a>';
                                 html += '</td>';
                                 html += '</tr>';
-                                $("table#banner-manager-list tbody").append(html);
-                                Core.initAjax();
-                                $("#" + $dialogName).dialog('close');
+                                $("table#banner-manager-list tbody").append(html).promise().done(function () {
+                                    Core.initAjax();
+                                    $("#" + $dialogName).dialog('close');
+                                });
                             }},
                         {text: data.close_btn, class: 'btn blue-madison btn-sm', click: function () {
                                 $("#" + $dialogName).dialog('close');

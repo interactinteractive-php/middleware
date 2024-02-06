@@ -233,13 +233,12 @@ $(function() {
                     bpInputParams($li.attr('id'));
                 }
 
-            }else if (isShiftKey && code == 67) { /*Shift+c contextMenu Show*/
+            } else if (isShiftKey && code == 67) { /*Shift+c contextMenu Show*/
                 
                 $li.first().trigger(
                     $.Event('contextmenu', {pageX: $li.offset().left + 50, pageY: $li.offset().top + 50})
                 );
-                $li.trigger('contextmenu');
-                
+                $li.trigger('contextmenu');  
             }
             
         } else if (isShiftKey && code == 67) { /*Shift+c contextMenu Hide*/

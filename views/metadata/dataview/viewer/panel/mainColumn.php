@@ -33,6 +33,9 @@
         <a href="javascript:;" class="nav-link font-weight-bold<?php echo $menuSelected; ?>" data-id="<?php echo $row[$this->idField]; ?>" data-listmetadataid="<?php echo $row['metadataid']; ?>" data-listmetadatacriteria="<?php echo issetParam($row['listmetadatacriteria']); ?>" data-metatypeid="<?php echo issetParam($row['metatypeid']); ?>" data-rowdata="<?php echo $rowJson; ?>">
             <?php echo $icon; ?>
             <span><?php echo $row[$this->nameField]; ?></span>
+            <?php if (issetParam($row['iscountmeta'])) { ?>
+                <span class="badge badge-success ml-auto left-menu-count-meta position-relative mr-1" data-id="<?php echo $row[$this->idField]; ?>" data-listmetadatacriteria="<?php echo issetParam($row['listmetadatacriteria']); ?>" data-counmetadataid="<?php echo $row['metadataid']; ?>"><i class="fa fa-spinner fa-spin mr-0" style="font-size: 8px;"></i></span>
+            <?php } ?>
         </a>
         
         <?php echo Mdobject::dvPanelMainMenuRender($row, $this->idField, $this->nameField); ?>

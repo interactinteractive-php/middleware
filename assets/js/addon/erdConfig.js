@@ -438,13 +438,13 @@ function setErdConfigObjectAttribute(tblId, attributeList) {
     
     if (attributeList && attributeList.length) {
         
-        /*var groupedData = objectGroupBy(attributeList, 'groupname');*/
-        
-        const groupByCategory = attributeList.reduce((group, product) => {
-            const { groupname } = product;
-            group[groupname] = group[groupname] ?? [];
-            group[groupname].push(product);
-            return group;
+        const groupByCategory = attributeList.reduce((acc, obj) => {
+            const key = obj['groupname'];
+            if (!acc[key]) {
+                acc[key] = [];
+            }
+            acc[key].push(obj);
+            return acc;
         }, {});
         
         for (var g in groupByCategory) {

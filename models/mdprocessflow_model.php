@@ -1748,7 +1748,8 @@ class Mdprocessflow_model extends Model {
                 TRANSITION_TIME, 
                 TIME_TYPE_ID, 
                 TRANSITION_COST, 
-                TRANSITION_DISTANCE
+                TRANSITION_DISTANCE, 
+                NEW_WFM_DESCRIPTION 
             FROM META_WFM_TRANSITION 
             WHERE PREV_WFM_STATUS_ID = $sourceId 
                 AND NEXT_WFM_STATUS_ID = $targetId 
@@ -1801,7 +1802,8 @@ class Mdprocessflow_model extends Model {
                 'TRANSITION_TIME'     => Input::post('transitionTime'),
                 'TIME_TYPE_ID'        => Input::post('transitionTimeTypeId'),
                 'TRANSITION_COST'     => Number::decimal(Input::post('transitionCost')),
-                'TRANSITION_DISTANCE' => Number::decimal(Input::post('transitionDistance'))
+                'TRANSITION_DISTANCE' => Number::decimal(Input::post('transitionDistance')), 
+                'NEW_WFM_DESCRIPTION' => Input::post('newWfmDescription')
             );
             $result = $this->db->AutoExecute('META_WFM_TRANSITION', $data, 'UPDATE', 'ID = ' . Input::post('bpCriteriaId'));
 
@@ -5764,7 +5766,7 @@ class Mdprocessflow_model extends Model {
                         'isLock' => 1
                     );
                     
-                    file_put_contents($filePath, json_encode($getArr));
+                    file_put_contents($filePath, json_encode($getArr, JSON_UNESCAPED_UNICODE));
                     
                     return array('status' => 'success', 'message' => 'Амжилттай түгжигдлээ.');
                 } else {
@@ -5812,7 +5814,7 @@ class Mdprocessflow_model extends Model {
                             'isLock' => 0
                         );
                     
-                        file_put_contents($filePath, json_encode($getArr));
+                        file_put_contents($filePath, json_encode($getArr, JSON_UNESCAPED_UNICODE));
                         
                         $this->db->AutoExecute('META_WFM_TRANSITION', $data, 'UPDATE', 'ID = '.$transitionId);
                         
@@ -5894,6 +5896,7 @@ class Mdprocessflow_model extends Model {
         
         $param = array();
         $taskFlowCode = Input::post('taskFlowCode');
+        $isTaskFlowAutoRun = Input::post('isTaskFlowAutoRun');
         
         if (Input::postCheck('oneSelectedRow')) {
             
@@ -5908,6 +5911,9 @@ class Mdprocessflow_model extends Model {
         $result = $this->ws->runSerializeResponse(Mdwebservice::$gfServiceAddress, $taskFlowCode, $param);
 
         if ($result['status'] == 'success') {
+            if ($isTaskFlowAutoRun) {
+                return array('status' => 'success', 'result' => $result['result']);
+            }
             if (isset($result['result']) && isset($result['result']['_taskflowinfo']['doprocessid'])) {
                 $response = array('status' => 'success', 'result' => $result['result']);
             } else {

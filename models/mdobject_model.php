@@ -1554,10 +1554,9 @@ class Mdobject_Model extends Model {
                     array_push($array_needle, $row['SIDEBAR_NAME']);
                 }
                 
-                if ($isDrill) {
+                if ($row['DRILLDOWN_COLUMN'] > 0) {
                     $ddown = self::getDrillDownMetaDataModel($metaDataId, $row['FIELD_PATH']);             
                 } else {
-                    $row['DRILLDOWN_COLUMN'] = 0;
                     $ddown = null;
                 }
                 
@@ -3636,7 +3635,7 @@ class Mdobject_Model extends Model {
                                         'operand' => Arr::implode_r(',', $criteriaValue, true)
                                     );
                                     
-                                } elseif ($criteriaValue == 'nullval') {
+                                } elseif ($criteriaValue == 'nullval' || $criteriaValue == 'nulval') {
                                     
                                     $paramCriteriaPopup[$row['FIELD_NAME']][] = array(
                                         'operator' => '=', 
@@ -4216,7 +4215,8 @@ class Mdobject_Model extends Model {
 
                         if (!isset($param['criteria']) 
                             || (isset($param['criteria']) && empty($param['criteria'])) 
-                            || ($isParentFilter == '1' && !isset($isColumnFilter))) {
+                            || ($isParentFilter == '1' && !isset($isColumnFilter)) 
+                            || Input::numeric('isParentFilter') == 1) {
 
                             $paramTreeCriteria[$treeConfigs['parent']][] = array(
                                 'operator' => 'IS NULL',
@@ -4225,10 +4225,12 @@ class Mdobject_Model extends Model {
                         }
                     }
                     
-                    if (isset($param['criteria'])) {
-                        $param['criteria'] = array_merge($param['criteria'], $paramTreeCriteria);
-                    } else {
-                        $param['criteria'] = $paramTreeCriteria;
+                    if ($paramTreeCriteria) {
+                        if (isset($param['criteria'])) {
+                            $param['criteria'] = array_merge($param['criteria'], $paramTreeCriteria);
+                        } else {
+                            $param['criteria'] = $paramTreeCriteria;
+                        }
                     }
                 }
             }   
@@ -4271,6 +4273,17 @@ class Mdobject_Model extends Model {
                     $param['criteria'] = array_merge($param['criteria'], $accountSegmentFilter);
                 } else {
                     $param['criteria'] = $accountSegmentFilter;
+                }
+            }
+            
+            if ($kpiIndicatorMapConfig = Input::post('kpiIndicatorMapConfig')) {
+                $kpiIndicatorSetCriteria = self::setKpiIndicatorCriteriaModel($metaDataId, $kpiIndicatorMapConfig);
+                if (isset($kpiIndicatorSetCriteria['criteria'])) {
+                    if (isset($param['criteria'])) {
+                        $param['criteria'] = array_merge($param['criteria'], $kpiIndicatorSetCriteria['criteria']);
+                    } else {
+                        $param['criteria'] = $kpiIndicatorSetCriteria['criteria'];
+                    }
                 }
             }
         }
@@ -4446,7 +4459,7 @@ class Mdobject_Model extends Model {
                 }
                 
                 $param['pagingWithoutAggregate'] = Input::numeric('pagingWithoutAggregate');
-                
+
                 if (issetParam($gridOption['DV_WS_URL']) == 'bugfixServiceAddress') {
                     
                     ini_set('max_execution_time', 10);
@@ -4652,6 +4665,41 @@ class Mdobject_Model extends Model {
         }
         
         return array('status' => 'success', 'result' => $rows);
+    }
+    
+    public function setKpiIndicatorCriteriaModel($metaDataId, $kpiIndicatorMapConfig) {
+        $response = array();
+        
+        try {
+            $kpiIndicatorMapConfig = @json_decode(html_entity_decode($kpiIndicatorMapConfig), true);
+            $mapId = issetParam($kpiIndicatorMapConfig['mapId']);
+            
+            if (is_numeric($mapId)) {
+                
+                $idPh1 = $this->db->Param(0);
+                $idPh2 = $this->db->Param(1);
+                
+                $mapList = $this->db->GetAll("
+                    SELECT 
+                        T0.TRG_META_DATA_PATH, 
+                        T0.DEFAULT_VALUE 
+                    FROM KPI_INDICATOR_INDICATOR_MAP T0 
+                    WHERE T0.SRC_INDICATOR_MAP_ID = $idPh1 
+                        AND T0.SEMANTIC_TYPE_ID = $idPh2", 
+                    array($mapId, Mdform::$semanticTypes['checkListParamMap'])
+                );
+                
+                if ($mapList) {
+                    foreach ($mapList as $map) {
+                        $defaultValue = Mdmetadata::setDefaultValue($map['DEFAULT_VALUE']);
+                        $response['criteria'][$map['TRG_META_DATA_PATH']] = array(array('operator' => '=', 'operand' => $defaultValue));
+                    }
+                }
+            }
+            
+        } catch (Exception $ex) { }
+        
+        return $response;
     }
     
     public function getDataViewExcelColumnsSqlModel($metaDataId, $query) {
@@ -6736,6 +6784,15 @@ class Mdobject_Model extends Model {
             }
         }
         
+        $param['criteria']['filterStartDate'] = array(array(
+            'operator' => '=',
+            'operand' => Date::currentDate('Y').'-01-01'
+        )); 
+        $param['criteria']['filterEndDate'] = array(array(
+            'operator' => '=',
+            'operand' => Date::currentDate('Y-m-d')
+        ));
+        
         $data = $this->ws->runResponse(self::$gfServiceAddress, Mddatamodel::$getDataViewCommand, $param);
         
         if ($data['status'] == 'success' && isset($data['result']) && isset($data['result'][0])) {
@@ -7661,7 +7718,8 @@ class Mdobject_Model extends Model {
                     AND LOWER(CF.FIELD_PATH) = LOWER(MGG.FIELD_PATH) 
             WHERE MGG.MAIN_META_DATA_ID = ".$this->db->Param(0)." 
                 AND MGG.IS_GROUP = 1 
-                AND (CF.IS_IGNORE_TREE_GROUP IS NULL OR CF.IS_IGNORE_TREE_GROUP = 0)", array($dataViewId));
+                AND (CF.IS_IGNORE_TREE_GROUP IS NULL OR CF.IS_IGNORE_TREE_GROUP = 0) 
+            ORDER BY MGG.DISPLAY_ORDER ASC", array($dataViewId));
 
         $categoryList = array();
         $filterFieldList = array();
@@ -8397,34 +8455,43 @@ class Mdobject_Model extends Model {
         if ($metaDataId == '' || $fieldPath == '') {
             return array();
         }
-
-        $data = $this->db->GetAll("
-            SELECT 
-                MGL.ID,
-                MGL.META_DATA_ID,
-                MDD.LINK_META_DATA_ID, 
-                MDD.CRITERIA,
-                MDD.DIALOG_WIDTH,
-                MDD.DIALOG_HEIGHT,
-                MDD.SHOW_TYPE,
-                MDD.MAIN_GROUP_LINK_PARAM,
-                MT.META_TYPE_NAME, 
-                LOWER(MT.META_TYPE_CODE) AS META_TYPE_CODE,
-                MDDP.DEFAULT_VALUE,
-                LOWER(MDDP.SRC_PARAM) AS SRC_PARAM,
-                LOWER(MDDP.TRG_PARAM) AS TRG_PARAM, 
-                LOWER(DMD.PASSWORD_PATH) AS PASSWORD_PATH 
-            FROM META_GROUP_LINK MGL 
-                INNER JOIN META_DM_DRILLDOWN_DTL MDD ON MDD.MAIN_GROUP_LINK_ID = MGL.ID 
-                INNER JOIN META_DATA MDA ON MDA.META_DATA_ID = MDD.LINK_META_DATA_ID 
-                INNER JOIN META_TYPE MT ON MT.META_TYPE_ID = MDA.META_TYPE_ID 
-                LEFT JOIN META_DM_DRILLDOWN_PARAM MDDP ON MDDP.DM_DRILLDOWN_DTL_ID = MDD.ID 
-                LEFT JOIN META_DM_PROCESS_DTL DMD ON MGL.META_DATA_ID = DMD.MAIN_META_DATA_ID 
-                    AND DMD.PROCESS_META_DATA_ID = MDD.LINK_META_DATA_ID 
-            WHERE MGL.META_DATA_ID = ".$this->db->Param(0)." 
-                AND LOWER(MDD.MAIN_GROUP_LINK_PARAM) = ".$this->db->Param(1), 
-            array($metaDataId, strtolower($fieldPath)) 
-        );
+        
+        $fieldPath = strtolower($fieldPath);
+        $cacheName = 'dv_'.$metaDataId.'_fdrill_'.md5($fieldPath);
+        
+        $cache = phpFastCache();
+        $data = $cache->get($cacheName);
+        
+        if ($data == null) {
+            $data = $this->db->GetAll("
+                SELECT 
+                    MGL.ID,
+                    MGL.META_DATA_ID,
+                    MDD.LINK_META_DATA_ID, 
+                    MDD.CRITERIA,
+                    MDD.DIALOG_WIDTH,
+                    MDD.DIALOG_HEIGHT,
+                    MDD.SHOW_TYPE,
+                    MDD.MAIN_GROUP_LINK_PARAM,
+                    MT.META_TYPE_NAME, 
+                    LOWER(MT.META_TYPE_CODE) AS META_TYPE_CODE,
+                    MDDP.DEFAULT_VALUE,
+                    LOWER(MDDP.SRC_PARAM) AS SRC_PARAM,
+                    LOWER(MDDP.TRG_PARAM) AS TRG_PARAM, 
+                    LOWER(DMD.PASSWORD_PATH) AS PASSWORD_PATH 
+                FROM META_GROUP_LINK MGL 
+                    INNER JOIN META_DM_DRILLDOWN_DTL MDD ON MDD.MAIN_GROUP_LINK_ID = MGL.ID 
+                    INNER JOIN META_DATA MDA ON MDA.META_DATA_ID = MDD.LINK_META_DATA_ID 
+                    INNER JOIN META_TYPE MT ON MT.META_TYPE_ID = MDA.META_TYPE_ID 
+                    LEFT JOIN META_DM_DRILLDOWN_PARAM MDDP ON MDDP.DM_DRILLDOWN_DTL_ID = MDD.ID 
+                    LEFT JOIN META_DM_PROCESS_DTL DMD ON MGL.META_DATA_ID = DMD.MAIN_META_DATA_ID 
+                        AND DMD.PROCESS_META_DATA_ID = MDD.LINK_META_DATA_ID 
+                WHERE MGL.META_DATA_ID = ".$this->db->Param(0)." 
+                    AND LOWER(MDD.MAIN_GROUP_LINK_PARAM) = ".$this->db->Param(1), 
+                array($metaDataId, $fieldPath) 
+            );
+            $cache->set($cacheName, $data, Mdwebservice::$expressionCacheTime);
+        }
 
         return $data;
     }
@@ -8451,7 +8518,7 @@ class Mdobject_Model extends Model {
             
             if (is_array($selectedRow) && array_key_exists(0, $selectedRow) && count($selectedRow) == 1) {
                 $param = array_merge($param, $selectedRow[0]);
-            } else {
+            } elseif (is_array($selectedRow)) {
                 $param = array_merge($param, $selectedRow);
             }
             
@@ -9732,7 +9799,6 @@ class Mdobject_Model extends Model {
                     $dataSource[$k]['color'] = ($color && isset($row[$color])) ? $row[$color] : (isset($row['wfmstatuscolor']) ? $row['wfmstatuscolor'] : '#448aff'); 
                     //$dataSource[$k]['textColor'] = isset($row['wfmstatuscolor']) ? $row['wfmstatuscolor'] : '#000'; 
                     $dataSource[$k]['open'] = (isset($row['_rowstate']) && $row['_rowstate'] == 'closed') ? false : true; 
-                    $dataSource[$k]['row'] = $row; 
                     
                     if ($name3) {
                         $dataSource[$k][$name3] = $row[$name3]; 
@@ -9771,6 +9837,20 @@ class Mdobject_Model extends Model {
                     if ($renderSplit && $row[$renderSplit]) {
                         $dataSource[$k]['render'] = $row[$renderSplit]; 
                     }
+                    
+                    if (isset($row['childrecordcount']) && $row['childrecordcount']) {
+                        $dataSource[$k]['$has_child'] = $row['childrecordcount']; 
+                        
+                        if (isset($row['children'])) {
+                            unset($row['children']);
+                        }
+                        
+                    } elseif (isset($row['children']) && is_array($row['children']) && $childCount = count($row['children'])) {
+                        $dataSource[$k]['$has_child'] = $childCount; 
+                        unset($row['children']);
+                    }
+                    
+                    $dataSource[$k]['row'] = $row; 
                     
                     $k++;
                 }
@@ -11022,6 +11102,11 @@ class Mdobject_Model extends Model {
     
     public function dataviewSavedRowCriteriaModel($id) {
         return $this->db->GetRow("SELECT ID, NAME, DESCRIPTION, META_DATA_ID, CRITERIA FROM META_GROUP_CRITERIA_TEMPLATE WHERE ID = " . $this->db->Param(0), array($id));
+    }
+    
+    public function dataviewDeleteCriteriaModel($id) {
+        $this->db->Execute("DELETE FROM META_GROUP_CRITERIA_TEMPLATE WHERE ID = ".$this->db->Param(0), array($id));
+        return ['success' => true];
     }
     
     public function getDataLegendModel($dataModelId) {

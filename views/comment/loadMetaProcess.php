@@ -9,10 +9,12 @@
                 <?php 
                 echo Form::hidden(array('name' => 'metaDataId', 'value' => $this->metaDataId));
                 echo Form::hidden(array('name' => 'metaValueId', 'value' => $this->metaValueId));
+                echo Form::hidden(array('name' => 'listMetaDataId', 'value' => $this->listMetaDataId));
                 echo Form::textArea(
                     array(
                         'name' => 'mdcomment_text',
                         'id' => 'mdcomment_text', 
+                        'style' => 'background-color: #fff', 
                         'class' => 'form-control p-1 bpaddon-mention-autocomplete mention',
                         'placeholder' => $this->lang->line('task_comment_write'),
                         'onkeypress' => 'if(event.keyCode == 13) saveMdCommentProcessValue_'.$this->uniqId.'(this);'
@@ -21,11 +23,18 @@
                 ?>
             </div>
             <div class="pl8 pt15">
-                <a href="javascript:;" class="btn fileinput-button btn-block btn-xs" style="position: absolute;top: 30px;right: 38px;width: 30px;" title="Зураг нэмэх">
-                    <i class="icon-file-picture font-size-15"></i>
-                    <input type="file" name="file" onchange="onChangeAttachFIleAddMode_<?php echo $this->uniqId; ?>(this);"/>
-                </a>                
-                <a href="javascript:;" onclick="saveBtnMdCommentProcessValue_<?php echo $this->uniqId; ?>(this);"><i class="fas fa-paper-plane font-size-15"></i></a>
+                <div style="position: absolute;display: flex;right: 46px;">
+                    <a href="javascript:;" class="fileinput-button" style="width: 25px;color:#2196f3" title="Зураг нэмэх">
+                        <i class="icon-file-picture font-size-15"></i>
+                        <input type="file" name="file" onchange="onChangeAttachFIleAddMode_<?php echo $this->uniqId; ?>(this);"/>
+                    </a>                
+                    <a href="javascript:;" class="mt1" onclick="emojiPickerMode_<?php echo $this->uniqId; ?>(this);" style="width: 25px;" title="">
+                        <i class="far fa-smile font-size-15"></i>
+                    </a>                
+                    <a href="javascript:;" class="mt1" onclick="saveBtnMdCommentProcessValue_<?php echo $this->uniqId; ?>(this);">
+                        <i class="fas fa-paper-plane font-size-15"></i>
+                    </a>
+                </div>
             </div>
         </div>
     </div>

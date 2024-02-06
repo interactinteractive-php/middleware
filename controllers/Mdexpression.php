@@ -21,6 +21,7 @@ class Mdexpression extends Controller {
     public static $detectedFunctionNames = array();
     public static $flowData = array();
     public static $precisionScalePath = array();
+    public static $enableDisable = array();
     public static $setMainSelector = null;
     public static $setSubMainSelector = null;
     public static $kpiExpresssionPrefix = null;
@@ -660,7 +661,7 @@ class Mdexpression extends Controller {
                                                 $expSetAttrExpression .= 'setBpHeaderFileFieldDisable(' . $mainSelector . ', \'' . $expSetAttrSplit . '\');';
                                             } else {
 
-                                                if ($getMetaRow['isShow'] == '1' && $getMetaRow['LOOKUP_META_DATA_ID'] != '' && ($getMetaRow['LOOKUP_TYPE'] == 'combo' || $getMetaRow['LOOKUP_TYPE'] == 'combo_with_popup')) {
+                                                if ($getMetaRow['isShow'] == '1' && $getMetaRow['LOOKUP_META_DATA_ID'] != '' && ($getMetaRow['LOOKUP_TYPE'] == 'combo' || $getMetaRow['LOOKUP_TYPE'] == 'combo_with_popup' || $getMetaRow['LOOKUP_TYPE'] == 'combogrid')) {
 
                                                     $expSetAttrExpression .= 'setBpHeaderParamDisable(' . $mainSelector . ', \'' . $expSetAttrSplit . '\');';
                                                 } elseif ($getMetaRow['isShow'] == '1' && $getMetaRow['LOOKUP_META_DATA_ID'] != '' && $getMetaRow['LOOKUP_TYPE'] == 'radio') {
@@ -720,7 +721,7 @@ class Mdexpression extends Controller {
                                             $expSetAttrExpression .= 'setBpHeaderFileFieldEnable(' . $mainSelector . ', \'' . $expSetAttrSplit . '\');';
                                         } else {
 
-                                            if ($getMetaRow['isShow'] == '1' && $getMetaRow['LOOKUP_META_DATA_ID'] != '' && ($getMetaRow['LOOKUP_TYPE'] == 'combo' || $getMetaRow['LOOKUP_TYPE'] == 'combo_with_popup')) {
+                                            if ($getMetaRow['isShow'] == '1' && $getMetaRow['LOOKUP_META_DATA_ID'] != '' && ($getMetaRow['LOOKUP_TYPE'] == 'combo' || $getMetaRow['LOOKUP_TYPE'] == 'combo_with_popup' || $getMetaRow['LOOKUP_TYPE'] == 'combogrid')) {
 
                                                 $expSetAttrExpression .= 'setBpHeaderParamEnable(' . $mainSelector . ', \'' . $expSetAttrSplit . '\');';
                                             } elseif ($getMetaRow['isShow'] == '1' && $getMetaRow['LOOKUP_META_DATA_ID'] != '' && $getMetaRow['LOOKUP_TYPE'] == 'radio') {
@@ -823,7 +824,7 @@ class Mdexpression extends Controller {
                                         $setDisable = 'checkboxDisableUpdate( $("input[data-path=\'' . $expSetAttr[1] . '\']", ' . $mainSelector . '));';
                                     } elseif ($getMetaRow['type'] == 'button' && $getMetaRow['isShow'] == '1') {
                                         $setDisable = 'bpButtonDisable(\'' . $expSetAttr[1] . '\', ' . $mainSelector . ');';
-                                    } elseif ($getMetaRow['isShow'] == '1' && $getMetaRow['LOOKUP_META_DATA_ID'] != '' && $getMetaRow['LOOKUP_TYPE'] == 'combo') {
+                                    } elseif ($getMetaRow['isShow'] == '1' && $getMetaRow['LOOKUP_META_DATA_ID'] != '' && ($getMetaRow['LOOKUP_TYPE'] == 'combo' || $getMetaRow['LOOKUP_TYPE'] == 'combogrid')) {
                                         $setDisable = 'setBpHeaderParamDisable(' . $mainSelector . ', \'' . $expSetAttr[1] . '\');';
                                     } elseif ($getMetaRow['isShow'] == '1' && $getMetaRow['LOOKUP_META_DATA_ID'] != '' && $getMetaRow['LOOKUP_TYPE'] == 'combo_with_popup') {
                                         $setDisable = 'setBpHeaderComboWithPopupDisable(' . $mainSelector . ', \'' . $expSetAttr[1] . '\');';
@@ -866,7 +867,7 @@ class Mdexpression extends Controller {
                                     $setEnable = '';
                                 } else {
 
-                                    if ($getMetaRow['isShow'] == '1' && $getMetaRow['LOOKUP_META_DATA_ID'] != '' && $getMetaRow['LOOKUP_TYPE'] == 'combo') {
+                                    if ($getMetaRow['isShow'] == '1' && $getMetaRow['LOOKUP_META_DATA_ID'] != '' && ($getMetaRow['LOOKUP_TYPE'] == 'combo' || $getMetaRow['LOOKUP_TYPE'] == 'combogrid')) {
 
                                         $setEnable = 'setBpHeaderParamEnable(' . $mainSelector . ', \'' . $expSetAttr[1] . '\');';
                                     } elseif ($getMetaRow['isShow'] == '1' && $getMetaRow['LOOKUP_META_DATA_ID'] != '' && $getMetaRow['LOOKUP_TYPE'] == 'combo_with_popup') {
@@ -1453,8 +1454,7 @@ class Mdexpression extends Controller {
         return $expressionToJs;
     }
 
-    public function fullExpressionConvertWithoutEvent($fullExpression = '', $processId = '', $processActionType = '', $isFindFunction = false, $expression_type = '')
-    {
+    public function fullExpressionConvertWithoutEvent($fullExpression = '', $processId = '', $processActionType = '', $isFindFunction = false, $expression_type = '') {
 
         if (empty($fullExpression)) {
             return '';
@@ -1464,6 +1464,74 @@ class Mdexpression extends Controller {
             self::setMultiPathConfig($processId);
         } else {
             $this->load->model('mdexpression', 'middleware/models/');
+        }
+        
+        if (($expression_type == 'var_fnc' || $expression_type == 'load') && Mdexpression::$enableDisable) {
+            
+            if ($expression_type == 'var_fnc') {
+                
+                if (isset(Mdexpression::$enableDisable['enable'])) {
+                
+                    $enables = Mdexpression::$enableDisable['enable'];
+                    $enablesPath = [];
+
+                    foreach ($enables as $enableRows) {
+                        foreach ($enableRows as $enableRow) {
+                            $enablesPath[] = $enableRow['fullPath'];
+                        }
+                    }
+
+                    $bracketsEnablePaths = '[' . implode(', ', $enablesPath) . '].disable();';
+                    $fullExpression = $fullExpression . "\n" . $bracketsEnablePaths;
+                }          
+
+                if (isset(Mdexpression::$enableDisable['disable'])) {
+
+                    $disables = Mdexpression::$enableDisable['disable'];
+                    $disablesPath = [];
+
+                    foreach ($disables as $disableRows) {
+                        foreach ($disableRows as $disableRow) {
+                            $disablesPath[] = $disableRow['fullPath'];
+                        }
+                    }
+
+                    $bracketsDisablePaths = '[' . implode(', ', $disablesPath) . '].disable();';
+                    $fullExpression = $fullExpression . "\n" . $bracketsDisablePaths;
+                }            
+                
+            } else {
+                
+                if (isset(Mdexpression::$enableDisable['enable']['detail'])) {
+                    
+                    $enableDetails = Mdexpression::$enableDisable['enable']['detail'];
+                    $enableDetailsGrouped = Arr::groupByArray($enableDetails, 'groupPath');
+                    $enableExpression = null;
+                    
+                    foreach ($enableDetailsGrouped as $enableGroupPath => $enableGroupRow) {
+                        $enableExpression .= "if (groupPath == '$enableGroupPath') {" . "\n";
+                            $enableExpression .= '['.Arr::implode_key(',', $enableGroupRow['rows'], 'fullPath', true).'].enable();' . "\n";
+                        $enableExpression .= "}" . "\n";
+                    }
+                    
+                    $fullExpression = $fullExpression . "\n" . $enableExpression;
+                }
+                
+                if (isset(Mdexpression::$enableDisable['disable']['detail'])) {
+                    
+                    $disableDetails = Mdexpression::$enableDisable['disable']['detail'];
+                    $disableDetailsGrouped = Arr::groupByArray($disableDetails, 'groupPath');
+                    $disableExpression = null;
+                    
+                    foreach ($disableDetailsGrouped as $disableGroupPath => $disableGroupRow) {
+                        $disableExpression .= "if (groupPath == '$disableGroupPath') {" . "\n";
+                            $disableExpression .= '['.Arr::implode_key(',', $disableGroupRow['rows'], 'fullPath', true).'].disable();' . "\n";
+                        $disableExpression .= "}" . "\n";
+                    }
+                    
+                    $fullExpression = $fullExpression . "\n" . $disableExpression;
+                }
+            }
         }
 
         $mainSelector = self::$setMainSelector ? self::$setMainSelector : self::$mainSelector . $processId;
@@ -1753,7 +1821,7 @@ class Mdexpression extends Controller {
                                         }
                                     } else {
 
-                                        if ($getMetaRow['isShow'] == '1' && $getMetaRow['LOOKUP_META_DATA_ID'] != '' && ($getMetaRow['LOOKUP_TYPE'] == 'combo' || $getMetaRow['LOOKUP_TYPE'] == 'combo_with_popup')) {
+                                        if ($getMetaRow['isShow'] == '1' && $getMetaRow['LOOKUP_META_DATA_ID'] != '' && ($getMetaRow['LOOKUP_TYPE'] == 'combo' || $getMetaRow['LOOKUP_TYPE'] == 'combo_with_popup' || $getMetaRow['LOOKUP_TYPE'] == 'combogrid')) {
 
                                             $expSetAttrExpression .= 'setBpHeaderParamDisable(' . $mainSelector . ', \'' . $expSetAttrSplit . '\');';
                                         } elseif ($getMetaRow['isShow'] == '1' && $getMetaRow['LOOKUP_META_DATA_ID'] != '' && $getMetaRow['LOOKUP_TYPE'] == 'radio') {
@@ -1816,7 +1884,7 @@ class Mdexpression extends Controller {
                                         $expSetAttrExpression .= 'setBpHeaderFileFieldEnable(' . $mainSelector . ', \'' . $expSetAttrSplit . '\');';
                                     } else {
 
-                                        if ($getMetaRow['isShow'] == '1' && $getMetaRow['LOOKUP_META_DATA_ID'] != '' && ($getMetaRow['LOOKUP_TYPE'] == 'combo' || $getMetaRow['LOOKUP_TYPE'] == 'combo_with_popup')) {
+                                        if ($getMetaRow['isShow'] == '1' && $getMetaRow['LOOKUP_META_DATA_ID'] != '' && ($getMetaRow['LOOKUP_TYPE'] == 'combo' || $getMetaRow['LOOKUP_TYPE'] == 'combo_with_popup' || $getMetaRow['LOOKUP_TYPE'] == 'combogrid')) {
 
                                             $expSetAttrExpression .= 'setBpHeaderParamEnable(' . $mainSelector . ', \'' . $expSetAttrSplit . '\');';
                                         } elseif ($getMetaRow['isShow'] == '1' && $getMetaRow['LOOKUP_META_DATA_ID'] != '' && $getMetaRow['LOOKUP_TYPE'] == 'radio') {
@@ -1937,7 +2005,7 @@ class Mdexpression extends Controller {
                                 $setDisable = '';
                             } else {
 
-                                if ($getMetaRow['isShow'] == '1' && $getMetaRow['LOOKUP_META_DATA_ID'] != '' && $getMetaRow['LOOKUP_TYPE'] == 'combo') {
+                                if ($getMetaRow['isShow'] == '1' && $getMetaRow['LOOKUP_META_DATA_ID'] != '' && ($getMetaRow['LOOKUP_TYPE'] == 'combo' || $getMetaRow['LOOKUP_TYPE'] == 'combogrid')) {
 
                                     $setDisable = 'setBpHeaderParamDisable(' . $mainSelector . ', \'' . $expSetAttr[1] . '\');';
                                 } elseif ($getMetaRow['isShow'] == '1' && $getMetaRow['LOOKUP_META_DATA_ID'] != '' && $getMetaRow['LOOKUP_TYPE'] == 'combo_with_popup') {
@@ -1946,7 +2014,7 @@ class Mdexpression extends Controller {
                                 } elseif ($getMetaRow['isShow'] == '1' && $getMetaRow['LOOKUP_META_DATA_ID'] != '' && $getMetaRow['LOOKUP_TYPE'] == 'radio') {
 
                                     $setDisable = 'setBpHeaderRadioDisable(' . $mainSelector . ', \'' . $expSetAttr[1] . '\');';
-                                } elseif ($getMetaRow['isShow'] == '1' && $getMetaRow['LOOKUP_META_DATA_ID'] != '' && ($getMetaRow['LOOKUP_TYPE'] == 'popup' || $getMetaRow['LOOKUP_TYPE'] == 'combogrid')) {
+                                } elseif ($getMetaRow['isShow'] == '1' && $getMetaRow['LOOKUP_META_DATA_ID'] != '' && $getMetaRow['LOOKUP_TYPE'] == 'popup') {
                                     $setDisable = '
                                         $("input[data-path=\'' . $expSetAttr[1] . '\']", ' . $mainSelector . ').closest("div.meta-autocomplete-wrap").find("input[type=\'text\']").attr(\'readonly\', \'readonly\');
                                         $("input[data-path=\'' . $expSetAttr[1] . '\']", ' . $mainSelector . ').closest("div.meta-autocomplete-wrap").find(".input-group-btn > button:not([data-more-metaid])").attr(\'style\', \'pointer-events: none; background-color: #eeeeee !important\').prop(\'disabled\', true);';
@@ -1989,7 +2057,7 @@ class Mdexpression extends Controller {
                                 $setEnable = '';
                             } else {
 
-                                if ($getMetaRow['isShow'] == '1' && $getMetaRow['LOOKUP_META_DATA_ID'] != '' && $getMetaRow['LOOKUP_TYPE'] == 'combo') {
+                                if ($getMetaRow['isShow'] == '1' && $getMetaRow['LOOKUP_META_DATA_ID'] != '' && ($getMetaRow['LOOKUP_TYPE'] == 'combo' || $getMetaRow['LOOKUP_TYPE'] == 'combogrid')) {
                                     $setEnable = 'setBpHeaderParamEnable(' . $mainSelector . ', \'' . $expSetAttr[1] . '\');';
                                 } elseif ($getMetaRow['isShow'] == '1' && $getMetaRow['LOOKUP_META_DATA_ID'] != '' && $getMetaRow['LOOKUP_TYPE'] == 'combo_with_popup') {
 
@@ -1997,7 +2065,7 @@ class Mdexpression extends Controller {
                                 } elseif ($getMetaRow['isShow'] == '1' && $getMetaRow['LOOKUP_META_DATA_ID'] != '' && $getMetaRow['LOOKUP_TYPE'] == 'radio') {
 
                                     $setEnable = 'setBpHeaderRadioEnable(' . $mainSelector . ', \'' . $expSetAttr[1] . '\');';
-                                } elseif ($getMetaRow['isShow'] == '1' && $getMetaRow['LOOKUP_META_DATA_ID'] != '' && ($getMetaRow['LOOKUP_TYPE'] == 'popup' || $getMetaRow['LOOKUP_TYPE'] == 'combogrid')) {
+                                } elseif ($getMetaRow['isShow'] == '1' && $getMetaRow['LOOKUP_META_DATA_ID'] != '' && $getMetaRow['LOOKUP_TYPE'] == 'popup') {
                                     $setEnable = '
                                         $("input[data-path=\'' . $expSetAttr[1] . '\']", ' . $mainSelector . ').closest("div.meta-autocomplete-wrap").find("input[type=\'text\']").removeAttr(\'readonly\');
                                         $("input[data-path=\'' . $expSetAttr[1] . '\']", ' . $mainSelector . ').closest("div.meta-autocomplete-wrap").find("button").removeAttr(\'style\').prop(\'disabled\', false);';
@@ -2546,6 +2614,7 @@ class Mdexpression extends Controller {
         $fullExpression = str_replace('getIndicatorParam(', 'bpGetIndicatorParam(' . $mainSelector . ', checkElement, ', $fullExpression);
         $fullExpression = str_replace('generatePassword(', 'bpGeneratePassword(', $fullExpression);
         $fullExpression = str_replace('getUniqueId(', 'bpGetUid(', $fullExpression);
+        $fullExpression = str_replace('getAddonTabCount(', 'bpGetAddonTabCount(' . $mainSelector . ', ', $fullExpression);
 
         $fullExpression = str_replace('unsetLookupCriteria(', 'bpUnSetLookupCriteria(' . $mainSelector . ', checkElement, ', $fullExpression);
         $fullExpression = str_replace('setLookupCriteria(', 'bpSetLookupCriteria(' . $mainSelector . ', checkElement, ', $fullExpression);
@@ -3157,6 +3226,23 @@ class Mdexpression extends Controller {
                     }
 
                     $fullExpression = str_replace($callDataView[0][$ek], 'bpCallIndicatorDataViewByExp(' . $mainSelector . ', checkElement, ' . $dvIdBySelect . ',' . (isset($evArr[1]) ? $evArr[1] : "''") . $attr . ')', $fullExpression);
+                }
+            }
+        }
+        
+        if (strpos($fullExpression, 'callIndicatorProcess(') !== false) {
+            preg_match_all('/callIndicatorProcess\((.*?)\)/i', $fullExpression, $callProcess);
+
+            if (count($callProcess[0]) > 0) {
+                foreach ($callProcess[1] as $ek => $ev) {
+
+                    $evArr = explode(',', $ev);
+                    $processCode = trim(str_replace("'", '', $evArr[0]));
+                    $processCodeLower = strtolower($processCode);
+                    $getProcessId = $this->model->getKpiIndicatorIdByCodeModel($processCodeLower);
+                    $processIdBySelect = $getProcessId ? "'" . $getProcessId . "'" : $processCode;
+
+                    $fullExpression = str_replace($callProcess[0][$ek], 'bpCallIndicatorProcessByExp(' . $mainSelector . ', checkElement, \'' . Mdwebservice::$processCode . '\', ' . $processIdBySelect . ',' . $evArr[1] . (isset($evArr[2]) ? ',' . $evArr[2] : '') . ')', $fullExpression);
                 }
             }
         }
@@ -5184,8 +5270,7 @@ class Mdexpression extends Controller {
         return implode('', $arr);
     }
 
-    public function convertIndicatorHdrExpression($uniqId, $indicatorId, $expressionArr)
-    {
+    public function convertIndicatorHdrExpression($uniqId, $indicatorId, $expressionArr) {
 
         $arr = array();
         $selector = Mdexpression::$setMainSelector;
@@ -5849,7 +5934,7 @@ class Mdexpression extends Controller {
             }
 
             if (!empty($getSave)) {
-                $_POST['isMicroFlowSelfSave'] = true;
+                //$_POST['isMicroFlowSelfSave'] = true;
                 $getSaveVariable1 = explode('=', $rowExp);
                 if (count($getSaveVariable1) === 2) {
                     $getSaveVariable = explode('.', trim($getSaveVariable1[1]));
@@ -6267,9 +6352,14 @@ class Mdexpression extends Controller {
         $instanceExp->load->model('mdform', 'middleware/models/');
         Mdform::$isIndicatorRendering = true;
         $getExp = $instanceExp->model->getKpiIndicatorExpressionModel($indicatorId);
-
         $rowExp = $getExp['VAR_FNC_EXPRESSION_STRING'];
+        
+        if (empty($rowExp) || empty($getExp['VAR_FNC_EXPRESSION_STRING_JSON'])) {
+            return '';
+        }
+        
         $rowExpJson = html_entity_decode($getExp['VAR_FNC_EXPRESSION_STRING_JSON']);
+        
         preg_match_all('/var (.*?)/', $rowExpJson, $parseExpressionEqual);
         foreach ($parseExpressionEqual[0] as $key => $row) {
             $rowExpJson = str_replace($row, $parseExpressionEqual[1][$key], $rowExpJson);
@@ -6282,6 +6372,7 @@ class Mdexpression extends Controller {
         $rowExpJson = str_ireplace(':sessionuserkeydepartmentid', Mdmetadata::getDefaultValue('sessionuserkeydepartmentid'), $rowExpJson);
         $rowExpJson = str_ireplace(':sessioncompanydepartmentid', Mdmetadata::getDefaultValue('sessioncompanydepartmentid'), $rowExpJson);
         $rowExpJson = str_ireplace(':sysdate', "'".Date::currentDate('Y-m-d')."'", $rowExpJson);
+        $rowExpJson = str_ireplace(':sysdatetime', "'".Date::currentDate()."'", $rowExpJson);
 
         //Mdmetadata::getDefaultValue($value)
         $rowExpJson = json_decode($rowExpJson, true);
@@ -6439,18 +6530,15 @@ class Mdexpression extends Controller {
 
     public function executeMicroFlowExpression($indicatorId = '', $formData = []) {
         try {
-            // $executeClientScript = '';
+
             $executeScript = '$instanceExp = &getInstance();'.PHP_EOL;
             $executeScript .= '$instanceExp->load->model(\'mdform\', \'middleware/models/\');'.PHP_EOL;                  
             $executeScript .= '$pushMicroFlowMessage = [];'.PHP_EOL;
             $executeScript .= self::microFlowExpression($indicatorId, $formData);
-            // pa($executeScript);
+//             pa($executeScript);
 
-            eval($executeScript);
+            @eval($executeScript);
             
-            /**
-             * Result return type
-             */
             if ($pushMicroFlowMessage) {
                 return [
                     'status' => 'success',
@@ -6466,11 +6554,14 @@ class Mdexpression extends Controller {
             self::clearCacheFlowchart();
 
         } catch (ParseError $p) {
-            return [
-                'status' => 'error',
-                'message' => $p->getMessage()
-            ];            
-        }        
+            return ['status' => 'error', 'message' => $p->getMessage()];
+        } catch (Error $p) {
+            return ['status' => 'error', 'message' => $p->getMessage()];
+        } catch (Throwable $p) {
+            return ['status' => 'error', 'message' => $p->getMessage()];
+        } catch (Exception $p) {
+            return ['status' => 'error', 'message' => $p->getMessage()];
+        }       
     }    
 
     public function executeMicroFlowExpressionNew($indicatorId = '', $formData = [])
@@ -6667,8 +6758,8 @@ class Mdexpression extends Controller {
         }
     }
 
-    public static function viewLogExpression($metaDataId)
-    {
+    public static function viewLogExpression($metaDataId) {
+        
         $exp = 'bpRenderViewLog(bp_window_' . $metaDataId . '); ';
         $exp .= 'bp_window_' . $metaDataId . '.on(\'remove\', function(){ 
                     bpRenderViewLog(bp_window_' . $metaDataId . '); 
@@ -6676,4 +6767,14 @@ class Mdexpression extends Controller {
 
         return $exp;
     }
+    
+    public static function viewLogBeforeUnloadExpression($metaDataId) { 
+        
+        $exp = 'window.onbeforeunload = function(e) {  
+                    bpRenderViewLog(bp_window_' . $metaDataId . '); 
+                }; ';
+
+        return $exp;
+    }
+    
 }

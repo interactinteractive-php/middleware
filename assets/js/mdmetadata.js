@@ -3043,12 +3043,14 @@ function urlRedirectByDataView(elem, processMetaDataId, url, target, dataViewId,
                 callomsconferenceAddForm(paramData, '', undefined, '', 'dataViewReload', dataViewId);
             }
             return;
-        } else if (urlLower == 'cmsconferenceweblink') {
+        } else if (urlLower == 'cmsconferenceweblink' || urlLower == 'cmsconferenceweblink_1') {
+            var viewType = (urlLower == 'cmsconferenceweblink_1') ? '2' : '1';
             if (typeof selectedRow === 'undefined') {
                 alert('Мөрөө сонгоно уу!');
                 return;
             }
-            callParliamentV2(elem, processMetaDataId, dataViewId, selectedRow, paramData);
+
+            callParliamentV2(elem, processMetaDataId, dataViewId, selectedRow, paramData, viewType);
 
             $.ajax({
                 url: "assets/custom/gov/script.js",
@@ -3266,7 +3268,7 @@ function urlRedirectByDataView(elem, processMetaDataId, url, target, dataViewId,
             kpiExportInit(elem, processMetaDataId, dataViewId, paramData);
             return;
         } else if (urlLower == 'kpiimport') {
-            kpiImportInit(elem, dataViewId);
+            kpiImportInit(elem, dataViewId, getParams);
             return;
         } else if (urlLower == 'metaexport') {
             metaExportInit(elem, processMetaDataId, dataViewId, postParams);
@@ -16948,7 +16950,9 @@ function gridDrillDownLink(elem, metaDataCode, metaTypeCode, clinkMetaData, crit
 
                 var dataGridLink = window['objectdatagrid_' + drillMetaDataId];
 
-                if (typeof dataGridLink !== 'undefined' && (typeof isNewTab !== 'undefined' && isNewTab !== 'newrender')) {
+                if (typeof dataGridLink !== 'undefined' 
+                    && typeof $.data(dataGridLink[0], 'datagrid') != 'undefined' 
+                    && (typeof isNewTab !== 'undefined' && isNewTab !== 'newrender')) {
                 
                     try {
                             
@@ -19303,6 +19307,7 @@ function drillDownStatement(elem, rowStr) {
         },
         error: function() {
             alert('Error');
+            Core.unblockUI();
         }
     }).done(function() {
         Core.initAjax($dialog);
@@ -19977,6 +19982,7 @@ function bpChangeCustomerInformation(elem, widgetExpression, grouPath) {
         aimagCity = '',
         sumDistrict = '',
         companyName = '',
+        oldCode = '',
         bagKhoroo = '',
         addressDetail = '',
         imageSrc = 'assets/core/global/img/images.jpg';
@@ -20087,6 +20093,9 @@ function bpChangeCustomerInformation(elem, widgetExpression, grouPath) {
                             case 'company':
                                 companyName = ss.val();
                                 break;
+                            case 'oldCode':
+                                oldCode = ss.val();
+                                break;
                         }
     
                     }
@@ -20112,10 +20121,10 @@ function bpChangeCustomerInformation(elem, widgetExpression, grouPath) {
         }
     }
 
-    bpIDCardFillWtemplate(elem, _parent, _process, mainWidgetExpression, registerNum, lastName, firstName, sexCode, familyName, birthday, aimagCity, sumDistrict, bagKhoroo, addressDetail, imageSrc, grouPath, undefined, undefined, companyName);
+    bpIDCardFillWtemplate(elem, _parent, _process, mainWidgetExpression, registerNum, lastName, firstName, sexCode, familyName, birthday, aimagCity, sumDistrict, bagKhoroo, addressDetail, imageSrc, grouPath, undefined, undefined, companyName, oldCode);
 }
 
-function bpIDCardFillWtemplate(elem, _parent, _process, widgetExpression, registerNum, lastName, firstName, sexCode, familyName, birthday, aimagCity, sumDistrict, bagKhoroo, addressDetail, imageSrc, grouPath, editMode, cardObjImage, companyName) {
+function bpIDCardFillWtemplate(elem, _parent, _process, widgetExpression, registerNum, lastName, firstName, sexCode, familyName, birthday, aimagCity, sumDistrict, bagKhoroo, addressDetail, imageSrc, grouPath, editMode, cardObjImage, companyName, oldCode) {
     var widgetExpression = JSON.parse(decodeURIComponent(widgetExpression));
     var gPath = $(elem).closest('.detail-template-body').attr('data-dtl-template-path'),
         cindex = $(elem).closest('.detail-template-body-rows').index(),
@@ -20146,7 +20155,7 @@ function bpIDCardFillWtemplate(elem, _parent, _process, widgetExpression, regist
         _process.find('div[data-path-code="' + gPath + '"]').find('.widget-party-container').append(
             '<span style="display:inline-block" data-uindex="' + dataUindex + '">' +
             '<img src="' + imageSrc + '" class="img-fluid rounded-circle idcard-photo" style="height: 70px;">' +
-            '<div class="widget-last-first-name">' + companyName + '</div>' +
+            '<div class="widget-last-first-name">' + companyName + ((typeof oldCode !== 'undefined' && oldCode !== '') ? ' ' + oldCode : '') + '</div>' +
             '</span>'
         );
 
@@ -20213,6 +20222,10 @@ function bpIDCardFillWtemplate(elem, _parent, _process, widgetExpression, regist
 
                         var $evalue = (wid[i].EXPRESSION === 'company') ? eval('companyName') : eval(wid[i].EXPRESSION);
                         ss.val($evalue).trigger('change');
+                        
+                        if ((wid[i].EXPRESSION === 'company') && oldCode && (wCode === 'widget_party_a' || wCode === 'widget_party_b')) {
+                            ss.val(ss.val()+' ' + oldCode);
+                        }
                     }
                 });
 
@@ -21707,6 +21720,19 @@ function subgridSetHeight(target, index) {
         subgridSetHeight($dg[0], index);
     }
 }
+function subIndicatorGridSetHeight(target, index) {
+    var $target = $(target);
+    $target.datagrid('fixDetailRowHeight', index);
+    $target.datagrid('fixRowHeight', index);   
+
+    var $tr = $target.closest('div.datagrid-row-detail').closest('tr').prev();
+
+    if ($tr.length) {
+        var index = parseInt($tr.attr('datagrid-row-index'));
+        var $dg = $tr.closest('div.datagrid-view').children('table');
+        subgridSetHeight($dg[0], index);
+    }
+}
 function subgridGetSubGrid(rowDetail) {
     var $div = $(rowDetail).children('div.dv-subgrid');
     return $div;
@@ -22302,7 +22328,7 @@ function sendMailReportTemplate(elem, dataViewId, emailTo, emailSubject, emailFi
                                     data: data,
                                     dataType: 'json',
                                     beforeSubmit: function(formData, jqForm, options) {
-                                        formData.push({ name: 'content', value: $("div#contentRepeat", _parent).html() }, { name: 'orientation', value: pageOrientation }, { name: 'emailSentParams', value: emailSentParams });
+                                        formData.push({ name: 'content', value: $("div#contentRepeat", $parent).html() }, { name: 'orientation', value: pageOrientation }, { name: 'emailSentParams', value: emailSentParams });
 
                                         if ($('input[name=isSendSelectedRows]', '#report-mail-form').is(':checked')) {
                                             var selectedRows = getDataViewSelectedRows(dataViewId);
@@ -23042,10 +23068,8 @@ function qrGenerateProcessAfterSaveV1(r, elem, dataViewId) {
                                         success: function(data) {
                                             if (data.status === 'success') {
                                                 if (data.filepath != '' || data.filepath != null) {
-                                                    
                                                     var selectedRow = {'physicalpath': data.filepath, 'id': data.recordId, qrcode: data.qrcode};
                                                     docToPdfUpload(elem, $parentSelector.attr('data-process-id'), dataViewId, selectedRow, {}, $confirmType, 'mddoc/docToPdfUploadConfirm', function() { Core.unblockUI(); $($cDialogName).empty().dialog('destroy').remove(); return true; });
-                                                    
                                                 }
                                             } else {
                                                 new PNotify({
@@ -23153,7 +23177,6 @@ function qrGenerateProcessAfterSave(r, elem, dataViewId, parentId, pprocessId) {
                                             if (typeof parentId !== 'undefined' && typeof pprocessId !== 'undefined') {
                                                 var $parentMethods = {elementy: $elementy, parentId: parentId, dataViewId: dataViewId, confirmType: $confirmType, parentSelector: $parentSelector, undefined: undefined, pprocessId: pprocessId};
                                                 docToPdfConfirm($elementy, $serviceBookId, dataViewId, $confirmType, $parentSelector, $cDialogName, $parentMethods);
-                                                
                                             } else {
                                                 docToPdfConfirm($elementy, $serviceBookId, dataViewId, $confirmType, $parentSelector, $cDialogName);
                                             }
@@ -23162,7 +23185,6 @@ function qrGenerateProcessAfterSave(r, elem, dataViewId, parentId, pprocessId) {
                                         if (typeof parentId !== 'undefined' && typeof pprocessId !== 'undefined') {
                                             var $parentMethods = {elementy: $elementy, parentId: parentId, dataViewId: dataViewId, confirmType: $confirmType, parentSelector: $parentSelector, undefined: undefined, pprocessId: pprocessId};
                                             docToPdfConfirm($elementy, $serviceBookId, dataViewId, $confirmType, $parentSelector, $cDialogName, $parentMethods);
-                                            
                                         } else {
                                             docToPdfConfirm($elementy, $serviceBookId, dataViewId, $confirmType, $parentSelector, $cDialogName);
                                         }
@@ -24248,11 +24270,13 @@ function bpCopyPrevData(elem, taxonamyObj, isother, widgetExpression, grouPath) 
     
     var $detailsRow;
     var listHtml = '';
-
     if (_isCopyTabService) {
-        if (typeof isother !== 'undefined' && 1 == 0) {
-            var taxonamyObjParse = JSON.parse(decodeURIComponent(taxonamyObj));
-            
+        if (typeof isother !== 'undefined' && isother === '1') {
+            var taxonamyObjParse = (typeof taxonamyObj !== 'undefined' && taxonamyObj) ? JSON.parse(decodeURIComponent(taxonamyObj)) : [];
+            if (!taxonamyObjParse.length) {
+                taxonamyObjParse = widgetExpression;
+            }
+
             if (typeof taxonamyObjParse['0'] !== 'undefined' && typeof taxonamyObjParse['0']['PATH'] !== 'undefined') {
                 listHtml += '<div class="list-group">';
                 var $srcSelector = $prevProcess.find('[data-dtl-template-path="'+ taxonamyObjParse['0']['PATH'] +'"]');
@@ -24273,7 +24297,7 @@ function bpCopyPrevData(elem, taxonamyObj, isother, widgetExpression, grouPath) 
                 listHtml += "</div>";
             }
     
-        } else {
+        }  else {
             listHtml += '<div class="list-group">';
             $prevProcess.find('.detail-template-body-rows').each(function(keyIndex, row) {
                 $detailsRow = $(this);
@@ -24325,7 +24349,12 @@ function bpCopyPrevData(elem, taxonamyObj, isother, widgetExpression, grouPath) 
                         $t;
 
                     if (_isCopyTabService) {
-                        if (typeof isother !== 'undefined'  && 1 == 0) {
+                        if (typeof isother !== 'undefined' && isother === '1') {
+                            var taxonamyObjParse = (typeof taxonamyObj !== 'undefined' && taxonamyObj) ? JSON.parse(decodeURIComponent(taxonamyObj)) : [];
+                            if (!taxonamyObjParse.length) {
+                                taxonamyObjParse = widgetExpression;
+                            }
+                            
                             var selectedIndex = $("#" + $dialogName).find('.list-group-item-action.active').data('key');               
                                 
                             if (typeof taxonamyObjParse['0'] !== 'undefined' && typeof taxonamyObjParse['0']['PATH'] !== 'undefined') {
@@ -25307,13 +25336,14 @@ function insertFingerZk(elem, processMetaDataId, dataViewId, selectedRow, paramD
         customerFingerRegisterZk(selectedRow.customerid);
     }         
 }
-function callParliamentV2(elem, processMetaDataId, dataViewId, selectedRow, paramData) {
+function callParliamentV2(elem, processMetaDataId, dataViewId, selectedRow, paramData, viewType) {
     if (typeof selectedRow === 'undefined') {
         var dataGrid = window['objectdatagrid_' + dataViewId];
         var rows = getDataViewSelectedRowsByElement(dataGrid);
         selectedRow = rows[0];
     }
-    appMultiTab({ weburl: 'conference/conferencedetail', metaDataId: 'conferencedetail_' + dataViewId, title: 'Хуралдааны дэлгэрэнгүй', type: 'selfurl', deta: selectedRow.id, selectedRow: selectedRow, tabReload: true}, this, function(elem) {});
+
+    appMultiTab({ weburl: 'conference/detail/' + viewType, metaDataId: 'conferencedetail_' + dataViewId, title: 'Хуралдааны дэлгэрэнгүй', type: 'selfurl', deta: selectedRow.id, selectedRow: selectedRow, tabReload: true}, this, function(elem) {});
 }
 function callEaObject(elem, processMetaDataId, dataViewId, selectedRow, paramData) {
     if (typeof selectedRow === 'undefined') {

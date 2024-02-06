@@ -46,7 +46,8 @@ if ($this->dataViewMandatoryHeaderData && $this->row['LAYOUT_TYPE'] != 'ecommerc
                         <div class="panel-body p-0">
                             <div class="width-60 col-md-2 pl0 pr0 dropdown-filter-<?php echo $this->dataViewMandatoryHeaderData[$index]['ID'] ?>">
                                 <?php 
-                                echo Form::hidden(array('name' => 'criteriaCondition['. $this->dataViewMandatoryHeaderData[$index]['META_DATA_CODE'] .']', 'value' => '=')); 
+                                $defaultOperator = $this->dataViewMandatoryHeaderData[$index]['DEFAULT_OPERATOR'];
+                                echo Form::hidden(array('name' => 'criteriaCondition['. $this->dataViewMandatoryHeaderData[$index]['META_DATA_CODE'] .']', 'value' => ($defaultOperator ? $defaultOperator : '='))); 
                                 echo Form::hidden(array('name' => 'mandatoryCriteria['. $this->dataViewMandatoryHeaderData[$index]['META_DATA_CODE'] .']', 'value' => '1')); 
                                 ?>
                             </div>
@@ -70,7 +71,8 @@ if ($this->dataViewMandatoryHeaderData && $this->row['LAYOUT_TYPE'] != 'ecommerc
                         <td class="middle" style="<?php echo ($lookupType === 'button') ? 'width: 80%' : 'width: 70%' ?>">
                             <div data-section-path="<?php echo $this->dataViewMandatoryHeaderData[$index]['META_DATA_CODE'] ?>">
                                 <?php 
-                                echo Form::hidden(array('name' => 'criteriaCondition['. $this->dataViewMandatoryHeaderData[$index]['META_DATA_CODE'] .']', 'value' => '=')); 
+                                $defaultOperator = $this->dataViewMandatoryHeaderData[$index]['DEFAULT_OPERATOR'];
+                                echo Form::hidden(array('name' => 'criteriaCondition['. $this->dataViewMandatoryHeaderData[$index]['META_DATA_CODE'] .']', 'value' => ($defaultOperator ? $defaultOperator : '='))); 
                                 echo Form::hidden(array('name' => 'mandatoryCriteria['. $this->dataViewMandatoryHeaderData[$index]['META_DATA_CODE'] .']', 'value' => '1')); 
                                 echo Mdwebservice::renderParamControl($this->metaDataId, $this->dataViewMandatoryHeaderData[$index], "param[".$this->dataViewMandatoryHeaderData[$index]['META_DATA_CODE']."]", $this->dataViewMandatoryHeaderData[$index]['META_DATA_CODE'], (isset($this->fillPath) ? $this->fillPath : false)); 
                                 ?>

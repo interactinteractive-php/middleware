@@ -560,8 +560,8 @@ if ($this->dataViewHeaderData) {
                                                     );
                                                 } else {
                                                     if ($param['LOOKUP_META_DATA_ID'] != '' && $param['LOOKUP_TYPE'] === 'popup' && $param['CHOOSE_TYPE'] === 'multi') {
-                                                        if (isset($this->fillPath) && isset($this->fillPath[Str::lower($param['META_DATA_CODE'])]) && $this->fillPath[Str::lower($param['META_DATA_CODE'])][0]) {
-                                                            $this->fillPath[Str::lower($param['META_DATA_CODE'])] = $this->fillPath[Str::lower($param['META_DATA_CODE'])][0];
+                                                        if (isset($this->fillPath) && isset($this->fillPath[$param['LOWER_PARAM_NAME']]) && is_array($this->fillPath[$param['LOWER_PARAM_NAME']]) && $this->fillPath[$param['LOWER_PARAM_NAME']][0]) {
+                                                            $this->fillPath[$param['LOWER_PARAM_NAME']] = $this->fillPath[$param['LOWER_PARAM_NAME']][0];
                                                         }
                                                     }
                                                     echo Mdcommon::dataviewRenderCriteriaCondition(
@@ -966,10 +966,15 @@ if ($this->dataViewHeaderData) {
                                     ?>                                        
                                 </div>
                             </div>                                
-                            <div class="form-group panel-group<?php echo $saveCriteriaTemplate ?>">
-                                <label for="isSaveCriteriaTemplate" class="col-form-label panel-title"><?php echo $this->lang->line('criteriaTemplate') ?></label>
+                            <div class="d-flex justify-content-between form-group panel-group<?php echo $saveCriteriaTemplate ?>">
                                 <div>
-                                    <input type="checkbox" value="1" name="isSaveCriteriaTemplate" id="isSaveCriteriaTemplate" class="notuniform form-check-input-switchery-<?php echo $this->metaDataId; ?>" data-fouc="" data-switchery="true">
+                                    <label for="isSaveCriteriaTemplate" class="col-form-label panel-title"><?php echo $this->lang->line('criteriaTemplate') ?></label>
+                                    <div>
+                                        <input type="checkbox" value="1" name="isSaveCriteriaTemplate" id="isSaveCriteriaTemplate" class="notuniform form-check-input-switchery-<?php echo $this->metaDataId; ?>" data-fouc="" data-switchery="true">
+                                    </div>
+                                </div>
+                                <div>
+                                    <a href="javascrip:;" class="criteria-template-delete-list-<?php echo $this->metaDataId ?>">Загвар устгах</a>
                                 </div>
                             </div>
                             <div class="form-group panel-group hidden criteria-template-hidden-<?php echo $this->metaDataId ?>">

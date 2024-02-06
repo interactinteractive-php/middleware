@@ -129,23 +129,24 @@ if ($this->bgImage && file_exists($this->bgImage)) {
 
 <script type="text/javascript">
 var kpiDashboardRefreshTimer = 60 * 1000;
-
-if (typeof isKpiIndicatorScript === 'undefined') {
-    $.cachedScript('<?php echo autoVersion('middleware/assets/js/addon/indicator.js'); ?>').done(function() {      
-        $.cachedScript('<?php echo autoVersion('middleware/assets/js/addon/echartsBuilder.js'); ?>').done(function() {      
-            kpiDashboardLoad_<?php echo $this->uniqId; ?>();
-            
-            setInterval(function() {
+if (typeof isKpiIndicatorEchartsScript === 'undefined') {
+    $.cachedScript('<?php echo autoVersion('middleware/assets/js/addon/echartsBuilder.js'); ?>').done(function() {      
+        if (typeof isKpiIndicatorScript === 'undefined') {
+            $.cachedScript('<?php echo autoVersion('middleware/assets/js/addon/indicator.js'); ?>').done(function() {
                 kpiDashboardLoad_<?php echo $this->uniqId; ?>();
-            }, kpiDashboardRefreshTimer);
-        });
+            });
+        } else {
+            kpiDashboardLoad_<?php echo $this->uniqId; ?>();
+        }
     });
 } else {
-    kpiDashboardLoad_<?php echo $this->uniqId; ?>();
-
-    setInterval(function() {
+    if (typeof isKpiIndicatorScript === 'undefined') {
+        $.cachedScript('<?php echo autoVersion('middleware/assets/js/addon/indicator.js'); ?>').done(function() {
+            kpiDashboardLoad_<?php echo $this->uniqId; ?>();
+        });
+    } else {
         kpiDashboardLoad_<?php echo $this->uniqId; ?>();
-    }, kpiDashboardRefreshTimer);
+    }
 }
 
 
@@ -212,14 +213,17 @@ function kpiDashboardLoad_<?php echo $this->uniqId; ?>() {
                                 if (typeof chartConfig.chartMainType !== 'undefined' && chartConfig.chartMainType === 'echart') {
                                     var columnsConfig = chartConfig;
                                     $('#' + chartId).closest('.card-body').css('background', chartConfig['backgroundColor']);
-                                    kpiDataMartEChartSetOption({
-                                        isRunInterval: true,
+
+                                    kpiChartObj_<?php echo $this->uniqId; ?> = {
                                         elemId: chartId, 
                                         chartConfig: chartConfig, 
                                         data: data.data, 
-                                        indicatorId: indicatorId,
-                                        columnsConfig: data.columnsConfig
-                                    });
+                                        dataXaxis: data.dataXaxis, 
+                                        columnsConfig: data.columnsConfig,
+                                        useData: '3',
+                                    }
+                                    EchartBuilder.chartRender(kpiChartObj_<?php echo $this->uniqId; ?>);
+                                    
                                 } else {
                                     kpiDataMartChartRender({
                                         isRunInterval: true,

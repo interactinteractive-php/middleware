@@ -1084,6 +1084,8 @@ class Mdstatement extends Controller {
         set_time_limit(0);
         ini_set('memory_limit', '-1');
         
+        $this->load->model('mdstatement', 'middleware/models/');
+        
         self::$uniqId = getUID();
         self::$drillDownColumns = $this->model->getDrillDownColumnDataModel($statementId, $dataViewId);
 
@@ -1133,6 +1135,10 @@ class Mdstatement extends Controller {
             if (isset($result['rows'][0])) {
                 
                 self::$rowsCount += count($result['rows']);
+                
+                if (self::$rowsCount > 30000) {
+                    return array('status' => 'error', 'message' => 'Тайлангийн мөр 30,000-аас их мөр ирсэн тул та тухайн тайланг жагсаалтаар харна уу!');
+                }
                 
                 self::$UIExpression = Mdexpression::statementUIExpression($getRowStatement, $params);
                 $getHtmlRow = $this->model->getStatementHtmlRowModel($statementId);
@@ -2280,7 +2286,16 @@ class Mdstatement extends Controller {
         return $html;
     }
     
-    public function getValue($params, $column, $dataRows) {
+    public static function getTypeCodeColumn($dataViewColumnsType, $column) {
+        
+        if (isset($dataViewColumnsType[$column])) {
+            return $dataViewColumnsType[$column];
+        }
+        
+        return 'string';
+    }
+    
+    public static function getValue($params, $column, $dataRows) {
         
         $params = explode('&', $params);
         $column = strtolower($column);
@@ -2299,7 +2314,7 @@ class Mdstatement extends Controller {
         $returnValue = null;
         
         if (isset($rowArr[$column])) {
-            $typeCode = $this->model->getTypeCodeColumnModel(self::$dataViewColumnsType, $column);
+            $typeCode = self::getTypeCodeColumn(self::$dataViewColumnsType, $column);
             
             if ($typeCode == 'bigdecimal') {
                 $returnValue = empty($rowArr[$column]) ? '' : self::detailFormatMoney($rowArr[$column]);
@@ -2976,7 +2991,7 @@ class Mdstatement extends Controller {
             
             foreach ($parseContent[1] as $k => $val) {
                 if ($val == 'costCenterDepartmentName') {
-                    $content = str_ireplace($parseContent[0][$k], self::getCostDepartmentName($departmentId), $content);
+                    $content = str_ireplace($parseContent[0][$k], (new Mdstatement())->getCostDepartmentName($departmentId), $content);
                 } else {
                     $content = str_ireplace($parseContent[0][$k], Config::get($val, 'departmentId='.$departmentId.';'), $content);
                 }
@@ -2987,6 +3002,7 @@ class Mdstatement extends Controller {
     }
     
     public function getCostDepartmentName($departmentId) {
+        $this->load->model('mdstatement', 'middleware/models/');
         $name = $this->model->getCostDepartmentNameModel($departmentId);
         return $name;
     }

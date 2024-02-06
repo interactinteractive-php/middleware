@@ -2,7 +2,7 @@
     <table class="table table-hover table-light">
         <tbody>
             <?php
-            if ($this->recordList) {
+            if (isset($this->recordList[0])) {
                 foreach ($this->recordList as $row) {
                     $rowJson = htmlentities(json_encode($row), ENT_QUOTES, 'UTF-8');
             ?>
@@ -13,7 +13,9 @@
                         </td>
                     <?php } ?>
                     <td class="text-left mt5 mb5">
-                        <a href="javascript:;" class="selected-row-link folder-link" data-row-data="<?php echo $rowJson; ?>" onclick="clickItem_<?php echo $this->dataViewId; ?>(this);"><div style="color: #000;font-size: 12px;"><?php echo issetParam($row[$this->name1]); ?></div></a>
+                        <a href="javascript:;" class="selected-row-link folder-link" data-row-data="<?php echo $rowJson; ?>" onclick="clickItem_<?php echo $this->dataViewId; ?>(this);">
+                            <div style="color: #000;font-size: 12px;"><?php echo issetParam($row[$this->name1]); ?></div>
+                        </a>
                         <div style="display:flex; justify-content: space-between;" class="mt20">
                             <div style="color: #404040; font-size: 12px"><?php echo $this->name2 ? issetParam($row[$this->name2]) : ''; ?></div>
                             <div style="color: #404040; font-size: 12px"><?php echo $this->name3 ? issetParam($row[$this->name3]) : ''; ?></div>

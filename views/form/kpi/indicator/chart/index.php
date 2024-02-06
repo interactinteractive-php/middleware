@@ -85,8 +85,8 @@ function filterKpiIndicatorValueChart(uniqId, indicatorId) {
 
 function filterKpiIndicatorValueChartLoad(elem) {
     var $this = $(elem), 
-        $parent = $this.closest('.list-group'), 
-        uniqId = $parent.attr('data-uniqid');
+        $parentFilter = $this.closest('.list-group'), 
+        uniqId = $parentFilter.attr('data-uniqid');
     
     if ($this.hasClass('active')) {
         $this.removeClass('active');
@@ -95,6 +95,12 @@ function filterKpiIndicatorValueChartLoad(elem) {
         $this.addClass('active');
         $this.find('i').removeClass('far fa-square').addClass('fas fa-check-square');
     }
+    
+    var getFilterData = getKpiIndicatorFilterData(elem, $parentFilter);
+    var indicatorId = getFilterData.indicatorId;
+    var filterData = getFilterData.filterData;
+    
+    mvFilterRelationLoadData(elem, indicatorId, filterData);
     
     window['kpiDataMartLoadChart_' + uniqId]();
 }
@@ -122,7 +128,6 @@ function kpiDataMartLoadChart_<?php echo $this->uniqId; ?>() {
         && (chartValue != '' || (chartValue == '' && chartAggregate == 'COUNT') || (chartType === 'tree'|| chartType === 'tree_circle')) 
         ) {
             
-    
         if (chartType == 'stacked_column' && chartCategoryGroup == '') {
             return false;
         }
@@ -166,28 +171,28 @@ function kpiDataMartLoadChart_<?php echo $this->uniqId; ?>() {
             iconName: chartIconName
         };    
 
-        <?php if (issetParam($this->isBuild) === '1') { ?>
-            if (chartType !== 'card' && chartType != 'card_vertical') {
-                var themeGroup = JSON.parse(kpiDMChart_<?php echo $this->uniqId; ?>.find('.theme-plan-group.selected').attr('data-rowdata'));
-                chartConfig['bgColor'] = themeGroup['bgColor'];
-                chartConfig['color'] = themeGroup['themeColor'];
-                
-            }
+        if (chartType !== 'card' && chartType != 'card_vertical') {
+            var themeGroup = JSON.parse(kpiDMChart_<?php echo $this->uniqId; ?>.find('.theme-plan-group.selected').attr('data-rowdata'));
+            chartConfig['bgColor'] = themeGroup['bgColor'];
+            chartConfig['color'] = themeGroup['themeColor'];
+        }
 
-            kpiDMChart_<?php echo $this->uniqId; ?>.find('.configration input, .configration select').each(function (iConfig, rConfig) {
-                var $rConfig = $(rConfig),
-                    _tagName = $rConfig.prop('tagName').toLowerCase();
-                    _attrType = $rConfig.attr('type');
-                    _code = $rConfig.attr('id');
-                
-                if (_attrType === 'checkbox') {
-                    chartConfig[_code] = $rConfig.is(':checked');
+        kpiDMChart_<?php echo $this->uniqId; ?>.find('.type-config<?php echo $this->uniqId ?> input, .type-config<?php echo $this->uniqId ?> select').each(function (iConfig, rConfig) {
+            var $r = $(rConfig);
+            if ($r && typeof $r.attr('data-path') !== 'undefined') {
+                var _code = $r.attr('data-path').replaceAll('.', '_');
+                delete kpiChartObj_<?php echo $this->uniqId; ?>['chartConfig'][_code];
+                if ($r.attr('type') === 'checkbox') {
+                    kpiChartObj_<?php echo $this->uniqId; ?>['chartConfig'][_code] = $r.is(':checked');
+                    chartConfig[_code] = $r.is(':checked');
                 } else {
-                    chartConfig[_code] = $rConfig.val();
+                    if ($r.val()) {
+                        chartConfig[_code] = $r.val();
+                        kpiChartObj_<?php echo $this->uniqId; ?>['chartConfig'][_code] = $r.val();
+                    }
                 }
-            });
-            
-        <?php } ?>
+            }
+        });
         
         if (chartLineColumn != '' && chartLineAggregate != '') {
             chartConfig.lineChartConfig = {column: chartLineColumn, aggregate: chartLineAggregate};
@@ -211,7 +216,7 @@ function kpiDataMartLoadChart_<?php echo $this->uniqId; ?>() {
                 indicatorId: '<?php echo $this->indicatorId; ?>', 
                 chartConfig: chartConfig, 
                 filterData: filterData,
-                isBuild: '<?php echo issetDefaultVal($this->isBuild, '0') ?>'
+                isBuild: '1'
             },
             dataType: 'json',
             success: function(data) {
@@ -247,6 +252,7 @@ function kpiDataMartLoadChart_<?php echo $this->uniqId; ?>() {
         });
     }
 }
+
 function getChartFilterData_<?php echo $this->uniqId; ?>() {
     var $col = $('#kpi-datamart-chart-<?php echo $this->uniqId; ?>').find('.kpidv-data-filter-col');
     
@@ -353,6 +359,8 @@ $(function() {
                     break;
                 case 'stacked_column':
                 case 'bar_stacked':
+                case 'stacked_bar':
+                case 'line_race':
                 case 'bar_label_rotation':
                 case 'line_stacked':
 
@@ -526,22 +534,20 @@ $(function() {
                                     {name: 'chartBgColor', value: chartBgColor}, 
                                     {name: 'chartIconName', value: chartIconName}, 
                                     {name: 'chartMapCountry', value: chartMapCountry},
-                                    );
-                                <?php if (issetParam($this->isBuild) === '1') { ?>
-                                    formData.push({name: 'buildCharConfig', value: $this.attr('data-config')});
-                                    kpiDMChart_<?php echo $this->uniqId; ?>.find('.chartTypesConfigration input, .chartTypesConfigration select').each(function (i, r) {
-                                        
-                                        var _selectedAttr= $(r), _tagName = _selectedAttr.prop('tagName').toLowerCase();
-                                        if (_selectedAttr.attr('type') === 'checkbox') {
-                                            if (_selectedAttr.is(':checked')) {
-                                                formData.push({name: _selectedAttr.attr('name'), value: '1'});
-                                            }
-                                        } else {
-                                            formData.push({name: _selectedAttr.attr('name'), value: _selectedAttr.val()});
+                                );
+                                formData.push({name: 'buildCharConfig', value: $this.attr('data-config')});
+                                kpiDMChart_<?php echo $this->uniqId; ?>.find('.chartTypesConfigration input, .chartTypesConfigration select').each(function (i, r) {
+                                    
+                                    var _selectedAttr= $(r), _tagName = _selectedAttr.prop('tagName').toLowerCase();
+                                    if (_selectedAttr.attr('type') === 'checkbox') {
+                                        if (_selectedAttr.is(':checked')) {
+                                            formData.push({name: _selectedAttr.attr('name'), value: '1'});
                                         }
-                                        
-                                    });
-                                <?php } ?>
+                                    } else {
+                                        formData.push({name: _selectedAttr.attr('name'), value: _selectedAttr.val()});
+                                    }
+                                    
+                                });
                                 
 
                                 if (chartType == 'clustered_column' || chartType == 'column') {
@@ -616,8 +622,6 @@ $(function() {
     <?php } ?>
 
 });
-
-    <?php if (issetParam($this->isBuild) === '1') { ?>
     
     kpiDMChart_<?php echo $this->uniqId; ?>.on('click', '.theme-plan-group', function () {
         var $this = $(this),
@@ -644,7 +648,7 @@ $(function() {
         $this.closest('.type-config<?php echo $this->uniqId ?>').find('input, select').each(function (i, r) {
             var $r = $(r);
             if ($r && typeof $r.attr('data-path') !== 'undefined') {
-                var _code = $r.attr('data-path').replace('.', '_');
+                var _code = $r.attr('data-path').replaceAll('.', '_');
                 delete kpiChartObj_<?php echo $this->uniqId; ?>['chartConfig'][_code];
                 if ($r.attr('type') === 'checkbox') {
                     kpiChartObj_<?php echo $this->uniqId; ?>['chartConfig'][_code] = $r.is(':checked');
@@ -657,8 +661,9 @@ $(function() {
 
         EchartBuilder.chartRender(kpiChartObj_<?php echo $this->uniqId; ?>);
     });
+
+    kpiDMChart_<?php echo $this->uniqId; ?>.find('.type-config<?php echo $this->uniqId ?> input, .type-config<?php echo $this->uniqId ?> select').trigger('change');
     
-    <?php } ?>
 
     function kpyInidicatorTypeData<?php echo $this->uniqId ?>(element) {
         var kpiTypeId = element.val(),
@@ -688,7 +693,7 @@ $(function() {
                                 __html += '<div class="card rounded-top-0 p-0 mb-0 border-top-0 border-bottom-1 conf_'+ r.ID +'">';
                                     __html += '<div class="card-header h-auto m-0 px-1 py-2 bg-root-color">';
                                         __html += '<h6 class="card-title pull-left w-100">';
-                                            __html += '<a class="text-white w-100 pull-left collapsed" data-toggle="collapse" href="#collapsible-'+ r.ID +'-group" aria-expanded="true">'+ plang.get(r.CODE + '_collapse') +'</a>';
+                                            __html += '<a class="text-white w-100 pull-left collapsed" data-toggle="collapse" href="#collapsible-'+ r.ID +'-group" aria-expanded="true">'+ r.LABEL_NAME +'</a>';
                                         __html += '</h6>';
                                     __html += '</div>';
                                     __html += '<div id="collapsible-'+ r.ID +'-group" class="collapse">';
@@ -700,7 +705,7 @@ $(function() {
                                                     switch (r.CODE) {
                                                         case 'sectionCol':
                                                             __html += '<div class="form-group row">';
-                                                                __html += '<label class="col-form-label col-md-4 text-right pr-0 pt-1">'+ plang.get(r.CODE) +' :</label>';
+                                                                __html += '<label class="col-form-label col-md-4 text-right pr-0 pt-1">'+ r.LABEL_NAME +' :</label>';
                                                                 __html += '<div class="col-md-8">';
                                                                     __html += '<select class="form-control form-control-sm mt-0" name="sectionCol['+ blockUniqId +']" data-path="'+ r.CODE +'">';
                                                                         __html += '<option value="">- Сонгох -</option>';
@@ -714,7 +719,7 @@ $(function() {
                                                         case 'series.data':
                                                         case 'json':
                                                             html += '<div class="form-group row">';
-                                                                html += '<label class="col-form-label col-md-4 text-right pr-0 pt-1" for="sectionCol">'+ plang.get(r.CODE) +' :</label>';
+                                                                html += '<label class="col-form-label col-md-4 text-right pr-0 pt-1" for="sectionCol">'+ r.LABEL_NAME +' :</label>';
                                                                 html += '<div class="col-md-8">';
                                                                     html += '<div class="input-group">';
                                                                         html += '<textarea tabindex="" class="form-control form-control-sm mt-0 expression_editorInit" disabled="disabled" data-path="'+ r.CODE +' data-isclear="0" style="height: 28px; overflow: hidden; resize: none;" draggable="false" rows="1" placeholder=""></textarea>';
@@ -725,7 +730,7 @@ $(function() {
                                                             break;
                                                         case 'html':
                                                             __html += '<div class="form-group row">';
-                                                                __html += '<label class="col-form-label col-md-4 text-right pr-0 pt-1">'+ plang.get(r.CODE) +' :</label>';
+                                                                __html += '<label class="col-form-label col-md-4 text-right pr-0 pt-1">'+ r.LABEL_NAME +' :</label>';
                                                                 __html += '<div class="col-md-8">';
                                                                     __html += '<div class="input-group">';
                                                                         __html += '<textarea tabindex="" class="form-control form-control-sm mt-0 " data-path="html" disabled="disabled" data-path="'+ r.CODE +' data-isclear="0" style="height: 28px; overflow: hidden; resize: none;" draggable="false" rows="1" placeholder=""></textarea>';
@@ -736,7 +741,7 @@ $(function() {
                                                             break;
                                                         default:
                                                             __html += '<div class="form-group row">';
-                                                                __html += '<label class="col-form-label col-md-4 text-right pr-0 pt-1">'+ plang.get(r.CODE) +' :</label>';
+                                                                __html += '<label class="col-form-label col-md-4 text-right pr-0 pt-1">'+ r.LABEL_NAME +' :</label>';
                                                                 __html += '<div class="col-md-8">';
                                                                     __html += '<div class="input-group">';
                                                                         __html += '<input type="text" class="form-control form-control-sm mt-0" data-path="'+ r.CODE +'" />';
@@ -785,6 +790,7 @@ $(function() {
         
                 _itemFounder.empty().append(__html).promise().done(function () {
                     _itemFounder.find('.item-config[data-item-cf="' + blockUniqId +'"]').show();
+                    _itemFounder.find('input').trigger('change');
                 });
                 Core.unblockUI();
             },
@@ -799,17 +805,17 @@ $(function() {
         var defaultVal = '';
         $.each(kpiTypeIndicators, function (i, r) {
             defaultVal = (typeof r.DEFAULT_VALUE && r.DEFAULT_VALUE) ? r.DEFAULT_VALUE : '';
-            console.log(typeof defaultVal);
-            if (defaultVal && typeof eval(defaultVal) == 'object')
+            /* if (defaultVal && typeof eval(defaultVal) == 'object') {
                 defaultVal = JSON.stringify(eval(defaultVal));
+            } */
 
             if (typeof r.children !== 'undefined' && r.children) {
-                html += buildHtmlByIndicators<?php echo $this->uniqId ?>(r.children, html);
+                html = buildHtmlByIndicators<?php echo $this->uniqId ?>(r.children, html);
             } else {
                 switch (r.CODE) {
                     case 'sectionCol':
                         html += '<div class="form-group row">';
-                            html += '<label class="col-form-label col-md-4 text-right pr-0 pt-1">'+ plang.get(r.CODE) +' :</label>';
+                            html += '<label class="col-form-label col-md-4 text-right pr-0 pt-1">'+ r.LABEL_NAME +' :</label>';
                             html += '<div class="col-md-8">';
                                 html += '<select class="form-control form-control-sm mt-0" name="sectionCol['+ blockUniqId +']" data-path="'+ r.CODE +'">';
                                     html += '<option value="">- Сонгох -</option>';
@@ -823,7 +829,7 @@ $(function() {
                     case 'series.data':
                     case 'json':
                         html += '<div class="form-group row">';
-                            html += '<label class="col-form-label col-md-4 text-right pr-0 pt-1" for="sectionCol">'+ plang.get(r.CODE) +' :</label>';
+                            html += '<label class="col-form-label col-md-4 text-right pr-0 pt-1" for="sectionCol">'+ r.LABEL_NAME +' :</label>';
                             html += '<div class="col-md-8">';
                                 html += '<div class="input-group">';
                                     html += '<textarea tabindex="" class="form-control form-control-sm mt-0 expression_editorInit" disabled="disabled" data-path="'+ r.CODE +' data-isclear="0" style="height: 28px; overflow: hidden; resize: none;" draggable="false" rows="1" placeholder="">'+ defaultVal +'</textarea>';
@@ -834,10 +840,10 @@ $(function() {
                         break;
                     case 'html':
                         html += '<div class="form-group row">';
-                            html += '<label class="col-form-label col-md-4 text-right pr-0 pt-1" for="sectionCol">'+ plang.get(r.CODE) +' :</label>';
+                            html += '<label class="col-form-label col-md-4 text-right pr-0 pt-1" for="sectionCol">'+ r.LABEL_NAME +' :</label>';
                             html += '<div class="col-md-8">';
                                 html += '<div class="input-group">';
-                                    html += '<textarea tabindex="" class="form-control form-control-sm mt-0 " data-path="html" disabled="disabled" data-path="'+ r.CODE +' data-isclear="0" style="height: 28px; overflow: hidden; resize: none;" draggable="false" rows="1" placeholder=""></textarea>';
+                                    html += '<textarea tabindex="" class="form-control form-control-sm mt-0 " data-path="html" disabled="disabled" data-path="'+ r.CODE +' data-isclear="0" style="height: 28px; overflow: hidden; resize: none;" draggable="false" rows="1" placeholder="">'+ defaultVal +'</textarea>';
                                     html += '<span class="input-group-append"><button class="btn grey-cascade" type="button" onclick="bpFieldTextEditorClickToEdit(this, \'1\');"><i class="far fa-code"></i></button></span> ';
                                 html += '</div>';
                             html += '</div>';
@@ -845,10 +851,10 @@ $(function() {
                         break;
                     default:
                         html += '<div class="form-group row">';
-                            html += '<label class="col-form-label col-md-4 text-right pr-0 pt-1">'+ plang.get(r.CODE) +' :</label>';
+                            html += '<label class="col-form-label col-md-4 text-right pr-0 pt-1">'+ r.LABEL_NAME +' :</label>';
                             html += '<div class="col-md-8">';
                                 html += '<div class="input-group">';
-                                    html += '<input type="text" class="form-control form-control-sm mt-0" data-path="'+ r.CODE +'" />';
+                                    html += '<input type="text" class="form-control form-control-sm mt-0" data-path="'+ r.CODE +'" value="'+ defaultVal +'" />';
                                     html += '<span class="input-group-append">';
                                         html += '<button class="btn grey-cascade" type="button" onclick="clearKpiTypeAttr<?php echo $this->uniqId ?>(this);"><i class="far fa-trash"></i></button>';
                                     html += '</span> ';
@@ -870,7 +876,7 @@ $(function() {
         $this.closest('.type-config<?php echo $this->uniqId ?>').find('input, select').each(function (i, r) {
             var $r = $(r);
             if ($r && typeof $r.attr('data-path') !== 'undefined') {
-                var _code = $r.attr('data-path').replace('.', '_');
+                var _code = $r.attr('data-path').replaceAll('.', '_');
                 delete kpiChartObj_<?php echo $this->uniqId; ?>['chartConfig'][_code];
                 if ($r.attr('type') === 'checkbox') {
                     kpiChartObj_<?php echo $this->uniqId; ?>['chartConfig'][_code] = $r.is(':checked');

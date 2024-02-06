@@ -1,3 +1,4 @@
+var isMvBpRelationScript = true;
 function mvBpRelationAddObject(elem) {
     dataViewSelectableGrid('nullmeta', '0', '16424911273171', 'multi', 'nullmeta', elem, 'mvBpRelationAddObjectFill');
 }

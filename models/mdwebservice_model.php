@@ -233,6 +233,7 @@ class Mdwebservice_Model extends Model {
         if ($row['IS_SAVE_VIEW_LOG'] == '1') {
             
             $row['EVENT_EXPRESSION_STRING'] = $row['EVENT_EXPRESSION_STRING'] . "\n" . Mdexpression::viewLogExpression($metaDataId);
+            $row['VAR_FNC_EXPRESSION_STRING'] .= "\n" . Mdexpression::viewLogBeforeUnloadExpression($metaDataId);
         }
         
         return $row;
@@ -661,6 +662,12 @@ class Mdwebservice_Model extends Model {
                     if ($row['JSON_CONFIG']) {
                         $row['JSON_CONFIG'] = @json_decode($row['JSON_CONFIG'], true);
                         
+                        $fieldCriteria = self::fieldCriteria($row['JSON_CONFIG']);                        
+                        if (!$fieldCriteria) {
+                            $row['IS_SHOW'] = '0';
+                            $row['IS_REQUIRED'] = '0';
+                        }
+                        
                         if ($precisionScaleGetPath = issetParam($row['JSON_CONFIG']['precisionScale'])) {
                             Mdexpression::$precisionScalePath[$row['PARAM_REAL_PATH']] = $precisionScaleGetPath;
                         }
@@ -761,12 +768,13 @@ class Mdwebservice_Model extends Model {
                                 $foodAmountSub = '0.00';
                                 $aggregateClassSub = 'aggregate-' . $rowVal['COLUMN_AGGREGATE'];
                             }
-                            $additionalHeader .= '<th class="' . $hideClassSub . '" data-row-path="' . $paramName . "." . $row['META_DATA_CODE'] . '" data-cell-path="' . $rowVal['PARAM_REAL_PATH'] . '" ' . ($rowVal['COLUMN_AGGREGATE'] != '' ? 'data-aggregate="' . $rowVal['COLUMN_AGGREGATE'] . '"' : '') . '>' . Lang::line($rowVal['META_DATA_NAME']) . '</th>';
+                            $additionalHeader .= '<th class="' . $hideClassSub . ' '.$rowVal['NODOT_PARAM_REAL_PATH'].'" data-row-path="' . $paramName . "." . $row['META_DATA_CODE'] . '" data-cell-path="' . $rowVal['PARAM_REAL_PATH'] . '" ' . ($rowVal['COLUMN_AGGREGATE'] != '' ? 'data-aggregate="' . $rowVal['COLUMN_AGGREGATE'] . '"' : '') . '>' . Lang::line($rowVal['META_DATA_NAME']) . '</th>';
                             $additionalBody .= '<td data-row-path="' . $paramName . "." . $row['META_DATA_CODE'] . '" data-cell-path="' . $rowVal['PARAM_REAL_PATH'] . '" class="stretchInput ' . $aggregateClassSub . ' ' . $hideClassSub . '">';
                             $additionalBody .= Mdwebservice::renderParamControl($bpMetaDataId, $rowVal, "param[" . $rowVal['PARAM_REAL_PATH'] . "][0][]", $paramName . "." . $rowVal['META_DATA_CODE'], null);
                             $additionalBody .= '</td>';
                             $additionalFooter .= '<td data-cell-path="' . $rowVal['PARAM_REAL_PATH'] . '" data-row-path="' . $paramName . "." . $row['META_DATA_CODE'] . '" class="text-right bigdecimalInit ' . $hideClassSub . '">' . $foodAmountSub . '</td>';
                         }
+                        
                         $table = $table . $additionalHeader;
                         $tableCell .= $additionalBody;
                         $gridFootBody .= $additionalFooter;
@@ -1000,6 +1008,8 @@ class Mdwebservice_Model extends Model {
                                             $additionalBody .= '<td data-cell-path="' . $rowVal['PARAM_REAL_PATH'] . '"  class="middle stretchInput text-center ' . issetParam($aggregateClassSub) . ' ' . $hideClassSub . '">';
                                                 $additionalBody .= Mdwebservice::renderParamControl($bpMetaDataId, $rowVal, "param[" . $rowVal['PARAM_REAL_PATH'] . "][" . $rowIndex . "][]", $paramName . '.' . $rowVal['META_DATA_CODE'], $rowData, 'removeSelect2');
                                             $additionalBody .= '</td>';
+                                            $gridClass .= Mdwebservice::fieldDetailStyleClass($rowVal, $rowVal['NODOT_PARAM_REAL_PATH'], 'bp-window-' . $bpMetaDataId); 
+                                            //var_dump($gridClass);die;
                                         }
                                         $gridBodyData .= $additionalBody;
 
@@ -1026,7 +1036,7 @@ class Mdwebservice_Model extends Model {
 
                                     $gridBodyData .= '</td>';
 
-                                    $gridClass .= Mdwebservice::fieldDetailStyleClass($row, $row['NODOT_PARAM_REAL_PATH'], 'bp-window-' . $bpMetaDataId);                                      
+                                    $gridClass .= Mdwebservice::fieldDetailStyleClass($row, $row['NODOT_PARAM_REAL_PATH'], 'bp-window-' . $bpMetaDataId); 
                                 }
 
                                 if (strtolower($row['META_DATA_CODE']) == 'rowstate') {
@@ -1993,7 +2003,12 @@ class Mdwebservice_Model extends Model {
                 WHERE TP.MAIN_META_DATA_ID = $dmMetaDataIdPh 
                     AND TP.PROCESS_META_DATA_ID = $processMetaDataIdPh 
                     AND TP.INPUT_PARAM_PATH IS NOT NULL 
-                    AND (TP.VIEW_FIELD_PATH IS NOT NULL OR TP.DEFAULT_VALUE IS NOT NULL)", 
+                    AND (TP.VIEW_FIELD_PATH IS NOT NULL OR TP.DEFAULT_VALUE IS NOT NULL) 
+                GROUP BY 
+                    TP.VIEW_FIELD_PATH, 
+                    TP.INPUT_PARAM_PATH, 
+                    TP.DEFAULT_VALUE, 
+                    PAL.DATA_TYPE", 
                 array($dmMetaDataId, $processMetaDataId)
             );
             
@@ -2363,26 +2378,44 @@ class Mdwebservice_Model extends Model {
         return null;
     }
     
-    public function showBannerModel($metaDataId, $positionType, $isShow) {
+    public function showBannerModel($metaDataId, $positionType, $isShow, $data = array()) {
         $html = '';
 
         if ($isShow) {
-            $data = $this->db->GetAll("
-                SELECT 
-                    MPCM.WEB_URL,
-                    MPCM.URL_TARGET,
-                    LOWER(MPCM.POSITION_TYPE) AS POSITION_TYPE, 
-                    MPC.CONTENT_DATA, 
-                    MPC.VIDEO_URL, 
-                    LOWER(MPC.CONTENT_TYPE) AS CONTENT_TYPE
-                FROM META_PROCESS_CONTENT_MAP MPCM
-                    INNER JOIN META_PROCESS_CONTENT MPC ON MPCM.CONTENT_ID = MPC.CONTENT_ID
-                WHERE MPCM.MAIN_META_DATA_ID = ".$this->db->Param(0)." 
-                    AND LOWER(MPCM.POSITION_TYPE) = ".$this->db->Param(1)." 
-                ORDER BY MPCM.ORDER_NUM ASC", array($metaDataId, $positionType));
+            if (!$data) {
+                $data = $this->db->GetAll("
+                    SELECT 
+                        MPCM.WEB_URL,
+                        MPCM.URL_TARGET,
+                        LOWER(MPCM.POSITION_TYPE) AS POSITION_TYPE, 
+                        MPC.CONTENT_DATA, 
+                        MPC.VIDEO_URL, 
+                        LOWER(MPC.CONTENT_TYPE) AS CONTENT_TYPE
+                    FROM META_PROCESS_CONTENT_MAP MPCM
+                        INNER JOIN META_PROCESS_CONTENT MPC ON MPCM.CONTENT_ID = MPC.CONTENT_ID
+                    WHERE MPCM.MAIN_META_DATA_ID = ".$this->db->Param(0)." 
+                        AND LOWER(MPCM.POSITION_TYPE) = ".$this->db->Param(1)." 
+                    ORDER BY MPCM.ORDER_NUM ASC", array($metaDataId, $positionType));
+            }
 
             if ($data) {
-                $html .= '<div class="bp-banner banner-position-' . $positionType . '">';
+
+                $jsonConfig = array();
+                foreach ($data as $key => $row) {
+                    if (issetParam($row['JSON_CONFIG'])) {
+                        $jsonConfig = json_decode($row['JSON_CONFIG'], true);
+                    }
+                }
+
+                $attrStyle = 'style="';
+                if (issetParamArray($jsonConfig)) {
+                    foreach ($jsonConfig as $key => $row) {
+                        $attrStyle .= $key . ': ' . $row . '; ';
+                    }
+                }
+                $attrStyle .= '"';
+
+                $html .= '<div class="bp-banner banner-position-' . $positionType . '" '. $attrStyle .'>';
                 $html .= '<div class="bp-banner-spacer">';
                 $html .= '<div class="bp-banner-wrap">';
 
@@ -2406,8 +2439,11 @@ class Mdwebservice_Model extends Model {
                             $urlTarget = $row['URL_TARGET'];
                         }
 
+                        $bannerPath = 'assets/custom/addon/img/process_content/photo/' . $row['CONTENT_DATA'];
+                        $bannerPath = (strpos($row['CONTENT_DATA'], UPLOADPATH) !== false) ? $row['CONTENT_DATA'] : $bannerPath;
+                        
                         $bannerItem .= '<div class="' . $active . ' item">
-                                        <a href="' . $webUrl . '" target="' . $urlTarget . '"><img src="assets/custom/addon/img/process_content/photo/' . $row['CONTENT_DATA'] . '" class="img-fluid"></a>';
+                                        <a href="' . $webUrl . '" target="' . $urlTarget . '"><img src="' . $bannerPath . '" class="img-fluid"></a>';
                         $bannerItem .= '</div>';
                         $bannerNav .= '<li data-target="#bp-carousel-' . $metaDataId . '" data-slide-to="' . $k . '" class="' . $active . '"></li>';
                     }
@@ -2437,7 +2473,11 @@ class Mdwebservice_Model extends Model {
                         $urlTarget = $data[0]['URL_TARGET'];
                     }
                     if ($data[0]['CONTENT_TYPE'] == 'photo') {
-                        $html .= '<a href="' . $webUrl . '" target="' . $urlTarget . '"><img src="assets/custom/addon/img/process_content/photo/' . $data[0]['CONTENT_DATA'] . '"></a>';
+
+                        $bannerPath = 'assets/custom/addon/img/process_content/photo/' . $data[0]['CONTENT_DATA'];
+                        $bannerPath = (strpos($data[0]['CONTENT_DATA'], UPLOADPATH) !== false) ? $data[0]['CONTENT_DATA'] : $bannerPath;
+
+                        $html .= '<a href="' . $webUrl . '" target="' . $urlTarget . '"><img src="' . $bannerPath . '"></a>';
                     }
                 }
 
@@ -3029,7 +3069,12 @@ class Mdwebservice_Model extends Model {
 
             if ($data) {
 
-                parse_str($headerData, $headerDataArr);
+                if (is_array($headerData)) {
+                    $headerDataArr = $headerData;
+                } else {
+                    $headerData = str_replace('¶', 'param', $headerData);
+                    parse_str(urldecode($headerData), $headerDataArr);
+                }
 
                 $headerDataArr = isset($headerDataArr['param']) ? Arr::changeKeyLower($headerDataArr['param']) : $headerDataArr;
 
@@ -3052,7 +3097,7 @@ class Mdwebservice_Model extends Model {
                             $value = trim($headerDataArr[$row['PARAM_PATH']]);
                         }
 
-                        if ($value == '' && trim($row['DEFAULT_VALUE']) == 'nullval') {
+                        if ($value == '' && (trim($row['DEFAULT_VALUE']) == 'nullval' || trim($row['DEFAULT_VALUE']) == 'nulval')) {
                             $isValue = true;
                         } 
 
@@ -3159,7 +3204,12 @@ class Mdwebservice_Model extends Model {
         
         if ($isResult) {
             
-            parse_str($headerData, $headerDataArr);
+            if (is_array($headerData)) {
+                $headerDataArr = $headerData;
+            } else {
+                $headerData = str_replace('¶', 'param', $headerData);
+                parse_str(urldecode($headerData), $headerDataArr);
+            }
 
             $headerDataArr = isset($headerDataArr['param']) ? Arr::changeKeyLower($headerDataArr['param']) : $headerDataArr;
                 
@@ -4235,7 +4285,88 @@ class Mdwebservice_Model extends Model {
 
         return null;
     }
+    
+    public function getRunKpiIndicatorGetDataProcessModel($processMetaDataId) {
+        
+        $response = array();
+        
+        try {
+            
+            $kpiIndicatorMapConfig = Input::post('kpiIndicatorMapConfig');
+            $mapId = issetParam($kpiIndicatorMapConfig['mapId']);
+            
+            if (is_numeric($mapId)) {
+                
+                $idPh1 = $this->db->Param(0);
+                $idPh2 = $this->db->Param(1);
+                
+                $mapList = $this->db->GetAll("
+                    SELECT 
+                        T1.META_DATA_ID, 
+                        T0.TRG_META_DATA_PATH, 
+                        T0.DEFAULT_VALUE 
+                    FROM KPI_INDICATOR_INDICATOR_MAP T0 
+                        INNER JOIN META_DATA T1 ON T1.META_DATA_ID = T0.LOOKUP_META_DATA_ID
+                    WHERE T0.SRC_INDICATOR_MAP_ID = $idPh1 
+                        AND T0.SEMANTIC_TYPE_ID = $idPh2", 
+                    array($mapId, Mdform::$semanticTypes['checkListParamMap'])
+                );
+                
+                if ($mapList) {
+                    
+                    $getMetaId = $mapList[0]['META_DATA_ID'];
+                    
+                    $row = $this->db->GetRow("
+                        SELECT 
+                            MD.META_DATA_CODE AS COMMAND_NAME, 
+                            DG.WS_URL, 
+                            SL.SERVICE_LANGUAGE_CODE, 
+                            DG.SUB_TYPE, 
+                            DG.ACTION_TYPE 
+                        FROM META_BUSINESS_PROCESS_LINK DG 
+                            INNER JOIN META_DATA MD ON MD.META_DATA_ID = DG.META_DATA_ID 
+                            LEFT JOIN WEB_SERVICE_LANGUAGE SL ON SL.SERVICE_LANGUAGE_ID = DG.SERVICE_LANGUAGE_ID 
+                        WHERE DG.META_DATA_ID = $idPh1", array($getMetaId));
+                    
+                    if ($row) {
+                        $inputParams = [];
+                        
+                        foreach ($mapList as $map) {
+                            $defaultValue = Mdmetadata::setDefaultValue($map['DEFAULT_VALUE']);
+                            $inputParams['criteria'][$map['TRG_META_DATA_PATH']] = array(array('operator' => '=', 'operand' => $defaultValue));
+                            $inputParams['param'][$map['TRG_META_DATA_PATH']] = $defaultValue;
+                        }
+                        
+                        if ($row['SUB_TYPE'] == 'internal' && $row['ACTION_TYPE'] == 'get') {
 
+                            $param = array(
+                                'processId' => $processMetaDataId, 
+                                'criteria' => $inputParams['criteria']
+                            );
+
+                            $result = $this->ws->caller($row['SERVICE_LANGUAGE_CODE'], $row['WS_URL'], $row['COMMAND_NAME'], 'return', $param, 'array');
+                            
+                            if ($result['status'] == 'success' && isset($result['result'])) {
+                                $response = $result['result'];
+                            }
+
+                        } else {
+
+                            $result = $this->ws->caller($row['SERVICE_LANGUAGE_CODE'], $row['WS_URL'], $row['COMMAND_NAME'], 'return', $inputParams['param'], 'array');
+
+                            if ($result['status'] == 'success' && isset($result['result'])) {
+                                $response = $result['result'];
+                            }
+                        }
+                    }
+                }
+            }
+        
+        } catch (Exception $ex) { }
+        
+        return $response;
+    }
+    
     public function getProcessValueByModel($processMetaDataId, $totalCount, $count, $paramRealPath) {
 
         if (($totalCount > 0 && $count > 0) && $totalCount === $count) {
@@ -6486,6 +6617,21 @@ class Mdwebservice_Model extends Model {
         }
         
         return false;
+    }
+    
+    public function fieldCriteria($jsonConfig) {
+        if ($jsonConfig && array_key_exists('fieildcriteria', $jsonConfig)) {
+            
+            $fieldCriteria = $jsonConfig['fieildcriteria'];
+            
+            $fieldCriteria = str_replace('sessioncompanysizeid', Mdmetadata::getDefaultValue('sessioncompanysizeid'), $fieldCriteria);
+            $fieldCriteria = str_replace('sessionuserkeyid', Mdmetadata::getDefaultValue('sessionuserkeyid'), $fieldCriteria);
+            $fieldCriteria = str_replace('sessionuserkeydepartmentid', Mdmetadata::getDefaultValue('sessionuserkeydepartmentid'), $fieldCriteria);
+            
+            return eval('return ' . $fieldCriteria . ';');            
+        } else {
+            return true;
+        }
     }
     
 }

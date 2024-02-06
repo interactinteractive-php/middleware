@@ -2,31 +2,44 @@ var isKpiIndicatorScript = true;
 var googleMapActiveWindow = null;
 var kpIndicatorChart = {};
 
-function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt) {
+function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt, callback, successCallback, srcIndicatorId) {
     
     var $this = $(elem), mainIndicatorId = $this.attr('data-main-indicatorid'), 
         saveBtnClass = '', mode = '';
+        
+    if (typeof srcIndicatorId !== 'undefined') {
+        mainIndicatorId = srcIndicatorId;
+    }
     
     if (typeof mainIndicatorId == 'undefined') {
         mainIndicatorId = indicatorId;
     }
-    
+
     var postData = {
         param: {
             indicatorId: indicatorId, 
             actionType: $this.attr('data-actiontype')
         }
-    };   
+    };  
+
+    var isNoDataview = false 
+    var fcSelectedRow = [];
     
-    if (typeof opt == 'undefined') {
+    if ($this.hasClass('no-dataview') && $this.attr('data-rowdata')) {
+        isNoDataview = true;
+        fcSelectedRow = [JSON.parse($this.attr('data-rowdata'))];
+    }                
+
+    if (typeof opt == 'undefined' || (typeof opt != 'undefined' && isObject(opt) && Object.keys(opt).length == 0)) {
         
         if (isEdit) {
         
-            var selectedRows = getDataViewSelectedRows(mainIndicatorId);
-
+            var selectedRows = isNoDataview ? fcSelectedRow : getDataViewSelectedRows(mainIndicatorId);
+            
             if (selectedRows.length) {
 
                 var selectedRow = selectedRows[0];
+                postData.param.mainIndicatorId = mainIndicatorId;
                 postData.param.dynamicRecordId = selectedRow[window['idField_'+mainIndicatorId]];
                 postData.param.idField = window['idField_'+mainIndicatorId];
                 postData.selectedRow = selectedRow;
@@ -47,9 +60,18 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt) {
             postData.isIgnoreRunButton = opt.isIgnoreRunButton;
         }
         
-        if (opt.hasOwnProperty('transferSelectedRow')) {
+        if (opt.hasOwnProperty('consolidateFillSelectedRow')) {
+
+            var selectedRows = isNoDataview ? fcSelectedRow : getDataViewSelectedRows(mainIndicatorId);
+
+            if (selectedRows.length) {
+                postData.consolidateFillSelectedRows = selectedRows;
+                postData.param.mainIndicatorId = mainIndicatorId;
+            }
+
+        } else if (opt.hasOwnProperty('transferSelectedRow')) {
             
-            var selectedRows = getDataViewSelectedRows(mainIndicatorId);
+            var selectedRows = isNoDataview ? fcSelectedRow : getDataViewSelectedRows(mainIndicatorId);
             
             if (selectedRows.length) {
                 postData.transferSelectedRow = selectedRows[0];
@@ -58,9 +80,13 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt) {
                 return;
             }
             
+        } else if (opt.hasOwnProperty('transferParams') && isObject(opt.transferParams) && Object.keys(opt.transferParams).length) {
+
+            postData.transferSelectedRow = opt.transferParams;
+            
         } else if (opt.hasOwnProperty('fillSelectedRow') && opt.fillSelectedRow) {
             
-            var selectedRows = getDataViewSelectedRows(mainIndicatorId);
+            var selectedRows = isNoDataview ? fcSelectedRow : getDataViewSelectedRows(mainIndicatorId);
             
             if (selectedRows.length) {
                 postData.fillSelectedRow = selectedRows[0];
@@ -72,7 +98,7 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt) {
             
         } else if (opt.hasOwnProperty('fillDynamicSelectedRow') && opt.fillDynamicSelectedRow) {
             
-            var selectedRows = getDataViewSelectedRows(mainIndicatorId);
+            var selectedRows = isNoDataview ? fcSelectedRow : getDataViewSelectedRows(mainIndicatorId);
             
             if (selectedRows.length) {
                 postData.fillDynamicSelectedRow = selectedRows[0];
@@ -92,7 +118,7 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt) {
                 
             } else if (mode == 'view') {
                 
-                var selectedRows = getDataViewSelectedRows(mainIndicatorId);
+                var selectedRows = isNoDataview ? fcSelectedRow : getDataViewSelectedRows(mainIndicatorId);
 
                 if (selectedRows.length) {
 
@@ -106,7 +132,7 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt) {
                     return;
                 }
             }
-        }
+        }                   
     }
     
     if (mode == 'view') {
@@ -123,7 +149,11 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt) {
         postData.param.uxFlowActionIndicatorId = $this.attr('data-uxflow-action-indicatorid');
     }
     
-    var isMapId = false, isMapHidden = false;
+    var isMapId = false, isMapHidden = false, isSrcMap = false, isListRelation = false;
+    
+    if ($this.hasAttr('data-list-relation') && $this.attr('data-list-relation') == '1') {
+        isListRelation = true;
+    }
     
     if ($this.hasAttr('data-mapid') && $this.attr('data-mapid') != '') {
         
@@ -135,10 +165,26 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt) {
         isMapId = true;
         
     } else if ($this.closest('.mv-value-map-render-child').length) {
+        
         var $active = $this.closest('.mv-value-map-render-parent').find('ul.nav-sidebar > li.nav-item > a.nav-link.active');
         postData.param.mapHiddenParams = $active.attr('data-hidden-params');
         postData.param.mapHiddenSelectedRow = $active.attr('data-selected-row');
         isMapHidden = true;
+        
+    } else if ($this.closest('.mv-checklist-render-parent').length) {
+        
+        if (isListRelation == false) {
+            var $checkListParent = $this.closest('.mv-checklist-render-parent');
+            var $checkListActive = $checkListParent.find('ul.nav-sidebar a.nav-link.active[data-json]');
+            var checkListRowJson = JSON.parse(html_entity_decode($checkListActive.attr('data-json'), 'ENT_QUOTES'));
+
+            postData.param.mapSrcMapId = checkListRowJson.mapId;
+            postData.param.mapSelectedRow = $checkListParent.find('input[data-path="headerParams"]').val();
+            isSrcMap = true;
+            
+        } else {
+            postData.param.isListRelation = 1;
+        }
     }
     
     /*if ($this.hasAttr('data-statusconfig') && $this.attr('data-statusconfig') != '') {
@@ -159,6 +205,11 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt) {
             
             if (data.status == 'success') {
                 
+                if (typeof callback !== 'undefined') {
+                    Core.unblockUI();
+                    window[callback](data);
+                    return false;
+                }
                 var $dialogName = 'dialog-businessprocess-'+indicatorId;
                 if (!$("#" + $dialogName).length) {
                     $('<div id="' + $dialogName + '"></div>').appendTo('body');
@@ -195,63 +246,76 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt) {
                         
                         if (kpiTypeId == '2009') {
                             
-                            saveKpiIndicatorFormInit($dialogSaveBtn, uniqId, indicatorId);
+                            saveKpiIndicatorFormInit($dialogSaveBtn, uniqId, indicatorId, successCallback);
                             
-                        } else if (window['kpiIndicatorBeforeSave_' + uniqId]($dialogSaveBtn)) {
-                            
-                            if (bpFormValidate($form)) {
+                        } else if (window['kpiIndicatorBeforeSave_' + uniqId]($dialogSaveBtn) && bpFormValidate($form)) {
 
-                                $form.ajaxSubmit({
-                                    type: 'post',
-                                    url: 'mdform/saveKpiDynamicDataByList',
-                                    dataType: 'json',
-                                    beforeSubmit: function(formData, jqForm, options) {
-                                        
-                                        if (isMapId) {
-                                            formData.push({name: 'mapId', value: postData.param.mapId});
-                                            formData.push({name: 'hiddenParams', value: postData.param.hiddenParams});
-                                        }
-                                        if (isMapHidden) {
-                                            formData.push({name: 'mapHidden[params]', value: postData.param.mapHiddenParams});
-                                            formData.push({name: 'mapHidden[selectedRow]', value: postData.param.mapHiddenSelectedRow});
-                                        }
+                            $form.ajaxSubmit({
+                                type: 'post',
+                                url: 'mdform/saveKpiDynamicDataByList',
+                                dataType: 'json',
+                                beforeSubmit: function(formData, jqForm, options) {
 
-                                        if ($this.hasAttr('data-statusconfig') && $this.attr('data-statusconfig') != '') {
-
-                                            var statusConfig = $this.attr('data-statusconfig');
-                                            var statusConfigObj = JSON.parse(statusConfig);
-                                            var wfmStatusId = selectedRows[0]['wfmstatusid'];
-
-                                            statusConfigObj.mainindicatorid = mainIndicatorId;
-                                            statusConfigObj.currentwfmstatusid = wfmStatusId;
-                                            statusConfigObj.recordid = selectedRows[0][window['idField_'+mainIndicatorId]];
-
-                                            formData.push({name: 'wfmStatusParams', value: JSON.stringify(statusConfigObj)});
-                                        }
-                                    },
-                                    beforeSend: function () {
-                                        Core.blockUI({message: 'Loading...', boxed: true});
-                                    },
-                                    success: function (data) {
-
-                                        PNotify.removeAll();
-                                        new PNotify({
-                                            title: data.status,
-                                            text: data.message,
-                                            type: data.status,
-                                            sticker: false, 
-                                            addclass: pnotifyPosition
-                                        });
-
-                                        if (data.status == 'success') {
-                                            $dialog.dialog('close');
-                                            dataViewReload(mainIndicatorId);
-                                        } 
-
-                                        Core.unblockUI();
+                                    if (isMapId) {
+                                        formData.push({name: 'mapId', value: postData.param.mapId});
+                                        formData.push({name: 'hiddenParams', value: postData.param.hiddenParams});
                                     }
-                                });
-                            }
+                                    if (isMapHidden) {
+                                        formData.push({name: 'mapHidden[params]', value: postData.param.mapHiddenParams});
+                                        formData.push({name: 'mapHidden[selectedRow]', value: postData.param.mapHiddenSelectedRow});
+                                    }
+                                    if (isSrcMap) {
+                                        formData.push({name: 'mapSrc[mapSrcMapId]', value: postData.param.mapSrcMapId});
+                                        formData.push({name: 'mapSrc[mapSelectedRow]', value: postData.param.mapSelectedRow});
+                                    }
+                                    if (isListRelation && $this.closest('.mv-checklist-render-parent').length) {
+                                        var $checkListParent = $this.closest('.mv-checklist-render-parent');
+                                        var $checkListActive = $checkListParent.find('ul.nav-sidebar a.nav-link.active[data-json]');
+                                        var checkListRowJson = JSON.parse(html_entity_decode($checkListActive.attr('data-json'), 'ENT_QUOTES'));
+            
+                                        formData.push({name: 'mapSrc[mapSrcMapId]', value: checkListRowJson.mapId});
+                                        formData.push({name: 'mapSrc[mapSelectedRow]', value: $checkListParent.find('input[data-path="headerParams"]').val()});
+                                    }
+
+                                    if ($this.hasAttr('data-statusconfig') && $this.attr('data-statusconfig') != '') {
+
+                                        var statusConfig = $this.attr('data-statusconfig');
+                                        var statusConfigObj = JSON.parse(statusConfig);
+                                        var wfmStatusId = selectedRows[0]['wfmstatusid'];
+
+                                        statusConfigObj.mainindicatorid = mainIndicatorId;
+                                        statusConfigObj.currentwfmstatusid = wfmStatusId;
+                                        statusConfigObj.recordid = selectedRows[0][window['idField_'+mainIndicatorId]];
+
+                                        formData.push({name: 'wfmStatusParams', value: JSON.stringify(statusConfigObj)});
+                                    }
+                                },
+                                beforeSend: function () {
+                                    Core.blockUI({message: 'Loading...', boxed: true});
+                                },
+                                success: function (data) {
+
+                                    PNotify.removeAll();
+                                    new PNotify({
+                                        title: data.status,
+                                        text: data.message,
+                                        type: data.status,
+                                        sticker: false, 
+                                        addclass: pnotifyPosition
+                                    });
+
+                                    if (data.status == 'success') {
+                                        $dialog.dialog('close');
+                                        dataViewReload(mainIndicatorId);
+
+                                        if (typeof successCallback !== 'undefined' && successCallback) {
+                                            window[successCallback]();
+                                        }
+                                    } 
+
+                                    Core.unblockUI();
+                                }
+                            });
                         }
                         
                         $dialogSaveBtn.removeAttr('disabled').find('i').remove();
@@ -270,47 +334,53 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt) {
                             var $form = $dialog.find('form');    
                             var $dialogSaveBtn = $(e.target);
                             
-                            if (window['kpiIndicatorBeforeSave_' + uniqId]($dialogSaveBtn)) {
-                                if (bpFormValidate($form)) {
+                            if (window['kpiIndicatorBeforeSave_' + uniqId]($dialogSaveBtn) && bpFormValidate($form)) {
 
-                                    $form.ajaxSubmit({
-                                        type: 'post',
-                                        url: 'mdform/saveKpiDynamicDataByList',
-                                        dataType: 'json',
-                                        beforeSubmit: function(formData, jqForm, options) {
-                                            if (isMapId) {
-                                                formData.push({name: 'mapId', value: postData.param.mapId});
-                                                formData.push({name: 'hiddenParams', value: postData.param.hiddenParams});
-                                            }
-                                            if (isMapHidden) {
-                                                formData.push({name: 'mapHidden[params]', value: postData.param.mapHiddenParams});
-                                                formData.push({name: 'mapHidden[selectedRow]', value: postData.param.mapHiddenSelectedRow});
-                                            }
-                                        },
-                                        beforeSend: function () {
-                                            Core.blockUI({message: 'Loading...', boxed: true});
-                                        },
-                                        success: function (data) {
-
-                                            PNotify.removeAll();
-                                            new PNotify({
-                                                title: data.status,
-                                                text: data.message,
-                                                type: data.status,
-                                                sticker: false, 
-                                                addclass: pnotifyPosition
-                                            });
-
-                                            if (data.status == 'success') {
-
-                                                dataViewReload(mainIndicatorId);
-                                                bpProcessFieldClear($form, indicatorId);
-                                            } 
-
-                                            Core.unblockUI();
+                                $form.ajaxSubmit({
+                                    type: 'post',
+                                    url: 'mdform/saveKpiDynamicDataByList',
+                                    dataType: 'json',
+                                    beforeSubmit: function(formData, jqForm, options) {
+                                        if (isMapId) {
+                                            formData.push({name: 'mapId', value: postData.param.mapId});
+                                            formData.push({name: 'hiddenParams', value: postData.param.hiddenParams});
                                         }
-                                    });
-                                }
+                                        if (isMapHidden) {
+                                            formData.push({name: 'mapHidden[params]', value: postData.param.mapHiddenParams});
+                                            formData.push({name: 'mapHidden[selectedRow]', value: postData.param.mapHiddenSelectedRow});
+                                        }
+                                        if (isSrcMap) {
+                                            formData.push({name: 'mapSrc[mapSrcMapId]', value: postData.param.mapSrcMapId});
+                                            formData.push({name: 'mapSrc[mapSelectedRow]', value: postData.param.mapSelectedRow});
+                                        }
+                                    },
+                                    beforeSend: function () {
+                                        Core.blockUI({message: 'Loading...', boxed: true});
+                                    },
+                                    success: function (data) {
+
+                                        PNotify.removeAll();
+                                        new PNotify({
+                                            title: data.status,
+                                            text: data.message,
+                                            type: data.status,
+                                            sticker: false, 
+                                            addclass: pnotifyPosition
+                                        });
+
+                                        if (data.status == 'success') {
+
+                                            dataViewReload(mainIndicatorId);
+                                            bpProcessFieldClear($form, indicatorId);
+
+                                            if (typeof successCallback !== 'undefined') {
+                                                window[successCallback]();
+                                            }
+                                        } 
+
+                                        Core.unblockUI();
+                                    }
+                                });
                             }
 
                             $dialogSaveBtn.removeAttr('disabled').find('i').remove();
@@ -331,7 +401,7 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt) {
                     open: function() {
                         if (mode == 'view') {
                             $dialog.find('.bp-add-one-row').parent().remove();
-                            $dialog.find('.bp-remove-row, button.red, button.green-meadow').remove();
+                            $dialog.find('.bp-remove-row, button.red, button.green-meadow, button.bp-file-choose-btn, a[onclick*="bpFileChoosedRemove"], span.filename, a[onclick*="kpiIndicatorRelationRemoveRows"], div.input-group.quick-item-process').remove();
                             $dialog.find('input[type="text"], textarea').addClass('kpi-notfocus-readonly-input').attr('readonly', 'readonly');
                             $dialog.find("div[data-s-path]").addClass('select2-container-disabled kpi-notfocus-readonly-input');
                             $dialog.find('button[onclick*="dataViewSelectableGrid"], button[onclick*="chooseKpiIndicatorRowsFromBasket"]').prop('disabled', true);
@@ -373,6 +443,123 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt) {
                 
                 $dialog.dialog('open');
             
+            } else {
+                new PNotify({
+                    title: data.status,
+                    text: data.message,
+                    type: data.status,
+                    sticker: false, 
+                    addclass: pnotifyPosition
+                });
+            }
+            
+            Core.unblockUI();
+        },
+        error: function () { alert('Error'); Core.unblockUI(); }
+    });
+}
+function mvNormalRelationRender(elem, kpiTypeId, mainIndicatorId, opt) {
+    var postData = {
+        mainIndicatorId: mainIndicatorId, 
+        methodIndicatorId: opt.methodIndicatorId, 
+        structureIndicatorId: opt.structureIndicatorId
+    };
+    var mode = '';
+    
+    if (opt.hasOwnProperty('mode')) {
+        mode = opt.mode;
+        if (mode == 'update' || mode == 'view') {
+            var selectedRows = getDataViewSelectedRows(mainIndicatorId);
+
+            if (selectedRows.length) {
+
+                var selectedRow = selectedRows[0];
+                postData.dynamicRecordId = selectedRow[window['idField_'+mainIndicatorId]];
+                postData.idField = window['idField_'+mainIndicatorId];
+                postData.selectedRow = selectedRow;
+                postData.mode = mode;
+
+            } else {
+                alert(plang.get('msg_pls_list_select'));
+                return;
+            }
+        }
+    }
+    
+    $.ajax({
+        type: 'post',
+        url: 'mdform/mvNormalRelationRender',
+        data: postData, 
+        dataType: 'json',
+        beforeSend: function () {
+            Core.blockUI({message: 'Loading...', boxed: true});
+        },
+        success: function (data) {
+            PNotify.removeAll();
+            if (data.status == 'success') {
+                
+                var $dialogName = 'dialog-valuemap-'+mainIndicatorId;
+                if (!$("#" + $dialogName).length) {
+                    $('<div id="' + $dialogName + '"></div>').appendTo('body');
+                }
+                var $dialog = $('#' + $dialogName);
+                
+                $dialog.empty().append(data.html);
+                $dialog.dialog({
+                    cache: false,
+                    resizable: true,
+                    bgiframe: true,
+                    autoOpen: false,
+                    title: '',
+                    width: 1000,
+                    height: 'auto',
+                    modal: true,
+                    open: function() {
+                        if (mode == 'view') {
+                            $dialog.find('.bp-add-one-row').parent().remove();
+                            $dialog.find('.bp-remove-row, button.red, button.bp-btn-save, button.green-meadow, button.bp-file-choose-btn, a[onclick*="bpFileChoosedRemove"], span.filename, a[onclick*="kpiIndicatorRelationRemoveRows"], div.input-group.quick-item-process').remove();
+                            $dialog.find('input[type="text"], textarea').addClass('kpi-notfocus-readonly-input').attr('readonly', 'readonly');
+                            $dialog.find("div[data-s-path]").addClass('select2-container-disabled kpi-notfocus-readonly-input');
+                            $dialog.find('button[onclick*="dataViewSelectableGrid"], button[onclick*="chooseKpiIndicatorRowsFromBasket"]').prop('disabled', true);
+                            
+                            var $radioElements = $dialog.find("input[type='radio']");
+                            if ($radioElements.length) {
+                                $radioElements.attr({'data-isdisabled': 'true', style: 'cursor: not-allowed', 'tabindex': '-1'});
+                                $radioElements.closest('.radio').addClass('disabled');
+                            }
+                            
+                            var $checkElements = $dialog.find("input[type='checkbox']");
+                            $checkElements.attr({'data-isdisabled': 'true', style: 'cursor: not-allowed', 'tabindex': '-1'});
+                            $checkElements.closest('.checker').addClass('disabled');
+                        }
+                    },
+                    close: function() {
+                        $dialog.empty().dialog('destroy').remove();
+                    },
+                    buttons: [
+                        {text: plang.get('close_btn'), class: 'btn btn-sm blue-hoki bp-btn-close', click: function () {
+                            $dialog.dialog('close');
+                        }}
+                    ]
+                }).dialogExtend({
+                    "closable": true,
+                    "maximizable": true,
+                    "minimizable": true,
+                    "collapsable": true,
+                    "dblclick": "maximize",
+                    "minimizeLocation": "left",
+                    "icons": {
+                        "close": "ui-icon-circle-close",
+                        "maximize": "ui-icon-extlink",
+                        "minimize": "ui-icon-minus",
+                        "collapse": "ui-icon-triangle-1-s",
+                        "restore": "ui-icon-newwin"
+                    }
+                });
+                
+                $dialog.dialogExtend('maximize');
+                $dialog.dialog('open');
+                
             } else {
                 new PNotify({
                     title: data.status,
@@ -588,8 +775,14 @@ function microFlowConfirmationDialog(id, text, indicator, elem, uniqId, indicato
 
     $dialog.dialog("open");
 }
-function saveKpiIndicatorFormInit(elem, uniqId, indicatorId) {
+function saveKpiIndicatorFormInit(elem, uniqId, indicatorId, successCallback) {
     var $this = $(elem);
+    
+    if (uniqId == '') {
+        var $parentForm = $this.closest('form');
+        uniqId = $parentForm.find('[data-bp-uniq-id]').attr('data-bp-uniq-id');
+    }
+    
     var $form = $('div[data-bp-uniq-id="'+uniqId+'"]').closest('form');    
 
     if (window['kpiIndicatorBeforeSave_' + uniqId]($this) && bpFormValidate($form)) {
@@ -629,6 +822,10 @@ function saveKpiIndicatorFormInit(elem, uniqId, indicatorId) {
             }
         });
     }
+    
+    if (typeof successCallback !== 'undefined') {
+        window[successCallback]();
+    }
 }
 function runKpiIndicatorInternalQueryInit(elem, uniqId, indicatorId) {
     var $this = $(elem);
@@ -658,14 +855,21 @@ function runKpiIndicatorInternalQueryInit(elem, uniqId, indicatorId) {
     }
 }
 
-function removeKpiIndicatorValue(elem, indicatorId) {
+function removeKpiIndicatorValue(elem, indicatorId, successCallback) {
     var $this = $(elem), mainIndicatorId = $this.attr('data-main-indicatorid');    
-    
     if (typeof mainIndicatorId == 'undefined') {
         mainIndicatorId = indicatorId;
     }
     
-    var selectedRows = getDataViewSelectedRows(mainIndicatorId);
+    var isNoDataview = false 
+    var fcSelectedRow = [];
+
+    if ($this.hasClass('no-dataview') && $this.attr('data-rowdata')) {
+        isNoDataview = true;
+        var fcSelectedRow =  [JSON.parse($this.attr('data-rowdata'))];
+    }
+
+    var selectedRows = isNoDataview ? fcSelectedRow : getDataViewSelectedRows(mainIndicatorId);
         
     if (selectedRows.length) {
 
@@ -693,6 +897,7 @@ function removeKpiIndicatorValue(elem, indicatorId) {
                         type: 'post',
                         url: 'mdform/removeKpiDynamicData',
                         data: {
+                            listIndicatorId: mainIndicatorId, 
                             indicatorId: indicatorId, 
                             crudIndicatorId: $this.attr('data-crud-indicatorid'), 
                             selectedRows: selectedRows, 
@@ -717,6 +922,9 @@ function removeKpiIndicatorValue(elem, indicatorId) {
                                 dataViewReload(mainIndicatorId);
                             }
                             
+                            if (typeof successCallback !== 'undefined') {
+                                window[successCallback]($this);
+                            }
                             Core.unblockUI();
                         }
                     });
@@ -930,7 +1138,7 @@ function exportKpiIndicatorValue(elem, indicatorId) {
         Core.blockUI({message: 'Exporting...', boxed: true});
         $.fileDownload(URL_APP + 'mdform/indicatorRowExport', {
             httpMethod: 'POST',
-            data: {indicatorId: mainIndicatorId, selectedRow: selectedRows[0], idField: window['idField_'+mainIndicatorId]} 
+            data: {indicatorId: mainIndicatorId, selectedRows: selectedRows, idField: window['idField_'+mainIndicatorId]} 
         }).done(function() {
             Core.unblockUI();
         }).fail(function(response) {
@@ -964,7 +1172,7 @@ function exportExcelOneLineKpiIndicatorValue(elem, indicatorId) {
         Core.blockUI({message: 'Exporting...', boxed: true});
         $.fileDownload(URL_APP + 'mdform/indicatorRowExcelExportOneLine', {
             httpMethod: 'POST',
-            data: {indicatorId: mainIndicatorId, selectedRow: selectedRows[0], idField: window['idField_'+mainIndicatorId]} 
+            data: {indicatorId: mainIndicatorId, selectedRows: selectedRows, idField: window['idField_'+mainIndicatorId]} 
         }).done(function() {
             Core.unblockUI();
         }).fail(function(response) {
@@ -982,6 +1190,149 @@ function exportExcelOneLineKpiIndicatorValue(elem, indicatorId) {
     } else {
         alert(plang.get('msg_pls_list_select'));
         return;
+    }
+}
+function mvRecordRelationExcelExport(elem) {
+    var $this = $(elem), $parentRow = $this.closest('tr');
+    var $indicatorElem = $parentRow.find('input[name="metaDmRecordMaps[indicatorId][]"]');
+    var $recordElem = $parentRow.find('input[name="metaDmRecordMaps[recordId][]"]');
+        
+    if ($indicatorElem.length && $recordElem.length && $indicatorElem.val() != '' && $recordElem.val() != '') {
+        
+        Core.blockUI({message: 'Exporting...', boxed: true});
+        $.fileDownload(URL_APP + 'mdform/indicatorRowExport', {
+            httpMethod: 'POST',
+            data: {indicatorId: $indicatorElem.val(), selectedRow: {ID: $recordElem.val()}, idField: 'ID'} 
+        }).done(function() {
+            Core.unblockUI();
+        }).fail(function(response) {
+            PNotify.removeAll();
+            new PNotify({
+                title: 'Error',
+                text: response,
+                type: 'error',
+                addclass: pnotifyPosition,
+                sticker: false
+            });
+            Core.unblockUI();
+        });
+
+    } else {
+        alert(plang.get('msg_pls_list_select'));
+        return;
+    }
+}
+function addRowKpiIndicatorTemplate(elem) {
+    var $this = $(elem);
+    var $parent = $this.closest('div'), 
+        $nextDiv = $parent.next('div'), 
+        $table = $nextDiv.find('table.table:eq(0)');     
+    
+    var groupPath = $table.attr('data-table-path'), 
+        $tbody = $table.find('> tbody'), 
+        rowLimit = Number($this.attr('data-row-limit')),
+        $form = $this.closest('[data-addonform-uniqid]'), 
+        uniqId = '';
+    
+    if ($form.length) {
+        uniqId = $form.attr('data-addonform-uniqid');
+    } else {
+        uniqId = $this.closest('.kpi-ind-tmplt-section[data-bp-uniq-id]').attr('data-bp-uniq-id');
+    }
+    
+    var $script = $('script[data-template="rows"][data-uniqid="'+uniqId+'"][data-rows-path="'+groupPath+'"]');
+    
+    if ($this.hasClass('bp-add-one-row-num')) {
+        var $addRowNum = $this;
+    } else {
+        var $addRowNum = $this.prev('input.bp-add-one-row-num');
+    }
+    
+    if (rowLimit > 0) {
+        var alreadyRowsLen = Number($tbody.find('> tr.bp-detail-row').length);
+        if (rowLimit <= alreadyRowsLen) {
+            PNotify.removeAll();
+            new PNotify({
+                title: 'Info',
+                text: 'Мөрийн хязгаар дүүрсэн байна!',
+                type: 'info',
+                addclass: pnotifyPosition,
+                sticker: false
+            });      
+            return;
+        }
+    }
+    
+    if ($addRowNum.length && $addRowNum.val() != '') {
+        
+        var addRowNumVal = Number($addRowNum.val());
+        
+        if (rowLimit > 0 && alreadyRowsLen > 0) {
+            addRowNumVal = rowLimit - alreadyRowsLen;
+        }
+        
+        var addingRows = ($script.text()).repeat(addRowNumVal);
+        
+        $tbody.append(addingRows).promise().done(function() {
+            
+            $addRowNum.val('');
+            
+            mvInitControls($tbody);
+            
+            $tbody.find('input:not([data-isdisabled], [readonly="readonly"], [readonly], readonly, [disabled="disabled"], [disabled], disabled, input.meta-name-autocomplete):visible:first').focus().select();
+
+            setRowNumKpiIndicatorTemplate($tbody);
+            
+            if ($table.hasClass('bprocess-table-subdtl')) {
+                var rowIndex = $tbody.closest('.bp-detail-row').index();
+                kpiSetRowIndex($tbody, rowIndex);
+            } else {
+                kpiSetRowIndex($tbody);
+            }
+            
+            var $rowEl = $tbody.find('> .bp-detail-row');
+            var rowLen = $rowEl.length, rowi = 0;
+                
+            if (rowLen === 1) {
+                
+                window['bpFullScriptsWithoutEvent_'+uniqId]($($rowEl[rowi]), groupPath, true, true);
+
+            } else if (rowLen > 1) {
+
+                var rowLen = rowLen - 1;
+
+                for (rowi; rowi < rowLen; rowi++) { 
+                    window['bpFullScriptsWithoutEvent_'+uniqId]($($rowEl[rowi]), groupPath, true, false);
+                }
+                
+                window['bpFullScriptsWithoutEvent_'+uniqId]($($rowEl[rowLen]), groupPath, true, true);
+            }
+            
+            bpDetailFreeze($table);
+            window['dtlAggregateFunction_'+uniqId]();
+        });
+    
+    } else {
+        
+        $tbody.append($script.text()).promise().done(function() {
+            var $lastRow = $tbody.find('> .bp-detail-row:last');
+            
+            mvInitControls($lastRow);
+            setRowNumKpiIndicatorTemplate($tbody);
+            
+            if ($table.hasClass('bprocess-table-subdtl')) {
+                var rowIndex = $tbody.closest('.bp-detail-row').index();
+                kpiSetRowIndex($tbody, rowIndex);
+            } else {
+                kpiSetRowIndex($tbody);
+            }
+            
+            window['bpFullScriptsWithoutEvent_'+uniqId]($lastRow, groupPath, false, true);
+            
+            bpDetailFreeze($table);
+            
+            window['dtlAggregateFunction_'+uniqId]();
+        });
     }
 }
 
@@ -1091,18 +1442,119 @@ function generateKpiRawDataMart(elem, indicatorId) {
             Core.blockUI({message: 'Loading...', boxed: true});
         },
         success: function(data) {
-            new PNotify({
-                title: data.status,
-                text: data.message,
-                type: data.status,
-                addclass: pnotifyPosition,
-                sticker: false
-            });
-            Core.unblockUI();
             
-            if (data.status === 'success') {
-                dataViewReload(indicatorId);
+            if (data.hasOwnProperty('html') && data.html) {
+                
+                var $dialogName = 'dialog-businessprocess-'+indicatorId;
+                if (!$("#" + $dialogName).length) {
+                    $('<div id="' + $dialogName + '"></div>').appendTo('body');
+                }
+                var $dialog = $('#' + $dialogName), dialogWidth = 950, dialogHeight = 'auto', dialogTitle = data.name, uniqId = data.uniqId;
+                
+                if (data.windowWidth) {
+                    dialogWidth = data.windowWidth;
+                }
+                
+                if (data.windowHeight) {
+                    dialogHeight = data.windowHeight;
+                }
+                
+                var buttons = [
+                    {text: plang.get('save_btn'), class: 'btn btn-sm green-meadow bp-btn-save', click: function (e) {
+
+                        var $form = $dialog.find('form');    
+                        var $dialogSaveBtn = $(e.target);
+
+                        $dialogSaveBtn.attr('disabled', 'disabled').prepend('<i class="fa fa-spinner fa-pulse fa-fw"></i>');
+                        
+                        if (window['kpiIndicatorBeforeSave_' + uniqId]($dialogSaveBtn) && bpFormValidate($form)) {
+
+                            $form.ajaxSubmit({
+                                type: 'post',
+                                url: 'mdform/saveKpiDynamicDataByList',
+                                dataType: 'json',
+                                beforeSend: function () {
+                                    Core.blockUI({message: 'Loading...', boxed: true});
+                                },
+                                success: function (data) {
+
+                                    PNotify.removeAll();
+                                    new PNotify({
+                                        title: data.status,
+                                        text: data.message,
+                                        type: data.status,
+                                        sticker: false, 
+                                        addclass: pnotifyPosition
+                                    });
+
+                                    if (data.status == 'success') {
+                                        $dialog.dialog('close');
+                                        dataViewReload(indicatorId);
+                                    } 
+
+                                    Core.unblockUI();
+                                }
+                            });
+                        }
+                        
+                        $dialogSaveBtn.removeAttr('disabled').find('i').remove();
+                    }},
+                    {text: plang.get('close_btn'), class: 'btn btn-sm blue-hoki bp-btn-close', click: function () {
+                        $dialog.dialog('close');
+                    }}
+                ];
+    
+                $dialog.empty().append('<form method="post" enctype="multipart/form-data">' + data.html + '</form>');
+                $dialog.dialog({
+                    cache: false,
+                    resizable: true,
+                    bgiframe: true,
+                    autoOpen: false,
+                    title: dialogTitle,
+                    width: dialogWidth,
+                    height: dialogHeight,
+                    modal: true,
+                    close: function() {
+                        $dialog.empty().dialog('destroy').remove();
+                    },
+                    buttons: buttons
+                }).dialogExtend({
+                    "closable": true,
+                    "maximizable": true,
+                    "minimizable": true,
+                    "collapsable": true,
+                    "dblclick": "maximize",
+                    "minimizeLocation": "left",
+                    "icons": {
+                        "close": "ui-icon-circle-close",
+                        "maximize": "ui-icon-extlink",
+                        "minimize": "ui-icon-minus",
+                        "collapse": "ui-icon-triangle-1-s",
+                        "restore": "ui-icon-newwin"
+                    }
+                });
+                
+                if (data.windowSize === 'fullscreen') {
+                    $dialog.dialogExtend('maximize');
+                }
+                
+                $dialog.dialog('open');
+                
+            } else {
+                new PNotify({
+                    title: data.status,
+                    text: data.message,
+                    type: data.status,
+                    addclass: pnotifyPosition,
+                    sticker: false
+                });
+
+                if (data.status === 'success') {
+                    dataViewReload(indicatorId);
+                }
             }
+            
+            Core.unblockUI();
         }
     });
 }
@@ -1222,7 +1674,7 @@ function callWebServiceKpiIndicatorValue(elem, indicatorId) {
             } else {
                 new PNotify({
                     title: data.status,
-                    text: data.text,
+                    text: data.status,
                     type: data.status,
                     addclass: pnotifyPosition,
                     sticker: false
@@ -1820,6 +2272,10 @@ function kpiIndicatorGoogleMapViewLoad(indicatorId, data, map) {
         });    
     }
     
+    if (typeof window['kpiMarkerObject'] == 'undefined') {
+        window['kpiMarkerObject'] = [];
+    }
+    
     $.each(rows, function(index, row) {
         var coordinateVal = row[coordinateField];
         var polygonVal = row[polygonField];
@@ -1854,8 +2310,12 @@ function kpiIndicatorGoogleMapViewLoad(indicatorId, data, map) {
             
             if (coordinateVal.indexOf('|') !== -1) {
                 var coordinateArr = coordinateVal.split('|');
-            } else {
+            } else if (coordinateVal.indexOf(',') !== -1) {
                 var coordinateArr = coordinateVal.split(',');
+            } else if (coordinateVal.indexOf(' ') !== -1) {
+                var coordinateArr = coordinateVal.split(' ');
+            } else {
+                return;
             }
             
             if (coordinateArr.hasOwnProperty(0) && coordinateArr.hasOwnProperty(1)) {
@@ -3795,12 +4255,14 @@ function getKpiIndicatorFilterData(elem, parent) {
         
         var $this = $(elem), $col = $this.closest('.list-group');
     
-        if ($this.hasClass('active')) {
-            $this.removeClass('active');
-            $this.find('i').removeClass('fas fa-check-square').addClass('far fa-square');
-        } else {
-            $this.addClass('active');
-            $this.find('i').removeClass('far fa-square').addClass('fas fa-check-square');
+        if (!$this.hasClass('jstree-node')) {
+            if ($this.hasClass('active')) {
+                $this.removeClass('active');
+                $this.find('i').removeClass('fas fa-check-square').addClass('far fa-square');
+            } else {
+                $this.addClass('active');
+                $this.find('i').removeClass('far fa-square').addClass('fas fa-check-square');
+            }
         }
     }
     
@@ -3809,7 +4271,7 @@ function getKpiIndicatorFilterData(elem, parent) {
     var $namedParamList = $col.find('[data-named-param="1"]');
     var $reportAggregateList = $col.find('[data-report-aggregate]');
     var indicatorId = $col.attr('data-indicatorid');
-    var filterData = {}, groupingColumn = {}; 
+    var filterData = {}, groupingColumn = {}, forceFilterData = {}; 
     
     if ($activeList.length) {
         
@@ -3900,7 +4362,7 @@ function getKpiIndicatorFilterData(elem, parent) {
         });
     }
     
-    return {indicatorId: indicatorId, filterData: filterData, groupingColumn: groupingColumn};
+    return {indicatorId: indicatorId, filterData: filterData, forceFilterData: forceFilterData, groupingColumn: groupingColumn};
 }
 
 function filterKpiIndicatorToggleValue(elem) {
@@ -3924,6 +4386,13 @@ function filterKpiIndicatorToggleValue(elem) {
 
 function bpExpCallKpiIndicatorForm(mainSelector, elem, indicatorId, recordId, mode) {
     manageKpiIndicatorValue(elem, '', indicatorId, true, {recordId: recordId, mode: mode});
+}
+function bpCallIndicatorProcess(mainSelector, elem, indicatorId, params) {
+    var transferParams = {};
+    if (params != '') {
+        transferParams = qryStrToObj(params);
+    }
+    manageKpiIndicatorValue(elem, '', indicatorId, true, {transferParams: transferParams});
 }
 
 function kpiIndicatorExcelImport(elem, processMetaDataId, dataViewId, selectedRow, paramData) {
@@ -4031,88 +4500,94 @@ function kpiIndicatorExcelImport(elem, processMetaDataId, dataViewId, selectedRo
     });
 }
 function mvColumnDrillDown(elem, indicatorId, columnName, rowIndex) {
-    var rows = getRowsDataView(indicatorId);
     
-    if (rows && rows.hasOwnProperty(rowIndex)) {
-        $.ajax({
-            type: 'post',
-            url: 'mdform/getColumnDrillDownConfig',
-            data: {indicatorId: indicatorId, columnName: columnName}, 
-            dataType: 'json',
-            beforeSend: function () {
-                Core.blockUI({message: 'Loading...', boxed: true});
-            },
-            success: function (data) {
-                if (data.status == 'success') {
-                    
-                    var rowData = rows[rowIndex], configData = data.data;
-                    var row = Object.fromEntries(Object.entries(rowData).map(([key, val]) => [key.toLowerCase(), val]));
-                    
-                    for (var c in configData) {
-                        
-                        var configRow = configData[c]['row'], 
-                            configRows = configData[c]['rows'];
-                        var linkIndicatorId = configRow['LINK_INDICATOR_ID'], 
-                            linkMetaDataId = configRow['LINK_META_DATA_ID'], 
-                            showType = configRow['SHOW_TYPE'], 
-                            criteria = configRow['CRITERIA'];
-                        var isNewTab = (showType == 'newtab' || showType == 'newrender' || showType == 'tab') ? true : false;
-                        var drillDownCriteria = '';
-                            
-                        for (var r in configRows) {
+    setTimeout(function() {
+        
+        var rowIndex = 0, rows = getDataViewSelectedRows(indicatorId);
 
-                            var srcParam = (configRows[r]['SRC_PARAM']) ? (configRows[r]['SRC_PARAM']).toLowerCase() : '', 
-                                trgParam = configRows[r]['TRG_PARAM'], 
-                                defaultValue = configRows[r]['DEFAULT_VALUE'];
+        if (rows && rows.hasOwnProperty(0)) {
+            $.ajax({
+                type: 'post',
+                url: 'mdform/getColumnDrillDownConfig',
+                data: {indicatorId: indicatorId, columnName: columnName}, 
+                dataType: 'json',
+                beforeSend: function () {
+                    Core.blockUI({message: 'Loading...', boxed: true});
+                },
+                success: function (data) {
+                    if (data.status == 'success') {
 
-                            if (defaultValue != null && defaultValue != '') {
-                                drillDownCriteria += trgParam + '=' + defaultValue + '&';
-                            } else if (row.hasOwnProperty(srcParam)) {
-                                drillDownCriteria += trgParam + '=' + row[srcParam] + '&';
+                        var rowData = rows[rowIndex], configData = data.data;
+                        var row = Object.fromEntries(Object.entries(rowData).map(([key, val]) => [key.toLowerCase(), val]));
+
+                        for (var c in configData) {
+
+                            var configRow = configData[c]['row'], 
+                                configRows = configData[c]['rows'];
+                            var linkIndicatorId = configRow['LINK_INDICATOR_ID'], 
+                                linkMetaDataId = configRow['LINK_META_DATA_ID'], 
+                                showType = configRow['SHOW_TYPE'], 
+                                criteria = configRow['CRITERIA'];
+                            var isNewTab = (showType == 'newtab' || showType == 'newrender' || showType == 'tab') ? true : false;
+                            var drillDownCriteria = '';
+
+                            for (var r in configRows) {
+
+                                var srcParam = (configRows[r]['SRC_PARAM']) ? (configRows[r]['SRC_PARAM']).toLowerCase() : '', 
+                                    trgParam = configRows[r]['TRG_PARAM'], 
+                                    defaultValue = configRows[r]['DEFAULT_VALUE'];
+
+                                if (defaultValue != null && defaultValue != '') {
+                                    drillDownCriteria += trgParam + '=' + defaultValue + '&';
+                                } else if (row.hasOwnProperty(srcParam)) {
+                                    drillDownCriteria += trgParam + '=' + row[srcParam] + '&';
+                                }
+                            }
+
+                            drillDownCriteria = rtrim(drillDownCriteria, '&');
+
+                            if (linkIndicatorId != '' && linkIndicatorId != null) {
+
+                                var kpiTypeId = configRow['KPI_TYPE_ID'];
+
+                                if (kpiTypeId == '1000' || kpiTypeId == '1020' || kpiTypeId == '1040' 
+                                    || kpiTypeId == '1042' || kpiTypeId == '1043' || kpiTypeId == '1044' 
+                                    || kpiTypeId == '1045' || kpiTypeId == '1160' || kpiTypeId == '1161' 
+                                    || kpiTypeId == '2013' || kpiTypeId == '2016' || kpiTypeId == '2007' 
+                                    || kpiTypeId == '16641793815766') {
+
+                                    var drillPostParam = {indicatorId: linkIndicatorId, drillDownCriteria: drillDownCriteria, isJson: 1};
+
+                                    if (isNewTab == false) {
+                                        drillPostParam.isDrilldown = 1;
+                                    }
+
+                                    $.ajax({
+                                        type: 'post',
+                                        url: 'mdform/indicatorList/'+linkIndicatorId+'/1',
+                                        data: drillPostParam,
+                                        dataType: 'json', 
+                                        success: function(content) {
+                                            if (isNewTab) {
+                                                appMultiTabByContent({ metaDataId: linkIndicatorId, title: content.title, type: 'indicator', content: content.html });
+                                            } else {
+                                                mvOpenDialog({ metaDataId: linkIndicatorId, title: content.title, type: 'indicatorList', content: content.html });
+                                            }
+                                        }
+                                    });
+                                } 
+
+                            } else if (linkMetaDataId != '' && linkMetaDataId != null) {
+                                gridDrillDownLink(elem, configRow['META_TYPE_CODE'], '', linkMetaDataId, '', indicatorId, columnName, linkMetaDataId, drillDownCriteria, isNewTab, undefined, configRow['DIALOG_WIDTH'], configRow['DIALOG_HEIGHT']);
                             }
                         }
-
-                        drillDownCriteria = rtrim(drillDownCriteria, '&');
-                            
-                        if (linkIndicatorId != '' && linkIndicatorId != null) {
-                            
-                            var kpiTypeId = configRow['KPI_TYPE_ID'];
-                            
-                            if (kpiTypeId == '1000' || kpiTypeId == '1020' || kpiTypeId == '1040' 
-                                || kpiTypeId == '1042' || kpiTypeId == '1043' || kpiTypeId == '1044' 
-                                || kpiTypeId == '1045' || kpiTypeId == '1160' || kpiTypeId == '1161' 
-                                || kpiTypeId == '2013' || kpiTypeId == '2016' || kpiTypeId == '2007') {
-                                
-                                var drillPostParam = {indicatorId: linkIndicatorId, drillDownCriteria: drillDownCriteria, isJson: 1};
-                                
-                                if (isNewTab == false) {
-                                    drillPostParam.isDrilldown = 1;
-                                }
-                                
-                                $.ajax({
-                                    type: 'post',
-                                    url: 'mdform/indicatorList/'+linkIndicatorId+'/1',
-                                    data: drillPostParam,
-                                    dataType: 'json', 
-                                    success: function(content) {
-                                        if (isNewTab) {
-                                            appMultiTabByContent({ metaDataId: linkIndicatorId, title: content.title, type: 'indicator', content: content.html });
-                                        } else {
-                                            mvOpenDialog({ metaDataId: linkIndicatorId, title: content.title, type: 'indicatorList', content: content.html });
-                                        }
-                                    }
-                                });
-                            } 
-                            
-                        } else if (linkMetaDataId != '' && linkMetaDataId != null) {
-                            gridDrillDownLink(elem, configRow['META_TYPE_CODE'], '', linkMetaDataId, '', indicatorId, columnName, linkMetaDataId, drillDownCriteria, isNewTab, undefined, configRow['DIALOG_WIDTH'], configRow['DIALOG_HEIGHT']);
-                        }
                     }
+                    Core.unblockUI();
                 }
-                Core.unblockUI();
-            }
-        });
-    }
+            });
+        }
+    
+    }, 2);
 }
 function mvOpenDialog(opts) {
     
@@ -4204,12 +4679,15 @@ function mvAddStructureFormCardView(elem) {
                 
                 if (dataLength > 10) {
                     
-                    const groupByCategory = data.reduce((group, item) => {
-                        const { PARENT_NAME } = item;
-                        group[PARENT_NAME] = group[PARENT_NAME] ?? [];
-                        group[PARENT_NAME].push(item);
-                        return group;
+                    const groupByCategory = data.reduce((acc, obj) => {
+                        const key = obj['PARENT_NAME'];
+                        if (!acc[key]) {
+                            acc[key] = [];
+                        }
+                        acc[key].push(obj);
+                        return acc;
                     }, {});
+
                     var columnNum = 3;
                     var categoryLength = Math.ceil(Object.keys(groupByCategory).length / columnNum);
                     var i = 1;
@@ -4404,7 +4882,8 @@ function mvChangeWfmStatus(elem, mainIndicatorId) {
         success: function(data) {
             if (data.status == 'success') {
                 
-                var dataRow = data.data, isFillRelation = Number(dataRow.is_fill_relation);
+                var dataRow = data.data, isFillRelation = Number(dataRow.is_fill_relation), 
+                    isNormalRelation = Number(dataRow.is_normal_relation);
                 
                 $this.attr({
                     'data-actiontype': dataRow.type_code, 
@@ -4413,19 +4892,25 @@ function mvChangeWfmStatus(elem, mainIndicatorId) {
                     'data-crud-indicatorid': dataRow.crud_indicator_id
                 });
                 
-                if (dataRow.structure_indicator_id == mainIndicatorId && isFillRelation == 0) {
-                    manageKpiIndicatorValue($this, dataRow.kpi_type_id, mainIndicatorId, true);
+                if (isNormalRelation > 0) {
+                    mvNormalRelationRender($this, dataRow.kpi_type_id, mainIndicatorId, {methodIndicatorId: dataRow.crud_indicator_id, structureIndicatorId: dataRow.structure_indicator_id, mode: 'update'});
                 } else {
-                    var opt = {}, 
-                        typeCode = dataRow.type_code, 
-                        isEdit = (typeCode == 'create') ? false : true;
-                
-                    if (isFillRelation > 0) {
-                        opt.fillSelectedRow = true;
-                    }
                     
-                    manageKpiIndicatorValue($this, dataRow.kpi_type_id, dataRow.structure_indicator_id, isEdit, opt);
+                    if (dataRow.structure_indicator_id == mainIndicatorId && isFillRelation == 0) {
+                        manageKpiIndicatorValue($this, dataRow.kpi_type_id, mainIndicatorId, true);
+                    } else {
+                        var opt = {}, 
+                            typeCode = dataRow.type_code, 
+                            isEdit = (typeCode == 'create') ? false : true;
+
+                        if (isFillRelation > 0) {
+                            opt.fillSelectedRow = true;
+                        }
+
+                        manageKpiIndicatorValue($this, dataRow.kpi_type_id, dataRow.structure_indicator_id, isEdit, opt);
+                    }
                 }
+                
             } else {
                 new PNotify({
                     title: data.status,
@@ -4524,18 +5009,40 @@ function mvInitControls($elem) {
     Core.initIconPicker($elem);
     return;
 }
-function kpiSetRowIndex($tbody) {
+function kpiSetRowIndex($tbody, rowIndex) {
     var $el = $tbody.find('> .bp-detail-row');
     var len = $el.length, i = 0;
     
-    for (i; i < len; i++) { 
-        var $subElement = $($el[i]).find('input, select, textarea');
-        var slen = $subElement.length, j = 0;
-        for (j; j < slen; j++) { 
-            var $inputThis = $($subElement[j]);
-            var $inputName = $inputThis.attr('name');
-            if (typeof $inputName !== 'undefined') {
-                $inputThis.attr('name', $inputName.replace(/^(.*)(\[[0-9]+\])(.*)$/, '$1[' + i + ']$3'));
+    if (typeof rowIndex !== 'undefined') {
+        for (i; i < len; i++) { 
+            var $subElement = $($el[i]).find('input, select, textarea');
+            var slen = $subElement.length, j = 0;
+            for (j; j < slen; j++) { 
+                var $inputThis = $($subElement[j]);
+                var $inputName = $inputThis.attr('name');
+                if (typeof $inputName !== 'undefined') {
+                    if ($inputThis.is('[multiple]') && $inputThis.hasClass('select2')) {
+                        if ($inputName.indexOf('[][]') !== -1) {
+                            $inputThis.attr('name', $inputName.replace(/^(.*)(\[[0-9]+\])(\[\])(\[\])$/, '$1[' + rowIndex + '][' + i + ']$4'));
+                        } else {
+                            $inputThis.attr('name', $inputName.replace(/^(.*)(\[[0-9]+\])(\[[0-9]+\])(\[\])$/, '$1[' + rowIndex + '][' + i + ']$4'));
+                        }
+                    } else {
+                        $inputThis.attr('name', $inputName.replace(/^(.*)(\[[0-9]+\])(.*)$/, '$1[' + rowIndex + ']$3'));
+                    }
+                }
+            }
+        }
+    } else {
+        for (i; i < len; i++) { 
+            var $subElement = $($el[i]).find('input, select, textarea');
+            var slen = $subElement.length, j = 0;
+            for (j; j < slen; j++) { 
+                var $inputThis = $($subElement[j]);
+                var $inputName = $inputThis.attr('name');
+                if (typeof $inputName !== 'undefined') {
+                    $inputThis.attr('name', $inputName.replace(/^(.*)(\[[0-9]+\])(.*)$/, '$1[' + i + ']$3'));
+                }
             }
         }
     }
@@ -4546,7 +5053,7 @@ function setRowNumKpiIndicatorTemplate(tbody) {
     var $rows = tbody.find('> tr:visible');
     if ($rows.length) {
         $rows.each(function(i) {
-            $(this).find('.bp-dtl-rownumber').text(i + 1);
+            $(this).find('.bp-dtl-rownumber:eq(0)').text(i + 1);
         });
     }
     return;
@@ -5164,7 +5671,7 @@ function mvRowsExcelImportTemplate(elem, indicatorId, rowId, columnPath, isTempl
 }
 function mvRowsGetValueFromDataMart(elem, indicatorId, rowId, columnPath) {
     var $this = $(elem);   
-    var $header = $this.closest('form').find('table.kpi-hdr-table').find('[data-path]');
+    var $header = $this.closest('form').find('.kpi-hdr-table').find('[data-path]');
     var headerData = {};
     
     $header.each(function() {
@@ -5975,6 +6482,8 @@ function mvFilterRelationLoadData(elem, indicatorId, filterData) {
     
     if ($elem.hasAttr('onclick')) {
         postData.fncName = $elem.attr('onclick');
+    } else if ($elem.hasAttr('data-load-fnc')) {
+        postData.fncName = $elem.attr('data-load-fnc') + '(this);';
     }
     
     $.ajax({
@@ -6007,7 +6516,7 @@ function mvFilterRelationLoadData(elem, indicatorId, filterData) {
                                 var $prevFilteredElem = $parent.find('[data-filter-type="checkbox"][data-filter-column="'+colName+'"]');
                                 
                                 if (openedFilterCol.hasOwnProperty(colName)) {
-                                    $prevFilteredElem.find('.kpi-indicator-filter-collapse-btn').find('i').removeClass('fa-plus-square').addClass('fa-minus-square');
+                                    $prevFilteredElem.find('.kpi-indicator-filter-collapse-btn').addClass('opened');
                                     $prevFilteredElem.find('.list-group-body').removeClass('d-none');
                                 }
                                 
@@ -6229,21 +6738,428 @@ function renderAddModeIndicatorTabInit(uniqId, refStructureId, tabType, elem, se
     }
 }
 
+function renderDataViewIndicatorSubGrid(rowElement, srcDataViewId, childDataViewList, row, rowIndex, isExcelExport) {
+    if (rowElement.children().length == 0 && typeof childDataViewList[0] !== 'undefined') {
+        renderDataViewIndicatorSubGridDraw(rowElement, srcDataViewId, row, rowIndex, 0, childDataViewList, isExcelExport);
+    }
+}
+function renderDataViewIndicatorSubGridDraw(rowElement, srcDataViewId, row, rowIndex, key, childDataViewList, isExcelExport) {
+    if (typeof childDataViewList[key] === 'undefined') {
+        return false;
+    }
+
+    var subGridParams = '';
+    var params = childDataViewList[key].params.split('&');
+
+    for (var i = 0; i < params.length; i++) {
+        var paramRow = params[i].split('=');
+        var trgParam = paramRow[0];
+        var srcParam = paramRow[1];
+        subGridParams += trgParam + '=' + row[srcParam] + '&';
+    }
+    
+    subGridParams = rtrim(subGridParams, '&');
+
+    $.ajax({
+        type: 'post',
+        url: 'mdform/indicatorList/'+childDataViewList[key].id,
+        data: {
+            isSubGrid: 1,
+            drillDownCriteria: subGridParams
+        },
+        success: function(html) {
+
+            rowElement.append(html);
+            
+            if ((childDataViewList.length - 1) !== key) {
+                rowElement.append($("<br />"));
+            }
+
+            renderDataViewIndicatorSubGridDraw(rowElement, srcDataViewId, row, rowIndex, ++key, childDataViewList);
+        }
+    });
+}
+function mvMultiFileChoose(elem) {
+    var $parent = $(elem).closest('.mv-multi-file');
+    var $fileInput = $parent.find('input[type="file"]');
+    if (!$fileInput.is('[readonly]')) {
+        $fileInput.click();
+    }
+    return;
+}
+function mvMultiFileAddFileToNewInput(file, newInput) {
+    var dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    newInput.files = dataTransfer.files;
+}
+function mvMultiFileBreakIntoSeparateFiles(input) {
+
+    if (!input.files) { return; }
+    
+    var $input = $(input), $parent = $input.closest('.mv-multi-file'), $preview = $parent.find('.mv-multi-file-preview');
+    var deleteBtn = plang.get('delete_btn');
+    
+    for (var file of input.files) {
+        
+        var templateHtml = '<div class="btn-group mt3 mb3">'+
+            '<input type="file" multiple="multiple" class="d-none" name="'+$input.attr('name')+'">'+    
+            '<button type="button" class="btn btn-outline-primary btn-sm mr0" data-filename="'+file.name+'" data-extension="fileextension" title="'+file.name+'" style="padding: 1px 5px;line-height: normal;">'+file.name+'</button>'+
+            '<button type="button" class="btn btn-outline-primary btn-icon btn-sm" title="'+deleteBtn+'" onclick="mvMultiFileRemove(this);" style="height: 24px;padding: 1px 5px; width: 20px;padding: 2px 2px 2px 1px;line-height: 18px;" data-actionname="remove"><i class="icon-cross"></i></button>'+
+        '</div>';
+        var $newFile = $(templateHtml).appendTo($preview);
+        
+        mvMultiFileAddFileToNewInput(file, $newFile.find('input[type="file"]')[0]);
+    }
+
+    $input.val([]);
+}
+function mvMultiFileRemove(elem) {
+    var $this = $(elem), $row = $this.closest('.btn-group');
+    $row.remove();
+    return;
+}
+function mvRowsPopupRender(elem) {
+    var $this = $(elem), 
+        title = $this.attr('title'), 
+        $parentCell = $this.closest('td'), 
+        $dialog = $this.next('.param-tree-container');
+    
+    if ($dialog.length == 0) {
+        $dialog = $this.next('.ui-dialog').find('> .param-tree-container:eq(0)');
+        $dialog.dialog('open');
+        return;
+    }
+    
+    $dialog.dialog({
+        appendTo: $parentCell,
+        cache: false,
+        resizable: true,
+        draggable: true,
+        bgiframe: true,
+        autoOpen: false,
+        title: title, 
+        width: 1000,
+        minWidth: 1000,
+        height: 'auto',
+        maxHeight: $(window).height() - 200,
+        modal: true,
+        create: function (event, ui) {
+            $(event.target).parent().css('position', 'fixed');
+        }, 
+        resizeStart: function (event) {
+            $(event.target).parent().css('position', 'fixed'); 
+        },
+        resizeStop: function (event) {
+            $(event.target).parent().css('position', 'fixed'); 
+        }, 
+        buttons: [
+            {text: plang.get('close_btn'), class: 'btn btn-sm blue-hoki', click: function () {
+                $dialog.dialog('close');
+            }}
+        ]
+    }).dialogExtend({
+        "closable": true,
+        "maximizable": true,
+        "minimizable": false,
+        "collapsable": false,
+        "dblclick": "maximize",
+        "minimizeLocation": "left",
+        "icons": {
+            "close": "ui-icon-circle-close",
+            "maximize": "ui-icon-extlink",
+            "minimize": "ui-icon-minus",
+            "collapse": "ui-icon-triangle-1-s",
+            "restore": "ui-icon-newwin"
+        }
+    });
+    mvInitControls($dialog);
+    $dialog.dialog('open');
+}
+function mvRowPopupRender(elem) {
+    var $this = $(elem), 
+        title = $this.attr('title'), 
+        $parentCell = $this.closest('td'), 
+        $dialog = $this.next('.param-tree-container');
+    
+    if ($dialog.length == 0) {
+        $dialog = $this.next('.ui-dialog').find('> .param-tree-container:eq(0)');
+        $dialog.dialog('open');
+        return;
+    }
+    
+    $dialog.dialog({
+        appendTo: $parentCell,
+        cache: false,
+        resizable: true,
+        draggable: true,
+        bgiframe: true,
+        autoOpen: false,
+        title: title,
+        width: 650,
+        minWidth: 650,
+        height: 'auto',
+        maxHeight: $(window).height() - 200,
+        modal: true,
+        create: function (event, ui) {
+            $(event.target).parent().css('position', 'fixed');
+        }, 
+        resizeStart: function (event) {
+            $(event.target).parent().css('position', 'fixed'); 
+        },
+        resizeStop: function (event) {
+            $(event.target).parent().css('position', 'fixed'); 
+        }, 
+        buttons: [
+            {text: plang.get('close_btn'), class: 'btn btn-sm blue-hoki', click: function () {
+                $dialog.dialog('close');
+            }}
+        ]
+    }).dialogExtend({
+        "closable": true,
+        "maximizable": true,
+        "minimizable": false,
+        "collapsable": false,
+        "dblclick": "maximize",
+        "minimizeLocation": "left",
+        "icons": {
+            "close": "ui-icon-circle-close",
+            "maximize": "ui-icon-extlink",
+            "minimize": "ui-icon-minus",
+            "collapse": "ui-icon-triangle-1-s",
+            "restore": "ui-icon-newwin"
+        }
+    });
+    mvInitControls($dialog);
+    $dialog.dialog('open');
+}
+
+function drawTreeIndicator(elem) {
+
+    var indicatorId = elem.find('.tree-demo').data('indicatorid');
+    window['indicatorStructureTreeView_'+indicatorId] = elem.find('.tree-demo');
+
+    window['indicatorStructureTreeView_'+indicatorId].jstree({
+        "core": {
+            "themes": {
+                "responsive": true,
+                "icons": false
+            },
+            "check_callback": true,
+            "data": {
+                "url": function (node) {
+                    return 'mdform/getAjaxTree';
+                },
+                "data": function (node) {
+                    return {'parent': node.id, 'indicatorId' : indicatorId};
+                }
+            }
+        },       
+        "types": {
+            "default": {
+                "icon": "icon-folder2 text-orange-300"
+            }
+        },
+        'search': {
+            'case_insensitive': true,
+            'show_only_matches' : true
+        },        
+        "plugins": ["types", "cookies", "search"]
+    }).bind("select_node.jstree", function (e, data) {
+        var nid = data.node.id === 'null' || data.node.id === 'all' ? '' : data.node.id;
+        var $treeFilterLi = elem.find('.tree-demo').find('li#'+nid);
+        if ($treeFilterLi.hasClass('active')) {
+            $treeFilterLi.removeClass('active');
+            $treeFilterLi.find('.mv-tree-filter-icon').removeClass('fas fa-check-square').addClass('far fa-square');
+        } else {
+            $treeFilterLi.addClass('active');
+            $treeFilterLi.find('.mv-tree-filter-icon').removeClass('far fa-square').addClass('fas fa-check-square');
+        }        
+        filterKpiIndicatorValueGrid($treeFilterLi);
+        //elem.find('.tree-demo').closest('.list-group-item-action').find('span[data-value-mode]').parent().trigger('click');
+    }).bind('loaded.jstree', function (e, data) {
+        setTimeout(function(){
+            var $jstreeOpen = window['indicatorStructureTreeView_'+indicatorId].find('.jstree-open');
+            var $jstreeClicked = window['indicatorStructureTreeView_'+indicatorId].find('.jstree-clicked');
+
+//            if ($jstreeClicked.length) {
+//                $jstreeClicked.focus();
+//                $jstreeClicked.trigger('click');
+//            }
+        }, 1);
+    });
+}
+
+function mvWidgetRelationRender(elem, kpiTypeId, mainIndicatorId, opt) {
+    var $this = $(elem);
+    var postData = {
+        mainIndicatorId: mainIndicatorId, 
+        methodIndicatorId: opt.methodIndicatorId, 
+        structureIndicatorId: opt.structureIndicatorId
+    };
+    var mode = '';
+    
+    if (opt.hasOwnProperty('mode')) {
+        mode = opt.mode;
+        if (mode == 'update' || mode == 'view') {
+            var selectedRows = getDataViewSelectedRows(mainIndicatorId);
+
+            if (selectedRows.length) {
+
+                var selectedRow = selectedRows[0];
+                postData.dynamicRecordId = selectedRow[window['idField_'+mainIndicatorId]];
+                postData.idField = window['idField_'+mainIndicatorId];
+                postData.selectedRow = selectedRow;
+                postData.mode = mode;
+                postData.widgetCode = opt.widgetCode;
+
+            } else {
+                alert(plang.get('msg_pls_list_select'));
+                return;
+            }
+        }
+    }
+
+    $.ajax({
+        type: 'post',
+        url: 'mdwidget/mvWidgetRelationRender',
+        data: postData, 
+        dataType: 'json',
+        beforeSend: function () {
+            Core.blockUI({message: 'Loading...', boxed: true});
+        },
+        success: function (data) {
+            PNotify.removeAll();
+            if (data.status == 'success') {
+                
+                var $dialogName = 'dialog-widgetrender-'+mainIndicatorId;
+                if (!$("#" + $dialogName).length) {
+                    $('<div id="' + $dialogName + '"></div>').appendTo('body');
+                }
+                var $dialog = $('#' + $dialogName);
+                
+                $dialog.empty().append(data.html);
+                $dialog.dialog({
+                    cache: false,
+                    resizable: true,
+                    bgiframe: true,
+                    autoOpen: false,
+                    title: '',
+                    width: 1000,
+                    height: 'auto',
+                    modal: true,
+                    open: function() {
+                        if (mode == 'view') {
+                            $dialog.find('.bp-add-one-row').parent().remove();
+                            $dialog.find('.bp-remove-row, button.red, button.bp-btn-save, button.green-meadow, button.bp-file-choose-btn, a[onclick*="bpFileChoosedRemove"], span.filename, a[onclick*="kpiIndicatorRelationRemoveRows"], div.input-group.quick-item-process').remove();
+                            $dialog.find('input[type="text"], textarea').addClass('kpi-notfocus-readonly-input').attr('readonly', 'readonly');
+                            $dialog.find("div[data-s-path]").addClass('select2-container-disabled kpi-notfocus-readonly-input');
+                            $dialog.find('button[onclick*="dataViewSelectableGrid"], button[onclick*="chooseKpiIndicatorRowsFromBasket"]').prop('disabled', true);
+                            
+                            var $radioElements = $dialog.find("input[type='radio']");
+                            if ($radioElements.length) {
+                                $radioElements.attr({'data-isdisabled': 'true', style: 'cursor: not-allowed', 'tabindex': '-1'});
+                                $radioElements.closest('.radio').addClass('disabled');
+                            }
+                            
+                            var $checkElements = $dialog.find("input[type='checkbox']");
+                            $checkElements.attr({'data-isdisabled': 'true', style: 'cursor: not-allowed', 'tabindex': '-1'});
+                            $checkElements.closest('.checker').addClass('disabled');
+                        }
+                    },
+                    close: function() {
+                        $dialog.empty().dialog('destroy').remove();
+                    },
+                    buttons: [
+                        {text: plang.get('save_btn'), class: 'btn btn-sm blue-hoki bp-btn-save d-none bp-btn-save' + data.uniqId, click: function () {
+                            var $form = $dialog.find('.saveForm');
+                            $form.ajaxSubmit({
+                                type: 'post',
+                                url: 'mdform/saveKpiDynamicDataByList',
+                                dataType: 'json',
+                                beforeSend: function () {
+                                    Core.blockUI({message: 'Loading...', boxed: true});
+                                },
+                                success: function (data) {
+                                    PNotify.removeAll();
+                                    new PNotify({
+                                        title: data.status,
+                                        text: data.message,
+                                        type: data.status,
+                                        sticker: false, 
+                                        addclass: pnotifyPosition
+                                    });
+
+                                    if (data.status == 'success') {
+                                        $dialog.dialog('close');
+                                        dataViewReload(mainIndicatorId);
+                                    } 
+
+                                    Core.unblockUI();
+                                }
+                            });
+                        }},
+                        {text: plang.get('close_btn'), class: 'btn btn-sm blue-hoki bp-btn-close', click: function () {
+                            $dialog.dialog('close');
+                        }}
+                    ]
+                }).dialogExtend({
+                    "closable": true,
+                    "maximizable": true,
+                    "minimizable": true,
+                    "collapsable": true,
+                    "dblclick": "maximize",
+                    "minimizeLocation": "left",
+                    "icons": {
+                        "close": "ui-icon-circle-close",
+                        "maximize": "ui-icon-extlink",
+                        "minimize": "ui-icon-minus",
+                        "collapse": "ui-icon-triangle-1-s",
+                        "restore": "ui-icon-newwin"
+                    }
+                });
+                
+                $dialog.dialogExtend('maximize');
+                $dialog.dialog('open');
+                
+            } else {
+                new PNotify({
+                    title: data.status,
+                    text: data.message,
+                    type: data.status,
+                    sticker: false, 
+                    addclass: pnotifyPosition
+                });
+            }
+            
+            Core.unblockUI();
+        },
+        error: function () { alert('Error'); Core.unblockUI(); }
+    });
+}
+
 $(function() {
     
     $(document.body).on('click', '.kpi-indicator-filter-collapse-btn', function() {
         var $this = $(this), 
-            $filterBody = $this.next('.list-group-body'), 
-            $thisIcon = $this.find('i');
+            $filterBody = $this.next('.list-group-body');
             
-        if ($thisIcon.hasClass('fa-plus-square')) {
-            $thisIcon.removeClass('fa-plus-square').addClass('fa-minus-square');
+        if (!$this.hasClass('opened')) {
+            $this.addClass('opened');
             $filterBody.removeClass('d-none');
+            if ($filterBody.find('.tree-demo').length && !$filterBody.find('.tree-demo').html().length) {
+                drawTreeIndicator($filterBody);
+            }
         } else {
-            $thisIcon.removeClass('fa-minus-square').addClass('fa-plus-square');
+            $this.removeClass('opened');
             $filterBody.addClass('d-none');
         }  
     });
+    
+    $(document.body).on('keyup', '.mv-tree-filter-name-search', function(){
+        var indicatorId = $(this).closest('.list-group-body').find('.tree-demo').data('indicatorid');
+        console.log(window['indicatorStructureTreeView_'+indicatorId]);
+        window['indicatorStructureTreeView_'+indicatorId].jstree('search', $(this).val());
+    });    
     
     $(document.body).on('change', '[data-kpi-indicator-filter-between]:not(.dateInit)', function() {
         var _this = this, 
@@ -6300,7 +7216,7 @@ $(function() {
     });
     
     $(document.body).on('click', '.kpi-dtl-table > .tbody > .bp-detail-row .bp-remove-row', function() {
-        var $this = $(this), $row = $this.closest('tr');
+        var $this = $(this), $row = $this.closest('.bp-detail-row');
         
         setTimeout(function() {
             
@@ -6324,10 +7240,34 @@ $(function() {
                     modal: true,
                     buttons: [
                         {text: plang.get('yes_btn'), class: 'btn green-meadow btn-sm', click: function() {
-                            var $tbody = $this.closest('tbody');
-                            $row.remove();
+                            var $table = $this.closest('[data-table-path]'),     
+                                $tbody = $this.closest('.tbody'), 
+                                isSetRowIndex = true;
+                            
+                            if ($table.hasAttr('data-pk-columnpath') && $table.attr('data-pk-columnpath') != '') {
+                                var pkVal = $row.find('[data-path="'+$table.attr('data-pk-columnpath')+'"]');
+                                if (pkVal != '') {
+                                    bpRowBeforeRemoveInputsSetValue($row);
+                                    $row.addClass('d-none');
+                                    isSetRowIndex = false;
+                                } else {
+                                    $row.remove();
+                                }
+                            } else {
+                                $row.remove();
+                            }
+                            
                             setRowNumKpiIndicatorTemplate($tbody);
-                            kpiSetRowIndex($tbody);
+                            
+                            if (isSetRowIndex) {
+                                if ($table.hasClass('bprocess-table-subdtl')) {
+                                    var rowIndex = $tbody.closest('.bp-detail-row').index();
+                                    kpiSetRowIndex($tbody, rowIndex);
+                                } else {
+                                    kpiSetRowIndex($tbody);
+                                }
+                            }
+                            
                             $dialog.dialog('close');
                         }},
                         {text: plang.get('no_btn'), class: 'btn blue-madison btn-sm', click: function () {
@@ -6338,10 +7278,17 @@ $(function() {
                 $dialog.dialog('open');
 
             } else {
-                var $tbody = $this.closest('tbody');
+                var $table = $this.closest('[data-table-path]'),     
+                    $tbody = $this.closest('.tbody');
                 $row.remove();
                 setRowNumKpiIndicatorTemplate($tbody);
-                kpiSetRowIndex($tbody);
+                
+                if ($table.hasClass('bprocess-table-subdtl')) {
+                    var rowIndex = $tbody.closest('.bp-detail-row').index();
+                    kpiSetRowIndex($tbody, rowIndex);
+                } else {
+                    kpiSetRowIndex($tbody);
+                }
             }
         }, 205);
     });

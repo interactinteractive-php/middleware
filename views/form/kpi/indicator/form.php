@@ -1,3 +1,71 @@
+<?php if (issetParam($this->headerLogo) || issetParam($this->headerTitle)) { ?>
+<div class="kpi-form-page-header">
+    <div class="kpi-form-page-header-child">
+        <?php
+        if (issetParam($this->headerTitle)) {
+            echo '<div class="kpi-form-page-header-text">'. $this->headerTitle .'</div>';
+            $titleClass = 'kpi-form-page-title';
+        }
+        
+        if (issetParam($this->headerLogo) && file_exists($this->headerLogo)) {
+            echo '<img src="'.$this->headerLogo.'" class="kpi-form-page-logo">';
+            $titleClass = 'kpi-form-page-title';
+        } ?>
+        <h1 class="kpi-form-page-title"><?php echo Str::nlTobr($this->title); ?></h1>
+    </div>
+</div>
+<style type="text/css">
+    .kpi-form-page-header {
+        margin: -10px -15px;
+        padding-top: 11px;
+        padding-bottom: 20px;
+
+        .kpi-form-page-header-child {
+            position: relative;
+            width: 100%;
+            min-height: max-content;
+            padding: 20px;
+            
+            .kpi-form-page-title {
+                margin-top: 10px;
+                text-align: center;
+                font-size: 20px;
+                font-weight: bold;
+                line-height: 28px;
+                margin-bottom: 20px;
+                margin-left: auto;
+                margin-right: auto;
+                max-width: 500px;
+            }
+
+            .kpi-form-page-header-text {
+                position: relative;
+                max-height: 70px;
+                top: 20px;
+                right: 20px;
+                text-align: right;
+                line-height: 14px;
+            }
+
+            .kpi-form-page-logo {
+                position: absolute;
+                max-width: 150px;
+                max-height: 70px;
+                top: 20px;
+                left: 20px;
+            }
+        }
+        
+    }
+</style>
+<?php } ?>
+<?php
+if (issetParam($this->renderComponentsBanner) === '1') {
+    echo '<div class="col-md-12 center-sidebar metaverse-banner">';
+        echo issetParam($this->showBanner);
+    echo '<div class="processs-main-content">';
+} 
+?>
 <div class="kpi-ind-tmplt-section" id="kpi-<?php echo $this->uniqId; ?>" data-process-id="<?php echo $this->indicatorId; ?>" data-bp-uniq-id="<?php echo $this->uniqId; ?>">
     <?php
     if (!Input::numeric('isIgnoreRunButton')) {
@@ -22,8 +90,17 @@
         }    
     }
     
-    if ((isset($this->components) && $this->components && $this->componentRenderType == 'tab') 
-        || (isset(Mdform::$topTabRenderShow) && Mdform::$topTabRenderShow) || issetParam($this->addonTabs)) {    
+    $isMainForm = $this->form ? true : false;
+    $isComponentRenderType = (isset($this->components) && $this->components && $this->componentRenderType == 'tab');
+    $isTopTabRenderShow = (isset(Mdform::$topTabRenderShow) && Mdform::$topTabRenderShow);
+    
+    if ($isMainForm 
+            && (
+                $isComponentRenderType 
+                || $isTopTabRenderShow 
+                || (isset($this->addonTabs['tabStart']) && $this->addonTabs['tabStart'])
+            ) 
+        ) { 
     ?>
     
     <div class="bp-tabs tabbable-line mv-main-tabs">
@@ -51,7 +128,7 @@
             </li>
             
             <?php
-            if (isset(Mdform::$topTabRenderShow) && Mdform::$topTabRenderShow) {
+            if ($isTopTabRenderShow) {
                 $t = 1;
                 foreach (Mdform::$topTabRenderShow as $topTabName => $topTabContent) {
             ?>
@@ -65,7 +142,7 @@
                 }
             }
             
-            if (isset($this->components) && $this->components && $this->componentRenderType == 'tab') {
+            if ($isComponentRenderType) {
             ?>
             <li class="nav-item">
                 <a href="#relationtab_<?php echo $this->uniqId; ?>" class="nav-link" data-toggle="tab" aria-expanded="false">Холбоос</a>
@@ -73,7 +150,7 @@
             <?php
             }
             
-            if (isset($this->addonTabs) && $this->addonTabs) {
+            if (isset($this->addonTabs['tabStart']) && $this->addonTabs['tabStart']) {
                 echo $this->addonTabs['tabStart'];
             }
             ?>
@@ -86,7 +163,7 @@
             </div>
             
             <?php
-            if (isset(Mdform::$topTabRenderShow) && Mdform::$topTabRenderShow) {
+            if ($isTopTabRenderShow) {
                 $t = 1;
                 foreach (Mdform::$topTabRenderShow as $topTabName => $topTabContent) {
             ?>
@@ -98,7 +175,7 @@
                 }
             }
             
-            if (isset($this->components) && $this->components && $this->componentRenderType == 'tab') {
+            if ($isComponentRenderType) {
             ?>
             <div class="tab-pane" id="relationtab_<?php echo $this->uniqId; ?>">
                 <?php echo $this->recordMapRender; ?>
@@ -114,7 +191,7 @@
             <?php
             }
 
-            if (isset($this->addonTabs) && $this->addonTabs) {
+            if (isset($this->addonTabs['tabEnd']) && $this->addonTabs['tabEnd']) {
                 echo $this->addonTabs['tabEnd'];
             }
             ?>
@@ -122,6 +199,12 @@
     </div>
             
     <?php    
+    } elseif (!$isMainForm && $isTopTabRenderShow) {
+        
+        foreach (Mdform::$topTabRenderShow as $topTabName => $topTabContent) {
+            echo implode('', $topTabContent);
+        }
+        
     } else {
         
         echo $this->form; 
@@ -139,9 +222,20 @@
     echo Form::hidden(array('name' => Mdform::$mvPathPrefix.'kpiCrudIndicatorId'.Mdform::$mvPathSuffix, 'value' => $this->crudIndicatorId));
     echo Form::hidden(array('name' => Mdform::$mvPathPrefix.'kpiActionType'.Mdform::$mvPathSuffix, 'value' => $this->actionType));
     echo $this->standardHiddenFields;
+    echo implode('', Mdform::$headerHiddenControl);
     ?>
 </div>
-
+<?php
+if (issetParam($this->renderComponentsBanner) === '1') {
+        echo '</div>';
+    echo '</div>';
+} 
+if (Mdform::$addRowsTemplate) {
+    $addRowsTemplate = implode('', Mdform::$addRowsTemplate);
+    $addRowsTemplate = str_replace('type="text/template"', 'type="text/template" data-uniqid="'.$this->uniqId.'"', $addRowsTemplate);
+    echo $addRowsTemplate;
+}
+?>
 <script type="text/javascript">
 var $kpiTmp_<?php echo $this->uniqId; ?> = $('#kpi-<?php echo $this->uniqId; ?>');
 var bp_window_<?php echo $this->uniqId; ?> = $kpiTmp_<?php echo $this->uniqId; ?>;
@@ -175,6 +269,7 @@ Core.initRegexMaskInput($kpiTmp_<?php echo $this->uniqId; ?>);
 Core.initTinymceEditor($kpiTmp_<?php echo $this->uniqId; ?>);
 Core.initFieldSetCollapse($kpiTmp_<?php echo $this->uniqId; ?>);
 Core.initIconPicker($kpiTmp_<?php echo $this->uniqId; ?>);
+Core.initTimerInput($kpiTmp_<?php echo $this->uniqId; ?>);
 
 if (typeof isKpiIndicatorScript === 'undefined') {
     $.cachedScript('<?php echo autoVersion('middleware/assets/js/addon/indicator.js'); ?>', {async: false});
@@ -899,104 +994,6 @@ $(function() {
     Core.initTextareaAutoHeight(bp_window_<?php echo $this->uniqId; ?>);
 });
 
-function addRowKpiIndicatorTemplate(elem) {
-    var $this = $(elem), $parent = $this.closest('div'), 
-        $nextDiv = $parent.next('div'), $script = $nextDiv.next('script'), 
-        $table = $nextDiv.find('table.table:eq(0)'), 
-        groupPath = $table.attr('data-table-path'), 
-        $tbody = $table.find('> tbody'), 
-        rowLimit = Number($this.attr('data-row-limit')),
-        $form = $this.closest('[data-addonform-uniqid]'), 
-        uniqId = '';
-    
-    if ($form.length) {
-        uniqId = $form.attr('data-addonform-uniqid');
-    } else {
-        uniqId = $this.closest('.kpi-ind-tmplt-section[data-bp-uniq-id]').attr('data-bp-uniq-id');
-    }
-    
-    if ($this.hasClass('bp-add-one-row-num')) {
-        var $addRowNum = $this;
-    } else {
-        var $addRowNum = $this.prev('input.bp-add-one-row-num');
-    }
-    
-    if (rowLimit > 0) {
-        var alreadyRowsLen = Number($tbody.find('> tr.bp-detail-row').length);
-        if (rowLimit <= alreadyRowsLen) {
-            PNotify.removeAll();
-            new PNotify({
-                title: 'Info',
-                text: 'Мөрийн хязгаар дүүрсэн байна!',
-                type: 'info',
-                addclass: pnotifyPosition,
-                sticker: false
-            });      
-            return;
-        }
-    }
-    
-    if ($addRowNum.length && $addRowNum.val() != '') {
-        
-        var addRowNumVal = Number($addRowNum.val());
-        
-        if (rowLimit > 0 && alreadyRowsLen > 0) {
-            addRowNumVal = rowLimit - alreadyRowsLen;
-        }
-        
-        var addingRows = ($script.text()).repeat(addRowNumVal);
-        
-        $tbody.append(addingRows).promise().done(function() {
-            
-            $addRowNum.val('');
-            
-            mvInitControls($tbody);
-            
-            $tbody.find('input:not([data-isdisabled], [readonly="readonly"], [readonly], readonly, [disabled="disabled"], [disabled], disabled, input.meta-name-autocomplete):visible:first').focus().select();
-
-            setRowNumKpiIndicatorTemplate($tbody);
-            kpiSetRowIndex($tbody);
-            
-            var $rowEl = $tbody.find('> .bp-detail-row');
-            var rowLen = $rowEl.length, rowi = 0;
-                
-            if (rowLen === 1) {
-                
-                window['bpFullScriptsWithoutEvent_'+uniqId]($($rowEl[rowi]), groupPath, true, true);
-
-            } else if (rowLen > 1) {
-
-                var rowLen = rowLen - 1;
-
-                for (rowi; rowi < rowLen; rowi++) { 
-                    window['bpFullScriptsWithoutEvent_'+uniqId]($($rowEl[rowi]), groupPath, true, false);
-                }
-                
-                window['bpFullScriptsWithoutEvent_'+uniqId]($($rowEl[rowLen]), groupPath, true, true);
-            }
-            
-            bpDetailFreeze($table);
-            window['dtlAggregateFunction_'+uniqId]();
-        });
-    
-    } else {
-        
-        $tbody.append($script.text()).promise().done(function() {
-            var $lastRow = $tbody.find('tr:last');
-            
-            mvInitControls($lastRow);
-            setRowNumKpiIndicatorTemplate($tbody);
-            kpiSetRowIndex($tbody);
-            
-            window['bpFullScriptsWithoutEvent_'+uniqId]($lastRow, groupPath, false, true);
-            
-            bpDetailFreeze($table);
-            
-            window['dtlAggregateFunction_'+uniqId]();
-        });
-    }
-}
-
 function rowsDtlPathReplacer_<?php echo $this->uniqId; ?>(groupPath) {
     <?php
     if (Mdform::$isRowsReplacePath) {
@@ -1009,7 +1006,8 @@ function rowsDtlPathReplacer_<?php echo $this->uniqId; ?>(groupPath) {
     
     if ($dtlTbl.length) {
         
-        var $header = $kpiTmp_<?php echo $this->uniqId; ?>.find('table.kpi-hdr-table').find('[data-path]'), headerData = {};
+        var $header = $kpiTmp_<?php echo $this->uniqId; ?>.find('.kpi-hdr-table').find('[data-path]'), headerData = {};
+        var $detail = $kpiTmp_<?php echo $this->uniqId; ?>.find('.kpi-dtl-table'), dtlData = {};
 
         $header.each(function() {
             var $headerElem = $(this), headerVal = $headerElem.val();
@@ -1020,7 +1018,32 @@ function rowsDtlPathReplacer_<?php echo $this->uniqId; ?>(groupPath) {
                 headerData[$headerElem.attr('data-col-path')] = headerVal;
             }
         });
-    
+
+        $detail.each(function() {
+            var $selftr = $(this);
+            var $dtltr = $selftr.find('> tbody > tr');
+            dtlData[$selftr.attr('data-table-path')] = [];
+            
+            if ($dtltr.length) {
+                $dtltr.each(function() {
+                    var $headerTemp = $(this).find('[data-path]'), headerDataTemp = {};
+                    
+                    $headerTemp.each(function() {
+                        var $headerElem = $(this), headerVal = $headerElem.val();
+                        if (headerVal != '' && headerVal != null) {
+                            if ($headerElem.hasClass('select2')) {
+                                headerVal = $("option:selected", $headerElem).text();
+                            } 
+                            if ($headerElem.attr('data-col-path')) {
+                                headerDataTemp[$headerElem.attr('data-col-path')] = headerVal;
+                            }
+                        }
+                    });
+                    dtlData[$selftr.attr('data-table-path')].push(headerDataTemp);
+                });
+            }
+        });
+        
         $dtlTbl.each(function() {
             var $tbl = $(this), $tblRows = $tbl.find('> tbody > tr');
             
@@ -1049,6 +1072,33 @@ function rowsDtlPathReplacer_<?php echo $this->uniqId; ?>(groupPath) {
                                     }
                                     
                                     controlHtml = str_ireplace(searchMask, '<span data-replace-tag="'+c+'" class="mv_html_clicktoedit_tag" style="background-color:#d7d7d7;font-weight:bold;padding:2px;">' + cVal + '</span>', controlHtml);
+                                }
+                                
+                                for (var c in dtlData) {
+                                    var cVal = dtlData[c];                                    
+                                    
+                                    if (controlHtml.indexOf('id="'+c+'"') !== -1 && Object.keys(cVal).length) {
+                                        var $html = $('<div />', {html: controlHtml});
+                                        $html.find('#'+c+' > tbody > tr:eq(0) > td').show();
+                                        var $getTableTr = $html.find('#'+c+' > tbody > tr:eq(0)').html();
+                                        var $getTableTrTemp = $getTableTr;
+                                        $html.find('#'+c+' > tbody > tr:eq(0) > td').hide();
+                                        var $getTableTrTemp2 = $html.find('#'+c+' > tbody > tr:eq(0)').html();
+                                        var $getTableTrHtml = '';
+                                        $html.find('#'+c+' > tbody').empty();
+                                        
+                                        for (var l = 0; l < cVal.length; l++) {
+                                            $getTableTr = $getTableTrTemp;
+                                            for (var cc in cVal[l]) {
+                                                var searchMask = startTag + c + '.' + cc + endTag;
+                                                $getTableTr = str_ireplace(searchMask, '<span data-replace-tag="'+c+'" class="mv_html_clicktoedit_tag" style="background-color:#d7d7d7;font-weight:bold;padding:2px;">' + cVal[l][cc] + '</span>', $getTableTr);
+                                            }
+                                            $getTableTrHtml += '<tr>'+$getTableTr+'</tr>';
+                                        }
+                                        
+                                        $html.find('#'+c+' > tbody').append('<tr>'+$getTableTrTemp2+'</tr>'+$getTableTrHtml);
+                                        controlHtml = $html.html();
+                                    }
                                 }
                                 
                                 $control.html(controlHtml);

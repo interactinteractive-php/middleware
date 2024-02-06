@@ -346,7 +346,7 @@ class Mdproc_Model extends Model {
                         FileUpload::SetFileName($fileName);
                         FileUpload::SetTempName($file_arr[$f]['row']['tmp_name']);
                         FileUpload::SetUploadDirectory($file_path);
-                        FileUpload::SetValidExtensions(explode(',', Config::getFromCache('CONFIG_FILE_EXT')));
+                        FileUpload::SetValidExtensions(explode(',', Config::getFromCache('CONFIG_FILE_EXT').',msg'));
                         FileUpload::SetMaximumFileSize(FileUpload::GetConfigFileMaxSize()); //10mb
                         $uploadResult = FileUpload::UploadFile();
 

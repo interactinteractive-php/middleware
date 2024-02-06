@@ -787,14 +787,14 @@ class Mdmetadata_Model extends Model {
                 MD.META_DATA_CODE, 
                 MD.META_DATA_NAME,
                 MD.META_TYPE_ID, 
-                LOWER(MT.META_TYPE_CODE) AS META_TYPE_CODE,  
+                LOWER(MT.META_TYPE_CODE) AS META_TYPE_CODE, 
                 MD.CREATED_DATE, 
                 BP.FIRST_NAME, 
                 UM.USERNAME, 
                 DI.META_ICON_CODE, 
                 BL.BOOKMARK_URL, 
                 BL.TARGET AS BOOKMARK_TARGET, 
-                RL.REPORT_MODEL_ID ,
+                RL.REPORT_MODEL_ID,
                 MD.IS_ACTIVE
             FROM META_DATA MD 
                 INNER JOIN META_DATA_FOLDER_MAP DM ON DM.META_DATA_ID = MD.META_DATA_ID 
@@ -2248,6 +2248,8 @@ class Mdmetadata_Model extends Model {
                     'URL_TARGET' => Input::post('urlTarget'),
                     'ICON_NAME' => Input::post('menuIconName'),
                     'PHOTO_NAME' => Input::post('oldMenuPhotoName'),
+                    'BG_PHOTO_NAME' => Input::post('oldMenuBgPhotoName'),
+                    'MENU_COLOR' => Input::post('menuColor'),
                     'VIEW_TYPE' => Input::post('viewType'),
                     'IS_SHOW_CARD' => Input::post('isShowCard'),
                     'IS_MONPASS_KEY' => Input::post('isMonpassKey'),
@@ -2273,6 +2275,23 @@ class Mdmetadata_Model extends Model {
 
                     if ($menuPhotoUploadResult) {
                         $dataMenuLink['PHOTO_NAME'] = UPLOADPATH . 'meta/menu/' . $menuPhotoName;
+                    }
+                }
+
+                if (isset($_FILES['menuBgPhotoName']) && $_FILES["menuBgPhotoName"]['name'] != '') {
+
+                    $newMenuPhotoName = 'metamenu_' . $metaDataId . '_' . getUID();
+                    $menuPhotoExtension = strtolower(substr($_FILES['menuBgPhotoName']['name'], strrpos($_FILES['menuBgPhotoName']['name'], '.') + 1));
+                    $menuPhotoName = $newMenuPhotoName . '.' . $menuPhotoExtension;
+                    FileUpload::SetFileName($menuPhotoName);
+                    FileUpload::SetTempName($_FILES['menuBgPhotoName']['tmp_name']);
+                    FileUpload::SetUploadDirectory(UPLOADPATH . 'meta/menu/');
+                    FileUpload::SetValidExtensions(explode(',', Config::getFromCache('CONFIG_IMG_EXT')));
+                    FileUpload::SetMaximumFileSize(10485760); //10mb
+                    $menuPhotoUploadResult = FileUpload::UploadFile();
+
+                    if ($menuPhotoUploadResult) {
+                        $dataMenuLink['BG_PHOTO_NAME'] = UPLOADPATH . 'meta/menu/' . $menuPhotoName;
                     }
                 }
                         
@@ -4657,6 +4676,7 @@ class Mdmetadata_Model extends Model {
                             $data['MAX_VALUE'] = Input::param($row['maxValue']);
                             $data['SEPARATOR_TYPE'] = Input::param($row['separatorType']);
                             $data['PATTERN_ID'] = Input::param($row['patternId']);
+                            $data['DATA_MASK'] = Input::param($row['dataMask']);
                             $data['IS_REFRESH'] = isset($row['isRefresh']) ? 1 : null;
                             $data['FRACTION_RANGE'] = Input::param(Arr::get($row, 'fractionRange'));
                             $data['SEARCH_GROUPING_NAME'] = Input::param($row['searchGroupName']);
@@ -5108,7 +5128,7 @@ class Mdmetadata_Model extends Model {
                         if ($expRow['GROUP_HEADER'] !== '') {
                             
                             $this->db->UpdateClob($expRow['TABLENAME'], 'GROUP_HEADER', $expRow['GROUP_HEADER'], $expRow['ID_FIELDNAME'].' = ' . $expRow['ID']); 
-        
+
                         }
                         
                         if ($expRow['GROUP_FOOTER'] !== '') {
@@ -5856,12 +5876,12 @@ class Mdmetadata_Model extends Model {
     }
 
     public function clearOneProcessLookupMap($mainMetaDataId, $fieldPath) {
-        $this->db->Execute("DELETE FROM META_PROCESS_LOOKUP_MAP WHERE (MAIN_META_DATA_ID = '$mainMetaDataId' OR PROCESS_META_DATA_ID = '$mainMetaDataId') AND LOWER(FIELD_PATH) = LOWER('$fieldPath') AND (IS_KEY_LOOKUP = '0' OR IS_KEY_LOOKUP IS NULL)");
+        $this->db->Execute("DELETE FROM META_PROCESS_LOOKUP_MAP WHERE (MAIN_META_DATA_ID = $mainMetaDataId OR PROCESS_META_DATA_ID = $mainMetaDataId) AND LOWER(FIELD_PATH) = LOWER('$fieldPath') AND (IS_KEY_LOOKUP = '0' OR IS_KEY_LOOKUP IS NULL)");
         return true;
     }
 
     public function clearOneProcessKeyLookupMap($mainMetaDataId, $fieldPath) {
-        $this->db->Execute("DELETE FROM META_PROCESS_LOOKUP_MAP WHERE (MAIN_META_DATA_ID = '$mainMetaDataId' OR PROCESS_META_DATA_ID = '$mainMetaDataId') AND LOWER(FIELD_PATH) = LOWER('$fieldPath') AND IS_KEY_LOOKUP = '1'");
+        $this->db->Execute("DELETE FROM META_PROCESS_LOOKUP_MAP WHERE (MAIN_META_DATA_ID = $mainMetaDataId OR PROCESS_META_DATA_ID = $mainMetaDataId) AND LOWER(FIELD_PATH) = LOWER('$fieldPath') AND IS_KEY_LOOKUP = '1'");
         return true;
     }
 
@@ -7014,6 +7034,8 @@ class Mdmetadata_Model extends Model {
                 MDC.META_DATA_NAME AS COUNT_META_DATA_NAME,
                 ML.ICON_NAME,
                 ML.PHOTO_NAME,
+                ML.BG_PHOTO_NAME,
+                ML.MENU_COLOR,
                 ML.VIEW_TYPE,
                 ML.IS_SHOW_CARD,
                 ML.IS_CONTENT_UI,
@@ -7971,8 +7993,8 @@ class Mdmetadata_Model extends Model {
         return $data;
     }
 
-    public function getMetaFieldPatternModel() {
-        $data = $this->db->GetAll("SELECT PATTERN_ID, PATTERN_NAME FROM META_FIELD_PATTERN");
+    public function getMetaFieldPatternModel($isDataMask = false) {
+        $data = $this->db->GetAll("SELECT PATTERN_ID, PATTERN_NAME FROM META_FIELD_PATTERN WHERE ".($isDataMask ? 'IS_MASK = 2' : 'IS_MASK = 1 OR IS_MASK IS NULL'));
         return $data;
     }
     
@@ -9830,7 +9852,8 @@ class Mdmetadata_Model extends Model {
                     GC.PLACEHOLDER_NAME, 
                     GC.RENDER_TYPE, 
                     GC.THEME_POSITION_NO, 
-                    GC.JSON_CONFIG 
+                    GC.JSON_CONFIG, 
+                    GC.DATA_MASK 
                 FROM META_GROUP_CONFIG GC 
                     LEFT JOIN META_DATA MK ON MK.META_DATA_ID = GC.LOOKUP_KEY_META_DATA_ID 
                     LEFT JOIN META_DATA RT ON RT.META_DATA_ID = GC.REF_STRUCTURE_ID 
@@ -9909,7 +9932,8 @@ class Mdmetadata_Model extends Model {
                 'PLACEHOLDER_NAME' => '', 
                 'RENDER_TYPE' => '', 
                 'THEME_POSITION_NO' => '', 
-                'JSON_CONFIG' => ''
+                'JSON_CONFIG' => '', 
+                'DATA_MASK' => ''
             );
             
             if ($isGroup == 'true') {
@@ -10362,6 +10386,41 @@ class Mdmetadata_Model extends Model {
         
         return null;
     }
+    
+    public function isCheckChangeLogMetaModel($metaId) {        
+        try {
+            
+            $beforeDate = Date::beforeDate('Y-m-d H:i:s', '-1 hour');
+            
+            $row = $this->db->GetRow("
+                SELECT 
+                    T0.START_TIME, 
+                    T1.USERNAME, 
+                    T2.FIRST_NAME 
+                FROM RECORD_VIEW_LOG T0 
+                    INNER JOIN UM_SYSTEM_USER T1 ON T1.USER_ID = T0.USER_ID 
+                    LEFT JOIN BASE_PERSON T2 ON T2.PERSON_ID = T1.PERSON_ID 
+                WHERE T0.RECORD_ID = ".$this->db->Param(0)." 
+                    AND T0.TABLE_NAME = 'META_DATA' 
+                    AND T0.START_TIME IS NOT NULL 
+                    AND T0.END_TIME IS NULL 
+                    AND T0.START_TIME > TO_DATE('$beforeDate', 'YYYY-MM-DD HH24:MI:SS')", 
+            array($metaId));
+            
+            if ($row) {
+                
+                $message = 'Startdate: '.$row['START_TIME'].'<br />';
+                $message .= 'Username: '.$row['USERNAME'].'<br />';
+                $message .= 'Firstname: '.$row['FIRST_NAME'].'<br /><br />';
+                $message .= 'Уг мета дээр засвар хийж байгаа тул түр хүлээнэ үү!';
+                
+                return array('status' => 'warning', 'message' => $message); 
+            }
+            
+        } catch (Exception $ex) { }
+        
+        return null;
+    }
 
     public function getDmLinkModel($metaDataId) {
         $row = $this->db->GetRow("
@@ -10406,6 +10465,26 @@ class Mdmetadata_Model extends Model {
     public function getDmScheduleListModel() {
         $param = array(
             'systemMetaGroupId' => '1471071040820452',
+            'showQuery' => 0, 
+            'ignorePermission' => 1 
+        );
+
+        $result = array();
+
+        $data = $this->ws->runSerializeResponse(self::$gfServiceAddress, Mddatamodel::$getDataViewCommand, $param);
+
+        if ($data['status'] == 'success' && isset($data['result'])) {
+            unset($data['result']['paging']);
+            unset($data['result']['aggregatecolumns']);
+            $result = $data['result'];
+        }
+
+        return $result;
+    }    
+
+    public function getMenuColorListModel() {
+        $param = array(
+            'systemMetaGroupId' => '1702954465281772',
             'showQuery' => 0, 
             'ignorePermission' => 1 
         );

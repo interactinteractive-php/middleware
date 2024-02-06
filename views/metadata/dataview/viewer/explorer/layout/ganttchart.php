@@ -109,7 +109,6 @@ $columns_width = strtolower(issetParam($this->row['dataViewLayoutTypes']['explor
     var date_month = plang.get('date_month');
     
     $(function () {
-        var tasks_<?php echo $this->uid; ?> = <?php echo json_encode($this->dataSourceJson, JSON_UNESCAPED_UNICODE); ?>;
         var $ganttElement = $('#ganttchart-container-<?php echo $this->uid; ?>');
         var ganttElementHeight = $(window).height() - $ganttElement.offset().top - 40;
         $ganttElement.css('height', ganttElementHeight);
@@ -254,7 +253,6 @@ $columns_width = strtolower(issetParam($this->row['dataViewLayoutTypes']['explor
                 return true;
         };
         gantt.date.monthweek_start = function (date) {
-            // go to start of the week
             var prevDate = gantt.date.week_start(new Date(date));
             if (prevDate.getMonth() != date.getMonth()) {
                 prevDate = gantt.date.month_start(new Date(date));
@@ -338,8 +336,10 @@ $columns_width = strtolower(issetParam($this->row['dataViewLayoutTypes']['explor
             element = document.createElement('style');
             element.id = styleId;
             document.querySelector('head').appendChild(element);
+            
+            var tasks = gantt.getTaskByTime();
     
-            $.each(tasks_<?php echo $this->uid; ?>['data'], function (index, task) {
+            $.each(tasks, function (index, task) {
                 
                 var $element = $ganttElement.find('div.gantt_task_line[data-task-id="'+task['id']+'"]');
                 var rData = task['row'], event = rData;
@@ -496,7 +496,9 @@ $columns_width = strtolower(issetParam($this->row['dataViewLayoutTypes']['explor
             element.id = styleId;
             document.querySelector('head').appendChild(element);
             
-            $.each(tasks_<?php echo $this->uid; ?>['data'], function (index, task) {
+            var tasks = gantt.getTaskByTime();
+            
+            $.each(tasks, function (index, task) {
                 
                 var $element = $ganttElement.find('div.gantt_task_line[data-task-id="'+task['id']+'"]');
                 
@@ -690,7 +692,8 @@ $columns_width = strtolower(issetParam($this->row['dataViewLayoutTypes']['explor
         ?>
         
         gantt.init("ganttchart-container-<?php echo $this->uid; ?>");
-        gantt.parse(tasks_<?php echo $this->uid; ?>);
+        gantt.config.branch_loading = true;
+        gantt.load('mdobject/getGanttChartData/<?php echo $this->dataViewId; ?>?isParentFilter=1&param=<?php echo $this->defaultCriteriaData; ?>');
 
         gantt.templates.tooltip_text = function(start, end, task) {
             return '';
@@ -1084,94 +1087,15 @@ $columns_width = strtolower(issetParam($this->row['dataViewLayoutTypes']['explor
                 clearTimeout(timerGanttCellHover);
             }
         }); 
-        
-        $('.gantt_export').on('click', function() { 
-            
-            gantt.exportToPNG();
-            return false;
-            
-            var $this = $(this); 
-            var $editor = $('#ganttchart-container-<?php echo $this->uid; ?>');
-            Core.blockUI({message: 'Loading...', boxed: true}); 
-            
-            setTimeout(function() {
-                
-                $.when(
-                    $.cachedScript('assets/custom/addon/plugins/html2canvas/dom-to-image.js')
-                ).then(function () {
-                    
-                    //$editor.css('zoom', '10%');
-
-                    $editor.find('.scrollHor_cell, .gantt_hor_scroll, .gridScroll_cell, .scrollVer_cell, .gantt_layout_root, .gantt_layout_content').addClass('gantt_export_size');
-                    $editor.find('.gantt_grid_data, .gantt_data_area, .gantt_ver_scroll').addClass('gantt_export_height');
-                    $editor.find('.gantt_layout_y, .gantt_layout_outer_scroll_horizontal').addClass('gantt_export_size');
-                    
-                    $editor.find('.gantt_ver_scroll, .gantt_hor_scroll').scroll();
-                    
-                    var node = $editor[0];
-                    var imageName = '45645654654';
-
-                    domtoimage.toBlob(node, {filter: htmlToImageTagFilter, bgcolor: '#fff'}).then(function(blob) {  
-
-                        //$editor.css({'width': '100%', 'height': '2000px'});
-
-                        var link = document.createElement('a');
-                        link.href = window.URL_FN.createObjectURL(blob);
-                        link.download = imageName + '.png';
-                        link.click();
-
-                        Core.unblockUI();
-
-                    }).catch(function (error) {
-                        console.error('oops, something went wrong!', error);
-                        Core.unblockUI();
-                    });
-
-                }, function () {
-                    console.log('an error occurred somewhere');
-                    Core.unblockUI();
-                });
-                
-                /*$.when(
-                    $.getScript('assets/custom/addon/plugins/html2canvas/dom-to-image.js')
-                ).then(function () {
-                    
-                    var $layoutPanel = $('#ganttchart-container-<?php echo $this->uid; ?>');
-                    
-                    var node = $layoutPanel[0];
-
-                    domtoimage.toPng(node, {filter: htmlToImageTagFilter}).then(function(dataUrl) {  
-
-                        var $printHtml = $('<div />', {html: '<img src="' + dataUrl + '" style="width:100%;"/>'});
-
-                        $printHtml.printThis({
-                            debug: false,
-                            importCSS: false,
-                            printContainer: false,
-                            removeInline: false
-                        });
-
-                        $printHtml.remove();
-
-                    }).catch(function (error) {
-                        console.error('oops, something went wrong!', error);
-                    });
-                    
-                    Core.unblockUI();
-
-                }, function () {
-                    console.log('an error occurred somewhere');
-                    Core.unblockUI();
-                });*/
-    
-            }, 100);
-        });
     
     });
     
-    /*function explorerRefresh_<?php echo $this->dataViewId; ?>(elem, dvSearchParam) {
-        dataViewFolderChildList_<?php echo $this->dataViewId; ?>('<?php echo $this->dataViewId; ?>', '<?php echo $this->refStructureId; ?>', '');
-    }*/
+    function explorerRefresh_<?php echo $this->dataViewId; ?>(elem, dvSearchParam) {
+        gantt.clearAll();
+        gantt.load('mdobject/getGanttChartData/<?php echo $this->dataViewId; ?>?param='+decodeURIComponent(escape(btoa(dvSearchParam.defaultCriteriaData))));
+        gantt.refreshData();
+        //dataViewFolderChildList_<?php echo $this->dataViewId; ?>('<?php echo $this->dataViewId; ?>', '<?php echo $this->refStructureId; ?>', '');
+    }
     
     function dvRowSelector_<?php echo $this->dataViewId ?>(e, type, isIgnoreAlert) {
         console.log('dvRowSelector_');
@@ -1185,23 +1109,23 @@ $columns_width = strtolower(issetParam($this->row['dataViewLayoutTypes']['explor
     
     function loadDHtmlXScripts() {
         if (typeof (gantt) == 'undefined') {
-            var scripts = [
-                'assets/custom/addon/plugins/dhtmlx/gantt/7.1.12/dhtmlxgantt.js',
-                'assets/custom/addon/plugins/dhtmlx/gantt/7.0.10/locale/locale_<?php echo $this->lang->getCode(); ?>.js'
-            ];
-            
             $('head').append('<link rel="stylesheet" type="text/css" href="assets/custom/addon/plugins/dhtmlx/gantt/7.0.10/skins/dhtmlxgantt_material.css?v=9"/>');
-        
-            scripts.forEach(function(url) { 
-                $.ajax({
-                    type: 'GET',
-                    url: url,
-                    async: false,
-                    cache: true,
-                    dataType: 'script'
-                });
-            });
         }
+        
+        var scripts = [
+            'assets/custom/addon/plugins/dhtmlx/gantt/7.1.12/dhtmlxgantt.js',
+            'assets/custom/addon/plugins/dhtmlx/gantt/7.0.10/locale/locale_<?php echo $this->lang->getCode(); ?>.js'
+        ];
+
+        scripts.forEach(function(url) { 
+            $.ajax({
+                type: 'GET',
+                url: url,
+                async: false,
+                cache: true,
+                dataType: 'script'
+            });
+        });
         
         return true;
     }

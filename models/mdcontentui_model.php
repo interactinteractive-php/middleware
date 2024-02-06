@@ -1068,10 +1068,13 @@ class Mdcontentui_model extends Model {
             $htmlContent = str_replace('&emsp;&emsp;', '<span style="display: inline-block; width: 30px;"></span>', $htmlContent);
             
             $fileToSave = UPLOADPATH.Mdwebservice::$uploadedPath.'file_'.getUID();
+            $orientation = 'portrait';
             
             if (isset($pageSettings['marginTop'])) { 
                 
-                $_POST['orientation'] = $pageSettings['orientation'];
+                $orientation = $pageSettings['orientation'];
+                
+                $_POST['orientation'] = $orientation;
                 $_POST['size']        = $pageSettings['size'];
                 $_POST['top']         = $pageSettings['marginTop'];
                 $_POST['left']        = $pageSettings['marginLeft'];
@@ -1102,7 +1105,7 @@ class Mdcontentui_model extends Model {
             
             $htmlContent = '<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>'.$css.'</head><body>' . $htmlContent . '</body></html>';
             
-            $pdf = Pdf::createSnappyPdf('Portrait', 'A4');
+            $pdf = Pdf::createSnappyPdf(($orientation == 'portrait' ? 'Portrait' : 'Landscape'), 'A4');
 
             Pdf::generateFromHtml($pdf, $htmlContent, $fileToSave, array(), true);
 
@@ -1114,7 +1117,10 @@ class Mdcontentui_model extends Model {
 
             $this->db->AutoExecute('ECM_CONTENT', $updateData, 'UPDATE', 'CONTENT_ID = '.$contentId);
             
-            if (Config::getFromCache('is_html_diff_ecm_content') && $oldHtml && $newHtml) {
+            /**
+             * This library 7.4 version - s doosh ajillahgui yum bna
+             */
+            if (Config::getFromCache('is_html_diff_ecm_content') && $oldHtml && $newHtml && (float) phpversion() >= 7.4) {
                 
                 includeLib('DOM/HtmlDiff/autoload');   
                 
@@ -1178,5 +1184,57 @@ class Mdcontentui_model extends Model {
         
         return $response;
     }
+    
+    public function contentVisitorLogModel() {
+        try {
+            $mergeCellId = getUID();
+            $recordId = Input::post('recordId');
+            $duration = Input::post('duration');
+            $userId = Ue::sessionUserKeyId();
+            
+            $isExist = $this->db->GetOne("SELECT DURATION FROM ECM_CONTENT_VISITOR WHERE RECORD_ID = $recordId AND USER_ID = $userId");
+            
+            if ($isExist) {
+                
+                $updateData = array(
+                    'DURATION'    => $duration, 
+                    'MODIFIED_DATE'    => Date::currentDate(),
+                    'MODIFIED_USER_ID' => $userId
+                );
+
+                $this->db->AutoExecute('ECM_CONTENT_VISITOR', $updateData, 'UPDATE', 'RECORD_ID = '.$recordId.' AND USER_ID = '.$userId);                
+                
+            } else {
+                    
+                $data = array(
+                    'ID' => $mergeCellId,
+                    'TABLE_NAME' => 'TEST_TABLE',
+                    'REF_STRUCTURE_ID' => null,
+                    'RECORD_ID' => $recordId,
+                    'USER_ID' => $userId,
+                    'CREATED_DATE' => Date::currentDate(),
+                    'DURATION' => $duration
+                );
+                $this->db->AutoExecute('ECM_CONTENT_VISITOR', $data, 'INSERT');
+            }
+            
+            return true;
+        } catch (Exception $exc) {
+            return false;
+        }
+    }    
+    
+    public function contentDurationVisitorLogModel() {
+        try {
+            
+            $userId = Ue::sessionUserKeyId();
+            $recordId = Input::post('recordId');
+            
+            return $this->db->GetOne("SELECT DURATION FROM ECM_CONTENT_VISITOR WHERE RECORD_ID = $recordId AND USER_ID = $userId");
+            
+        } catch (Exception $exc) {
+            return false;
+        }
+    }    
     
 }

@@ -76,6 +76,9 @@
             </div>
         </div>
     <?php 
+    } elseif (Mdstatement::$isAutoSearch) {
+        
+        echo Form::button(array('class' => 'd-none kpi-dashboard-filter-btn', 'value' => $this->lang->line('do_filter')));
     }
     ?>
     
@@ -90,7 +93,7 @@ if (typeof isKpiIndicatorScript === 'undefined') {
 }
 
 <?php
-if (isset($isFilterForm)) {
+if (isset($isFilterForm) || Mdstatement::$isAutoSearch) {
 ?>
 $(function() {
     

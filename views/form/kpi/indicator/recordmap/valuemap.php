@@ -170,6 +170,7 @@ function mvValueMapStructureRender(elem, mapId, mainIndicatorId, structureIndica
                 srcMapId: mapId, 
                 selectedRow: selectedRow
             },
+            dataType: 'json',
             beforeSend: function() {
                 Core.blockUI({message: 'Loading...', boxed: true});
             },
@@ -179,7 +180,7 @@ function mvValueMapStructureRender(elem, mapId, mainIndicatorId, structureIndica
                 html.push('<div id="mv-value-map-render-child-'+mainIndicatorId+'-'+structureIndicatorId+'" class="mv-value-map-render-child">');
                     html.push('<form method="post" enctype="multipart/form-data">');
                         html.push(renderHeader);
-                        html.push(dataHtml);
+                        html.push(dataHtml.html);
                     html.push('</form>');
                 html.push('</div>');
                 

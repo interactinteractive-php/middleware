@@ -230,11 +230,11 @@ $(function() {
                 
             } else if (fileExt == 'mp4' || fileExt == 'webm' || fileExt == 'avi') {
                 
-                $viewer.append('<video controls><source src="'+filePath+'" type="video/'+fileExt+'">Your browser does not support HTML5 video.</video>');
+                $viewer.append('<video controls data-id="'+contentId+'"><source src="'+filePath+'" type="video/'+fileExt+'">Your browser does not support HTML5 video.</video>');
                 
             } else if (fileExt == 'mp3' || fileExt == 'wav' || fileExt == 'ogg') {
                 
-                $viewer.append('<audio controls><source src="'+filePath+'" type="audio/'+fileExt+'">Your browser does not support the audio element.</audio>');
+                $viewer.append('<audio controls data-id="'+contentId+'"><source src="'+filePath+'" type="audio/'+fileExt+'">Your browser does not support the audio element.</audio>');
                 
             }
             <?php
@@ -409,18 +409,6 @@ $(function() {
 
             return options;
         }
-        /*callback: function (key, opt) {
-            if (key === 'download') {
-                var $this = opt.$trigger;
-                var fileName = $this.find('.mfm-thumbnail-name').text();
-                $.fileDownload(URL_APP + 'mdobject/downloadFile?file='+$this.attr('data-path')+'&fileName='+fileName+'&contentId='+$this.attr('data-id')+'&fDownload=1', {
-                    httpMethod: 'POST'
-                });
-            }
-        },
-        items: {
-            'download': {name: plang.get('download_btn'), icon: 'download'}
-        }*/
     });
     
     setTimeout(function() {

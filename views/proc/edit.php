@@ -200,6 +200,14 @@
                                                     $savedDtlIndicator = Arr::groupByArray($row['comparison_dtl'], 'indicatorid');
                                                     $savedDtlIndicator = Arr::groupByArray($savedDtlIndicator['1551340381857']['rows'], 'compareid');                                                    
                                                     $overDue = '';
+                                                    
+                                                    foreach ($row['comparison_dtl'] as $rdata) {
+                                                        if ($rdata['calcbudgetprice'] !== '' && $rdata['calcbudgetprice'] > 0) {
+                                                            $supplierMin = $rdata['calcbudgetprice'];
+                                                            $supplierIdMin = $rdata['supplierid'];
+                                                            $supplierTotalMin = $rdata['calcbudgetprice'] * $rdata['qty'];    
+                                                        }                                         
+                                                    }                                                    
 
                                                     foreach ($this->getProcCustomerList as $cus) {
 
@@ -245,20 +253,14 @@
                                                             echo '<input type="hidden" name="kpidmdtl'.$indexKey.'[]" value="'.($dtl['kpidmdtl'] ? htmlentities(json_encode($dtl['kpidmdtl']), ENT_QUOTES) : '').'" class="kpidmdtlobject">';
                                                             echo '</td>';
                                                             echo '<td class="text-right unitprice">' . Number::amount($totalAmount) . '</td>';
-
-                                                            if ($dtl['calcbudgetprice'] !== '') {
-                                                                if (!isset($supplierMin)) {
-                                                                    $supplierMin = $row['comparison_dtl'][0]['calcbudgetprice'];
-                                                                    $supplierIdMin = $row['comparison_dtl'][0]['supplierid'];
-                                                                    $supplierTotalMin = $row['comparison_dtl'][0]['calcbudgetprice'] * $row['comparison_dtl'][0]['qty'];    
-                                                                }
-
+             
+                                                            if ($dtl['calcbudgetprice'] !== '' && $dtl['calcbudgetprice'] > 0) {
                                                                 if ($supplierMin > $dtl['calcbudgetprice']) {
                                                                     $supplierMin = $dtl['calcbudgetprice'];
                                                                     $supplierIdMin = $dtl['supplierid'];
                                                                     $supplierTotalMin = $totalAmount;
                                                                 }
-                                                            }                                                        
+                                                            }                                                               
 
                                                             $itemMoreStr1 .= '<td class="text-right" colspan="'.$procIsQty2.'">' . Number::amount($totalPrice) . '</td>';
                                                             $itemMoreStr1 .= '<td class="">' . $dtl['currencycode'] . '</td>';
@@ -681,7 +683,7 @@
                   <?php
                 if ($this->getRowsProcFile) {
                     foreach ($this->getRowsProcFile as $file) {
-                        $bigIcon = "assets/core/global/img/filetype/64/" . $file['FILE_EXTENSION'] . ".png";
+                        $bigIcon = "assets/core/global/img/filetype/64/" . ($file['FILE_EXTENSION'] == 'msg' ? 'zip' : $file['FILE_EXTENSION']) . ".png";
                         ?>
                         <li class="meta" data-attach-id="<?php echo $file['ATTACH_ID']; ?>" data-record-id="<?php echo $this->id; ?>">
                           <figure class="directory">
@@ -1146,7 +1148,7 @@
     
     function onChangeAttachFIleAddMode(input){
       if($(input).hasExtension(["png", "gif", "jpeg", "pjpeg", "jpg", "x-png", "bmp", "doc", "docx", "xls", "xlsx", "pdf", "ppt", "pptx",
-        "zip", "rar", "mp3", "mp4"])){
+        "zip", "rar", "mp3", "mp4", "msg"])){
         var ext=input.value.match(/\.([^\.]+)$/)[1],
             i = 0;
         if(typeof ext !== "undefined"){
@@ -1175,7 +1177,7 @@
               li+='</a>';
             } else {
               li+='<a href="javascript:;" title="">';
-              li+='<img src="assets/core/global/img/filetype/64/' + extension + '.png"/>';
+              li+='<img src="assets/core/global/img/filetype/64/' + (extension == 'msg' ? 'zip' : extension) + '.png"/>';
               li+='</a>';
             }
 

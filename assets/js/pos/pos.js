@@ -3,6 +3,7 @@ var isClickF5 = false;
 var isAcceptPrintPos = true;
 var posCandyQrCheckInterval;
 var posQpayQrCheckInterval;
+var posSocialPayQrCheckInterval;
 var globalLoopPrint = 1,
   coldF9 = true,
   vartypeCancel = "",
@@ -5324,7 +5325,7 @@ function posCalcTotal() {
     qtySum += qty;
   });
 
-  if ($giftRows.length) {
+  /*if ($giftRows.length) {
     $giftRows.each(function () {
       var $giftRow = $(this),
         $parentItemRow = $giftRow
@@ -5338,7 +5339,7 @@ function posCalcTotal() {
       sum += giftPrice;
       qtySum += giftQty;
     });
-  }
+  }*/
 
   $("td.pos-amount-total").autoNumeric("set", sum);
   $("td.pos-amount-vat").autoNumeric("set", vatTotal);
@@ -6130,7 +6131,7 @@ function posPayment() {
         $.ajax({
           type: "post",
           url: "mdpos/qpayCheckQrCode",
-          data: { uuid: $('input[name="qpay_bill_no"]').val() },
+          data: { uuid: $('input[name="qpay_traceNo"]').val() },
           dataType: "json",
           success: function (dataQrCode) {
             Core.unblockUI();
@@ -18704,7 +18705,7 @@ function posVoidBankTerminal(confCode, bankAmount, callback) {
         }
 
         if (deviceType == "") {
-          callback();
+          callback({status:'success'});
           return;
         }
 
@@ -18896,6 +18897,9 @@ function posVoidBankTerminal(confCode, bankAmount, callback) {
           }
         );
         return false;
+      } else {
+          callback({status:'success'});
+          return;        
       }
     });
   } else {
@@ -18931,6 +18935,9 @@ function posSaleSocialPay(amount, phone) {
           addclass: "pnotify-center",
         });
         $('input[name="posSocialpayUID"]').val(data.message);
+        posSocialPayQrCheckInterval = setInterval(function () {
+          socialPayCheckQrCode(data.message, amount);
+        }, 3000);        
       } else {
         new PNotify({
           title: "Warning",
@@ -18980,13 +18987,10 @@ function posQRSocialPay() {
         var $dialog = $("#" + $dialogName);
 
         $('input[name="posSocialpayUID"]').val(data.message.invoiceid);
-        $dialog
-          .empty()
-          .append(
-            '<div class="w-100 text-center mt15 mb15">' +
-            data.message.qr +
-            "</div>"
-          );
+        posSocialPayQrCheckInterval = setInterval(function () {
+          socialPayCheckQrCode(data.message.invoiceid, amount);
+        }, 3000);             
+        $dialog.empty().append('<div class="w-100 text-center mt15 mb15">' + data.message.qr + "</div>");
         $dialog.dialog({
           cache: false,
           resizable: true,
@@ -24607,7 +24611,7 @@ function posSearchQpay(elem) {
           $('input[name="qpay_traceNo"]').val(dataQrCode.traceNo);
 
           posQpayQrCheckInterval = setInterval(function () {
-            qpayCheckQrCode(candyQrUuid, monAmount, $row);
+            qpayCheckQrCode(dataQrCode.traceNo, monAmount, $row);
           }, 3000);
         } else {
           new PNotify({
@@ -24671,6 +24675,61 @@ function qpayCheckQrCode(uuid, amount, row) {
       }
     },
   });
+}
+
+function socialPayCheckQrCode(uuid, amount) {
+    $.ajax({
+      type: "post",
+      url: "mdpos/socialPayCheckInvoice",
+      data: {
+        amount: amount,
+        id: uuid
+      },
+      dataType: "json",
+      beforeSend: function () { },
+      success: function (data) {
+        PNotify.removeAll();
+        if (data.status == "success") {
+          if (data.message.resp_code == "00") {
+            $('input[name="posSocialpayApprovalCode"]').val(
+              data.message.approval_code
+            );
+            $('input[name="posSocialpayCardNumber"]').val(
+              data.message.card_number
+            );
+            $('input[name="posSocialpayTerminal"]').val(
+              data.message.terminal
+            );
+            new PNotify({
+              title: "Success",
+              text: "Төлбөр амжилттай төлөгдлөө",
+              type: "success",
+              sticker: false,
+              addclass: "pnotify-center",
+            });    
+            clearInterval(posSocialPayQrCheckInterval);
+          } else {
+            new PNotify({
+              title: "Warning",
+              text: data.message.resp_desc,
+              type: "warning",
+              sticker: false,
+              addclass: "pnotify-center",
+            });
+          }
+          return;
+        } else {
+          new PNotify({
+            title: "Warning",
+            text: data.message,
+            type: "warning",
+            sticker: false,
+            addclass: "pnotify-center",
+          });
+          return;
+        }
+      },
+    });
 }
 
 function lookupAutoCompletePosGuestName(elem, type) {

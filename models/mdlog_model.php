@@ -178,4 +178,51 @@ class Mdlog_Model extends Model {
         return $result;
     }
     
+    public function metaConfigChangeLogModel() {
+        
+        try {
+            
+            $metaId = Input::numeric('metaId');
+            $uniqId = Input::numeric('uniqId');
+            
+            if ($metaId && $uniqId) {
+                
+                $this->db->Execute("DELETE FROM RECORD_VIEW_LOG WHERE ID = ".$this->db->Param(0)." AND TABLE_NAME = 'META_DATA'", array($uniqId));
+                
+                $beforeDate = Date::beforeDate('Y-m-d H:i:s', '-1 hour');
+                $this->db->Execute("DELETE FROM RECORD_VIEW_LOG WHERE TABLE_NAME = 'META_DATA' AND START_TIME < TO_DATE('$beforeDate', 'YYYY-MM-DD HH24:MI:SS')");
+                
+                $result = array('status' => 'success');
+                
+            } elseif ($metaId && !$uniqId) {
+                
+                Auth::handleLogin();
+                
+                includeLib('Detect/Browser');
+                $browser = new Browser();
+                
+                $data = array(
+                    'ID'           => getUID(), 
+                    'TABLE_NAME'   => 'META_DATA',
+                    'RECORD_ID'    => $metaId, 
+                    'START_TIME'   => Date::currentDate(), 
+                    'IP_ADDRESS'   => get_client_ip(), 
+                    'BROWSER_NAME' => $browser->getBrowser(), 
+                    'USER_ID'      => Ue::sessionUserId()
+                );
+
+                $this->db->AutoExecute('RECORD_VIEW_LOG', $data);
+                $result = array('status' => 'success', 'uniqId' => $data['ID']);
+                
+            } else {
+                $result = array('status' => 'error', 'message' => 'Invalid id!');
+            }
+                    
+        } catch (Exception $ex) {
+            $result = array('status' => 'error', 'message' => 'An error occurred!');
+        }
+        
+        return $result;
+    }
+    
 }

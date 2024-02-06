@@ -1,4 +1,4 @@
-<div class="center-sidebar overflow-hidden content">
+<div class="center-sidebar overflow-hidden content" style="padding: 0 15px;">
     <div class="row">
         
         <?php

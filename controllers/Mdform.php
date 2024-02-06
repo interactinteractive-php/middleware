@@ -36,6 +36,7 @@ class Mdform extends Controller {
     public static $indicatorCellStyle = null;
     public static $indicatorFormLogo = null;
     public static $methodStructureIndicatorId = null;
+    public static $currentKpiTypeId = null;
     public static $addonId = 0;
     public static $radioPrefix = '';
     public static $labelName = '';
@@ -75,20 +76,28 @@ class Mdform extends Controller {
     public static $indicatorHdrExpression = array();
     public static $indicatorTemplateRow = array();
     public static $indicatorConfigValues = array();
-    public static $tabRender = array();
-    public static $topTabRender = array();
-    public static $topTabRenderShow = array();
-    public static $gridStyler = array();
-    public static $typeIds = array('100', '101', '102', '103', '104', '105');
-    public static $headerInlineFields = array();
+    public static $tabRender = [];
+    public static $topTabRender = [];
+    public static $topTabRenderShow = [];
+    public static $gridStyler = [];
+    public static $headerInlineFields = [];
+    public static $addRowsTemplate = [];
+    public static $mvPostParams = [];
+    public static $mvPostFileParams = [];
+    public static $mvSaveParams = [];
+    public static $headerHiddenControl = [];
+    public static $mvParamsConfig = [];
+    public static $mvDbParams = [];
+    public static $typeIds = ['100', '101', '102', '103', '104', '105'];
+    public static $semanticTypes = ['checkListParamMap' => 116, 'component' => 10000010, 'normal' => 44, 'config' => 79];
     private static $viewPath = 'middleware/views/form/';
     private $spreadsheet = null;
-    private $spreadsheetArr = array();
-    private $sheetName = array();
-    private $sIndex = array();
-    private $sheetIndex = array();
-    private $oneLineSheetColumnIndex = array();
-    private $oneLineMergeCells = array();
+    private $spreadsheetArr = [];
+    private $sheetName = [];
+    private $sIndex = [];
+    private $sheetIndex = [];
+    private $oneLineSheetColumnIndex = [];
+    private $oneLineMergeCells = [];
     private $oneLineTitleRowIndex = 0;
     private $oneLineLabelRowIndex = 0;
     private $oneLineValueRowIndex = 0;
@@ -1156,6 +1165,11 @@ class Mdform extends Controller {
         jsonResponse($response);
     }
     
+    public function ddd() {
+        $rs = $this->model->getKpiIndicatorParamsModel(17022842288819);
+        var_dump($rs);die;
+    }
+    
     public function kpiIndicatorTemplateRender() {
         
         $postData = Input::postData();
@@ -1225,14 +1239,16 @@ class Mdform extends Controller {
 
                 $this->view->isUseComponent = $dataFirstRow['IS_USE_COMPONENT'];
                 
+                Mdwebservice::$processCode = $dataFirstRow['CODE'];
                 self::$subUniqId = $this->view->uniqId;
                 
                 if ($dataFirstRow['LABEL_WIDTH']) {
                     self::$labelWidth = $dataFirstRow['LABEL_WIDTH'];
                 }
                 
-                self::$topTabRender = array();
-                self::$tabRender = array();
+                self::$topTabRender = [];
+                self::$tabRender = [];
+                self::$addRowsTemplate = [];
                 
                 $this->view->form = $this->model->renderKpiIndicatorTemplateModel($structureIndicatorId, $this->view->dataTableName, $data);   
                 $this->view->standardHiddenFields = $this->model->standardHiddenFieldsModel();
@@ -1254,7 +1270,8 @@ class Mdform extends Controller {
                 
                 $this->view->mainTabName = 'Үндсэн';
                 $this->view->componentRenderType = 'tab';
-                
+                $this->view->headerLogo = $this->view->headerTitle = '';
+
                 if (Mdform::$methodStructureIndicatorId) {
                     
                     $structureIndicatorRow = $this->model->getKpiIndicatorRowModel(Mdform::$methodStructureIndicatorId);
@@ -1268,20 +1285,27 @@ class Mdform extends Controller {
                 
                 if ($this->view->isUseComponent) {
                     
-                    $components = $this->model->getKpiIndicatorMapModel($this->view->indicatorId, 10000010);                    
+                    $components = $this->model->getKpiIndicatorMapModel($this->view->indicatorId, Mdform::$semanticTypes['component']);                    
                     
                     if (Mdform::$defaultTplSavedId) {
                         $this->view->savedComponentRows = $this->model->getSavedRecordMapKpiComponentsModel($this->view->indicatorId, Mdform::$defaultTplSavedId, $components);
                     }
                     
-                    $componentTabs = Arr::groupByArray($components, 'DESCRIPTION');
+                    $componentTabs = Arr::groupByArray($components, 'TAB_NAME');
                     
                     foreach ($componentTabs as $componentTabName => $componentTab) {
                         
                         $this->view->componentUniqId = getUID();
                         $this->view->components = $componentTab['rows'];
                         
-                        Mdform::$topTabRenderShow[$this->lang->line($componentTabName)] = array($this->view->renderPrint('kpi/indicator/recordmap/recordmap', self::$viewPath));
+                        $componentTabName = $this->lang->line($componentTabName);
+                        $componentRender = $this->view->renderPrint('kpi/indicator/recordmap/recordmap', self::$viewPath);
+                        
+                        if (Str::lower($this->view->mainTabName) == Str::lower($componentTabName)) {
+                            $this->view->form .= $componentRender;
+                        } else {
+                            Mdform::$topTabRenderShow[$componentTabName] = array($componentRender);
+                        }
                     }
                     
                     $this->view->recordMapRender = '';
@@ -1309,7 +1333,11 @@ class Mdform extends Controller {
                             }
                         }
                     }
-                }
+                } /*else {
+                    $this->view->additionalInfo = $this->model->getIndicatorAdditionalInfoModel($this->view->kpiTypeId, $this->view->indicatorId);
+                    $this->view->headerLogo = issetParam($this->view->additionalInfo['FORMHEADERLOGO']); // logo
+                    $this->view->headerTitle = issetParam($this->view->additionalInfo['FORMHEADERTEXT']); //title
+                }*/
                 
                 if ($this->view->kpiTypeId == '2009') {
                     $this->view->isKpiIndicatorRender = '1';
@@ -1320,11 +1348,19 @@ class Mdform extends Controller {
                 
                 $this->view->title = $this->lang->line($dataFirstRow['NAME']);
                 $this->view->indicatorId = $structureIndicatorId;
-                $this->view->form = $this->view->renderPrint('kpi/indicator/form', self::$viewPath);
-                Mdform::$addonPathPrefix = null;
                 
+                Mdform::$addonPathPrefix = null;
+
+                $this->view->showBanner = self::getFormBanner($this->view->indicatorId);
+                $this->view->renderComponentsBanner = ($this->view->showBanner) ? '1' : '0';
+
+                $this->view->form = $this->view->renderPrint('kpi/indicator/form', self::$viewPath);
+                
+                $this->view->bgImage = $dataFirstRow['PROFILE_PICTURE'];
+                $this->view->logoImage = issetParam($dataFirstRow['ICON']);
+                $this->view->shortDescription = issetParam($dataFirstRow['SHORT_DESCRIPTION']);
                 if ($dataFirstRow['RENDER_THEME'] != '') {
-                    $this->view->bgImage = $dataFirstRow['PROFILE_PICTURE'];
+                                        
                     $this->view->form = $this->view->renderPrint('kpi/indicator/theme/' . $dataFirstRow['RENDER_THEME'], self::$viewPath);
                 }
                 
@@ -1333,6 +1369,10 @@ class Mdform extends Controller {
                         $replaceControl = '<div class="mv-inline-field">'.$inlineFields['control'] . $inlineFields['label'].'</div>';
                         $this->view->form = str_replace('<!--rows_'.$inlineFields['rowsPath'].'-->', $replaceControl.'<!--rows_'.$inlineFields['rowsPath'].'-->', $this->view->form);
                     }
+                }
+                
+                if (!Mdform::$tabRender && !Mdform::$topTabRender) {
+                    $this->view->form = str_replace(['<!--divClassRowStart-->', '<!--divClassRowEnd-->'], ['<div class="row">', '</div>'], $this->view->form);
                 }
                         
                 $response = array(
@@ -1366,12 +1406,18 @@ class Mdform extends Controller {
         $cache = phpFastCache();
         
         $expCacheId = $indicatorId;
-
-        $kpiFullExpressionEvent = $cache->get('kpiFullExpressionEvent_' . $expCacheId);
-        $kpiFullExpressionWithoutEvent = $cache->get('kpiFullExpressionWithoutEvent_' . $expCacheId);
-        $kpiFullExpressionVarFnc = $cache->get('kpiFullExpressionVarFnc_' . $expCacheId);
-        $kpiFullExpressionBeforeSave = $cache->get('kpiFullExpressionBeforeSave_' . $expCacheId);
-        $kpiFullExpressionAfterSave = $cache->get('kpiFullExpressionAfterSave_' . $expCacheId);
+        
+        $fullExpEventCacheName = 'kpi_'.$expCacheId.'_fullExpEvent';
+        $fullExpWithoutEventCacheName = 'kpi_'.$expCacheId.'_fullExpWithoutEvent';
+        $fullExpVarFncCacheName = 'kpi_'.$expCacheId.'_fullExpVarFnc';
+        $fullExpBeforeSaveCacheName = 'kpi_'.$expCacheId.'_fullExpBeforeSave';
+        $fullExpAfterSaveCacheName = 'kpi_'.$expCacheId.'_fullExpAfterSave';
+        
+        $kpiFullExpressionEvent = $cache->get($fullExpEventCacheName);
+        $kpiFullExpressionWithoutEvent = $cache->get($fullExpWithoutEventCacheName);
+        $kpiFullExpressionVarFnc = $cache->get($fullExpVarFncCacheName);
+        $kpiFullExpressionBeforeSave = $cache->get($fullExpBeforeSaveCacheName);
+        $kpiFullExpressionAfterSave = $cache->get($fullExpAfterSaveCacheName);
         
         Mdform::$isIndicatorRendering = true;
         Mdexpression::$setMainSelector = 'bp_window_'.$indicatorId;
@@ -1390,7 +1436,7 @@ class Mdform extends Controller {
             }
             
             $kpiFullExpressionWithoutEvent = (new Mdexpression())->fullExpressionConvertWithoutEvent($rowExp, $indicatorId, '', true);
-            $cache->set('kpiFullExpressionWithoutEvent_' . $expCacheId, $kpiFullExpressionWithoutEvent, Mdwebservice::$expressionCacheTime);
+            $cache->set($fullExpWithoutEventCacheName, $kpiFullExpressionWithoutEvent, Mdwebservice::$expressionCacheTime);
         }
         
         $kpiFullExpressionWithoutEvent = str_replace('_'.$indicatorId, '_'.$uniqId, $kpiFullExpressionWithoutEvent);
@@ -1411,7 +1457,7 @@ class Mdform extends Controller {
             }
             
             $kpiFullExpressionVarFnc = (new Mdexpression())->fullExpressionConvertWithoutEvent($rowExp, $indicatorId, '', true);
-            $cache->set('kpiFullExpressionVarFnc_' . $expCacheId, $kpiFullExpressionVarFnc, Mdwebservice::$expressionCacheTime);
+            $cache->set($fullExpVarFncCacheName, $kpiFullExpressionVarFnc, Mdwebservice::$expressionCacheTime);
         }
         
         if ($kpiFullExpressionEvent == null) {
@@ -1428,7 +1474,7 @@ class Mdform extends Controller {
             
             $kpiFullExpressionEvent = (new Mdexpression())->fullExpressionConvertEvent($rowExp, $indicatorId);
             $kpiFullExpressionEvent = str_replace('♥♥♥', '};', $kpiFullExpressionEvent);
-            $cache->set('kpiFullExpressionEvent_' . $expCacheId, $kpiFullExpressionEvent, Mdwebservice::$expressionCacheTime);
+            $cache->set($fullExpEventCacheName, $kpiFullExpressionEvent, Mdwebservice::$expressionCacheTime);
         }
         
         if ($kpiFullExpressionBeforeSave == null) {
@@ -1443,7 +1489,7 @@ class Mdform extends Controller {
             }
             
             $kpiFullExpressionBeforeSave = (new Mdexpression())->fullExpressionConvertWithoutEvent($rowExp, $indicatorId);
-            $cache->set('kpiFullExpressionBeforeSave_' . $expCacheId, $kpiFullExpressionBeforeSave, Mdwebservice::$expressionCacheTime);
+            $cache->set($fullExpBeforeSaveCacheName, $kpiFullExpressionBeforeSave, Mdwebservice::$expressionCacheTime);
         }
         
         if ($kpiFullExpressionAfterSave == null) {
@@ -1458,7 +1504,7 @@ class Mdform extends Controller {
             }
             
             $kpiFullExpressionAfterSave = (new Mdexpression())->fullExpressionConvertWithoutEvent($rowExp, $indicatorId);
-            $cache->set('kpiFullExpressionAfterSave_' . $expCacheId, $kpiFullExpressionAfterSave, Mdwebservice::$expressionCacheTime);
+            $cache->set($fullExpAfterSaveCacheName, $kpiFullExpressionAfterSave, Mdwebservice::$expressionCacheTime);
         }
         
         $kpiFullExpressionVarFnc = str_replace('_'.$indicatorId, '_'.$uniqId, $kpiFullExpressionVarFnc);
@@ -1592,7 +1638,7 @@ class Mdform extends Controller {
     
     public function saveKpiDynamicData($sourceRecordId = null) {
         $this->load->model('mdform', 'middleware/models/');
-        $response = $this->model->saveKpiDynamicDataModel($sourceRecordId);
+        $response = $this->model->saveMetaVerseDataModel($sourceRecordId);
         
         if ($response['status'] != 'success') {
             Mdwebservice::deleteUploadedFiles(FileUpload::$uploadedFiles);
@@ -1706,8 +1752,15 @@ class Mdform extends Controller {
         $this->view->isCheckQuery = $this->view->row['KPI_TYPE_ID'] == '1200' ? true : false;
         $this->view->drillDownCriteria = Input::post('drillDownCriteria');
         $this->view->hiddenParams = Input::post('hiddenParams');
+        $this->view->isHideCheckBox = Input::post('isHideCheckBox', 1);
         $this->view->postHiddenParams = '';
         $this->view->filter = '';
+        $this->view->relationComponentsOther = '0';
+        $this->view->subgrid = $this->view->row['subgrid'];
+        $defaultListView = 'kpi/indicator/list';
+        if (Input::numeric('isIgnoreFilter')) {
+            $this->view->isIgnoreFilter = true;
+        }        
         
         if ($this->view->idField && $this->view->nameField && $this->view->parentField) {
             $this->view->isGridType = 'treegrid';
@@ -1715,22 +1768,50 @@ class Mdform extends Controller {
         }
         
         $this->view->process = $this->model->getKpiIndicatorProcessModel($this->view->indicatorId);
-        
-        if ($this->view->row['KPI_TYPE_ID'] == '2016') {
+        $this->view->relationComponents = $this->model->getKpiIndicatorMapWithoutTypeModel($this->view->indicatorId, 10000009);
+
+        if (Mdwidget::mvDataSetAvailableWidgets($this->view->row['WIDGET_ID'])) {
+            
+            $this->view->renderGrid = self::renderWidgetDataSet($this->view->row);
+            
+        } elseif ($this->view->row['KPI_TYPE_ID'] == '2016') {
+            
             $this->view->renderGrid = self::renderCustomView($this->view->row['KPI_TYPE_ID']);
+            
         } else {
+            
             $this->model->mvGridStylerModel($this->view->indicatorId);
             
             if ($filter = Input::get('filter')) {
                 $this->view->filter = $this->model->validateFilters($this->view->indicatorId, $filter);
-            }
+            }            
             
-            if (Input::numeric('isIgnoreFilter')) {
-                $this->view->isIgnoreFilter = true;
-            }
-        
+            $this->view->relationComponents = Arr::groupByArrayOnlyRow($this->view->relationComponents, 'NAME', false);
+            $this->view->relationComponentsOther = issetParamArray($this->view->relationComponents['mv_calendar']) ? '1' : '0';
+            
             $this->view->columns = $this->model->renderKpiIndicatorColumnsModel($this->view->indicatorId, $this->view->row['isCheckSystemTable'], array('columnsData' => $this->view->columnsData));
-            $this->view->renderGrid = $this->view->renderPrint('kpi/indicator/renderGrid', self::$viewPath);
+            
+            if (Input::post('isSubGrid')) {
+                $this->view->subGridUniqId = getUID();
+                $this->view->renderGrid = $this->view->renderPrint('kpi/indicator/subgrid/renderSubGrid', self::$viewPath);
+                $defaultListView = 'kpi/indicator/subgrid/subList';
+            } else {
+                $this->view->renderGrid = $this->view->renderPrint('kpi/indicator/renderGrid', self::$viewPath);
+            }
+
+            if (issetParamArray($this->view->relationComponents['mv_calendar']) && Input::post('viewType') !== 'list') {
+                if ($this->view->relationComponents) {
+                    $this->load->model('mdform', 'middleware/models/');
+                    $this->view->relationComponentsConfigData = $this->model->getRelationComponentsConfigModel($this->view->relationComponents['mv_calendar']['MAP_ID']);
+
+                    $this->view->relationColumnData = Arr::groupByArrayOnlyRow($this->view->columnsData, 'COLUMN_NAME', false);
+                    
+                    foreach ($this->view->relationComponentsConfigData as $rk => $rrow) {
+                        $this->view->relationViewConfig[$rk] = checkDefaultVal($this->view->relationColumnData[$rrow]['COLUMN_NAME'], $rrow);
+                    }
+                }
+                $this->view->renderGrid = $this->view->renderPrint('kpi/indicator/widget/grid/calendar', self::$viewPath);
+            }
         }
         
         if ($this->view->isAjax == false) {
@@ -1742,14 +1823,18 @@ class Mdform extends Controller {
             $this->view->render('header');
         } 
         
+        if (issetParam($this->view->selectedBasketRows)) {
+            $defaultListView = 'kpi/indicator/basket/basket';
+        }
+        
         if (isset($isReturnArray) && $isReturnArray) {
             if (Input::numeric('isJson')) {
-                echo json_encode(array('title' => $this->view->title, 'html' => $this->view->renderPrint('kpi/indicator/list', self::$viewPath)), JSON_UNESCAPED_UNICODE);
+                echo json_encode(array('title' => $this->view->title, 'html' => $this->view->renderPrint($defaultListView, self::$viewPath)), JSON_UNESCAPED_UNICODE);
             } else {
-                return array('title' => $this->view->title, 'html' => $this->view->renderPrint('kpi/indicator/list', self::$viewPath));
+                return array('title' => $this->view->title, 'html' => $this->view->renderPrint($defaultListView, self::$viewPath));
             }
         } else {
-            $this->view->render('kpi/indicator/list', self::$viewPath);
+            $this->view->render($defaultListView, self::$viewPath);
         }
 
         if ($this->view->isAjax == false) {
@@ -1784,7 +1869,7 @@ class Mdform extends Controller {
             $this->view->indicatorId = Input::numeric('indicatorId');
             $this->view->render('kpi/indicator/widget/grid/cardview/'.$viewCode, self::$viewPath);
         }
-    }
+    }   
     
     public function renderCustomMoreView() {
         
@@ -2134,10 +2219,23 @@ class Mdform extends Controller {
         if (Input::numeric('isSqlView') == 1) {
             $response = $this->model->generateKpiRelationDataMartModel($indicatorId);
         } else {
-            $response = $this->model->runAllKpiDataMartByIndicatorIdModel($indicatorId);
+            Mdform::$currentKpiTypeId = 1044;
+            $data = $this->model->getKpiIndicatorTemplateModel($indicatorId);
+            
+            if ($data && isset($data[1])) {
+            
+                $_POST['isResponseArray'] = 1;
+                $_POST['param']['indicatorId'] = $indicatorId;
+                $_POST['param']['actionType'] = 'create';
+
+                $response = self::kpiIndicatorTemplateRender(); 
+
+            } else {
+                $response = $this->model->runAllKpiDataMartByIndicatorIdModel($indicatorId);
+            }
         }
         
-        echo json_encode($response);
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
     public function generateKpiDataMartFromStatement() {
@@ -2169,6 +2267,7 @@ class Mdform extends Controller {
         
         if ($filterData['status'] == 'success') {
             $this->view->filterData = $filterData['data'];
+            $this->view->filterTreeData = $filterData['treeData'];
             
             $response = array(
                 'status' => 'success', 
@@ -2698,10 +2797,12 @@ class Mdform extends Controller {
         $this->view->isChartList = 1;
         $this->view->bgImage = $dashboardConfigs['bgImage'];
         $this->view->isBuild = '1'; /*Config::getFromCache('useEchartsBuilder');*/
+        
         if ($indicatorId === '099' || $layoutCode === '100') {
             $mdIntegration = new Mdintegration();
             $this->view->weatherData = $mdIntegration->getForecast5day('Дархан');
         }
+        
         if ($filterParams) {
             
             $_POST['isChartList'] = 1;
@@ -2895,6 +2996,25 @@ class Mdform extends Controller {
         
         $this->view->render('kpi/indicator/iframe/render', self::$viewPath);
     }
+    
+    public function indicatorChecklist($indicatorId = '', $isReturnArray = false) {
+        
+        $this->view->isAjax = is_ajax_request();
+        $this->view->uniqId = getUID();
+        $this->view->indicatorId = $indicatorId;
+        $this->view->indicatorName = $this->view->row['NAME'];
+        $this->view->relationList = $this->model->getChildRenderStructureModel($indicatorId);
+        
+        $widgetCode = $this->view->row['RELATION_WIDGET_CODE'];
+        
+        if (!$widgetCode || ($widgetCode && !file_exists(self::$viewPath . 'kpi/indicator/widget/checklist/' . $widgetCode . '.php'))) {
+            $widgetCode = 'mv_checklist_01';
+        }
+        
+        $this->view->checkListRender = $this->view->renderPrint('kpi/indicator/widget/checklist/'.$widgetCode, self::$viewPath);
+        
+        $this->view->render('kpi/indicator/checklist/index', self::$viewPath);
+    }
 
     public function indicatorRender($indicatorId = '') {
         
@@ -2945,12 +3065,6 @@ class Mdform extends Controller {
         $this->view->isAjax = is_ajax_request();
         $this->view->row['isIgnoreStandardFields'] = true;
         
-        $columnsData = $this->model->getKpiIndicatorColumnsModel($this->view->indicatorId, $this->view->row); 
-        $columns = $this->model->chartKpiIndicatorColumnsModel($columnsData);
-        
-        $this->view->categoryColumns = $columns['categoryColumns'];
-        $this->view->valueColumns = $columns['valueColumns'];
-        
         if ($this->view->isAjax == false) {
             
             $this->view->css = AssetNew::metaCss();
@@ -2959,6 +3073,15 @@ class Mdform extends Controller {
         
             $this->view->render('header');
         } 
+        
+        if (in_array($this->view->row['KPI_TYPE_ID'], array('1060', '1130', '2020'))) {
+            
+            $columnsData = $this->model->getKpiIndicatorColumnsModel($this->view->indicatorId, $this->view->row); 
+            $columns = $this->model->chartKpiIndicatorColumnsModel($columnsData);
+
+            $this->view->categoryColumns = $columns['categoryColumns'];
+            $this->view->valueColumns = $columns['valueColumns'];
+        }
         
         $this->view->renderChart = '';
         
@@ -2974,6 +3097,9 @@ class Mdform extends Controller {
                 break;
             case '2006':
                 self::bpmnRender($isReturnArray, $this->view->indicatorId, $this->view->indicatorName);
+                break;
+            case '13':
+                self::indicatorChecklist($this->view->indicatorId, $isReturnArray);
                 break;
             default:
                 echo 'Харуулах боломжгүй байна.';
@@ -3455,11 +3581,11 @@ class Mdform extends Controller {
             
             $indicatorId = Input::numeric('indicatorId');
             $idField     = Input::post('idField');
-            $selectedRow = Input::post('selectedRow');
+            $selectedRows = Input::post('selectedRows');
             
-            if (Mdform::$defaultTplSavedId = issetParam($selectedRow[$idField])) {
+            if (Mdform::$defaultTplSavedId = issetParam($selectedRows[0][$idField])) {
                 
-                $configData = $this->model->getKpiIndicatorTemplateModel($indicatorId, null, true);
+                $configData = $this->model->getKpiIndicatorTemplateModel($indicatorId, null, true);                
                 
                 if (!$configData) {
                     throw new Exception('Invalid config!'); 
@@ -3467,13 +3593,6 @@ class Mdform extends Controller {
                 
                 $configFirstRow = $configData[0];
                 
-                Mdform::$kpiDmMart = $this->model->getKpiIndicatorDetailDataModel($indicatorId, Mdform::$defaultTplSavedId);
-            
-                if (Mdform::$kpiDmMart['status'] != 'success') {
-                    throw new Exception('Invalid row data!'); 
-                }
-                
-                Mdform::$kpiDmMart = Mdform::$kpiDmMart['detailData'];
                 $fileName = $configFirstRow['NAME'].' - '.Date::currentDate('YmdHi').'.xlsx';
                 
                 includeLib('Office/Excel/phpspreadsheet/vendor/autoload');
@@ -3503,18 +3622,30 @@ class Mdform extends Controller {
                 
                 $this->spreadsheet->setActiveSheetIndex(0);
                 
-                foreach ($configData as $k => $row) {
-            
-                    if (!$row['PARENT_ID']) {
+                foreach ($selectedRows as $rowIndex => $selectedRow) {
+                    $configDataTemp = $configData;
+                    Mdform::$defaultTplSavedId = issetParam($selectedRow[$idField]);
+                    Mdform::$kpiDmMart = $this->model->getKpiIndicatorDetailDataModel($indicatorId, Mdform::$defaultTplSavedId);
 
-                        unset($configData[$k]);
-
-                        $id = $row['ID'];
-
-                        $this->excelExportKpiIndicatorFields($indicatorId, $configData, $id, $row);
-
-                        break;
+                    if (Mdform::$kpiDmMart['status'] != 'success') {
+                        throw new Exception('Invalid row data!'); 
                     }
+
+                    Mdform::$kpiDmMart = Mdform::$kpiDmMart['detailData'];
+
+                    foreach ($configDataTemp as $k => $row) {
+
+                        if (!$row['PARENT_ID']) {
+
+                            unset($configDataTemp[$k]);
+
+                            $id = $row['ID'];
+
+                            $this->excelExportKpiIndicatorFields($indicatorId, $configDataTemp, $id, $row);
+
+                            break;
+                        }
+                    }                    
                 }
                 
                 $this->spreadsheet->setActiveSheetIndex(0);
@@ -3549,7 +3680,7 @@ class Mdform extends Controller {
         
         foreach ($configData as $k => $arrRow) {
                     
-            if ($arrRow['PARENT_ID'] == $parentId) {
+            if ($arrRow['PARENT_ID'] == $parentId && $arrRow['IS_RENDER']) {
                 
                 unset($configData[$k]);
                 
@@ -3866,9 +3997,9 @@ class Mdform extends Controller {
             
             $indicatorId = Input::numeric('indicatorId');
             $idField     = Input::post('idField');
-            $selectedRow = Input::post('selectedRow');
+            $selectedRows = Input::post('selectedRows');
             
-            if (Mdform::$defaultTplSavedId = issetParam($selectedRow[$idField])) {
+            if (Mdform::$defaultTplSavedId = issetParam($selectedRows[0][$idField])) {
                 
                 $configData = $this->model->getKpiIndicatorTemplateModel($indicatorId, null, true);
                 
@@ -3878,13 +4009,6 @@ class Mdform extends Controller {
                 
                 $configFirstRow = $configData[0];
                 
-                Mdform::$kpiDmMart = $this->model->getKpiIndicatorDetailDataModel($indicatorId, Mdform::$defaultTplSavedId);
-            
-                if (Mdform::$kpiDmMart['status'] != 'success') {
-                    throw new Exception('Invalid row data!'); 
-                }
-                
-                $detailData = Mdform::$kpiDmMart['detailData'];
                 $fileName = $configFirstRow['NAME'].' - '.Date::currentDate('YmdHi').'.xlsx';
                 
                 includeLib('Office/Excel/phpspreadsheet/vendor/autoload');
@@ -3924,8 +4048,6 @@ class Mdform extends Controller {
                     }
                 }
                 
-                Mdform::$kpiDmMart = $detailData;
-                
                 $this->sheetIndex['mainSheet'] = count($this->sheetName);
                 $this->sheetName['mainSheet'] = $mainTabName;
                 $this->sIndex[$this->sheetName['mainSheet']] = 1;
@@ -3943,134 +4065,154 @@ class Mdform extends Controller {
                 $this->spreadsheetArr['mainSheet'] = $this->spreadsheet->getActiveSheet();
                 $this->spreadsheetArr['mainSheet']->setTitle($this->sheetName['mainSheet']);
                 
-                foreach ($configData as $k => $row) {
-            
-                    if (!$row['PARENT_ID']) {
-
-                        unset($configData[$k]);
-
-                        $id = $row['ID'];
-
-                        $this->excelExportOneLineKpiIndicatorFields($indicatorId, $configData, $id, $row, 'mainSheet');
-
-                        break;
+                foreach ($selectedRows as $rowIndex => $selectedRow) {
+                    $configDataTemp = $configData;                
+                    Mdform::$defaultTplSavedId = issetParam($selectedRow[$idField]);
+                    Mdform::$kpiDmMart = $this->model->getKpiIndicatorDetailDataModel($indicatorId, Mdform::$defaultTplSavedId);
+                    
+                    if (Mdform::$kpiDmMart['status'] != 'success') {
+                        throw new Exception('Invalid row data!'); 
+                    }                    
+                    
+                    if ($rowIndex) {
+                        $this->oneLineTitleRowIndex = $this->oneLineTitleRowIndex + 4;
+                        $this->oneLineLabelRowIndex = $this->oneLineTitleRowIndex + 1;
+                        $this->oneLineValueRowIndex = $this->oneLineLabelRowIndex + 1;           
+                        $this->oneLineSheetColumnIndex[$this->sheetName['mainSheet']] = 1;
                     }
-                }
-                
-                if ($this->oneLineMergeCells) {
-                            
-                    foreach ($this->oneLineMergeCells as $sheetName => $cells) {
-                        
-                        if (count($cells) > 1) {
-                            
-                            $this->spreadsheet->setActiveSheetIndex($this->sheetIndex[$sheetName]);
-                            
-                            $checkMerge = $checkMergeLoop = array();
-                            $c = $t = 0;
-                            
-                            foreach ($cells as $cellName => $cellVal) {
-                                
-                                $checkMergeLoop[$c] = array('cellVal' => $cellVal, 'cellName' => $cellName);
-                                
-                                if ($c == 0) {
-                                    $checkMerge[$t] = array('start' => $cellName);
-                                    $t ++;
-                                } elseif ($checkMergeLoop[$c - 1]['cellVal'] != $cellVal) {
-                                    $checkMerge[$t - 1]['end'] = $checkMergeLoop[$c - 1]['cellName'];
-                                    $checkMerge[$t] = array('start' => $cellName);
-                                    $t ++;
-                                } 
-                                
-                                $c ++;
-                            }
-                            
-                            $checkMerge[$t - 1]['end'] = $cellName;
-                            
-                            if ($checkMerge) {
-                                foreach ($checkMerge as $setMerge) {
-                                    if (isset($setMerge['end'])) {
-                                        
-                                        $start = $setMerge['start'];
-                                        $end = $setMerge['end'];
+                    
+                    Mdform::$kpiDmMart = Mdform::$kpiDmMart['detailData'];
+                    
+                    foreach ($configDataTemp as $k => $row) {
 
-                                        if ($start != $end) {
-                                            $this->spreadsheet->getActiveSheet()->mergeCells($start.':'.$end);
+                        if (!$row['PARENT_ID']) {
+
+                            unset($configDataTemp[$k]);
+
+                            $id = $row['ID'];
+
+                            $this->excelExportOneLineKpiIndicatorFields($indicatorId, $configDataTemp, $id, $row, 'mainSheet');
+
+                            break;
+                        }
+                    }
+                    
+                    if ($this->oneLineMergeCells) {
+
+                        foreach ($this->oneLineMergeCells as $sheetName => $cells) {
+
+                            if (count($cells) > 1) {
+
+                                $this->spreadsheet->setActiveSheetIndex($this->sheetIndex[$sheetName]);
+
+                                $checkMerge = $checkMergeLoop = array();
+                                $c = $t = 0;
+
+                                foreach ($cells as $cellName => $cellVal) {
+
+                                    $checkMergeLoop[$c] = array('cellVal' => $cellVal, 'cellName' => $cellName);
+
+                                    if ($c == 0) {
+                                        $checkMerge[$t] = array('start' => $cellName);
+                                        $t ++;
+                                    } elseif ($checkMergeLoop[$c - 1]['cellVal'] != $cellVal) {
+                                        $checkMerge[$t - 1]['end'] = $checkMergeLoop[$c - 1]['cellName'];
+                                        $checkMerge[$t] = array('start' => $cellName);
+                                        $t ++;
+                                    } 
+
+                                    $c ++;
+                                }
+
+                                $checkMerge[$t - 1]['end'] = $cellName;
+
+                                if ($checkMerge) {
+                                    foreach ($checkMerge as $setMerge) {
+                                        if (isset($setMerge['end'])) {
+
+                                            $start = $setMerge['start'];
+                                            $end = $setMerge['end'];
+
+                                            if ($start != $end) {
+                                                $this->spreadsheet->getActiveSheet()->mergeCells($start.':'.$end);
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
-                    }
-                }
+                    }                    
+                    
+                    foreach ($this->sheetIndex as $shName => $shIndex) {
 
-                foreach ($this->sheetIndex as $shName => $shIndex) {
-                    
-                    if (!isset($this->oneLineMergeCells[$shName])) {
-                        $this->spreadsheet->removeSheetByIndex($shIndex);
-                        continue;
-                    }
-                    
-                    $this->spreadsheet->setActiveSheetIndex($shIndex);
-                    
-                    $cells = $this->oneLineMergeCells[$shName];
-                    $firstKey = array_key_first($cells);
-                    $lastKey = array_key_last($cells);
-                    
-                    $onlyFirstAlpha = preg_replace("/[^A-Z]+/", "", $firstKey);
-                    $onlyLastAlpha = preg_replace("/[^A-Z]+/", "", $lastKey);
-                    
-                    $s = alphaToNum($onlyFirstAlpha);
-                    $e = alphaToNum($onlyLastAlpha);
-                    
-                    for ($i = $s; $i <= $e; $i++) {
-                        $this->spreadsheet->getActiveSheet()->getColumnDimension(numToAlpha($i))->setWidth(25, 'pt');
-                    }
-                    
-                    $this->spreadsheet->getActiveSheet()->getStyle($firstKey.':'.$lastKey)
-                        ->applyFromArray(
+                        if (!isset($this->oneLineMergeCells[$shName])) {
+                            $this->spreadsheet->removeSheetByIndex($shIndex);
+                            continue;
+                        }
+
+                        $this->spreadsheet->setActiveSheetIndex($shIndex);
+
+                        $cells = $this->oneLineMergeCells[$shName];
+                        $firstKey = array_key_first($cells);
+                        $lastKey = array_key_last($cells);
+
+                        $onlyFirstAlpha = preg_replace("/[^A-Z]+/", "", $firstKey);
+                        $onlyLastAlpha = preg_replace("/[^A-Z]+/", "", $lastKey);
+                        $firstKey = $onlyFirstAlpha.$this->oneLineTitleRowIndex;
+
+                        $s = alphaToNum($onlyFirstAlpha);
+                        $e = alphaToNum($onlyLastAlpha);
+
+                        for ($i = $s; $i <= $e; $i++) {
+                            $this->spreadsheet->getActiveSheet()->getColumnDimension(numToAlpha($i))->setWidth(25, 'pt');
+                        }
+
+                        $this->spreadsheet->getActiveSheet()->getStyle($firstKey.':'.$lastKey)
+                            ->applyFromArray(
+                                array(
+                                    'font' => array('bold' => true), 
+                                    'alignment' => array(
+                                        'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
+                                    ),
+                                    'fill' => array(
+                                        'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                                        'startColor' => array(
+                                            'argb' => 'DDEBF7'
+                                        )
+                                    )
+                                )
+                            );
+
+                        $this->spreadsheet->getActiveSheet()->getStyle($onlyFirstAlpha.$this->oneLineLabelRowIndex.':'.$onlyLastAlpha.$this->oneLineLabelRowIndex)
+                            ->applyFromArray(
+                                array(
+                                    'alignment' => array(
+                                        'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                                    ),
+                                    'fill' => array(
+                                        'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                                        'startColor' => array(
+                                            'argb' => 'C6EFCE'
+                                        )
+                                    )
+                                )
+                            );
+
+                        $this->spreadsheet->getActiveSheet()->getStyle($firstKey.':'.$onlyLastAlpha.$this->oneLineValueRowIndex)
+                            ->applyFromArray(
                             array(
-                                'font' => array('bold' => true), 
-                                'alignment' => array(
-                                    'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
-                                ),
-                                'fill' => array(
-                                    'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                                    'startColor' => array(
-                                        'argb' => 'DDEBF7'
+                                'borders' => array(
+                                    'allBorders' => array(
+                                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN, 
+                                        'color' => array('argb' => '000')
                                     )
                                 )
                             )
                         );
-                    
-                    $this->spreadsheet->getActiveSheet()->getStyle($onlyFirstAlpha.$this->oneLineLabelRowIndex.':'.$onlyLastAlpha.$this->oneLineLabelRowIndex)
-                        ->applyFromArray(
-                            array(
-                                'alignment' => array(
-                                    'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
-                                ),
-                                'fill' => array(
-                                    'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                                    'startColor' => array(
-                                        'argb' => 'C6EFCE'
-                                    )
-                                )
-                            )
-                        );
-                    
-                    $this->spreadsheet->getActiveSheet()->getStyle($firstKey.':'.$onlyLastAlpha.$this->oneLineValueRowIndex)
-                        ->applyFromArray(
-                        array(
-                            'borders' => array(
-                                'allBorders' => array(
-                                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN, 
-                                    'color' => array('argb' => '000')
-                                )
-                            )
-                        )
-                    );
-                    
-                    $this->spreadsheet->getActiveSheet()->getStyle($firstKey.':'.$onlyLastAlpha.$this->oneLineValueRowIndex)->getAlignment()->setWrapText(true);
-                }
+
+                        $this->spreadsheet->getActiveSheet()->getStyle($firstKey.':'.$onlyLastAlpha.$this->oneLineValueRowIndex)->getAlignment()->setWrapText(true);
+                    }                    
+                }               
 
                 $this->spreadsheet->setActiveSheetIndex(0);
                 
@@ -4104,7 +4246,7 @@ class Mdform extends Controller {
         
         foreach ($configData as $k => $arrRow) {
                     
-            if ($arrRow['PARENT_ID'] == $parentId) {
+            if ($arrRow['PARENT_ID'] == $parentId && $arrRow['IS_RENDER']) {
                 
                 unset($configData[$k]);
                 
@@ -4461,7 +4603,7 @@ class Mdform extends Controller {
         $postData = Input::postData();
         $indicatorId = Input::numeric('indicatorId');
         
-        $data = $this->model->getKpiIndicatorTemplateModel($indicatorId);
+        $data = null; //$this->model->getKpiIndicatorTemplateModel($indicatorId);
         
         if ($data && isset($data[1])) {
             
@@ -5174,7 +5316,7 @@ class Mdform extends Controller {
         echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
-    public function microUpdateClientObject($obj, $id) {   
+    public function microUpdateClientObject($obj, $id) { 
         $getObject = $this->model->getKpiIndicatorByCodeModel(Input::post('getNameOfObjectName'));
         $postData = Input::postData();
         unset($postData['recordId']);
@@ -5513,6 +5655,32 @@ class Mdform extends Controller {
         echo json_encode($response, JSON_UNESCAPED_UNICODE);        
     }    
 
+    public function renderRelationKpiViewType() {
+        $this->view->indicatorId = Input::post('indicatorId');
+        $this->view->viewType = Input::post('viewType');
+        $components = $this->model->getKpiIndicatorMapWithoutTypeModel($this->view->indicatorId, 10000009);            
+        $this->view->savedComponentRows = $this->model->getSavedRecordMapKpiModel($this->view->indicatorId, $this->view->indicatorId, $components);
+        
+        $this->view->fromWebLink = true;
+        $this->view->components = $components;
+        $defaultView = 'kpi/indicator/recordmap/recordmap2contenttype';
+        
+        if ($this->view->viewType == 'LIST') {
+            $defaultView = 'kpi/indicator/recordmap/recordmap2content';
+        }
+        
+        if ($this->view->viewType == 'LOOKUP_META_DATA_ID') {
+            $defaultView = 'kpi/indicator/recordmap/recordmap2contentmetatype';
+        }
+
+        $response = array(
+            'status' => 'success', 
+            'html' => $this->view->renderPrint($defaultView, self::$viewPath)
+        );
+        
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);        
+    }    
+
     public function deleteRelationpKpi() {
         $mapId = Input::post('mapId');
         $this->model->dbExecuteMetaVerseData("
@@ -5627,6 +5795,15 @@ class Mdform extends Controller {
             $this->view->row = $this->model->getKpiIndicatorRowModel($this->view->indicatorId);
             $this->view->kpiTypeIndicatorData = $this->model->kpiTypeIndicatorData($this->view->row['KPI_TYPE_ID']);
         }
+        
+        Mdform::$recordId = $this->view->indicatorId;
+        $data = $this->model->getKpiIndicatorTemplateModel(16606226267899);
+        $this->view->dataTableName = $data[0]['TABLE_NAME'];
+        $this->view->form = $this->model->renderKpiIndicatorTemplateModel(16606226267899, $this->view->dataTableName, $data);   
+        $this->view->row['C1'] = 'https://help.veritech.mn/new/'.issetParam(Mdform::$kpiDmMart['C12']);
+        
+        $this->view->render('kpi/indicator/iframe/render', self::$viewPath);
+        exit;
         
         $this->view->js = array_unique(array_merge(array('custom/addon/admin/pages/scripts/app.js'), AssetNew::metaOtherJs()));
         $this->view->css = AssetNew::metaCss();
@@ -5882,7 +6059,7 @@ class Mdform extends Controller {
     }
     
     public function runPivotDataMartTest() {
-        $rs = $this->model->runPivotDataMartModel('16980343878036');
+        $rs = $this->model->runPivotDataMartModel('1356118279');
         var_dump($rs);
     }
     
@@ -5969,7 +6146,10 @@ class Mdform extends Controller {
         $_POST['isIgnoreTitle'] = 1;
         $_POST['isIgnoreRightTools'] = 1;
         
-        $this->view->process = array(); //$this->model->getKpiIndicatorProcessImportManageModel($this->view->indicatorId);
+        $this->view->process = array();
+        $this->view->isHideCheckBox = Input::post('isHideCheckBox', 1);
+        $this->view->subgrid = null; 
+        //$this->model->getKpiIndicatorProcessImportManageModel($this->view->indicatorId);
         
         /*foreach ($this->view->mainColumnsData as $k => $mainColumnsData) {
             
@@ -6041,6 +6221,11 @@ class Mdform extends Controller {
         echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
+    public function getIndicatorParam() {
+        $response = $this->model->getIndicatorParamModel();
+        echo json_encode($response, JSON_UNESCAPED_UNICODE); 
+    }
+    
     public function mapKpiIndicatorValueRender() {
         
         $this->view->uniqId = getUID();
@@ -6060,11 +6245,16 @@ class Mdform extends Controller {
     }
     
     public function renderValueMapStructure() {
+            
+        Mdform::$currentKpiTypeId = Input::numeric('trgIndicatorKpiTypeId');
         
+        $trgIndicatorId = Input::numeric('trgIndicatorId');
+        $srcMapId       = Input::numeric('srcMapId');
         $srcRefStructureId = Input::numeric('mainIndicatorId');
-        $trgRefStructureId = Input::numeric('structureIndicatorId');
+        $trgRefStructureId = (Mdform::$currentKpiTypeId == 1044) ? $trgIndicatorId : Input::numeric('structureIndicatorId');
         $srcRecordId       = Input::numeric('recordId');
         
+        $getIndicatorDescription = $this->model->getIndicatorWithDescriptionModel($trgRefStructureId);
         $trgRecordId = $this->model->trgRecordIdMetaDmRecordMapModel($srcRefStructureId, $trgRefStructureId, $srcRecordId);
         
         $_POST['isResponseArray'] = 1;
@@ -6078,23 +6268,350 @@ class Mdform extends Controller {
             $_POST['param']['actionType'] = 'update';
             
         } else {
-            
-            $trgIndicatorId = Input::numeric('trgIndicatorId');
-            $srcMapId       = Input::numeric('srcMapId');
         
             $mapData = $this->model->getSrcTrgPathModel($srcMapId, $trgIndicatorId);
             
             if ($mapData) {
-                $selectedRow = Arr::decode(Input::post('selectedRow'));
+                
+                $selectedRowPost = Input::post('selectedRow');
+                if (is_array($selectedRowPost)) {
+                    $selectedRow = $selectedRowPost;
+                    $selectedRow = Arr::changeKeyLower($selectedRow);
+                } else {
+                    $selectedRow = Arr::decode($selectedRowPost);
+                    if ($selectedRowPost && !$selectedRow) {
+                        $selectedRow = json_decode(html_entity_decode($selectedRowPost, ENT_QUOTES, 'UTF-8'), true);
+                        $selectedRow = Arr::changeKeyLower($selectedRow);
+                    }                    
+                }               
+                
                 foreach ($mapData as $mapRow) {
                     $_POST['transferSelectedRow'][strtoupper($mapRow['TRG_INDICATOR_PATH'])] = issetParam($selectedRow[strtolower($mapRow['SRC_INDICATOR_PATH'])]);
                 }
             }
         }
+        
+        $indicatorContent = self::kpiIndicatorTemplateRender(); 
+        $indicatorContent['indicatorInfo'] = $getIndicatorDescription; 
+        
+        echo json_encode($indicatorContent, JSON_UNESCAPED_UNICODE);
+    }
+    
+    public function mvNormalRelationRender() {
+        
+        $this->view->isAjax = is_ajax_request();
+        $this->view->uniqId = getUID();
+        
+        $this->view->indicatorId = Input::numeric('mainIndicatorId');
+        $this->view->listIndicatorId = $this->view->indicatorId;
+        $this->view->structureIndicatorId = Input::numeric('structureIndicatorId');
+        $this->view->strIndicatorId = $this->view->structureIndicatorId;
+        $this->view->methodIndicatorId = Input::numeric('methodIndicatorId');
+        $this->view->recordId = Input::numeric('dynamicRecordId');
+        $this->view->mode = Input::post('mode');
+        
+        $selectedRow = Input::post('selectedRow');
+        $this->view->selectedRow = Arr::changeKeyLower($selectedRow ? $selectedRow : array());
+        $this->view->selectedRowEncode = Arr::encode($this->view->selectedRow);
+        
+        $this->view->methodRow = $this->model->getKpiIndicatorRowModel($this->view->methodIndicatorId);
+        $this->view->relationList = $this->model->getChildRenderStructureModel($this->view->structureIndicatorId, array(Mdform::$semanticTypes['normal'], Mdform::$semanticTypes['config']));
+        $this->view->methodTypeCode = $this->view->methodRow['TYPE_CODE'];
+        
+        $widgetCode = $this->view->methodRow['RELATION_WIDGET_CODE'];        
+        
+        if (!$widgetCode || ($widgetCode && !file_exists(self::$viewPath . 'kpi/indicator/widget/checklist/' . $widgetCode . '.php'))) {
+            $widgetCode = 'mv_checklist_02';
+        }
+        
+        $_POST['isResponseArray'] = 1;
+        $_POST['param']['crudIndicatorId'] = $this->view->methodIndicatorId; 
+        $_POST['param']['indicatorId'] = $this->view->structureIndicatorId; 
+        $_POST['param']['actionType'] = 'create';
+        
+        if ($this->view->recordId) {
+            
+            $this->view->endToEndLogData = $this->model->getEndToEndLogDataModel($this->view->indicatorId, $this->view->structureIndicatorId, $this->view->recordId);
+            
+            $_POST['param']['dynamicRecordId'] = $this->view->recordId; 
+            $_POST['param']['idField'] = 'IDFIELD';
+            $_POST['param']['actionType'] = 'update';
+        } 
 
         $indicatorContent = self::kpiIndicatorTemplateRender(); 
         
-        echo $indicatorContent['html'];
+        if (Mdform::$kpiDmMart) {
+            $this->view->rowData = Mdform::$kpiDmMart;
+        } 
+        
+        $this->view->headerProcess = $indicatorContent['html'];
+        $this->view->checkListRender = $this->view->renderPrint('kpi/indicator/widget/checklist/'.$widgetCode, self::$viewPath);
+        
+        $response = array(
+            'status' => 'success', 
+            'html' => $this->view->renderPrint('kpi/indicator/checklist/index', self::$viewPath)
+        );
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
+    
+    public function runCheckListRelationCriteria() {
+        
+        $strIndicatorId = Input::numeric('strIndicatorId');
+        $rowId = Input::numeric('rowId');
+        
+        $getDetailData = $this->model->getKpiIndicatorDetailDataModel($strIndicatorId, $rowId, 'IDFIELD');
+        $rowData = issetParam($getDetailData['detailData']);
+
+        if ($rowData) {
+            $relationList = $this->model->getChildRenderStructureModel($strIndicatorId, array(Mdform::$semanticTypes['normal'], Mdform::$semanticTypes['config']));
+            $criteria = self::checkListRelationCriteriaScript($rowData, $relationList, '', 'array');
+            
+            $response = ['status' => 'success', 'criteria' => $criteria];
+        } else {
+            $response = ['status' => 'error'];
+        }
+        
+        echo json_encode($response, JSON_UNESCAPED_UNICODE); 
+    }
+    
+    public static function checkListRelationCriteriaScript($rowData, $relationList, $uniqId = '', $returnType = 'script') {
+        
+        $scripts = ($returnType == 'script') ? '' : [];
+        
+        $keys = array_map('strlen', array_keys($rowData));
+        array_multisort($keys, SORT_DESC, $rowData);
+        
+        $rowData = Arr::changeKeyLower($rowData);
+        
+        foreach ($relationList as $relationRow) {
+            
+            if ($relationRow['CRITERIA'] != '') {
+                
+                $criteria = Str::lower(html_entity_decode($relationRow['CRITERIA'], ENT_QUOTES, 'UTF-8'));
+                
+                foreach ($rowData as $sk => $sv) {
+                    
+                    if (strpos($criteria, $sk) !== false) {
+                        
+                        if (is_array($sv)) {
+                            if (isset($sv['id']) && isset($sv['code'])) {
+                                $sv = $sv['id'];
+                            } else {
+                                $sv = null;
+                            }
+                        }
+                        
+                        if (is_string($sv) && strpos($sv, "'") === false) {
+                            $sv = "'".Str::lower($sv)."'";
+                        } elseif (is_null($sv)) {
+                            $sv = "''";
+                        }
+
+                        $sk = ($sk == '' ? 'tmpkey' : $sk);
+                        
+                        $criteria = str_replace('['.$sk.']', $sv, $criteria);
+                        $criteria = str_replace($sk, $sv, $criteria);
+                        
+                    } elseif (strpos($criteria, $sk.'.') !== false) {
+                        
+                        if (isset($sv[0])) {
+                            
+                            $concatCriteria = '';
+                            
+                            foreach ($sv as $sRow) {
+                                
+                                $tmpCriteria = '('.$criteria.')';
+                                
+                                foreach ($sRow as $childKey => $childVal) {
+                            
+                                    if (is_string($childVal) && strpos($childVal, "'") === false) {
+                                        $childVal = "'".Str::lower($childVal)."'";
+                                    } elseif (is_null($childVal)) {
+                                        $childVal = "''";
+                                    }
+
+                                    $childKey = ($childKey == '' ? 'tmpkey' : $childKey);
+
+                                    $tmpCriteria = str_replace('['.$sk.'.'.$childKey.']', $childVal, $tmpCriteria);
+                                    $tmpCriteria = str_replace($sk.'.'.$childKey, $childVal, $tmpCriteria);
+                                }
+                                
+                                $concatCriteria .= $tmpCriteria . ' ||';
+                            }
+                            
+                            $criteria = trim(rtrim($concatCriteria, '||'));
+                            
+                        } else {
+                            
+                            foreach ($sv as $childKey => $childVal) {
+                            
+                                if (is_string($childVal) && strpos($childVal, "'") === false) {
+                                    $childVal = "'".Str::lower($childVal)."'";
+                                } elseif (is_null($childVal)) {
+                                    $childVal = "''";
+                                }
+
+                                $childKey = ($childKey == '' ? 'tmpkey' : $childKey);
+                                
+                                $criteria = str_replace('['.$childKey.']', $childVal, $criteria);
+                                $criteria = str_replace($childKey, $childVal, $criteria);
+                            }
+                        }
+                    }
+                }
+                
+                if (Mdcommon::expressionEvalFixWithReturn($criteria)) {
+                    
+                    if ($returnType == 'script') {
+                        $scripts .= '$checkListMenu_'.$uniqId.'.find(\'li.nav-item[data-stepid="'.$relationRow['ID'].'"]\').removeClass(\'d-none\'); ';
+                    } else {
+                        $scripts[] = ['indicatorId' => $relationRow['ID'], 'criteria' => 'show'];
+                    }
+                    
+                } else {
+                    
+                    if ($returnType != 'script') {
+                        $scripts[] = ['indicatorId' => $relationRow['ID'], 'criteria' => 'hide'];
+                    }
+                }
+            }
+        }
+        
+        if ($returnType == 'script') {
+            $scripts .= 'checkListParentMenuShowHide('.$uniqId.'); ';
+        }
+        
+        return $scripts;
+    }
+    
+    public function getIndicatorDescription() {
+        
+        $indicatorId = Input::numeric('indicatorId');
+        $getIndicatorDescription = $this->model->getIndicatorWithDescriptionModel($indicatorId);
+        
+        echo json_encode($getIndicatorDescription, JSON_UNESCAPED_UNICODE);
+    }    
+    
+    public function mvRunAllCheckQuery() {
+        $response = $this->model->mvRunAllCheckQueryModel();
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+    }    
+    
+    public function runMvDataSet($args = array()) {
+        
+        $this->view->uniqId = $args['uniqId'];
+        $this->view->row = $args['row'];
+        $this->view->response = $args['fillParamData'];
+        
+        $widgetCode = Mdwidget::mvDataSetAvailableWidgets($args['row']['WIDGET_ID']);
+        return $this->view->renderPrint('kpi/indicator/widget/grid/' . $widgetCode['name'], self::$viewPath);
+    }    
+    
+    public function renderWidgetDataSet($row) {
+        $_POST['indicatorId'] = $this->view->indicatorId;
+        $dataList = $this->model->indicatorDataGridModel();
+        
+        $this->view->renderGrid = $this->runMvDataSet(
+            array(
+                'uniqId'        => getUID(), 
+                'row'           => $row, 
+                'fillParamData' => $dataList
+            )
+        );        
+        
+        $renderGrid = $this->view->renderPrint('kpi/indicator/renderCustomGrid', self::$viewPath);
+        
+        return $renderGrid;        
+    }
+    
+    public function getAjaxTree() {
+        $indicatorId = Input::param($_REQUEST['indicatorId']);
+        $parent = Input::param($_REQUEST['parent']);
+        
+        $folderList = $this->model->getTreeDataByValue($indicatorId, $parent);
+        
+        jsonResponse($folderList);
+    }    
+    
+    public function getFormBanner ($indicatorId = '') {
+        $cache = phpFastCache();
+        $showBanner = $cache->get('kpi_' . $indicatorId . '_formbanner');
+
+        if ($showBanner == null) {
+            $relationComponents = $this->model->getKpiIndicatorMapWithoutTypeModel($indicatorId, 10000009);
+            $relationComponents = Arr::groupByArrayOnlyRow($relationComponents, 'SEMANTIC_TYPE_NAME', false);
+    
+            if (issetParamArray($relationComponents['Banner'])) {
+                if ($relationComponents) {
+                    $this->load->model('mdform', 'middleware/models/');
+                    $this->view->renderBannerData = $this->model->getRelationComponentsContentConfigModel($relationComponents['Banner']['MAP_ID']);
+                    $bannerData = array();
+                    foreach ($this->view->renderBannerData as $key => $banner) {
+                        switch ($key) {
+                            case 'left-sidebar':
+                            default:
+                                foreach ($banner as $brow) {
+                                    $tmp = array(
+                                        'WEB_URL' => '',
+                                        'URL_TARGET' => '',
+                                        'POSITION_TYPE' => 'left',
+                                        'CONTENT_DATA' => $brow['physical_path'],
+                                        'VIDEO_URL' => '',
+                                        'CONTENT_TYPE' => 'photo',
+                                        'JSON_CONFIG' => $brow['json_config'],
+                                    );
+                                    array_push($bannerData, $tmp);
+                                }
+                                break;
+                        }
+                    }
+    
+                    $mdweb = &getInstance();
+                    $mdweb->load->model('mdwebservice', 'middleware/models/');
+                    if ($bannerData) {
+                        $showBanner = $mdweb->model->showBannerModel($indicatorId, 'left', '1', $bannerData);
+                    }
+                }
+            }
+
+            $cache->set('kpi_' . $indicatorId . '_formbanner', $showBanner, Mdwebservice::$expressionCacheTime);
+        }
+
+        return $showBanner;
+    }
+    
+    public function dataListUseBasketView() {
+        
+        $this->view->uniqId = getUID();
+        $this->view->indicatorDataId = Input::numeric('indicatorDataId');
+        $workSpaceId = Input::numeric('workSpaceId');
+        $workSpaceParams = Input::post('workSpaceParams');
+        $uriParams = Input::post('uriParams');
+        $permissionCriteria = Input::post('permissionCriteria');
+        $dataGridDefaultHeight = Input::post('dataGridDefaultHeight');
+        $calendarParams = Input::post('calendarParams');
+        $_POST['isIgnoreRightTools'] = 1;
+
+        $item = array();
+        
+        if (Input::postCheck('selectedRows')) {
+            $selectedRows = Input::post('selectedRows');
+            foreach ($selectedRows as $key1 => $row) {
+                $row['action'] = '<a data-index-row='. $key1 .' href="javascript:;" onclick="deleteSelectableBasketWindow_'. $this->view->indicatorDataId .'(this);" class="btn btn-xs red" style="padding-top: 0px;" title="'.$this->lang->line('META_00002').'"><i class="far fa-trash"></i></a>';
+                array_push($item, $row);
+            }
+        }
+        
+        $this->view->selectedBasketRows = json_encode($item);
+        
+        $content = self::indicatorList($this->view->indicatorDataId, true);
+        
+        jsonResponse(array(
+            'Title'      => 'Сагсанд', 
+            'Html'       => $content['html'], 
+            'save_btn'   => $this->lang->line('save_btn'),
+            'close_btn'  => $this->lang->line('close_btn')
+        ));
+    }    
     
 }

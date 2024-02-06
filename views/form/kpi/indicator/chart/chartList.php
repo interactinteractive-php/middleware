@@ -62,7 +62,6 @@ if (typeof isKpiIndicatorEchartsScript === 'undefined') {
     }
 }
 
-
 filterKpiIndicatorValueChartList(<?php echo $this->uniqId; ?>, <?php echo $this->indicatorId; ?>);
 
 function filterKpiIndicatorValueChartList(uniqId, indicatorId) {
@@ -92,8 +91,8 @@ function filterKpiIndicatorValueChartList(uniqId, indicatorId) {
 }
 function filterKpiIndicatorValueChartListLoad(elem) {
     var $this = $(elem), 
-        $parent = $this.closest('.list-group'), 
-        uniqId = $parent.attr('data-uniqid');
+        $parentFilter = $this.closest('.list-group'), 
+        uniqId = $parentFilter.attr('data-uniqid');
     
     if ($this.hasClass('active')) {
         $this.removeClass('active');
@@ -102,6 +101,12 @@ function filterKpiIndicatorValueChartListLoad(elem) {
         $this.addClass('active');
         $this.find('i').removeClass('far fa-square').addClass('fas fa-check-square');
     }
+    
+    var getFilterData = getKpiIndicatorFilterData(elem, $parentFilter);
+    var indicatorId = getFilterData.indicatorId;
+    var filterData = getFilterData.filterData;
+    
+    mvFilterRelationLoadData(elem, indicatorId, filterData);
     
     window['kpiDataMartLoadChart_' + uniqId]();
 }
@@ -126,14 +131,18 @@ function kpiDataMartLoadChart_<?php echo $this->uniqId; ?>() {
             if (jsonObj.hasOwnProperty('chartFilterCriteria')) {
                 var chartFilterCriteria = JSON.parse(html_entity_decode(jsonObj.chartFilterCriteria, 'ENT_QUOTES'));
                 
-                if (Object.keys(chartFilterCriteria).length > 0 && Object.keys(loopFilterData).length > 0) {
-                    for (var f in chartFilterCriteria) {
-                        if (loopFilterData && !loopFilterData.hasOwnProperty(f)) {
+                if (Object.keys(chartFilterCriteria).length > 0) {
+                    if (Object.keys(loopFilterData).length > 0) {
+                        for (var f in chartFilterCriteria) {
+                            if (loopFilterData && !loopFilterData.hasOwnProperty(f)) {
+                                loopFilterData[f] = chartFilterCriteria[f];
+                            }
+                        }
+                    } else {
+                        for (var f in chartFilterCriteria) {
                             loopFilterData[f] = chartFilterCriteria[f];
                         }
                     }
-                } else {
-                    loopFilterData = chartFilterCriteria;
                 }
             }
                     
@@ -149,12 +158,16 @@ function kpiDataMartLoadChart_<?php echo $this->uniqId; ?>() {
                 success: function(data) {
                     if (data.status == 'success') {
                         if (typeof chartConfig.mainType !== 'undefined' && chartConfig.mainType === 'echart') {
-                            EchartBuilder.chartRender({
+                            kpiChartObj_<?php echo $this->uniqId; ?> = {
                                 elemId: chartId, 
                                 chartConfig: chartConfig, 
                                 data: data.data, 
-                                columnsConfig: data.columnsConfig
-                            });
+                                dataXaxis: data.dataXaxis, 
+                                columnsConfig: data.columnsConfig,
+                                useData: '3',
+                            }
+                            
+                            EchartBuilder.chartRender(kpiChartObj_<?php echo $this->uniqId; ?>);
                         } else {
                             kpiDataMartChartRender({
                                 elemId: chartId, 

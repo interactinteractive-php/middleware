@@ -327,6 +327,24 @@
                 </td>
             </tr>
             <tr>
+                <td style="height: 30px;" class="left-padding"><label for="dataMask_<?php echo $this->paramPath; ?>"><?php echo $this->lang->line('Дата маск'); ?></label></td>
+                <td>
+                    <?php
+                    echo Form::select(
+                        array(
+                            'name' => 'groupParam['.$this->paramPath.'][dataMask]',
+                            'id' => 'dataMask_'.$this->paramPath,
+                            'class' => 'form-control form-control-sm',
+                            'data' => $this->dataMask,
+                            'op_value' => 'PATTERN_ID',
+                            'op_text' => 'PATTERN_NAME',
+                            'value' => $this->paramRow['DATA_MASK']
+                        )
+                    );
+                    ?>
+                </td>
+            </tr>
+            <tr>
                 <td style="height: 30px;" class="left-padding"><label for="placeholderName_<?php echo $this->paramPath; ?>"><?php echo $this->lang->line('Placeholder'); ?></label></td>
                 <td>
                     <input type="text" name="groupParam[<?php echo $this->paramPath; ?>][placeholderName]" value="<?php echo $this->paramRow['PLACEHOLDER_NAME']; ?>" id="placeholderName_<?php echo $this->paramPath; ?>" class="form-control form-control-sm globeCodeInput" placeholder="<?php echo $this->lang->line('Placeholder'); ?>">

@@ -7,7 +7,7 @@
 </div>
 
 <?php
-    $amount = [];
+    $amount = $pservice1 = [];
     if ($this->datasrc) {
         $pservice1 = Arr::groupByArray($this->datasrc, Str::lower($this->positionConfig["position1"]["row"]["fieldpath"]));
         foreach ($pservice1 as $row) {

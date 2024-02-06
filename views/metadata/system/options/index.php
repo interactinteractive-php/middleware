@@ -35,7 +35,7 @@
             </div>
         </div>
         <div class="bp-main">
-            <form method="post" enctype="multipart/form-data" id="meta-form-v2">
+            <form method="post" enctype="multipart/form-data" id="meta-form-v2" data-metadataid="<?php echo $this->metaDataId; ?>">
                 <div class="page-header page-header-light col p-0">
                     <div class="page-header-content header-elements-md-inline namecodebox">
                         <div class="col">
@@ -669,16 +669,43 @@ $(function() {
     $('.pf-bp-navlink a.nav-link[data-opt-code="main"]').click();
     
     $('#meta-form-v2').on('change', 'input, select, textarea', function(e) {
-        if (e.originalEvent) {
-            $('#meta-form-v2').attr('data-changed', 1);
-        } else {
-            var name = $(this).attr('name');
-            if (name == 'metaDataCode' || name == 'tableName') {
-                $('#meta-form-v2').attr('data-changed', 1);
+        var $form = $('#meta-form-v2');
+        if (!$form.hasAttr('data-changed')) {
+            if (e.originalEvent) {
+                $form.attr('data-changed', 1);
+                metaConfigChangeLog($form, true);
+            } else {
+                var name = $(this).attr('name');
+                if (name == 'metaDataCode' || name == 'tableName') {
+                    $form.attr('data-changed', 1);
+                    metaConfigChangeLog($form, true);
+                }
             }
         }
     });
+    
+    $('#meta-form-v2').on('keydown', 'input[type="text"], textarea', function(e) {
+        if (e.originalEvent) {
+            var $form = $('#meta-form-v2');
+            if (!$form.hasAttr('data-changed')) {
+                $form.attr('data-changed', 1);
+                metaConfigChangeLog($form, true);
+            }
+        }
+    });
+    
+    $('#meta-form-v2').on('remove', function() {
+        metaConfigChangeLog($('#meta-form-v2'), false); 
+    });
 });
+
+window.onbeforeunload = function(e) {
+    var $form = $('#meta-form-v2'); 
+    if ($form.hasAttr('data-changed') && $form.attr('data-changed') == '1') {
+        metaConfigChangeLog($form, false); 
+        return 'Confirm';
+    }
+};
 
 function metaV2RefreshSecondList(uniqId, dvId) {
 

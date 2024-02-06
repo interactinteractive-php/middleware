@@ -6,10 +6,11 @@ class Mdlog extends Controller {
 
     public function __construct() {
         parent::__construct();
-        Auth::handleLogin();
     }
     
     public function customerFilterDataView() {
+        Auth::handleLogin();
+        
         $this->view->uniqId = getUID();
         $this->view->selectedRow = Input::post('selectedRow');
         $this->view->paramData = Input::post('paramData');
@@ -116,12 +117,13 @@ class Mdlog extends Controller {
     }
     
     public function getRecordLogHistoryList() {
+        Auth::handleLogin();
         $response = $this->model->getRecordLogHistoryListModel();
         jsonResponse($response);
     }
     
     public function getRecordLogDetail() {
-        
+        Auth::handleLogin();
         $response = $this->model->getRecordLogDetailModel();
 
         if ($response['status'] == 'success') {
@@ -147,13 +149,13 @@ class Mdlog extends Controller {
     }
     
      public function getRecordRemovedLogDetail() {
-        
+        Auth::handleLogin();
         $response = $this->model->getRecordLogDetailModel();
         jsonResponse($response);
     }
     
     public function renderAddEditLogs() {
-        
+        Auth::handleLogin();
         $this->load->model('mddatamodel', 'middleware/models/');
         
         $dvId        = Input::numeric('dvId');
@@ -181,6 +183,7 @@ class Mdlog extends Controller {
     }
     
     public function renderRemovedLogs() {
+        Auth::handleLogin();
         $this->load->model('mdobject', 'middleware/models/');
         
         $this->view->metaDataId = '1604885708370';
@@ -197,12 +200,19 @@ class Mdlog extends Controller {
     }
     
     public function logRecover() {
+        Auth::handleLogin();
         $response = $this->model->logRecoverModel();
         jsonResponse($response);
     }
     
     public function ecmContentViewLog() {
+        Auth::handleLogin();
         $response = $this->model->ecmContentViewLogModel();
+        echo json_encode($response);
+    }
+    
+    public function metaConfigChangeLog() {
+        $response = $this->model->metaConfigChangeLogModel();
         echo json_encode($response);
     }
     

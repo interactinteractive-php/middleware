@@ -608,6 +608,85 @@ class Mdmeta_Model extends Model {
     public function topMetaMenuRenderByLimitDataModel($menuData, $moduleId, $depth, $isChild, $menuOpen, $urlId, $rowId = 0) {
         $menu = '';
 
+//        if (is_array($menuData)) {
+//
+//            foreach ($menuData as $k => $row) {
+//
+//                $rowMeta = Mdmeta::menuServiceAnchor($row, $moduleId);
+//                
+//                if ($rowMeta['linkHref'] === 'mdmetadata/system') {
+//                    
+//                    $menu .= '<li class="top-menu-link nav-item">';
+//                        $menu .= '<a href="mdmetadata/system" class="tooltips navbar-nav-link" data-placement="top" data-close-others="true" aria-expanded="false" data-original-title="EISTUDIO" title="EISTUDIO">';
+//                            $menu .= '<i class="fas fa-cogs font-size-15"></i>';
+//                        $menu .= '</a>';
+//                    $menu .= '</li>';
+//                    
+//                } elseif ($rowMeta['linkHref'] === 'mdhelpdesk/login') {
+//                    
+//                    $menu .= '<li class="top-menu-link nav-item">';
+//                        $menu .= '<a href="mdhelpdesk/login" target="_blank" class="tooltips navbar-nav-link" data-placement="top" data-close-others="true" aria-expanded="false" title="HELPDESK">';
+//                            $menu .= '<i class="fas fa-life-ring font-size-15"></i>';
+//                        $menu .= '</a>';
+//                    $menu .= '</li>';  
+//                    
+//                } elseif ($rowMeta['linkHref'] === 'mdhelpdesk/ssoLogin') {
+//                    
+//                    $menu .= '<li class="top-menu-link nav-item">';
+//                        $menu .= '<a href="javascript:;" class="tooltips navbar-nav-link" data-placement="top" data-close-others="true" aria-expanded="false" onclick="redirectFunction(this, \'mdhelpdesk/ssoLogin\')" title="HELP VERITECH">';
+//                            $menu .= '<i class="fas icon-stack font-size-15"></i>';
+//                        $menu .= '</a>';
+//                        $menu .= '<a href="javascript:;" class="newtab d-none " target="_blank"></a>';
+//                    $menu .= '</li>';  
+//                    
+//                } elseif ($rowMeta['linkHref'] === 'mdobject/package/1648088644166855') {
+//                    
+//                    $menu .= '<li class="top-menu-link nav-item">';
+//                        $menu .= '<a href="mdobject/package/1648088644166855" target="_blank" class="tooltips navbar-nav-link" data-placement="top" data-close-others="true" aria-expanded="false" title="Meta export">';
+//                            $menu .= '<i class="fas fa-cloud-download font-size-15"></i>';
+//                        $menu .= '</a>';
+//                    $menu .= '</li>';
+//                    
+//                } elseif ($row['metadataid'] === '1680166503684224') { /*Зөрчил шалгах*/
+//                    
+//                    $countMetaData = '';
+//                    
+//                    if (isset($row['countmetadataid']) && $row['countmetadataid']) {
+//                    
+//                        $leftMenuCount = self::getLeftMenuCountModel($row['countmetadataid']);
+//                        $countMetaData = ' <span class="badge badge-warning left-menu-count-meta" data-counmetadataid="' . $row['countmetadataid'] . '" data-depth="'.$depth.'">' . ($leftMenuCount ? $leftMenuCount : '') . '</span>';
+//                    }
+//                    
+//                    $menu .= '<li class="top-menu-link nav-item">';
+//                        $menu .= '<a href="'.$rowMeta['linkHref'].'" target="_blank" class="tooltips navbar-nav-link hdr-open-notification-list" data-placement="top" data-close-others="true" aria-expanded="false" title="Зөрчил шалгах">';
+//                            $menu .= '<i class="fas fa-exclamation-circle font-size-15"></i>' . $countMetaData;
+//                        $menu .= '</a>';
+//                    $menu .= '</li>';
+//                    
+//                }
+//            }
+//        }
+        
+        if (Config::getFromCache('isShowAppMarket')) {
+                    
+            $countMetaData = '';
+
+            $leftMenuCount = self::getLeftMenuCountModel(1701853458614950);
+            $countMetaData = ' <span class="badge badge-warning left-menu-count-meta" data-counmetadataid="' . 1701853458614950 . '">' . ($leftMenuCount ? $leftMenuCount : '') . '</span>';
+
+            $menu .= '<li class="top-menu-link nav-item">';
+                $menu .= '<a href="appmarket/basket&mmid=1701920318761819&mid=1701920318761819" class="tooltips navbar-nav-link hdr-open-notification-list" data-placement="top" data-close-others="true" aria-expanded="false" title="App market basket">';
+                    $menu .= '<i class="fas fa-shopping-basket font-size-15 font-size-15"></i>' . $countMetaData;
+                $menu .= '</a>';
+            $menu .= '</li>';
+        }         
+
+        return $menu;
+    }
+
+    public function sidebarMetaMenuRenderByLimitDataModel($menuData, $moduleId, $depth, $isChild, $menuOpen, $urlId, $rowId = 0) {
+        $menu = '';
+
         if (is_array($menuData)) {
 
             foreach ($menuData as $k => $row) {
@@ -616,36 +695,28 @@ class Mdmeta_Model extends Model {
                 
                 if ($rowMeta['linkHref'] === 'mdmetadata/system') {
                     
-                    $menu .= '<li class="top-menu-link nav-item">';
-                        $menu .= '<a href="mdmetadata/system" class="tooltips navbar-nav-link" data-placement="top" data-close-others="true" aria-expanded="false" data-original-title="EISTUDIO" title="EISTUDIO">';
-                            $menu .= '<i class="fas fa-cogs font-size-15"></i>';
-                        $menu .= '</a>';
-                    $menu .= '</li>';
+                    $menu .= '<a href="mdmetadata/system" class="veri-app-engage-btn p-0" data-toggle="tooltip" data-placement="left" title="Developer mode">';
+                        $menu .= '<i class="fas fa-cogs font-size-16"></i>';
+                    $menu .= '</a>';
                     
                 } elseif ($rowMeta['linkHref'] === 'mdhelpdesk/login') {
                     
-                    $menu .= '<li class="top-menu-link nav-item">';
-                        $menu .= '<a href="mdhelpdesk/login" target="_blank" class="tooltips navbar-nav-link" data-placement="top" data-close-others="true" aria-expanded="false" title="HELPDESK">';
-                            $menu .= '<i class="fas fa-life-ring font-size-15"></i>';
-                        $menu .= '</a>';
-                    $menu .= '</li>';  
+                    $menu .= '<a href="mdhelpdesk/login" target="_blank" class="veri-app-engage-btn p-0" data-toggle="tooltip" data-placement="left" title="Helpdesk">';
+                        $menu .= '<i class="fas fa-user-headset font-size-16"></i>';
+                    $menu .= '</a>';
                     
                 } elseif ($rowMeta['linkHref'] === 'mdhelpdesk/ssoLogin') {
                     
-                    $menu .= '<li class="top-menu-link nav-item">';
-                        $menu .= '<a href="javascript:;" class="tooltips navbar-nav-link" data-placement="top" data-close-others="true" aria-expanded="false" onclick="redirectFunction(this, \'mdhelpdesk/ssoLogin\')" title="HELP VERITECH">';
-                            $menu .= '<i class="fas icon-stack font-size-15"></i>';
-                        $menu .= '</a>';
-                        $menu .= '<a href="javascript:;" class="newtab d-none " target="_blank"></a>';
-                    $menu .= '</li>';  
+                    $menu .= '<a href="javascript:;" class="veri-app-engage-btn p-0" data-toggle="tooltip" data-placement="left" data-close-others="true" aria-expanded="false" onclick="redirectFunction(this, \'mdhelpdesk/ssoLogin\')" title="Help center">';
+                        $menu .= '<i class="fas fa-question-circle font-size-16"></i>';
+                    $menu .= '</a>';
+                    $menu .= '<a href="javascript:;" class="newtab d-none " target="_blank"></a>';
                     
                 } elseif ($rowMeta['linkHref'] === 'mdobject/package/1648088644166855') {
                     
-                    $menu .= '<li class="top-menu-link nav-item">';
-                        $menu .= '<a href="mdobject/package/1648088644166855" target="_blank" class="tooltips navbar-nav-link" data-placement="top" data-close-others="true" aria-expanded="false" title="Meta export">';
-                            $menu .= '<i class="fas fa-cloud-download font-size-15"></i>';
-                        $menu .= '</a>';
-                    $menu .= '</li>';
+                    $menu .= '<a href="mdobject/package/1648088644166855" target="_blank" class="veri-app-engage-btn p-0" data-toggle="tooltip" data-placement="left" title="Bugfix">';
+                        $menu .= '<i class="fas fa-cloud-download font-size-16"></i>';
+                    $menu .= '</a>';
                     
                 } elseif ($row['metadataid'] === '1680166503684224') { /*Зөрчил шалгах*/
                     
@@ -654,15 +725,14 @@ class Mdmeta_Model extends Model {
                     if (isset($row['countmetadataid']) && $row['countmetadataid']) {
                     
                         $leftMenuCount = self::getLeftMenuCountModel($row['countmetadataid']);
-                        $countMetaData = ' <span class="badge badge-warning left-menu-count-meta" data-counmetadataid="' . $row['countmetadataid'] . '" data-depth="'.$depth.'">' . ($leftMenuCount ? $leftMenuCount : '') . '</span>';
+                        $countMetaData = ' <span class="badge badge-warning left-menu-count-meta" style="padding: 1px 2px 1px 2px;" data-counmetadataid="' . $row['countmetadataid'] . '" data-depth="'.$depth.'">' . ($leftMenuCount ? $leftMenuCount : '') . '</span>';
                     }
                     
-                    $menu .= '<li class="top-menu-link nav-item">';
-                        $menu .= '<a href="'.$rowMeta['linkHref'].'" target="_blank" class="tooltips navbar-nav-link hdr-open-notification-list" data-placement="top" data-close-others="true" aria-expanded="false" title="Зөрчил шалгах">';
-                            $menu .= '<i class="fas fa-exclamation-circle font-size-15"></i>' . $countMetaData;
-                        $menu .= '</a>';
-                    $menu .= '</li>';
-                } 
+                    $menu .= '<a href="'.$rowMeta['linkHref'].'" target="_blank" class="veri-app-engage-btn p-0 hdr-open-notification-list" data-toggle="tooltip" data-placement="left" title="Check query">';
+                        $menu .= '<i class="fas fa-exclamation-circle font-size-16"></i>' . $countMetaData;
+                    $menu .= '</a>';
+                    
+                }
             }
         }
 
@@ -1187,7 +1257,7 @@ class Mdmeta_Model extends Model {
         return $menu;
     }
 
-    public function getLeftMenuCountModel($countMetaDataId) {
+    public function getLeftMenuCountModel($countMetaDataId, $criteriaParam = '') {
         $leftMenuCount = '';
 
         if ($countMetaDataId != '' && !empty($countMetaDataId)) {
@@ -1258,12 +1328,30 @@ class Mdmeta_Model extends Model {
                         }
                     }                        
                 }
+                
+                $dataViewCmd = Mddatamodel::$getRowDataViewCommand;
+                
+                if ($criteriaParam) {
+                    foreach ($criteriaParam as $k => $val) {
+                        $criteria[$k][] = array(
+                            'operator' => '=',
+                            'operand' => $val
+                        );                        
+                    }
+                    $param['paging'] = array(
+                        'offset' => 1,
+                        'pageSize' => 6
+                    );
+                    $dataViewCmd = Mddatamodel::$getDataViewCommand;
+                }
 
                 $param['criteria'] = $criteria;
 
-                $dataViewValue = $this->ws->runSerializeResponse(self::$gfServiceAddress, Mddatamodel::$getRowDataViewCommand, $param);
+                $dataViewValue = $this->ws->runSerializeResponse(self::$gfServiceAddress, $dataViewCmd, $param);
 
-                if (isset($dataViewValue['result']) && isset($dataViewValue['result']['count'])) {
+                if ($criteriaParam && isset($dataViewValue['result']['paging']['totalcount'])) {
+                    $leftMenuCount = $dataViewValue['result']['paging']['totalcount'];
+                } elseif (isset($dataViewValue['result']) && isset($dataViewValue['result']['count'])) {
                     $leftMenuCount = $dataViewValue['result']['count'];
                 }
 
@@ -2420,30 +2508,35 @@ class Mdmeta_Model extends Model {
         if (count($data) > 0) {
             $i = 1;
             foreach ($data as $k => $row) {
+                $bannerPath = 'assets/custom/addon/img/process_content/' . $row['CONTENT_TYPE'] . '/' . $row['CONTENT_DATA'];
+                $bannerPath = (strpos($row['CONTENT_DATA'], UPLOADPATH) !== false) ? $row['CONTENT_DATA'] : $bannerPath;
+                
                 $html .= '<tr>';
                 $html .= '<td>';
-                $html .= $i;
-                $html .= '<input type="hidden" name="rowId[]" value="' . $row['ID'] . '">';
-                $html .= '<input type="hidden" name="contentId[]" value="' . $row['CONTENT_ID'] . '">';
+                    $html .= $i;
+                    $html .= '<input type="hidden" name="rowId[]" value="' . $row['ID'] . '">';
+                    $html .= '<input type="hidden" name="contentId[]" value="' . $row['CONTENT_ID'] . '">';
                 $html .= '</td>';
-                $html .= '<td><img src="assets/core/global/img/process_content/' . $row['CONTENT_TYPE'] . '/' . $row['CONTENT_DATA'] . '" style="max-height:45px;"></td>';
+                $html .= '<td>';
+                    $html .= '<a href="'. $bannerPath .'" data-fancybox="images"><img src="'. $bannerPath .'" class="d-block w-auto" alt="img name" style="max-height:45px;"/></a>    ';
+                $html .= '</td>';
                 $html .= '<td>' . $row['CONTENT_NAME'] . '</td>';
                 $html .= '<td>';
                 $html .=
-                        Form::select(array(
-                            'name' => 'positionType[]',
-                            'class' => 'form-control select2me',
-                            'data' => array(
-                                array('ID' => 'top', 'TITLE' => Lang::line('META_00131')),
-                                array('ID' => 'right', 'TITLE' => Lang::line('META_00055')),
-                                array('ID' => 'bottom', 'TITLE' => Lang::line('META_00054')),
-                                array('ID' => 'left', 'TITLE' => Lang::line('META_00082'))
-                            ),
-                            'op_value' => 'ID',
-                            'op_text' => 'TITLE',
-                            'required' => 'required',
-                            'value' => $row['POSITION_TYPE']
-                ));
+                    Form::select(array(
+                        'name' => 'positionType[]',
+                        'class' => 'form-control select2',
+                        'data' => array(
+                            array('ID' => 'top', 'TITLE' => Lang::line('META_00131')),
+                            array('ID' => 'right', 'TITLE' => Lang::line('META_00055')),
+                            array('ID' => 'bottom', 'TITLE' => Lang::line('META_00054')),
+                            array('ID' => 'left', 'TITLE' => Lang::line('META_00082'))
+                        ),
+                        'op_value' => 'ID',
+                        'op_text' => 'TITLE',
+                        'required' => 'required',
+                        'value' => $row['POSITION_TYPE']
+                    ));
                 $html .= '</td>';
                 $html .= '<td><input type="text" name="orderNum[]" class="form-control longInit" value="' . $row['ORDER_NUM'] . '"></td>';
                 $html .= '<td><input type="text" name="webUrl[]" class="form-control" value="' . $row['WEB_URL'] . '"></td>';
@@ -2451,7 +2544,7 @@ class Mdmeta_Model extends Model {
                 $html .=
                         Form::select(array(
                             'name' => 'urlTarget[]',
-                            'class' => 'form-control select2me',
+                            'class' => 'form-control select2',
                             'data' => array(
                                 array('ID' => '_blank', 'TITLE' => Lang::line('META_00167')),
                                 array('ID' => '_parent', 'TITLE' => Lang::line('META_00016'))
@@ -2617,16 +2710,18 @@ class Mdmeta_Model extends Model {
 
         $metaDataId = Input::numeric('metaDataId');
         $sessionUserKeyId = Ue::sessionUserKeyId();
-        $passwordHash = Hash::createMD5reverse(Input::post('passwordHash'));
+        $passwordHash = Input::post('passwordHash');
+        $passwordOldHash = Hash::createMD5reverse($passwordHash);
+        $passwordNewHash = Hash::create('sha256', $passwordHash);
 
         $row = $this->db->GetRow("
             SELECT 
                 PASSWORD_HASH 
             FROM UM_META_LOCK 
             WHERE META_DATA_ID = ".$this->db->Param(0)." 
-                AND PASSWORD_HASH = ".$this->db->Param(1)." 
-                AND USER_ID = ".$this->db->Param(2), 
-            array($metaDataId, $passwordHash, $sessionUserKeyId)
+                AND (PASSWORD_HASH = ".$this->db->Param(1)." OR PASSWORD_HASH = ".$this->db->Param(2).")
+                AND USER_ID = ".$this->db->Param(3), 
+            array($metaDataId, $passwordOldHash, $passwordNewHash, $sessionUserKeyId)
         ); 
 
         if ($row) {
@@ -5334,6 +5429,11 @@ class Mdmeta_Model extends Model {
         if ($item || $isReturnSidebar) {
             
             $appmenuIcon = Config::getFromCache('appmenu-ico');
+            $appMarket = Config::getFromCache('isShowAppMarket');
+            
+            if ($appMarket) {
+                $item .= '<a href="javascript:;" title="" data-moduleid="" data-original-title="App market" data-weburl="appmarket" data-urltrg="" data-bookmarkurl="" data-bookmarktrg="" data-actionmetadataid="" data-actionmetatypeid="" class="nav-link d-flex flex-column pt13" data-pfgotometa="1" style="position: fixed;bottom: 0;background-color: #5A6785;width: 86px;"><i class="far fa-store"></i><span class="line-height-normal text-center text-two-line mt3">App<br>market</span></a>';
+            }
             
             return '<div class="iconbar">
                         <div class="'. ($appmenuIcon ? '-home-icon' : 'home-icon') .'">
@@ -5383,6 +5483,11 @@ class Mdmeta_Model extends Model {
         if ($item || $isReturnSidebar) {
             
             $appmenuIcon = Config::getFromCache('appmenu-ico');
+            $appMarket = Config::getFromCache('isShowAppMarket');
+            
+            if ($appMarket) {
+                $item .= '<a href="javascript:;" title="" data-moduleid="" data-original-title="App market" data-weburl="appmarket" data-urltrg="" data-bookmarkurl="" data-bookmarktrg="" data-actionmetadataid="" data-actionmetatypeid="" class="nav-link d-flex flex-column pt13" data-pfgotometa="1" style="position: fixed;bottom: 0;background-color: #5A6785;width: 86px;"><i class="far fa-store"></i><span class="line-height-normal text-center text-two-line mt3">App<br>market</span></a>';
+            }            
             
             return '<div class="iconbar">
                         <div class="'. ($appmenuIcon ? '-home-icon' : 'home-icon') .'">

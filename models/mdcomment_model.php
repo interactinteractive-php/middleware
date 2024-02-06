@@ -6,18 +6,22 @@ class Mdcomment_Model extends Model {
         parent::__construct();
     }        
 
-    public function getCommentMetaProcessRowsModel($metaDataId, $metaValueId, $commentStructureId = null)
+    public function getCommentMetaProcessRowsModel($metaDataId, $metaValueId, $commentStructureId = null, $listMetaDataId = null)
     {
         $structureIdPh = $this->db->Param(0);
         $recordIdPh = $this->db->Param(1);
         $userIdPh = $this->db->Param(2);
         
-        $selectColumn = $join = '';
+        $selectColumn = $join = $where = '';
         
         if ($commentStructureId) {
             
             $selectColumn = 'WFMS.WFM_STATUS_NAME, WFMS.WFM_STATUS_COLOR, ';
             $join = 'LEFT JOIN META_WFM_STATUS WFMS ON WFMS.ID = CM.WFM_STATUS_ID';
+            
+        } elseif (!$commentStructureId && $listMetaDataId) {
+            
+            $where = " AND OBJ.LIST_META_DATA_ID = $listMetaDataId"; 
         }
         
         $data = $this->db->GetAll("
@@ -49,6 +53,7 @@ class Mdcomment_Model extends Model {
                     WHERE OBJ.REF_STRUCTURE_ID = $structureIdPh 
                         AND OBJ.RECORD_ID = $recordIdPh 
                         AND OBJ.IS_DELETED = 0 
+                        $where
                     GROUP BY 
                         OBJ.ID, 
                         OBJ.CREATED_DATE, 
@@ -137,7 +142,7 @@ class Mdcomment_Model extends Model {
                             'CONTENT_ID' => $attachFileId,
                             'FILE_NAME' => $getFilePathInfo,
                             'PHYSICAL_PATH' => $getFilePathInfo,
-                            'FILE_EXTENSION' => $fileExtension,
+                            'FILE_EXTENSION' => '',
                             'FILE_SIZE' => '',
                             'CREATED_USER_ID' => Ue::sessionUserKeyId(),
                             'IS_PHOTO' => '1'
@@ -436,7 +441,7 @@ class Mdcomment_Model extends Model {
                             
                         $comment[] = '</div>';
 
-                        $comment[] = '<p class="mb-2 line-height-normal">'.$row['COMMENT_TEXT'].'</p>';
+                        $comment[] = '<p class="mb-2 line-height-normal">'.html_entity_decode($row['COMMENT_TEXT'], ENT_QUOTES, 'UTF-8').'</p>';
                         
                         $comment[] = '</div>';
 

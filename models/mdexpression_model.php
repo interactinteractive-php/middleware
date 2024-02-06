@@ -145,7 +145,7 @@ class Mdexpression_Model extends Model {
                     PAL.DATA_TYPE AS META_TYPE_CODE, 
                     PAL.PARENT_ID, 
                     PAL.SIDEBAR_NAME, 
-                    LOWER(PAL.PARAM_REAL_PATH) AS PARAM_REAL_PATH, 
+                    PAL.PARAM_REAL_PATH, 
                     CASE 
                         WHEN GC.IS_TRANSLATE = 1 AND GC.COLUMN_NAME IS NOT NULL  
                         THEN 1 
@@ -175,8 +175,23 @@ class Mdexpression_Model extends Model {
                 } else {
                     $row['JSON_CONFIG'] = null;
                 }
-            
+                
+                $paramRealPath = $row['PARAM_REAL_PATH'];
+                $paramRealPathLower = strtolower($paramRealPath);
+                
+                $row['PARAM_REAL_PATH'] = $paramRealPathLower;
                 $array[$row['PARAM_REAL_PATH']] = $row;
+                
+                if ($row['ABILITY_TOGGLE'] == 'disable' || $row['ABILITY_TOGGLE'] == 'enable') {
+                    
+                    if (strpos($paramRealPath, '.') === false) {
+                        Mdexpression::$enableDisable[$row['ABILITY_TOGGLE']]['header'][] = array('fullPath' => $paramRealPath);
+                    } else {
+                        $paramRealPathArr = explode('.', $paramRealPath);
+                        $groupPath = $paramRealPathArr[0];
+                        Mdexpression::$enableDisable[$row['ABILITY_TOGGLE']]['detail'][] = array('groupPath' => $groupPath, 'fullPath' => $paramRealPath);
+                    }
+                }
             }
         }
 

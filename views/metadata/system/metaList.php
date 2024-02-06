@@ -205,8 +205,7 @@ $(function() {
         });
     });
 
-    var typeValue = $.cookie('meta_search_type'), conditionValue = $.cookie('meta_search_condition'), 
-        $mainMetaWrap = $('#main-meta-wrap');
+    var typeValue = $.cookie('meta_search_type'), conditionValue = $.cookie('meta_search_condition'), $mainMetaWrap = $('#main-meta-wrap');
 
     if (typeValue) {
         $('input.search_type').filter('[value="'+typeValue+'"]').attr('checked', true);
@@ -374,12 +373,7 @@ $(function() {
     ?>
     $.contextMenu('destroy', 'ul.grid');
     $.contextMenu('destroy', 'ul.grid li.dir');
-    $.contextMenu('destroy', 'ul.grid li.meta:not(.process, .dataview, .metagroup, .tablestructure, .back, .content, .taskflow)');
-    $.contextMenu('destroy', 'ul.grid li.metagroup');
-    $.contextMenu('destroy', 'ul.grid li.dataview');
-    $.contextMenu('destroy', 'ul.grid li.tablestructure');
-    $.contextMenu('destroy', 'ul.grid li.process');
-    $.contextMenu('destroy', 'ul.grid li.content');
+    $.contextMenu('destroy', 'ul.grid li.meta');
     
     $.contextMenu({
         selector: 'ul.grid li.dir',
@@ -412,402 +406,178 @@ $(function() {
             "clearcache": {name: "<?php echo $this->lang->line('META_00137'); ?>", icon: "history"}
         }
     });
+    
     $.contextMenu({
-        selector: 'ul.grid li.meta:not(.process, .dataview, .metagroup, .tablestructure, .back, .content, .taskflow)',
-        callback: function(key, opt) {
-            if (key === 'edit') {
-                editFormMeta(opt.$trigger.attr('data-id'), opt.$trigger.attr("data-folder-id"), this);
-            } else if (key === 'view') {
-                viewMetaData(opt.$trigger.attr('data-id'), opt.$trigger.attr("data-folder-id"));
-            } else if (key === 'delete') {
-                metaDataDelete(opt.$trigger.attr('data-id'));
-            } else if (key === 'copy') {
-                metaCopy(opt.$trigger.attr('data-id'));
-            } else if (key === 'changefolder') {
-                changeMetaFolder(opt.$trigger.attr('data-id'), metaIdData);
-            } else if (key === 'php_export') {
-                metaPHPExportById(opt.$trigger.attr('data-id'));
-            } else if (key === 'configreplace') {
-                metaConfigReplace(opt.$trigger);
-            } else if (key === 'sendto') {
-                metaSendToById(opt.$trigger.attr('data-id'));
+        selector: 'ul.grid li.meta',
+        build: function($trigger) {
+            var options = {
+                callback: function(key, opt) {
+                    if (key === 'edit') {
+                        editFormMeta(opt.$trigger.attr('data-id'), opt.$trigger.attr("data-folder-id"), this);
+                    } else if (key === 'view') {
+                        viewMetaData(opt.$trigger.attr('data-id'), opt.$trigger.attr("data-folder-id"));
+                    } else if (key === 'delete') {
+                        metaDataDelete(opt.$trigger.attr('data-id'));
+                    } else if (key === 'copy') {
+                        metaCopy(opt.$trigger.attr('data-id'));
+                    } else if (key === 'path') {
+                        groupPathView(opt.$trigger.attr('data-id'));
+                    } else if (key === 'changefolder') {
+                        changeMetaFolder(opt.$trigger.attr('data-id'), metaIdData);
+                    } else if (key === 'php_export') {
+                        metaPHPExportById(opt.$trigger.attr('data-id'));
+                    } else if (key === 'configreplace') {
+                        metaConfigReplace(opt.$trigger);
+                    } else if (key === 'sendto') {
+                        metaSendToById(opt.$trigger.attr('data-id'));
+                    } else if (key === 'configbackup') {
+                        groupConfigBackup(opt.$trigger.attr('data-id'));
+                    } else if (key === 'editdtl') {
+                        metaFullOptions(opt.$trigger.attr('data-id'), opt.$trigger.attr('data-folder-id'), this);
+                    } else if (key === 'sql') {
+                        dataViewSql(opt.$trigger.attr('data-id'));
+                    } else if (key === 'internalprocess') {
+                        internalProcess(opt.$trigger.attr('data-id'), opt.$trigger.attr("data-folder-id"));
+                    } else if (key === 'clearcache') {
+                        dvCacheClear(opt.$trigger.attr('data-id'), this);
+                    } else if (key === 'sqledit') {
+                        dataViewQueryEditor(opt.$trigger.attr('data-id'));
+                    } else if (key === 'createtable') {
+                        metaTableStructure(opt.$trigger.attr('data-id'));
+                    } else if (key === 'refresh') {
+                        structureRefresh(opt.$trigger.attr('data-id'));
+                    } else if (key === 'processflow') {
+                        window.open('mdprocessflow/metaProcessWorkflow/'+opt.$trigger.attr('data-id'), '_blank');
+                    } else if (key === 'bp_clearcache') {
+                        bpCacheClear(opt.$trigger.attr('data-id'), this);
+                    } else if (key === 'fullexp') {
+                        bpFullExpressionCP(opt.$trigger.attr('data-id'));
+                    } else if (key === 'fullexp_new') {
+                        bpFullExpressionCPNew(opt.$trigger.attr('data-id'));
+                    } else if (key === 'inputparam') {
+                        bpInputParams(opt.$trigger.attr('data-id'));
+                    } else if (key === 'taskflow') {
+                        window.open('mdprocessflow/metaProcessWorkflow/'+opt.$trigger.attr('data-id'), '_blank');
+                    } else if (key === 'copyreplace') {
+                        metaCopyReplaceById(opt.$trigger.attr('data-id'), opt.$trigger.attr('data-folder-id'));
+                    } else if (key === 'replace') {
+                        metaReplaceById(opt.$trigger.attr('data-id'), opt.$trigger.attr('data-folder-id'));
+                    } 
+                },
+                items: {
+                    "view": {name: "<?php echo $this->lang->line('META_00111'); ?>", icon: "search"},
+                    "edit": {name: plang.get('edit_btn'), icon: "edit"},
+                }
+            };
+
+            if ($trigger.hasClass('metagroup')) {
+                <?php
+                if ($isAddMeta) {
+                ?>
+                options.items.copy = {name: "<?php echo $this->lang->line('META_00059'); ?>", icon: "copy"}; 
+                <?php
+                }
+                ?>
+                options.items.configreplace = {name: "Тохиргоог ижилсүүлэх", icon: "exchange"};
+                options.items.configbackup = {name: "<?php echo $this->lang->line('META_00088'); ?>", icon: "download"};
+                options.items.changefolder = {name: "<?php echo $this->lang->line('META_00089'); ?>", icon: "folder-open"};
+                                
+            } else if ($trigger.hasClass('dataview')) { 
+                
+                options.items.editdtl = {name: "<?php echo $this->lang->line('META_00112'); ?>", icon: "wrench"};
+                options.items.sql = {name: "Query харах", icon: "search"};
+                options.items.sqledit = {name: "Query editor", icon: "database"};
+                <?php
+                if ($isAddMeta) {
+                ?>
+                options.items.copy = {name: "<?php echo $this->lang->line('META_00059'); ?>", icon: "copy"};
+                options.items.internalprocess = {name: "<?php echo $this->lang->line('META_00169'); ?>", icon: "retweet"};
+                <?php
+                }
+                ?>
+                options.items.configreplace = {name: "Тохиргоог ижилсүүлэх", icon: "exchange"};
+                options.items.configbackup = {name: "<?php echo $this->lang->line('META_00088'); ?>", icon: "download"};
+                options.items.clearcache = {name: "<?php echo $this->lang->line('META_00137'); ?>", icon: "history"};
+                options.items.changefolder = {name: "<?php echo $this->lang->line('META_00089'); ?>", icon: "folder-open"};
+                
+            } else if ($trigger.hasClass('tablestructure')) { 
+                
+                <?php
+                if ($isAddMeta) {
+                ?>
+                options.items.copy = {name: "<?php echo $this->lang->line('META_00059'); ?>", icon: "copy"}; 
+                <?php
+                }
+                ?>
+                options.items.configreplace = {name: "Тохиргоог ижилсүүлэх", icon: "exchange"}; 
+                options.items.refresh = {name: "<?php echo $this->lang->line('META_00020'); ?>", icon: "sync"}; 
+                options.items.configbackup = {name: "<?php echo $this->lang->line('META_00088'); ?>", icon: "download"}; 
+                options.items.clearcache = {name: "<?php echo $this->lang->line('META_00137'); ?>", icon: "history"}; 
+                options.items.changefolder = {name: "<?php echo $this->lang->line('META_00089'); ?>", icon: "folder-open"}; 
+            
+            } else if ($trigger.hasClass('process')) { 
+                
+                options.items.editdtl = {name: "<?php echo $this->lang->line('META_00112'); ?>", icon: "wrench"}; 
+                options.items.inputparam = {name: plang.get('META_00046'), icon: "list"}; 
+                options.items.processflow = {name: "<?php echo $this->lang->line('META_00022'); ?>", icon: "cogs"}; 
+                <?php
+                if ($isAddMeta) {
+                ?>
+                options.items.copy = {name: "<?php echo $this->lang->line('META_00059'); ?>", icon: "copy"}; 
+                <?php
+                }
+                ?>
+                options.items.configreplace = {name: "Тохиргоог ижилсүүлэх", icon: "exchange"}; 
+                options.items.configbackup = {name: "<?php echo $this->lang->line('META_00088'); ?>", icon: "download"}; 
+                options.items.fullexp = {name: "Full expression", icon: "calculator"}; 
+                options.items.fullexp_new = {name: "<?php echo $this->lang->line('META_00138'); ?>", icon: "calculator"}; 
+                options.items.bp_clearcache = {name: "<?php echo $this->lang->line('META_00137'); ?>", icon: "history"}; 
+                options.items.changefolder = {name: "<?php echo $this->lang->line('META_00089'); ?>", icon: "folder-open"}; 
+            
+            } else if ($trigger.hasClass('taskflow')) {
+                
+                options.items.taskflow = {name: "<?php echo $this->lang->line('META_00022'); ?>", icon: "cogs"}; 
+                options.items.configreplace = {name: "Тохиргоог ижилсүүлэх", icon: "exchange"}; 
+                options.items.bp_clearcache = {name: "<?php echo $this->lang->line('META_00137'); ?>", icon: "history"}; 
+                options.items.changefolder = {name: "<?php echo $this->lang->line('META_00089'); ?>", icon: "folder-open"}; 
+                
+            } else {
+                <?php
+                if ($isAddMeta) {
+                ?>
+                options.items.copy = {name: "<?php echo $this->lang->line('META_00059'); ?>", icon: "copy"};
+                <?php
+                }
+                ?>
+                options.items.configreplace = {name: "Тохиргоог ижилсүүлэх", icon: "exchange"};
+                options.items.changefolder = {name: "<?php echo $this->lang->line('META_00089'); ?>", icon: "folder-open"};
+            }
+            
+            if ($trigger.hasClass('menu_meta') || $trigger.hasClass('dataview') || $trigger.hasClass('process') || $trigger.hasClass('statement') || $trigger.hasClass('report_template')) {
+                options.items.copyreplace = {name: 'Copy & Replace', icon: "paste"}; 
+                options.items.replace = {name: 'Replace', icon: "exchange-alt"}; 
+            }
+            
+            <?php
+            if ($isAddMeta) {
+            ?>
+            options.items.delete = {name: "<?php echo $this->lang->line('META_00002'); ?>", icon: "trash"}; 
+            <?php
             } 
-        },
-        items: {
-            "view": {name: "<?php echo $this->lang->line('META_00111'); ?>", icon: "search"},
-            "edit": {name: plang.get('edit_btn'), icon: "edit"},
-            <?php
-            if ($isAddMeta) {
-            ?>
-            "copy": {name: "<?php echo $this->lang->line('META_00059'); ?>", icon: "copy"}, 
-            <?php
-            }
-            ?>
-            "configreplace": {name: "Тохиргоог ижилсүүлэх", icon: "exchange"}, 
-            "changefolder": {name: "<?php echo $this->lang->line('META_00089'); ?>", icon: "folder-open"}, 
-            <?php
-            if ($isAddMeta) {
-            ?>
-            "delete": {name: "<?php echo $this->lang->line('META_00002'); ?>", icon: "trash"}, 
-            <?php
-            }
             if ($isSendTo) {
             ?>
-            "sendto": {name: 'Send to', icon: "share-square"}, 
+            options.items.sendto = {name: 'Send to', icon: "share-square"}; 
             <?php
             }
             ?>
-            "php_export": {name: 'Export', icon: "download"}
+                                
+            options.items.php_export = {name: 'Export', icon: 'download'};
+
+            return options;
         }
     });
-    $.contextMenu({
-        selector: 'ul.grid li.metagroup',
-        callback: function(key, opt) {
-            if (key === 'edit') {
-                editFormMeta(opt.$trigger.attr('data-id'), opt.$trigger.attr("data-folder-id"), this);
-            } else if (key === 'view') {
-                viewMetaData(opt.$trigger.attr('data-id'), opt.$trigger.attr("data-folder-id"));
-                /*dvToProcessRender(opt.$trigger.attr('data-id'));*/
-            } else if (key === 'delete') {
-                metaDataDelete(opt.$trigger.attr('data-id'));
-            } else if (key === 'copy') {
-                metaCopy(opt.$trigger.attr('data-id'));
-            } else if (key === 'path') {
-                groupPathView(opt.$trigger.attr('data-id'));
-            } else if (key === 'configbackup') {
-                groupConfigBackup(opt.$trigger.attr('data-id'));
-            } else if (key === 'changefolder') {
-                changeMetaFolder(opt.$trigger.attr('data-id'), metaIdData);
-            } else if (key === 'php_export') {
-                metaPHPExportById(opt.$trigger.attr('data-id'));
-            } else if (key === 'configreplace') {
-                metaConfigReplace(opt.$trigger);
-            } else if (key === 'sendto') {
-                metaSendToById(opt.$trigger.attr('data-id'));
-            } 
-        },
-        items: {
-            "view": {name: "<?php echo $this->lang->line('META_00111'); ?>", icon: "search"},
-            "edit": {name: plang.get('edit_btn'), icon: "edit"},
-            "path": {name: "Path", icon: "sitemap"},
-            <?php
-            if ($isAddMeta) {
-            ?>
-            "copy": {name: "<?php echo $this->lang->line('META_00059'); ?>", icon: "copy"},  
-            <?php
-            }
-            ?>
-            "configreplace": {name: "Тохиргоог ижилсүүлэх", icon: "exchange"}, 
-            "configbackup": {name: "<?php echo $this->lang->line('META_00088'); ?>", icon: "download"}, 
-            "changefolder": {name: "<?php echo $this->lang->line('META_00089'); ?>", icon: "folder-open"}, 
-            <?php
-            if ($isAddMeta) {
-            ?>
-            "delete": {name: "<?php echo $this->lang->line('META_00002'); ?>", icon: "trash"}, 
-            <?php
-            }
-            if ($isSendTo) {
-            ?>
-            "sendto": {name: 'Send to', icon: "share-square"}, 
-            <?php
-            }
-            ?>
-            "php_export": {name: 'Export', icon: "download"}
-        }
-    });
-    $.contextMenu({
-        selector: 'ul.grid li.dataview',
-        callback: function(key, opt) {
-            if (key === 'edit') {
-                editFormMeta(opt.$trigger.attr('data-id'), opt.$trigger.attr("data-folder-id"), this);
-            } else if (key === 'editdtl') {
-                metaFullOptions(opt.$trigger.attr('data-id'), opt.$trigger.attr("data-folder-id"), this);
-            } else if (key === 'view') {
-                viewMetaData(opt.$trigger.attr('data-id'), opt.$trigger.attr("data-folder-id"));
-                /*dvToProcessRender(opt.$trigger.attr('data-id'));*/
-            } else if (key === 'delete') {
-                metaDataDelete(opt.$trigger.attr('data-id'));
-            } else if (key === 'copy') {
-                metaCopy(opt.$trigger.attr('data-id'));
-            } else if (key === 'sql') {
-                dataViewSql(opt.$trigger.attr('data-id'));
-            } else if (key === 'path') {
-                groupPathView(opt.$trigger.attr('data-id'));
-            } else if (key === 'internalprocess') {
-                internalProcess(opt.$trigger.attr('data-id'), opt.$trigger.attr("data-folder-id"));
-            } else if (key === 'configbackup') {
-                groupConfigBackup(opt.$trigger.attr('data-id'));
-            } else if (key === 'changefolder') {
-                changeMetaFolder(opt.$trigger.attr('data-id'), metaIdData);
-            } else if (key === 'clearcache') {
-                dvCacheClear(opt.$trigger.attr('data-id'), this);
-            } else if (key === 'php_export') {
-                metaPHPExportById(opt.$trigger.attr('data-id'));
-            } else if (key === 'configreplace') {
-                metaConfigReplace(opt.$trigger);
-            } else if (key === 'sqledit') {
-                dataViewQueryEditor(opt.$trigger.attr('data-id'));
-            } else if (key === 'sendto') {
-                metaSendToById(opt.$trigger.attr('data-id'));
-            } 
-        },
-        items: {
-            "view": {name: "<?php echo $this->lang->line('META_00111'); ?>", icon: "search"},
-            "edit": {name: plang.get('edit_btn'), icon: "edit"},
-            "editdtl": {name: "<?php echo $this->lang->line('META_00112'); ?>", icon: "wrench"},
-            "sql": {name: "Query харах", icon: "search"},
-            "sqledit": {name: "Query editor", icon: "database"},
-            "path": {name: "Path", icon: "sitemap"},
-            <?php
-            if ($isAddMeta) {
-            ?>
-            "copy": {name: "<?php echo $this->lang->line('META_00059'); ?>", icon: "copy"}, 
-            "internalprocess": {name: "<?php echo $this->lang->line('META_00169'); ?>", icon: "retweet"},
-            <?php
-            }
-            ?>
-            "configreplace": {name: "Тохиргоог ижилсүүлэх", icon: "exchange"}, 
-            "configbackup": {name: "<?php echo $this->lang->line('META_00088'); ?>", icon: "download"}, 
-            "clearcache": {name: "<?php echo $this->lang->line('META_00137'); ?>", icon: "history"}, 
-            "changefolder": {name: "<?php echo $this->lang->line('META_00089'); ?>", icon: "folder-open"}, 
-            <?php
-            if ($isAddMeta) {
-            ?>
-            "delete": {name: "<?php echo $this->lang->line('META_00002'); ?>", icon: "trash"},
-            <?php
-            }
-            if ($isSendTo) {
-            ?>
-            "sendto": {name: 'Send to', icon: "share-square"}, 
-            <?php
-            }
-            ?>
-            "php_export": {name: 'Export', icon: "download"}
-        }
-    });
-    $.contextMenu({
-        selector: 'ul.grid li.tablestructure',
-        callback: function(key, opt) {
-            if (key === 'edit') {
-                editFormMeta(opt.$trigger.attr('data-id'), opt.$trigger.attr("data-folder-id"), this);
-            } else if (key === 'view') {
-                viewMetaData(opt.$trigger.attr('data-id'), opt.$trigger.attr("data-folder-id"));
-            } else if (key === 'delete') {
-                metaDataDelete(opt.$trigger.attr('data-id'));
-            } else if (key === 'copy') {
-                metaCopy(opt.$trigger.attr('data-id'));
-            } else if (key === 'createtable') {
-                metaTableStructure(opt.$trigger.attr('data-id'));
-            } else if (key === 'refresh') {
-                structureRefresh(opt.$trigger.attr('data-id'));
-            } else if (key === 'configbackup') {
-                groupConfigBackup(opt.$trigger.attr('data-id'));
-            } else if (key === 'changefolder') {
-                changeMetaFolder(opt.$trigger.attr('data-id'), metaIdData);
-            } else if (key === 'clearcache') {
-                dvCacheClear(opt.$trigger.attr('data-id'), this);
-            } else if (key === 'php_export') {
-                metaPHPExportById(opt.$trigger.attr('data-id'));
-            } else if (key === 'configreplace') {
-                metaConfigReplace(opt.$trigger);
-            } else if (key === 'sendto') {
-                metaSendToById(opt.$trigger.attr('data-id'));
-            } 
-        },
-        items: {
-            "view": {name: "<?php echo $this->lang->line('META_00111'); ?>", icon: "search"},
-            "edit": {name: plang.get('edit_btn'), icon: "edit"},
-            <?php
-            if ($isAddMeta) {
-            ?>
-            /*"createtable": {name: "<?php echo $this->lang->line('META_00040'); ?>", icon: "table"},*/
-            "copy": {name: "<?php echo $this->lang->line('META_00059'); ?>", icon: "copy"},
-            <?php
-            }
-            ?>
-            "configreplace": {name: "Тохиргоог ижилсүүлэх", icon: "exchange"}, 
-            "refresh": {name: "<?php echo $this->lang->line('META_00020'); ?>", icon: "sync"}, 
-            "configbackup": {name: "<?php echo $this->lang->line('META_00088'); ?>", icon: "download"}, 
-            "clearcache": {name: "<?php echo $this->lang->line('META_00137'); ?>", icon: "history"}, 
-            "changefolder": {name: "<?php echo $this->lang->line('META_00089'); ?>", icon: "folder-open"}, 
-            <?php
-            if ($isAddMeta) {
-            ?>
-            "delete": {name: "<?php echo $this->lang->line('META_00002'); ?>", icon: "trash"},
-            <?php
-            }
-            if ($isSendTo) {
-            ?>
-            "sendto": {name: 'Send to', icon: "share-square"},
-            <?php
-            }
-            ?>
-            "php_export": {name: 'Export', icon: "download"}
-        }
-    });
-    $.contextMenu({
-        selector: 'ul.grid li.process',
-        callback: function(key, opt) {
-            if (key === 'editdtl') {
-                metaFullOptions(opt.$trigger.attr('data-id'), opt.$trigger.attr("data-folder-id"), this);
-            } else if (key === 'edit') {
-                editFormMeta(opt.$trigger.attr('data-id'), opt.$trigger.attr("data-folder-id"), this);
-            } else if (key === 'view') {
-                viewMetaData(opt.$trigger.attr('data-id'), opt.$trigger.attr("data-folder-id"));
-            } else if (key === 'delete') {
-                metaDataDelete(opt.$trigger.attr('data-id'));
-            } else if (key === 'processflow') {
-                window.open('mdprocessflow/metaProcessWorkflow/'+opt.$trigger.attr('data-id'), '_blank');
-            } else if (key === 'copy') {
-                metaCopy(opt.$trigger.attr('data-id'));
-            } else if (key === 'configbackup') {
-                groupConfigBackup(opt.$trigger.attr('data-id'));
-            } else if (key === 'clearcache') {
-                bpCacheClear(opt.$trigger.attr('data-id'), this);
-            } else if (key === 'changefolder') {
-                changeMetaFolder(opt.$trigger.attr('data-id'), metaIdData);
-            } else if (key === 'fullexp') {
-                bpFullExpressionCP(opt.$trigger.attr('data-id'));
-            } else if (key === 'fullexp_new') {
-                bpFullExpressionCPNew(opt.$trigger.attr('data-id'));
-            } else if (key === 'php_export') {
-                metaPHPExportById(opt.$trigger.attr('data-id'));
-            } else if (key === 'configreplace') {
-                metaConfigReplace(opt.$trigger);
-            } else if (key === 'inputparam') {
-                bpInputParams(opt.$trigger.attr('data-id'));
-            } else if (key === 'sendto') {
-                metaSendToById(opt.$trigger.attr('data-id'));
-            } 
-        },
-        items: {
-            "view": {name: "<?php echo $this->lang->line('META_00111'); ?>", icon: "search"},
-            "edit": {name: plang.get('edit_btn'), icon: "edit"},
-            "editdtl": {name: "<?php echo $this->lang->line('META_00112'); ?>", icon: "wrench"},
-            "inputparam": {name: plang.get('META_00046'), icon: "list"},
-            "processflow": {name: "<?php echo $this->lang->line('META_00022'); ?>", icon: "cogs"},
-            <?php
-            if ($isAddMeta) {
-            ?>
-            "copy": {name: "<?php echo $this->lang->line('META_00059'); ?>", icon: "copy"}, 
-            <?php
-            }
-            ?>
-            "configreplace": {name: "Тохиргоог ижилсүүлэх", icon: "exchange"}, 
-            "configbackup": {name: "<?php echo $this->lang->line('META_00088'); ?>", icon: "download"}, 
-            "fullexp": {name: "Full expression", icon: "calculator"}, 
-            "fullexp_new": {name: "<?php echo $this->lang->line('META_00138'); ?>", icon: "calculator"}, 
-            "clearcache": {name: "<?php echo $this->lang->line('META_00137'); ?>", icon: "history"}, 
-            "changefolder": {name: "<?php echo $this->lang->line('META_00089'); ?>", icon: "folder-open"}, 
-            <?php
-            if ($isAddMeta) {
-            ?>
-            "delete": {name: "<?php echo $this->lang->line('META_00002'); ?>", icon: "trash"}, 
-            <?php
-            }
-            if ($isSendTo) {
-            ?>
-            "sendto": {name: 'Send to', icon: "share-square"}, 
-            <?php
-            }
-            ?>
-            "php_export": {name: 'Export', icon: "download"}
-        }
-    });
-    $.contextMenu({
-        selector: 'ul.grid li.content',
-        callback: function(key, opt) {
-            if (key === 'edit') {
-                editFormMeta(opt.$trigger.attr('data-id'), opt.$trigger.attr("data-folder-id"), this);
-            } else if (key === 'view') {
-                viewMetaData(opt.$trigger.attr('data-id'), opt.$trigger.attr("data-folder-id"));
-            } else if (key === 'delete') {
-                metaDataDelete(opt.$trigger.attr('data-id'));
-            } else if (key === 'setContentMetaData') {
-                window.open('mdcontentui/setContentMeta/'+opt.$trigger.attr('data-id'), '_blank');
-            } else if (key === 'updateContent') {
-                window.open('mdcontentui/update/'+opt.$trigger.attr('data-id'), '_blank');
-            } else if (key === 'copy') {
-                metaCopy(opt.$trigger.attr('data-id'));
-            } else if (key === 'changefolder') {
-                changeMetaFolder(opt.$trigger.attr('data-id'), metaIdData);
-            } else if (key === 'php_export') {
-                metaPHPExportById(opt.$trigger.attr('data-id'));
-            } else if (key === 'sendto') {
-                metaSendToById(opt.$trigger.attr('data-id'));
-            } 
-        },
-        items: {
-            "view": {name: "<?php echo $this->lang->line('META_00111'); ?>", icon: "search"},
-            "edit": {name: plang.get('edit_btn'), icon: "edit"},
-            "setContentMetaData": {name: "Контент тохируулах", icon: "cogs"}, 
-            "updateContent": {name: "<?php echo $this->lang->line('MET_99990653'); ?>", icon: "edit"}, 
-            <?php
-            if ($isAddMeta) {
-            ?>
-            "copy": {name: "<?php echo $this->lang->line('META_00059'); ?>", icon: "copy"}, 
-            <?php
-            }
-            ?>
-            "changefolder": {name: "<?php echo $this->lang->line('META_00089'); ?>", icon: "folder-open"}, 
-            <?php
-            if ($isAddMeta) {
-            ?>
-            "delete": {name: "<?php echo $this->lang->line('META_00002'); ?>", icon: "trash"}, 
-            <?php
-            }
-            if ($isSendTo) {
-            ?>
-            "sendto": {name: 'Send to', icon: "share-square"}, 
-            <?php
-            }
-            ?>
-            "php_export": {name: 'Export', icon: "download"}
-        }
-    });
-    $.contextMenu({
-        selector: 'ul.grid li.taskflow',
-        callback: function(key, opt) {
-            if (key === 'edit') {
-                editFormMeta(opt.$trigger.attr('data-id'), opt.$trigger.attr("data-folder-id"), this);
-            } else if (key === 'view') {
-                viewMetaData(opt.$trigger.attr('data-id'), opt.$trigger.attr("data-folder-id"));
-            } else if (key === 'delete') {
-                metaDataDelete(opt.$trigger.attr('data-id'));
-            } else if (key === 'processflow') {
-                window.open('mdprocessflow/metaProcessWorkflow/'+opt.$trigger.attr('data-id'), '_blank');
-            } else if (key === 'changefolder') {
-                changeMetaFolder(opt.$trigger.attr('data-id'), metaIdData);
-            } else if (key === 'php_export') {
-                metaPHPExportById(opt.$trigger.attr('data-id'));
-            } else if (key === 'configreplace') {
-                metaConfigReplace(opt.$trigger);
-            } else if (key === 'sendto') {
-                metaSendToById(opt.$trigger.attr('data-id'));
-            } 
-        },
-        items: {
-            "view": {name: "<?php echo $this->lang->line('META_00111'); ?>", icon: "search"},
-            "edit": {name: plang.get('edit_btn'), icon: "edit"},
-            "processflow": {name: "<?php echo $this->lang->line('META_00022'); ?>", icon: "cogs"},
-            "configreplace": {name: "Тохиргоог ижилсүүлэх", icon: "exchange"}, 
-            "clearcache": {name: "<?php echo $this->lang->line('META_00137'); ?>", icon: "history"}, 
-            "changefolder": {name: "<?php echo $this->lang->line('META_00089'); ?>", icon: "folder-open"}, 
-            <?php
-            if ($isAddMeta) {
-            ?>
-            "delete": {name: "<?php echo $this->lang->line('META_00002'); ?>", icon: "trash"}, 
-            <?php
-            }
-            if ($isSendTo) {
-            ?>
-            "sendto": {name: 'Send to', icon: "share-square"}, 
-            <?php
-            }
-            ?>
-            "php_export": {name: 'Export', icon: "download"}
-        }
-    });
+        
+    
     $.contextMenu({
         selector: 'ul.grid',
         callback: function(key, opt) {

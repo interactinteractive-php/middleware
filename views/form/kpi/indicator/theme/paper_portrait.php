@@ -21,7 +21,7 @@
         }
         ?>
         
-        <h1 class="<?php echo $titleClass; ?>"><?php echo $this->title; ?></h1>
+        <h1 class="<?php echo $titleClass; ?>"><?php echo Str::nlTobr($this->title); ?></h1>
         
         <?php 
         echo $this->form; 

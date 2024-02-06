@@ -68,10 +68,12 @@
 var $mvRelationElem = $('div[data-refstructureid="<?php echo $this->refStructureId; ?>"]').closest('.tab-pane');    
 if (typeof isKpiIndicatorScript === 'undefined') {
     $.cachedScript('<?php echo autoVersion('middleware/assets/js/addon/indicator.js'); ?>');
+}  
+if (typeof isMvBpRelationScript === 'undefined') {
     $.cachedScript('<?php echo autoVersion('middleware/assets/js/addon/metaverseBpRelation.js'); ?>').done(function() {
         mvBpRelationActionControl($mvRelationElem);
     });
 } else {
     mvBpRelationActionControl($mvRelationElem);
-}    
+}
 </script>

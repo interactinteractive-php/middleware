@@ -16,6 +16,8 @@
     var dvRequest_<?php echo $this->metaDataId; ?> = null;
     var isTouch = (typeof isTouchEnabled === 'undefined') ? false : isTouchEnabled;
     var dvLoadSuccessData_<?php echo $this->metaDataId; ?> = null;
+    var dvFilterValues_<?php echo $this->metaDataId; ?> = {};
+    var dvFilterParamValues_<?php echo $this->metaDataId; ?> = [];
     <?php echo $this->layoutTypes; ?>        
         
     $(function() {
@@ -361,6 +363,18 @@
         <?php
         }
         ?>
+                
+        if (window.location.hash !== '') {
+            var parsedHash = queryString.parse(window.location.hash);
+            
+            if (typeof parsedHash.dvFilterValues !== 'undefined' && parsedHash.dvFilterValues !== '') {
+                var urlDvFilters = JSON.parse(parsedHash.dvFilterValues);
+                dvFilterValues_<?php echo $this->metaDataId; ?> = urlDvFilters;
+                for (var k in urlDvFilters) {
+                    dvFilterParamValues_<?php echo $this->metaDataId; ?>.push({field: k, value: urlDvFilters[k]});
+                }
+            }                 
+        }                       
         
         objectdatagrid_<?php echo $this->metaDataId; ?>.<?php echo $this->isGridType; ?>({
                 <?php echo $layoutType; ?>
@@ -375,6 +389,7 @@
                     dvDefaultCriteria: '<?php echo isset($this->dvDefaultCriteria) ? json_encode($this->dvDefaultCriteria) : ''; ?>', 
                     drillDownDefaultCriteria: '<?php echo isset($this->drillDownDefaultCriteria) ? $this->drillDownDefaultCriteria : ''; ?>',
                     ignorePermission: '<?php echo isset($this->ignorePermission) ? $this->ignorePermission : ''; ?>', 
+                    kpiIndicatorMapConfig: '<?php echo isset($this->kpiIndicatorMapConfig) ? $this->kpiIndicatorMapConfig : ''; ?>', 
                     subQueryId: $('#subQueryId-<?php echo $this->metaDataId; ?>').val(), 
                     ignoreFirstLoad: dvIgnoreFirstLoad_<?php echo $this->metaDataId; ?> 
                 }, 
@@ -428,8 +443,10 @@
                         {field: '<?php echo $explodedCalParam[0]; ?>', value: '<?php echo substr(date('Y-m-d h:m:s', $explodedCalParam[1]), 0, 10); ?>'}
                     ],
                 <?php 
-                } 
-                ?>
+                } else { ?>
+                    filterRules: dvFilterParamValues_<?php echo $this->metaDataId; ?>,
+                <?php } 
+                ?>                        
                 onSelectAll: function() {
                     dvSelectionCountToFooter_<?php echo $this->metaDataId; ?>();
                 }, 
@@ -1597,12 +1614,21 @@
         $('div.div-objectdatagrid-<?php echo $this->metaDataId; ?>').on('focusout', 'input.datagrid-filter', function(e){
             
             var $this = $(this), getFilterPath = $this.attr('name'), filterVal = trim($this.val());
-            var op = objectdatagrid_<?php echo $this->metaDataId; ?>.datagrid('options');
+            var op = objectdatagrid_<?php echo $this->metaDataId; ?>.datagrid('options');            
 
             if (filterVal == '') {
                 $('style#<?php echo $this->metaDataId; ?>-'+getFilterPath).remove();
+                delete dvFilterValues_<?php echo $this->metaDataId; ?>[getFilterPath];
+            } else {
+                dvFilterValues_<?php echo $this->metaDataId; ?>[getFilterPath] = filterVal;                
+            }                                     
+            
+            if (Object.keys(dvFilterValues_<?php echo $this->metaDataId; ?>).length) {
+                window.location.hash = 'dvFilterValues='+JSON.stringify(dvFilterValues_<?php echo $this->metaDataId; ?>);
+            } else {
+                window.location.hash = '';
             }
-
+            
             if (typeof op.hasOwnProperty('filterOnlyEnterKey') == 'undefined' || (typeof op.hasOwnProperty('filterOnlyEnterKey') !== 'undefined' && !op.filterOnlyEnterKey)) {
                 
                 if (typeof $this.attr('data-filter') !== 'undefined') {
@@ -2896,7 +2922,7 @@
                     data: {'metaDataId': '<?php echo $this->metaDataId ?>'},
                     dataType: 'json',
                     success: function(data) {
-                        if (data.length) { 
+                        if (Object.keys(data).length) { 
                             $this.empty();
                             $this.append($('<option />').val('').text(plang.get('choose')));  
 
@@ -2915,6 +2941,140 @@
                     }
                 });
             }
+        });
+        
+        $(document.body).on('click', '.criteria-template-delete-list-<?php echo $this->metaDataId ?>', function(e) {
+            var listTemp = '';
+            $.ajax({
+                type: 'post',
+                async: false,
+                url: 'mdobject/getDataviewTemplateData',
+                data: {'metaDataId': '<?php echo $this->metaDataId ?>'},
+                dataType: 'json',
+                beforeSend: function () {
+                  Core.blockUI({
+                    message: "Loading ...",
+                    boxed: true,
+                  });
+                },                
+                async: false,
+                success: function(data) {
+                    if (Object.keys(data).length) {
+                        $.each(data, function() {   
+                            listTemp += '<div class="d-flex justify-content-between"><div class="my-1 ml-2" style="font-size: 15px;">'+this.NAME+'</div><a data-id="'+this.ID+'" href="javascrip:;" style="color:#ff2444;font-size: 15px;" title="Загвар устгах" class="mt7 ml9 criteria-template-delete-btn-<?php echo $this->metaDataId ?>"><i class="far fa-trash"></i></a></div>';
+                        });
+                        
+                        var $dialogName = "dialog-dv-criteria-template";
+                        if (!$("#" + $dialogName).length) {
+                          $('<div id="' + $dialogName + '"></div>').appendTo("body");
+                        }
+                        var $dialog = $("#" + $dialogName);
+
+                        $dialog.empty().append('<div class="mb-1">'+listTemp+'</div>');
+                        $dialog.dialog({
+                          cache: false,
+                          resizable: false,
+                          bgiframe: true,
+                          autoOpen: false,
+                          title: "Хадгалсан загвар",
+                          width: 400,
+                          height: "auto",
+                          modal: true,
+                          close: function () {
+                            $dialog.empty().dialog("destroy").remove();
+                          },
+                          buttons: [{
+                              text: "Хаах",
+                              class: "btn blue-madison btn-sm",
+                              click: function () {
+                                $dialog.dialog("close");
+                              },
+                            },
+                          ],
+                        });
+                        $dialog.dialog("open");            
+                        Core.unblockUI();
+                    } else {
+                        new PNotify({
+                          title: "Warning",
+                          text: 'Загвар хадгалаагүй байна!',
+                          type: "warning",
+                          sticker: false
+                        });                   
+                        Core.unblockUI();
+                    }
+                },
+                error: function () { alert("Ajax Error!"); } 
+            }).done(function(){
+            });
+        });
+        
+        $(document.body).on('click', '.criteria-template-delete-btn-<?php echo $this->metaDataId ?>', function(e) {
+            var $dialogNameD = "dialog-dv-criteria-template-delete-confirm";
+            if (!$("#" + $dialogNameD).length) {
+              $('<div id="' + $dialogNameD + '"></div>').appendTo("body");
+            }
+            var $dialogD = $("#" + $dialogNameD);
+            var $self = $(this);
+            var tempId = $self.data('id');
+
+            $dialogD.empty().append('<div class="mb-1">Та устгахдаа итгэлтэй байна уу?</div>');
+            $dialogD.dialog({
+              cache: false,
+              resizable: false,
+              bgiframe: true,
+              autoOpen: false,
+              title: "Confirm",
+              width: 400,
+              height: "auto",
+              modal: true,
+              close: function () {
+                $dialogD.empty().dialog("destroy").remove();
+              },
+              buttons: [{
+                  text: "Тийм",
+                  class: "btn green-meadow btn-sm",
+                  click: function () {
+                    $.ajax({
+                        type: 'post',
+                        async: false,
+                        url: 'mdobject/deleteDataviewTemplateData',
+                        data: {'metaDataId': '<?php echo $this->metaDataId ?>', 'templateId': tempId},
+                        dataType: 'json',
+                        beforeSend: function () {
+                          Core.blockUI({
+                            message: "Loading ...",
+                            boxed: true,
+                          });
+                        },                
+                        async: false,
+                        success: function(data) {
+                            new PNotify({
+                              title: "Success",
+                              text: 'Success',
+                              type: "success",
+                              sticker: false
+                            });             
+                            $self.closest('.d-flex').remove();
+                            $('select.select2-criteria-template-<?php echo $this->metaDataId ?>').removeClass('data-combo-set');
+                            $dialogD.dialog("close");
+                            Core.unblockUI();
+                        },
+                        error: function () { alert("Ajax Error!"); } 
+                    }).done(function(){
+                    });                                          
+                  },
+                },
+                {
+                  text: "Хаах",
+                  class: "btn blue-madison btn-sm",
+                  click: function () {
+                    $dialogD.dialog("close");
+                  },
+                },
+              ],
+            });
+            $dialogD.dialog("open");       
         });
 
         var timerFilterHover;

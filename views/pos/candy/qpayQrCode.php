@@ -5,7 +5,7 @@
     <div class="col-md-12 text-center pb5">
         <?php echo $this->base64QrCodeImg; ?>
         <p class="description pt8">
-            Банкны апп-аараа уншуулна уу.
+            <i>Банкны апп-аараа уншуулна уу.</i>
         </p>
     </div>
 </div>

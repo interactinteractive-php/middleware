@@ -7,14 +7,14 @@
 </div>
 
 <?php
-    if ($this->datasrc) {
-        $labels = [];
-        foreach ($this->datasrc as $row) {
-            array_push($labels, $row[Str::lower($this->positionConfig["position3"]["row"]["fieldpath"])]);
-        }
-        $pservice1 = Arr::groupByArray($this->datasrc, Str::lower($this->positionConfig["position1"]["row"]["fieldpath"]));
-        $pservice2 = Arr::groupByArray($this->datasrc, Str::lower($this->positionConfig["position2"]["row"]["fieldpath"]));
+$pservice1 = $pservice2 = $labels = [];
+if ($this->datasrc) {
+    foreach ($this->datasrc as $row) {
+        array_push($labels, $row[Str::lower($this->positionConfig["position3"]["row"]["fieldpath"])]);
     }
+    $pservice1 = Arr::groupByArray($this->datasrc, Str::lower($this->positionConfig["position1"]["row"]["fieldpath"]));
+    $pservice2 = Arr::groupByArray($this->datasrc, Str::lower($this->positionConfig["position2"]["row"]["fieldpath"]));
+}
 ?>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.min.js" type="text/javascript"></script>

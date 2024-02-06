@@ -116,6 +116,25 @@
                 </td>
             </tr>
             <tr>
+                <td class="left-padding">Color:</td>
+                <td>
+                    <?php
+                    $colorSet = '- '.Lang::line('select_btn').' -';
+                    $colorSet .= '<option value="">' . $colorSet . '</option>';                    
+                    if ($this->menuColorData) {
+                        foreach ($this->menuColorData as $mrow) {
+                            if ($this->menuRow['MENU_COLOR'] == $mrow['name']) {
+                                $colorSet .= '<option selected style="background:'.$mrow['name'].'" value="'.$mrow['name'].'">' . $mrow['name'] . '</option>';                    
+                            } else {
+                                $colorSet .= '<option style="background:'.$mrow['name'].'" value="'.$mrow['name'].'">' . $mrow['name'] . '</option>';                    
+                            }
+                        }
+                    }
+                    echo '<select name="menuColor" id="menuColor" class="form-control">'.$colorSet.'</select>';
+                    ?>
+                </td>
+            </tr>
+            <tr>
                 <td class="left-padding">Target:</td>
                 <td>
                     <?php
@@ -260,6 +279,26 @@
                         <?php
                         if (file_exists($this->menuRow['PHOTO_NAME'])) {
                             echo '<img src="'.$this->menuRow['PHOTO_NAME'].'" style="max-height: 120px;" class="mt5">';
+                            echo '<a href="javascript:;" class="btn btn-sm btn-danger mt5" style="height: 30px;" onclick="removeMetaPhotoIcon(this);"><i class="fa fa-trash"></i></a>';
+                        }                        
+                        ?>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="left-padding">Дэвсгэр зураг</td>
+                <td>
+                    <div class="d-flex">
+                        <?php echo Form::file(array('name' => 'menuBgPhotoName', 'class' => 'form-control', 'onchange' => 'hasPhotoExtension(this)')); ?>
+                        <?php 
+                        echo Form::hidden(array('name' => 'oldMenuBgPhotoName', 'value' => $this->menuRow['BG_PHOTO_NAME'])); 
+                        echo '<a href="javascript:;" class="btn btn-sm btn-danger d-none remove-meta-photo-icon" onclick="removeMetaPhotoIcon(this);"><i class="fa fa-trash mt-2"></i></a>';
+                        ?>
+                    </div>
+                    <div class="d-flex">
+                        <?php
+                        if (file_exists($this->menuRow['BG_PHOTO_NAME'])) {
+                            echo '<img src="'.$this->menuRow['BG_PHOTO_NAME'].'" style="max-height: 120px;" class="mt5">';
                             echo '<a href="javascript:;" class="btn btn-sm btn-danger mt5" style="height: 30px;" onclick="removeMetaPhotoIcon(this);"><i class="fa fa-trash"></i></a>';
                         }                        
                         ?>

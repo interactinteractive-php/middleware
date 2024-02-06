@@ -373,22 +373,6 @@ class Mdupgrade extends Controller {
         jsonResponse($response);
     }
     
-    public function testsh() {
-        
-        $var = shell_exec('sh /home/update/php.sh');
-        var_dump($var);
-        
-        echo '<br />';
-        
-        $output = shell_exec('ls -lart');
-        echo "<pre>$output</pre>";
-        
-        /*echo '<br />';
-        
-        $outputSvn = shell_exec('svn update /home/www/html/devnew/api/');
-        var_dump($outputSvn);*/
-    }
-    
     public static function phpImportServiceAddr() {
         
         $url = Config::getFromCache('bugfixServiceAddress');
@@ -595,7 +579,7 @@ class Mdupgrade extends Controller {
         $_REQUEST = $jsonBody;
         
         $response = $this->model->childFolderSystemModel();
-        jsonResponse($response);
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
     public function commonMetaDataGrid() {
@@ -618,7 +602,7 @@ class Mdupgrade extends Controller {
         $_POST = $jsonBody;
         
         $response = $this->model->commonMetaDataGridModel();
-        jsonResponse($response);
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
     public function metaExportExternalServer() {
@@ -629,7 +613,7 @@ class Mdupgrade extends Controller {
         $_POST = $jsonBody;
         
         $response = $this->model->exportMetaModel();
-        jsonResponse($response);
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
     public function metaImportExternalServer() {
@@ -643,17 +627,17 @@ class Mdupgrade extends Controller {
             $response = array('status' => 'error', 'message' => 'Unkhown error!');
         }
         
-        jsonResponse($response);
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
     public function metaPatchRollback() {
         $response = $this->model->metaPatchRollbackModel();
-        jsonResponse($response);
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
     public function metaPatchImport() {
         $response = $this->model->metaPatchImportModel();
-        jsonResponse($response);
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
     public function metaImportCopy() {
@@ -672,8 +656,8 @@ class Mdupgrade extends Controller {
         
         Auth::handleLogin();
         
-        $result = $this->model->metaImportCopyFileModel();
-        jsonResponse($result);
+        $response = $this->model->metaImportCopyFileModel();
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
     public function getBugFixingScript() {
@@ -696,11 +680,56 @@ class Mdupgrade extends Controller {
         echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
+    public function metaCopyReplaceForm() {
+        
+        Auth::handleLogin();
+        
+        $this->load->model('mdmetadata', 'middleware/models/');
+        
+        $metaId = Input::numeric('metaId');
+        $folderId = Input::numeric('folderId');
+        
+        $this->view->metaRow = $this->model->getMetaDataModel($metaId);
+        $this->view->folderRow = $this->model->getFolderRowModel($folderId);
+        
+        $this->view->newMetaId = getUID();
+        
+        $this->view->render('meta/copyReplace', self::$viewPath);
+    }
+    
+    public function metaCopyReplace() {
+        
+        Auth::handleLogin();
+        
+        $response = $this->model->metaCopyReplaceModel();
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+    }
+    
+    public function metaReplaceForm() {
+        
+        Auth::handleLogin();
+        
+        $this->load->model('mdmetadata', 'middleware/models/');
+        
+        $metaId = Input::numeric('metaId');
+        $this->view->metaRow = $this->model->getMetaDataModel($metaId);
+        
+        $this->view->render('meta/replace', self::$viewPath);
+    }
+    
+    public function metaReplace() {
+        
+        Auth::handleLogin();
+        
+        $response = $this->model->metaReplaceModel();
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+    }
+    
     public function decryptFile() {
         includeLib('Compress/Compression');
-        $fileContent = Compression::gzinflate(file_get_contents('hrPatch.txt'));
+        $fileContent = Compression::gzinflate(file_get_contents('meta_1447210654207_20231214164026.txt'));
         
-        file_put_contents('hrPatch-decryptFile.txt', $fileContent);die;
+        file_put_contents('meta-decryptFile.txt', $fileContent);die;
     }
     
     public function encryptFile() {

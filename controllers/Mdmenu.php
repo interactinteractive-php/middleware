@@ -44,10 +44,11 @@ class Mdmenu extends Controller {
         $this->load->model('mdmeta', 'middleware/models/');
         
         $countMetaDataIds = explode(',', trim(Input::post('countMetaDataIds'), ','));
+        parse_str(Input::post('listmetadatacriteria'), $criteria);
         $result = array();
         
         foreach ($countMetaDataIds as $countMetaDataId) {
-            $leftMenuCount = $this->model->getLeftMenuCountModel($countMetaDataId);
+            $leftMenuCount = $this->model->getLeftMenuCountModel($countMetaDataId, $criteria);
             $result[$countMetaDataId] = $leftMenuCount;
         }
 

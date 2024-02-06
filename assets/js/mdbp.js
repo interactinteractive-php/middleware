@@ -2802,8 +2802,9 @@ $(function() {
             var uniqId = $this.closest('[data-comment-uniqid]').attr('data-comment-uniqid');
             
             $chatHtml.find('.mentions-input-box').remove();
-            $chatHtml.find('.media-body').append('<textarea name="mdcomment_text" id="mdcomment_text" class="form-control p-1 bpaddon-mention-autocomplete mention" placeholder="'+plang.get('task_comment_write')+'" onkeypress="if(event.keyCode == 13) saveMdCommentProcessValue_'+uniqId+'(this);"></textarea>');
+            $chatHtml.find('.media-body').append('<textarea name="mdcomment_text" id="mdcomment_text" style="background-color: #fff" class="form-control p-1 bpaddon-mention-autocomplete mention" placeholder="'+plang.get('task_comment_write')+'" onkeypress="if(event.keyCode == 13) saveMdCommentProcessValue_'+uniqId+'(this);"></textarea>');
             
+            $chatHtml.find('.chat-addcontrol').removeAttr('data-emoji');
             $scrollPanel.find('[data-reply-opened]').removeAttr('data-reply-opened');
             $scrollPanel.find('.chat-addcontrol').remove();
             
@@ -2834,14 +2835,14 @@ $(function() {
         if (!$this.hasAttr('data-edit-opened')) {
             
             $p.hide();
-            $p.after('<textarea class="form-control p-1 mb-1" rows="2" data-bp-comment-edit-textarea="1">'+$p.html()+'</textarea>');
+            $p.after('<textarea class="form-control p-1 mb-1" rows="2" data-bp-comment-edit-textarea="1">'+bpHtmlToText($p.html())+'</textarea>');
             
             $this.attr('data-edit-opened', '1');
             
         } else {
             
             $this.removeAttr('data-edit-opened');
-            $parent.find('> textarea:eq(0)').remove();
+            $parent.find('> div > textarea:eq(0)').remove();
             $p.show();
         }
     });
@@ -6707,7 +6708,7 @@ function initBpColorPicker(elem) {
 }
 function timerAction(elem, other) {
     var $this = $(elem);
-    var bpUniq = $this.closest('div.main-action-meta').attr('data-bp-uniq-id');
+    var bpUniq = $this.closest('div[data-bp-uniq-id]').attr('data-bp-uniq-id');
     var type = $this.attr('data-type'), 
         $getInput = $this.parent().parent(),
         getPath = $getInput.find('input[type="hidden"]').attr('data-path');
@@ -10099,7 +10100,9 @@ function bpFieldTextEditorTinymceClickToEdit(elem) {
         html.push('</div>');
     html.push('</div>');    
     
-    $.cachedScript('assets/custom/addon/plugins/tinymce/tinymce.min.js', {async: false});
+    if(typeof tinymce === 'undefined') {
+        $.cachedScript('assets/custom/addon/plugins/tinymce/tinymce.min.js', {async: false});
+    }
 
     $dialog.empty().append(html.join(''));
     $dialog.dialog({

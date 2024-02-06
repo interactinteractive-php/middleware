@@ -34,6 +34,7 @@ class Mdcomment extends Controller {
         $this->view->processId = Input::numeric('processId');
         $this->view->metaDataId = Input::numeric('metaDataId');
         $this->view->metaValueId = Input::numeric('metaValueId');
+        $this->view->listMetaDataId = Input::numeric('listMetaDataId');
         $this->view->commentStructureId = null;
         $rows = [];
         
@@ -50,7 +51,7 @@ class Mdcomment extends Controller {
             }
             
             $reaction = $this->model->getCommentReactionTypeModel($this->view->metaDataId);
-            $rows = $this->model->getCommentMetaProcessRowsModel($this->view->metaDataId, $this->view->metaValueId, $this->view->commentStructureId);
+            $rows = $this->model->getCommentMetaProcessRowsModel($this->view->metaDataId, $this->view->metaValueId, $this->view->commentStructureId, $this->view->listMetaDataId);
             
             $replyLabel = $this->lang->line('comment_reply');
             $editLabel = $this->lang->line('edit_btn');

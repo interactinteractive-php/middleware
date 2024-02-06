@@ -793,7 +793,7 @@ class Mdprocessflow extends Controller {
             'save_btn' => $this->lang->line('save_btn'),
             'close_btn' => $this->lang->line('close_btn')
         );
-        echo json_encode($response); exit;
+        echo json_encode($response, JSON_UNESCAPED_UNICODE); 
     }
     
     public function wfmCriteriaMore() {        
@@ -1440,11 +1440,17 @@ class Mdprocessflow extends Controller {
             $response = $this->model->callTaskFlowModel();
         }
         
+        $isTaskFlowAutoRun = Input::post('isTaskFlowAutoRun');
+        
         if ($response['status'] != 'success') {
             
             jsonResponse($response);
             
         } else {
+            
+            if ($isTaskFlowAutoRun) {
+                jsonResponse(['status' => 'success']);
+            }
             
             $_POST['metaDataId'] = $response['result']['_taskflowinfo']['doprocessid'];
             $_POST['fillDataParams'] = $response['result'];

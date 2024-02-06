@@ -1,6 +1,15 @@
 <?php if (!defined('_VALID_PHP')) exit('Direct access to this location is not allowed.'); ?>
 
-<?php echo Form::create(array('class' => 'form-horizontal', 'id' => 'editMetaSystemForm', 'method' => 'post', 'enctype' => 'multipart/form-data', 'autocomplete' => 'off')); ?>
+<?php 
+echo Form::create(array(
+    'class' => 'form-horizontal', 
+    'id' => 'editMetaSystemForm', 
+    'method' => 'post', 
+    'enctype' => 'multipart/form-data', 
+    'autocomplete' => 'off', 
+    'data-metadataid' => $this->metaDataId
+)); 
+?>
 <div class="row">
     <div class="col-md-7">
         <div class="form-body">
@@ -580,16 +589,44 @@ $(function(){
     });
     
     $('#editMetaSystemForm').on('change', 'input, select, textarea', function(e) {
-        if (e.originalEvent) {
-            $('#editMetaSystemForm').attr('data-changed', 1);
-        } else {
-            var name = $(this).attr('name');
-            if (name == 'metaDataCode' || name == 'tableName') {
-                $('#editMetaSystemForm').attr('data-changed', 1);
+        var $form = $('#editMetaSystemForm');
+        if (!$form.hasAttr('data-changed')) {
+            if (e.originalEvent) {
+                $form.attr('data-changed', 1);
+                metaConfigChangeLog($form, true);
+            } else {
+                var name = $(this).attr('name');
+                if (name == 'metaDataCode' || name == 'tableName') {
+                    var $form = $('#editMetaSystemForm');
+                    $form.attr('data-changed', 1);
+                    metaConfigChangeLog($form, true);
+                }
             }
         }
     });
-});    
+    
+    $('#editMetaSystemForm').on('keydown', 'input[type="text"], textarea', function(e) {
+        if (e.originalEvent) {
+            var $form = $('#editMetaSystemForm');
+            if (!$form.hasAttr('data-changed')) {
+                $form.attr('data-changed', 1);
+                metaConfigChangeLog($form, true);
+            }
+        }
+    });
+    
+    $('#editMetaSystemForm').on('remove', function() {
+        metaConfigChangeLog($('#editMetaSystemForm'), false); 
+    });
+});   
+
+window.onbeforeunload = function(e) {
+    var $form = $('#editMetaSystemForm'); 
+    if ($form.hasAttr('data-changed') && $form.attr('data-changed') == '1') {
+        metaConfigChangeLog($form, false); 
+        return 'Confirm';
+    }
+};
 
 <?php if ($this->metaRow['META_TYPE_ID'] == Mdmetadata::$dmMetaTypeId) { ?>
     var dmDatas = <?php echo json_encode($this->metaDatas); ?>, relationHtml = '';

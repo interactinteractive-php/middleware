@@ -1107,13 +1107,16 @@ function bpAddRow(mainSelector, elem, groupPath, rowCount, fillType, async, from
     if (addButtonLength > 0 || isCustomDtl) {
         
         var getClickAttr = $addButton.attr('onclick');
+        var uniqId = mainSelector.attr('data-bp-uniq-id');
         
         if (getClickAttr.indexOf('addRowKpiIndicatorTemplate') !== -1) {
             
             var $this = $addButton, $parent = $this.closest('div'), 
-                $nextDiv = $parent.next('div'), $script = $nextDiv.next('script'), 
+                $nextDiv = $parent.next('div'), 
                 $table = $nextDiv.find('table.table:eq(0)'), 
                 $tbody = $table.find('> tbody');
+            
+            var $script = $('script[data-template="rows"][data-uniqid="'+uniqId+'"][data-rows-path="'+groupPath+'"]');
             
             var $html = $('<div />', {html: $script.text()});
             $html.find('.bp-detail-row:eq(0)').addClass('display-none fullexp-addrow multi-added-row');
@@ -1153,7 +1156,6 @@ function bpAddRow(mainSelector, elem, groupPath, rowCount, fillType, async, from
         }
         
         var isSubDtl = false;
-        var uniqId = mainSelector.attr('data-bp-uniq-id');
         
         if (isCustomDtl) {
             
@@ -2556,9 +2558,15 @@ function bpDetailRowsRemove(mainSelector, groupPath, elem) {
         }
         
         if ($savedRows.length) {
-            $savedRows.addClass('removed-tr d-none');
-            $savedRows.find('input[data-field-name="rowState"]').val('removed');
-            $savedRows.find("input.bigdecimalInit, input.decimalInit, input.numberInit, input.integerInit, input.longInit, input[data-path*='_bigdecimal']").attr('data-not-aggregate', '1');
+            var $rowState = $savedRows.find('input[data-field-name="rowState"]');
+            
+            if ($rowState.length) {
+                $savedRows.addClass('removed-tr d-none');
+                $rowState.val('removed');
+                $savedRows.find("input.bigdecimalInit, input.decimalInit, input.numberInit, input.integerInit, input.longInit, input[data-path*='_bigdecimal']").attr('data-not-aggregate', '1');
+            } else {
+                $savedRows.remove();
+            }
             bpDetailRowNumbering($table);
         }
     }
@@ -3245,6 +3253,69 @@ function bpCloseProcessByExp(mainSelector, processId) {
     
     return;
 } 
+function bpCallIndicatorProcessByExp(mainSelector, elem, srcMetaCode, processId, paramsPath, renderType) {
+    
+    if (processId) {
+        
+        var params = ''; elem = (elem !== 'open') ? $(elem) : elem;
+        
+        if (paramsPath != '') {
+            
+            var paramsPathArr = paramsPath.split('|');
+
+            for (var i = 0; i < paramsPathArr.length; i++) {
+                var fieldPathArr = paramsPathArr[i].split('@');
+                var fieldPath = fieldPathArr[0].trim();
+                var inputPath = fieldPathArr[1].trim();
+                var fieldValue = '';
+                
+                if (elem !== 'open' && typeof elem.prop('tagName') !== 'undefined' 
+                    && elem.prop('tagName') == 'BUTTON' && elem.closest('td[data-group-num]').length) {
+                    
+                    var $cell = elem.closest('td[data-group-num]');
+                    var $row = $cell.closest('tr');
+                    var groupNum = $cell.attr('data-group-num');
+                    var $field = $row.find('td[data-group-num="'+groupNum+'"]').find('[data-path="'+fieldPath+'"]');
+                    
+                    if ($field.length) {
+                        fieldValue = $field.val();
+                    }
+                    
+                } else {
+                
+                    var bpElem = getBpElement(mainSelector, elem, fieldPath);
+
+                    if (bpElem) {
+                        fieldValue = getBpRowParamNum(mainSelector, elem, fieldPath);
+                    } else {
+                        var bpViewElem = getBpRowViewElem(mainSelector, elem, fieldPath);
+                        if (bpViewElem) {
+                            if (bpViewElem.hasAttr('data-row-view-data')) {
+                                fieldValue = bpGetLookupFieldValue(mainSelector, elem, fieldPath, 'id');
+                            } else {
+                                fieldValue = getBpRowParamNum(mainSelector, elem, fieldPath);
+                            }
+                        } else {
+                            fieldValue = fieldPath;
+                        }
+                    }
+                }
+
+                params += inputPath + '=' + fieldValue + '&';
+            }
+        }
+        
+        if (typeof isKpiIndicatorScript === 'undefined') {
+            $.getScript('middleware/assets/js/addon/indicator.js').done(function() {
+                bpCallIndicatorProcess(mainSelector, elem, processId, params);
+            });
+        } else {
+            bpCallIndicatorProcess(mainSelector, elem, processId, params);
+        }
+    }
+    
+    return;
+}
 function bpFormValidateByExp(mainSelector) {
     var processForm = mainSelector.find('form:eq(0)');
     return bpFormValidate(processForm);
@@ -3305,6 +3376,19 @@ function bpShowButton(mainSelector, buttonCode) {
     
     return;
 }
+function bpDeleteHideButton($dialog, loop) {
+    if (loop <= 10) {
+        setTimeout(function() {
+            var $dialogButton = $dialog.find('.bp-btn-delete:eq(0)');
+            if ($dialogButton.length) {
+                $dialogButton.css({display:'none'});
+            } else {
+                bpDeleteHideButton($dialog, loop + 1);
+            }
+        }, 50);
+    }
+    return;
+}
 function bpHideButton(mainSelector, buttonCode) {
     
     buttonCode = buttonCode.toLowerCase();
@@ -3314,7 +3398,13 @@ function bpHideButton(mainSelector, buttonCode) {
             
         if ($dialog.length) {
             
-            $dialog.find('.bp-btn-'+buttonCode+':eq(0)').css({display:'none'});
+            var $dialogButton = $dialog.find('.bp-btn-'+buttonCode+':eq(0)');
+            
+            if ($dialogButton.length) {
+                $dialogButton.css({display:'none'});
+            } else if (buttonCode == 'delete') {
+                bpDeleteHideButton($dialog, 1);
+            }
             
             if (buttonCode == 'close') {
                 $dialog.find('.ui-dialog-titlebar-'+buttonCode+':eq(0)').css({display:'none'});
@@ -3336,7 +3426,7 @@ function bpHideButton(mainSelector, buttonCode) {
 
             mainSelector.find('.bp-btn-'+buttonCode+':eq(0)').css({display:'none'});
         }
-    }, (buttonCode == 'delete' ? 100 : 10));
+    }, 10);
     
     return;
 }
@@ -7188,6 +7278,12 @@ function getBpRowParamVal(mainSelector, elem, fieldPath) {
         
     } else {
         resultVal = $getPathElement.val();
+        if (resultVal == '' && $getPathElement.hasClass('fileInit')) {
+            var $fileHidden = $getPathElement.next('input[type="hidden"]');
+            if ($fileHidden.length) {
+                resultVal = $fileHidden.val();
+            }
+        }
     }
     
     if ($getPathMainElementView.length > 0) {
@@ -7413,31 +7509,42 @@ function setBpHeaderFileFieldEnable(mainSelector, fieldPath) {
 }
 function setBpHeaderParamDisable(mainSelector, fieldPath) {
     
-    var $combo = mainSelector.find("select[data-path='"+fieldPath+"']");
+    var $field = mainSelector.find("[data-path='"+fieldPath+"']");
     
-    if ($combo.hasClass('select2')) {
+    if ($field.hasClass('select2')) {
         mainSelector.find("[id='s2id_param["+fieldPath+"]']").addClass('select2-container-disabled');    
-        $combo.select2('readonly', true);
+        $field.select2('readonly', true);
+    } else if ($field.hasClass('combogridInit')) {
+        var $parent = $field.closest('.input-group');
+        var $display = $parent.find('.combo-grid-autocomplete');
+        $display.prop('readonly', true).attr('tabindex', '-1');
+        $parent.find('[onclick*="removeSelectableComboGrid"]').hide();
     } else {
-        $combo.attr('style', 'pointer-events: none; background-color: #eeeeee !important;');
+        $field.attr('style', 'pointer-events: none; background-color: #eeeeee !important;');
     }
     return;
 }
 function setBpHeaderParamEnable(mainSelector, fieldPath) {
-    var $combo = mainSelector.find("select[data-path='"+fieldPath+"']");
+    var $field = mainSelector.find("[data-path='"+fieldPath+"']");
     
-    if ($combo.hasClass('select2')) {
+    if ($field.hasClass('select2')) {
         mainSelector.find("[id='s2id_param["+fieldPath+"]']").removeClass('select2-container-disabled');    
-        $combo.select2('readonly', false).select2('enable');
+        $field.select2('readonly', false).select2('enable');
         
-        if ($combo.hasClass('bp-field-with-popup-combo')) {
-            var $parent = $combo.closest('.input-group');
+        if ($field.hasClass('bp-field-with-popup-combo')) {
+            var $parent = $field.closest('.input-group');
             $parent.find('.btn').prop('disabled', false);
         }
+    } else if ($field.hasClass('combogridInit')) {
+        var $parent = $field.closest('.input-group');
+        var $display = $parent.find('.combo-grid-autocomplete');
+        $display.prop('readonly', false).removeAttr('tabindex');
+        $parent.find('[onclick*="removeSelectableComboGrid"]').show();
     } else {
-        $combo.removeAttr('style');
+        $field.removeAttr('style');
     }
-    $combo.removeAttr('disabled readonly');
+    $field.removeAttr('disabled readonly');
+    
     return;
 }
 function setBpHeaderComboWithPopupDisable(mainSelector, fieldPath) {
@@ -8443,7 +8550,7 @@ function bpRowBeforeRemoveInputsSetValue($row) {
     if ($isIgnoreRemovedRowState.length) {
         $isIgnoreRemovedRowState.val('1');
     } else {
-        $row.find("input[data-path*='rowState']").val('removed');
+        $row.find("input[data-path*='.rowState']").val('removed');
     }
     
     return;
@@ -10460,7 +10567,7 @@ function bpGetIndicatorParam(mainSelector, elem, processCode, paramsPath, isShow
 
     var response = $.ajax({
         type: 'post',
-        url: 'mdform/getProcessParam', 
+        url: 'mdform/getIndicatorParam', 
         data: postData, 
         dataType: 'json',
         async: false
@@ -15054,7 +15161,25 @@ function bpCenterMessage(status, message) {
     return;
 }
 function bpDateFormat(format, dateStr) {
-    return date(format, strtotime(dateStr));
+    if (format == 'S') {
+                
+        var getMonth = date('m', strtotime(dateStr));
+        var season = '';
+        
+        if (getMonth == '01' || getMonth == '02' || getMonth == '03') {
+            season = 1; 
+        } else if (getMonth == '04' || getMonth == '05' || getMonth == '06') {
+            season = 2; 
+        } else if (getMonth == '07' || getMonth == '08' || getMonth == '09') {
+            season = 3;
+        } else {
+            season = 4;
+        }
+
+        return season;
+    } else {
+        return date(format, strtotime(dateStr));
+    }
 }
 function bpSetDateNoTrigger(mainSelector, elem, fieldPath, val) {
 
@@ -16016,6 +16141,13 @@ function bpSetAddonTabFileSize(mainSelector, tabName, fileSize) {
         $tab.attr('data-file-size', byteSize);
     }
     return;
+}
+function bpGetAddonTabCount(mainSelector, tabName) {
+    var $tab = mainSelector.find('.bp-addon-tab > li > a[data-addon-type="'+tabName+'"]');
+    if ($tab.length) {
+        return Number($tab.find('[data-file-count]').attr('data-file-count'));
+    }
+    return 0;
 }
 function bpSetComboSelectedValue(mainSelector, elem, fieldPath, id, name) {
     

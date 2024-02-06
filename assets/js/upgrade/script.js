@@ -904,7 +904,6 @@ function metaPatchImportLogs(logs){
     html.push('<iframe border="0" frameborder="0" style="width: 100%; height: '+(windowHeight - 120)+'px"></iframe>');
     
     $dialog.empty().append(html.join(''));
-
     $dialog.dialog({
         cache: false,
         resizable: true,
@@ -961,7 +960,7 @@ function metaPatchViewScript(elem, processMetaDataId, dataViewId, selectedRow) {
 
                         form.push('<div class="row xs-form">');
                             form.push('<div class="col-md-12">');
-                                    form.push('<textarea class="form-control form-control-sm" rows="30" readonly>'+script+'</textarea>');
+                                form.push('<textarea class="form-control form-control-sm" rows="30" readonly>'+script+'</textarea>');
                             form.push('</div>');
                         form.push('</div>');
 
@@ -1022,4 +1021,231 @@ function metaPatchViewScript(elem, processMetaDataId, dataViewId, selectedRow) {
             addclass: pnotifyPosition
         });
     }
+}
+function metaCopyReplace(metaId, folderId) {
+    var $dialogName = 'dialog-meta-copyreplace';
+    if (!$("#" + $dialogName).length) {
+        $('<div id="' + $dialogName + '"></div>').appendTo('body');
+    }
+    var $dialog = $('#' + $dialogName);
+    
+    $.ajax({
+        type: 'post',
+        url: 'mdupgrade/metaCopyReplaceForm',
+        data: {metaId: metaId, folderId: folderId}, 
+        beforeSend: function () {
+            Core.blockUI({message: 'Loading...', boxed: true});
+        },
+        success: function (data) {
+            PNotify.removeAll();
+
+            $dialog.empty().append(data);
+            $dialog.dialog({
+                cache: false,
+                resizable: true,
+                bgiframe: true,
+                autoOpen: false,
+                title: 'Copy & Replace meta',
+                width: 800,
+                height: 'auto',
+                modal: true,
+                close: function () {
+                    $dialog.empty().dialog('destroy').remove();
+                },
+                buttons: [{ 
+                    text: plang.get('save_btn'), class: 'btn btn-sm green', click: function () {
+                        PNotify.removeAll();
+                        
+                        var $form = $('#newCopyReplaceForm');
+                        $form.validate({errorPlacement: function () {}});
+                        
+                        if ($form.valid()) {
+                            
+                            var confirmDialogName = '#dialog-rollback-confirm';
+                            if (!$(confirmDialogName).length) {
+                                $('<div id="' + confirmDialogName.replace('#', '') + '"></div>').appendTo('body');
+                            }
+                            var $confirmDialog = $(confirmDialogName);
+
+                            $confirmDialog.html(plang.get('Та итгэлтэй байна уу?'));
+                            $confirmDialog.dialog({
+                                cache: false,
+                                resizable: true,
+                                bgiframe: true,
+                                autoOpen: false,
+                                title: plang.get('msg_title_confirm'), 
+                                width: 300,
+                                height: 'auto',
+                                modal: true,
+                                buttons: [
+                                    {text: plang.get('yes_btn'), class: 'btn green-meadow btn-sm', click: function() {
+
+                                        $confirmDialog.dialog('close');
+                                        
+                                        $form.ajaxSubmit({
+                                            type: 'post',
+                                            url: 'mdupgrade/metaCopyReplace',
+                                            dataType: 'json',
+                                            beforeSubmit: function (formData, jqForm, options) {
+                                                formData.push({name: 'copyMetaDataId', value: metaId});
+                                            },
+                                            beforeSend: function () {
+                                                Core.blockUI({message: 'Loading...', boxed: true});
+                                            },
+                                            success: function (data) {
+
+                                                new PNotify({ 
+                                                    title: data.status, 
+                                                    text: data.message, 
+                                                    type: data.status, 
+                                                    sticker: false, 
+                                                    hide: true, 
+                                                    addclass: pnotifyPosition,
+                                                    delay: 1000000000
+                                                });
+
+                                                if (data.status == 'success') {
+
+                                                    $dialog.dialog('close');
+
+                                                    if (data.hasOwnProperty('folderId') && data.folderId) {
+                                                        refreshList(data.folderId, 'folder');
+                                                    } else {
+                                                        metaDataDefault();
+                                                    }
+                                                } 
+
+                                                Core.unblockUI();
+                                            }
+                                        });
+                                    }},
+                                    {text: plang.get('no_btn'), class: 'btn blue-madison btn-sm', click: function () {
+                                        $confirmDialog.dialog('close');
+                                    }}
+                                ]
+                            });
+                            $confirmDialog.dialog('open');
+                        }
+                    }},
+                    {text: plang.get('close_btn'), class: 'btn btn-sm blue-hoki', click: function () {
+                        $dialog.dialog('close');
+                    }}
+                ]
+            });
+            $dialog.dialog('open');
+            
+            Core.unblockUI();
+        },
+        error: function () { alert('Error'); }
+    });
+}
+function metaReplace(metaId, folderId) {
+    var $dialogName = 'dialog-meta-copyreplace';
+    if (!$("#" + $dialogName).length) {
+        $('<div id="' + $dialogName + '"></div>').appendTo('body');
+    }
+    var $dialog = $('#' + $dialogName);
+    
+    $.ajax({
+        type: 'post',
+        url: 'mdupgrade/metaReplaceForm',
+        data: {metaId: metaId, folderId: folderId}, 
+        beforeSend: function () {
+            Core.blockUI({message: 'Loading...', boxed: true});
+        },
+        success: function (data) {
+            PNotify.removeAll();
+
+            $dialog.empty().append(data);
+            $dialog.dialog({
+                cache: false,
+                resizable: true,
+                bgiframe: true,
+                autoOpen: false,
+                title: 'Copy & Replace meta',
+                width: 800,
+                height: 'auto',
+                modal: true,
+                close: function () {
+                    $dialog.empty().dialog('destroy').remove();
+                },
+                buttons: [{ 
+                    text: plang.get('save_btn'), class: 'btn btn-sm green', click: function () {
+                        PNotify.removeAll();
+                        
+                        var $form = $('#newReplaceForm');
+                        $form.validate({errorPlacement: function () {}});
+                        
+                        if ($form.valid()) {
+                            
+                            var confirmDialogName = '#dialog-rollback-confirm';
+                            if (!$(confirmDialogName).length) {
+                                $('<div id="' + confirmDialogName.replace('#', '') + '"></div>').appendTo('body');
+                            }
+                            var $confirmDialog = $(confirmDialogName);
+
+                            $confirmDialog.html(plang.get('Та итгэлтэй байна уу?'));
+                            $confirmDialog.dialog({
+                                cache: false,
+                                resizable: true,
+                                bgiframe: true,
+                                autoOpen: false,
+                                title: plang.get('msg_title_confirm'), 
+                                width: 300,
+                                height: 'auto',
+                                modal: true,
+                                buttons: [
+                                    {text: plang.get('yes_btn'), class: 'btn green-meadow btn-sm', click: function() {
+
+                                        $confirmDialog.dialog('close');
+                                        
+                                        $form.ajaxSubmit({
+                                            type: 'post',
+                                            url: 'mdupgrade/metaReplace',
+                                            dataType: 'json',
+                                            beforeSubmit: function (formData, jqForm, options) {
+                                                formData.push({name: 'oldMetaDataId', value: metaId});
+                                            },
+                                            beforeSend: function () {
+                                                Core.blockUI({message: 'Loading...', boxed: true});
+                                            },
+                                            success: function (data) {
+
+                                                new PNotify({ 
+                                                    title: data.status, 
+                                                    text: data.message, 
+                                                    type: data.status, 
+                                                    sticker: false, 
+                                                    hide: true, 
+                                                    addclass: pnotifyPosition,
+                                                    delay: 1000000000
+                                                });
+
+                                                if (data.status == 'success') {
+                                                    $dialog.dialog('close');
+                                                } 
+
+                                                Core.unblockUI();
+                                            }
+                                        });
+                                    }},
+                                    {text: plang.get('no_btn'), class: 'btn blue-madison btn-sm', click: function () {
+                                        $confirmDialog.dialog('close');
+                                    }}
+                                ]
+                            });
+                            $confirmDialog.dialog('open');
+                        }
+                    }},
+                    {text: plang.get('close_btn'), class: 'btn btn-sm blue-hoki', click: function () {
+                        $dialog.dialog('close');
+                    }}
+                ]
+            });
+            $dialog.dialog('open');
+            
+            Core.unblockUI();
+        },
+        error: function () { alert('Error'); }
+    });
 }

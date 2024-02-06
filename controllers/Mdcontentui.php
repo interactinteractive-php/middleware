@@ -641,7 +641,7 @@ class Mdcontentui extends Controller {
             $response = array('status' => 'error', 'message' => 'Undefined record Id or Html content');
         }
         
-        echo json_encode($response); exit;
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
     public function saveHtmlEditor() {
@@ -652,6 +652,16 @@ class Mdcontentui extends Controller {
     public function ecmContentHtmlDiffViewer() {
         $result = $this->model->ecmContentHtmlDiffViewerModel();
         echo json_encode($result, JSON_UNESCAPED_UNICODE);
+    }
+    
+    public function contentVisitorLog() {
+        $result = $this->model->contentVisitorLogModel();
+        echo $result;
+    }
+    
+    public function contentDurationVisitorLog() {
+        $result = $this->model->contentDurationVisitorLogModel();
+        echo $result;
     }
     
 }

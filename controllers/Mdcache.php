@@ -159,7 +159,7 @@ class Mdcache extends Controller {
         $response = $this->model->detailPagerFillRowsModel();
         
         ob_start('ob_html_compress'); 
-            echo json_encode($response);
+            echo json_encode($response, JSON_UNESCAPED_UNICODE);
         ob_end_flush();
         
         exit;
@@ -167,7 +167,7 @@ class Mdcache extends Controller {
     
     public function deleteRow() {
         $response = $this->model->deleteRowModel();
-        echo json_encode($response); exit;
+        echo json_encode($response, JSON_UNESCAPED_UNICODE); exit;
     }
     
     public static function getDetailRowsFromCache($cacheId) {
@@ -244,9 +244,9 @@ class Mdcache extends Controller {
                                         }
                                     }
 
-                                    $evalFields .= '$groupRows[$v]'.$bracketsKey.' = issetParamZero($paramsArr[\''.$key.'\'][$v][0]); ';
+                                    $evalFields .= '$groupRows[$v]'.$bracketsKey.' = returnNull($paramsArr[\''.$key.'\'][$v][0]); ';
                                 } else {
-                                    $evalFields .= '$groupRows[$v][\''.$replacedKey.'\'] = issetParamZero($paramsArr[\''.$key.'\'][$v][0]); ';
+                                    $evalFields .= '$groupRows[$v][\''.$replacedKey.'\'] = returnNull($paramsArr[\''.$key.'\'][$v][0]); ';
                                 }
                             }
                         }

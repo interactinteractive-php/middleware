@@ -1,7 +1,7 @@
 <?php
 if ($this->isAjax == false) {
 ?>
-<div class="col-md-12">
+<div class="col-md-12 indicatorView">
     <div class="card light shadow card-multi-tab">
         <div class="card-header header-elements-inline tabbable-line">
             <ul class="nav nav-tabs card-multi-tab-navtabs">
@@ -37,7 +37,7 @@ if ($this->isAjax == false) {
 <?php
 } else {
 ?>
-<div class="row">
+<div class="row indicatorView">
     <div id="object-value-list-<?php echo $this->indicatorId; ?>" class="col-md-12">
         <div class="render-object-viewer">
             <div class="row">
@@ -53,3 +53,55 @@ if ($this->isAjax == false) {
 <?php
 }
 ?>
+<script type="text/javascript">
+    function kpiIndicatorViewList_<?php echo $this->indicatorId ?> (e, indicatorId) {
+        var _this = $(e),
+            _viewContent = _this.closest('.indicatorView');
+
+        $.ajax({
+            type: 'post',
+            url: 'mdform/indicatorList/' + indicatorId + '/1',
+            data: {indicatorId: indicatorId, 'isJson': '1', 'viewType': 'list'},
+            dataType: 'json',
+            beforeSend: function () {
+                Core.blockUI({message: 'Loading...', boxed: true});
+            },
+            success: function(data) {
+                if (data.html != '') {
+                    _viewContent.parent().empty().append(data.html).promise().done(function() {
+                        Core.initNumberInput(_viewContent);
+                        Core.initLongInput(_viewContent);
+                        Core.initDateInput(_viewContent);
+                        Core.initSelect2(_viewContent);
+                        Core.unblockUI();
+                    });
+                }
+            }
+        });
+    }
+    function kpiIndicatorViewCalendar_<?php echo $this->indicatorId ?> (e, indicatorId) {
+        var _this = $(e),
+            _viewContent = _this.closest('.indicatorView');
+
+        $.ajax({
+            type: 'post',
+            url: 'mdform/indicatorList/' + indicatorId + '/1',
+            data: {indicatorId: indicatorId, 'isJson': '1', 'viewType': 'calendar'},
+            dataType: 'json',
+            beforeSend: function () {
+                Core.blockUI({message: 'Loading...', boxed: true});
+            },
+            success: function(data) {
+                if (data.html != '') {
+                    _viewContent.parent().empty().append(data.html).promise().done(function() {
+                        Core.initNumberInput(_viewContent);
+                        Core.initLongInput(_viewContent);
+                        Core.initDateInput(_viewContent);
+                        Core.initSelect2(_viewContent);
+                        Core.unblockUI();
+                    });
+                }
+            }
+        });
+    }
+</script>

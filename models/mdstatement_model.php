@@ -75,7 +75,7 @@ class Mdstatement_model extends Model {
             $columnSelect .= "KI.KPI_TYPE_ID,"; 
             
             $joinWhere = "INNER JOIN KPI_INDICATOR MD ON MD.ID = SL.MAIN_INDICATOR_ID 
-                INNER JOIN KPI_INDICATOR KI ON KI.ID = SL.DATA_INDICATOR_ID  
+                LEFT JOIN KPI_INDICATOR KI ON KI.ID = SL.DATA_INDICATOR_ID  
                 LEFT JOIN RP_REPORT_LAYOUT RL ON RL.REPORT_LAYOUT_ID = SL.MAIN_INDICATOR_ID 
             WHERE ".(Mdstatement::$isKpiIndicator ? 'SL.MAIN_INDICATOR_ID' : 'SL.META_DATA_ID')." = $metaDataIdPh";
             
@@ -162,7 +162,7 @@ class Mdstatement_model extends Model {
         $row['PAGE_FOOTER']   = Str::cleanOut($row['PAGE_FOOTER']);
         $row['REPORT_FOOTER'] = Str::cleanOut($row['REPORT_FOOTER']);
         
-        if (!$row['REPORT_DETAIL']) {
+        if (!$row['REPORT_DETAIL'] && Mdstatement::$isKpiIndicator) {
             
             $generateTbl = self::renderKpiIndicatorHeaderColumns(Input::numeric('indicatorId'), array('fontSize' => $row['FONT_SIZE'], 'fontFamily' => $row['FONT_FAMILY']));
             
@@ -492,6 +492,10 @@ class Mdstatement_model extends Model {
                                 continue;
                             }
                             
+                            if ($showType == 'combo' || $showType == 'radio') {
+                                $columnName .= '_desc';
+                            }
+                            
                             $hdrStyle .= 'background-color: #c6e0b3;';
                             
                             if ($sidebarName != '') {
@@ -734,7 +738,11 @@ class Mdstatement_model extends Model {
                     Mdstatement::$dataViewColumnsTypeScale[$row['FIELD_PATH']] = $row['FRACTION_RANGE'];
 
                 } else {
-                    $array[$row['FIELD_PATH']] = ($row['META_TYPE_CODE'] == 'text') ? 'string' : $row['META_TYPE_CODE'];
+                    if ($row['META_TYPE_CODE'] == 'combo') {
+                        $array[$row['FIELD_PATH'] . '_desc'] = 'string';
+                    } else {
+                        $array[$row['FIELD_PATH']] = ($row['META_TYPE_CODE'] == 'text') ? 'string' : $row['META_TYPE_CODE'];
+                    }
                 }
             }
 
@@ -1046,6 +1054,7 @@ class Mdstatement_model extends Model {
             unset($param['showQueryWithParameter']);
             
             $param['showReport'] = 1;
+            $param['__isUseReport'] = 1;
             
         } elseif (isset($gridOption['IS_USE_RESULT']) && $gridOption['IS_USE_RESULT'] == '1') {
             
@@ -2269,18 +2278,20 @@ class Mdstatement_model extends Model {
                 $rules = Str::lower($row['CRITERIA']); 
 
                 foreach ($rowData as $sk => $sv) {
-                    if (is_string($sv)) {
-                        $sv = "'".Str::lower($sv)."'";
-                    } elseif (is_null($sv)) {
-                        $sv = "''";
+                    if (!is_array($sv)) {
+                        if (is_string($sv)) {
+                            $sv = "'".Str::lower($sv)."'";
+                        } elseif (is_null($sv)) {
+                            $sv = "''";
+                        }
+                        $rules = preg_replace('/\b'.$sk.'\b/u', $sv, $rules); 
                     }
-                    $rules = preg_replace('/\b'.$sk.'\b/u', $sv, $rules); 
                 }
                 
                 $rules = Mdmetadata::defaultKeywordReplacer($rules);
                 $rules = Mdmetadata::criteriaMethodReplacer($rules);
 
-                if (trim($rules) != '' && eval(sprintf('return (%s);', $rules))) {
+                if (trim($rules) != '' && Mdcommon::expressionEvalFixWithReturn($rules)) { 
                     
                     $linkParam = self::getDrillDownParamsModel($row['ID'], $rowData, $drillParams);
                     

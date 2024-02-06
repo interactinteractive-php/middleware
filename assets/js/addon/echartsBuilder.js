@@ -12,6 +12,7 @@ var EchartBuilder = function() {
     }
      
     var recursivePushObj = function (tmpObj, tmp, value) {
+
         if (typeof tmp[tmpObj[0]] === 'undefined') {
             tmp[tmpObj[0]] = {};
         }
@@ -31,6 +32,9 @@ var EchartBuilder = function() {
         var tmp = {}
         $.each(chartConfig, function (index, row) {
             if (row) {
+                if (isNumeric(row)) {
+                    row = parseFloat(row);
+                }
                 if (index.indexOf('_') > -1) {
                     var tmpObj = index.split('_');
                     tmp = recursivePushObj(tmpObj, tmp, row);
@@ -67,7 +71,10 @@ var EchartBuilder = function() {
         var isLineChartConfig = false;
         var kpiLayoutIndex = 0;
         obj.isLayoutBuilder = false;
-    
+        if (!data) {
+            return false;
+        }
+        
         if (typeof $mainSelector.attr('data-kpi-layout') !== 'undefined' && $mainSelector.attr('data-kpi-layout') !== '0') {
             isLayoutBuilder = true;
             obj.isLayoutBuilder = true;
@@ -85,9 +92,7 @@ var EchartBuilder = function() {
         }
                 
         if (obj.hasOwnProperty('isRunInterval') && obj.isRunInterval) {
-    
             isRunInterval = true;
-    
             if (kpIndicatorChart.hasOwnProperty(elemId)) {
                 
                 var prevChart = kpIndicatorChart[elemId];
@@ -111,12 +116,12 @@ var EchartBuilder = function() {
         try {
             var chartDom = document.getElementById(elemId);
             var option;
-            
+            echarts.dispose(chartDom);
         } catch (error) {
             console.log(error);
+            Core.unblockUI();
         }
         
-        echarts.dispose(chartDom);
         var myChart = echarts.init(chartDom);
         var dataSet = data;
         var grid = {containLabel: true};
@@ -124,9 +129,9 @@ var EchartBuilder = function() {
             themeCode: chartConfig.themeCode,
         };
         
-        console.clear();
+        /* console.clear(); */
         option = convertOptions(chartConfig, option);
-        console.log(obj);
+        
         var axisLabel = {},
             yAxis = {
                 type: 'value',
@@ -136,8 +141,14 @@ var EchartBuilder = function() {
                 label: axisLabel,
             };
         
-        var seriesLabel = {position: 'middle',
-        formatter: '{b}: {c}'};
+        if (typeof option.xAxis !== 'undefined' && typeof option.xAxis.axisLabel !== 'undefined') {
+            xAxis['axisLabel'] = option.xAxis.axisLabel;
+        }
+        
+        var seriesLabel = {
+            position: 'middle',
+            formatter: '{c}'
+        };
     
         if (typeof chartConfig.axisLabelShow !== 'undefined') {
             axisLabel = {...axisLabel,
@@ -161,17 +172,30 @@ var EchartBuilder = function() {
             xAxis = yAxis;
             yAxis = xAxisTmp;
         }
-    
+
         var series = {
             data: dataSet,
             type: type,
-            showBackground: true,
+            name: "",
             backgroundStyle: {
                 color: 'rgba(180, 180, 180, 0.2)'
             },
             label: seriesLabel,
         };
-        console.log(dataSet);
+
+        if (typeof option.series !== 'undefined') {
+            var series = {
+                ...option.series,
+                data: dataSet,
+                type: type,
+                name: "",
+                /* showBackground: true, */
+                backgroundStyle: {
+                    color: 'rgba(180, 180, 180, 0.2)'
+                },
+                label: seriesLabel,
+            };
+        }
 
         switch (type) {
             case 'maps': 
@@ -499,32 +523,23 @@ var EchartBuilder = function() {
                         ] */
                         indicator: dataSet
                     },
-                    series: [
-                        {
+                    series: [{
                         name: 'Budget vs spending',
                         type: 'radar',
                         data: dataSet
-                        }
-                    ]
+                    }]
                 }
                 break;
             case 'pie':
-                option = {
-                    ...option,
-                    series:{
-                        name: 'Access From',
-                        type: type,
-                        radius: '50%',
-                        data: dataSet,
-                        emphasis: {
-                        itemStyle: {
-                            shadowBlur: 10,
-                            shadowOffsetX: 0,
-                            shadowColor: 'rgba(0, 0, 0, 0.5)'
-                        }
-                        }
-                    },
-                }; 
+                series['radius']= '50%';
+                series['emphasis']= {
+                    itemStyle: {
+                        shadowBlur: 10,
+                        shadowOffsetX: 0,
+                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                    }
+                };
+                option['series'] = series; 
                 break;
             case 'bar_polar':
                 option = {
@@ -532,40 +547,39 @@ var EchartBuilder = function() {
                         radius: [30, '80%']
                     },
                     radiusAxis: {
-                        max: 4
+                        max: function (value) {
+                            return value.max - 20;
+                        }
                     },
                     angleAxis: {
                         type: 'category',
                         data: obj.dataXaxis,
                         startAngle: 75
                     },
+                    tooltip: {},
                     series: {
                         data: dataSet,
                         type: 'bar',
-                        showBackground: true,
+                        /* showBackground: true, */
                         coordinateSystem: 'polar',
                         backgroundStyle: {
                             color: 'rgba(180, 180, 180, 0.2)'
                         },
                         label: {
-                            show: true,
+                            show: false,
                             position: 'middle',
-                            formatter: '{b}: {c}'
+                            formatter: '{c}'
                         }
                     }
                 };
                 break;
-            case 'line_race':
-                option.type = 'line';
-                
-                break;
             case 'stacked_column':
             case 'clustered_column':
             case 'bar_stacked':
+            case 'stacked_bar':
             case 'bar_radial':
             case 'bar_label_rotation':
                 option.type = 'bar';
-
             case 'line_stacked':
                 option.type = 'line';
                 var axisXColumn = (chartConfig.axisX).toLowerCase(); 
@@ -613,16 +627,16 @@ var EchartBuilder = function() {
                     },
                     align: {
                         options: {
-                        left: 'left',
-                        center: 'center',
-                        right: 'right'
+                            left: 'left',
+                            center: 'center',
+                            right: 'right'
                         }
                     },
                     verticalAlign: {
                         options: {
-                        top: 'top',
-                        middle: 'middle',
-                        bottom: 'bottom'
+                            top: 'top',
+                            middle: 'middle',
+                            bottom: 'bottom'
                         }
                     },
                     position: {
@@ -702,7 +716,7 @@ var EchartBuilder = function() {
                         data: []
                     };
                     
-                    if (type === 'bar_stacked') {
+                    if (type === 'bar_stacked' || type === 'stacked_bar') {
                         tmp = {
                             name: xk,
                             type: 'bar',
@@ -745,24 +759,33 @@ var EchartBuilder = function() {
                     seriesTmp.push(tmp);
                 });
 
-                tmp['series'] = seriesTmp;
                 
-                tmp['xAxis'] = [{
-                    type: 'category',
-                    axisTick: { show: false },
-                    data: xAxisData
-                }];
+                if (type === 'stacked_bar' && typeof chartConfig.axisXGroup !== 'undefined' && chartConfig.axisXGroup !== '') {
+                    tmp['series'] = dataSet;
+                    xAxisData = obj.dataXaxis;
+                } else {
+                    tmp['series'] = seriesTmp;
+                    tmp['legend'] = {
+                        data: legendData
+                    };
+                }
+                if (typeof option.xAxis !== 'undefined') {
+                    
+                    tmp['xAxis'] = {
+                        ...option.xAxis,
+                        type: 'category',
+                        axisTick: { show: false },
+                        data: xAxisData
+                    };
 
-                tmp['legend'] = {
-                    data: legendData
-                };
-
-                /* tmp['tooltip'] = {
-                    trigger: 'axis',
-                    axisPointer: {
-                        type: 'shadow' // 'shadow' as default; can also be 'line' or 'shadow'
-                    }
-                }; */
+                } else {
+                    
+                    tmp['xAxis'] = {
+                        type: 'category',
+                        axisTick: { show: false },
+                        data: xAxisData
+                    };
+                }
 
                 tmp['yAxis'] = [{
                     type: 'value'
@@ -797,12 +820,7 @@ var EchartBuilder = function() {
                 break;
             case 'tree_circle' : 
                 option = {
-                    /* tooltip: {
-                        trigger: 'item',
-                        triggerOn: 'mousemove'
-                    }, */
-                    series: [
-                    {
+                    series: [{
                         type: 'tree',
                         data: dataSet,
                         top: '18%',
@@ -813,10 +831,9 @@ var EchartBuilder = function() {
                         initialTreeDepth: 3,
                         animationDurationUpdate: 750,
                         emphasis: {
-                        focus: 'descendant'
+                            focus: 'descendant'
                         }
-                    }
-                    ]
+                    }]
                 };
                 break;
             case 'tree' : 
@@ -864,11 +881,8 @@ var EchartBuilder = function() {
                     });
                     topPer += plusPercent;
                 });
+
                 option = {
-                    /* tooltip: {
-                        trigger: 'item',
-                        triggerOn: 'mousemove'
-                    }, */
                     legend: {
                         top: '2%',
                         left: '3%',
@@ -881,9 +895,9 @@ var EchartBuilder = function() {
                 
                 break;
             default:
-    
                 if (typeof chartConfig.smooth !== 'undefined' && chartConfig.smooth) {
-                    series = {...series,
+                    series = {
+                        ...series,
                         smooth: true
                     };
                 }
@@ -891,11 +905,92 @@ var EchartBuilder = function() {
                     ...xAxis,
                     data: obj.dataXaxis,
                 }
-                option = {...option,
-                    yAxis: yAxis,
-                    xAxis: xAxis,
-                    series: series,
-                };
+                
+                if (type === 'line_race') {
+                    /* series.name= name; */
+                    if (option.dataZoom !== 'undefined') {
+                        var tmpZoom = [
+                            {
+                                startValue: '2014-06-01'
+                            },
+                            {
+                                type: 'inside'
+                            }];
+
+                        option.dataZoom  = {
+                            ...option.dataZoom,
+                            ...tmpZoom
+                        }
+                    } else {
+                        option.dataZoom= [{
+                            startValue: '2014-06-01'
+                        },
+                        {
+                            type: 'inside'
+                        }];
+                    }
+
+                    option.animationDuration = 10000;
+                    if (typeof chartConfig.axisXGroup !== 'undefined' && chartConfig.axisXGroup !== '') {
+                        series = dataSet;
+                    } else {
+                        series.type = 'line';
+                        series.showSymbol= false;
+                        series.endLabel= {
+                            show: true,
+                            formatter: function (params) {
+                                return params.value;
+                            }
+                        };
+                        series.labelLayout= {
+                            moveOverlap: 'shiftY'
+                        };
+                        series.emphasis= {
+                            focus: 'series'
+                        };
+                    }
+                }
+
+                switch (type) {
+                    case 'treemap':
+                        option = {
+                            ...option,
+                            series: series,
+                        };
+                        break;
+                    case 'line_race':
+                        /* option.grid= {
+                            top: '12%',
+                            left: '1%',
+                            right: '10%',
+                            containLabel: true
+                        }; */
+                        /* xAxis.axisLabel= {
+                            rotate: 60,
+                            overflow: "truncate",
+                            width: 80,
+                        }; */
+
+                        if (typeof xAxis.axisLine !== 'undefined') {
+                            /* xAxis.axisLine = {
+                                symbolSize: [10, 15],
+                                ...xAxis.axisLine
+                            } */
+                        } else {
+                            xAxis.axisLine= {
+                                symbolSize: [10, 15],
+                            };
+                        }
+
+                    default:
+                        option = {...option,
+                            yAxis: yAxis,
+                            xAxis: xAxis,
+                            series: series,
+                        };
+                        break;
+                }
+
                 break;
         }
     
@@ -905,13 +1000,46 @@ var EchartBuilder = function() {
                 backgroundColor: chartConfig.bgColor,
             };
         }
+        var tmpOption = option;
+        switch (useData) {
+            case '3':
+            case '2':
+                option = JSON.parse(chartConfig.buildCharConfig);
+                if (useData == '3') {
+                    if (type === 'stacked_bar' && typeof chartConfig.axisXGroup !== 'undefined' && chartConfig.axisXGroup !== '') {
+                        option.series = data;
+                        option.xAxis.data = obj.dataXaxis;
+                        /* console.clear();
+                        console.log('here --------------------------------- ');
+                        console.log(obj.dataXaxis);
+                        console.log(option); */
+                    } else {
+                        option.series.data = data;
+                        if (typeof tmpOption.xAxis !== 'undefined' && typeof tmpOption.xAxis.data !== 'undefined')
+                            option.xAxis.data = tmpOption.xAxis.data;
+                    }
+                }
+                break;
+                
+            default:
+                var itemStyle = {
+                    textStyle: {
+                        fontFamily: "Arial, Helvetica, sans-serif",
+                        color : "#333",
+                        fontSize: "0.9375rem"
+                    }
+                }
+                option = {
+                    ...option,
+                    ...itemStyle,
+                };
 
-        /* myChart.on('finished', function () {
-            console.log('ffinished');
-        }); */
-        console.log(option);
+                break;
+        }
+        
         option && myChart.setOption(option);
         var jsonMinif = JSON.stringify(option);
+        
         $mainSelector.find('.kpi-dm-chart-create').attr('data-config', jsonMinif);
         if (type === 'tree' || type === 'tree_circle') {
             var subContent = $('#' + elemId).parent().find('.subcontent');
@@ -1006,6 +1134,7 @@ var EchartBuilder = function() {
             
         } catch (error) {
             console.log(error);
+            Core.unblockUI();
         }
         
         echarts.dispose(chartDom);
@@ -1026,7 +1155,7 @@ var EchartBuilder = function() {
                 label: axisLabel,
             };
         
-        var seriesLabel = {position: 'middle', formatter: '{b}: {c}'};
+        var seriesLabel = {position: 'middle', formatter: '{c}'};
     
         if (typeof chartConfig.axisLabelShow !== 'undefined') {
             axisLabel = {...axisLabel,

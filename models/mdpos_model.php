@@ -6829,6 +6829,22 @@ class Mdpos_Model extends Model {
         return '<img src="data:image/png;base64,'.base64_encode($imageData).'" style="height: '.$height.'">';
     }
     
+    public function getQpayQrCodeImg($data, $height = '150px') {
+        
+        if($data == ''){return '';}
+        
+//        includeLib('QRCode/qrlib');
+//        
+//        ob_start();
+//            
+//        QRcode::png($data, false, 'L', 6, 0);
+//        $imageData = ob_get_contents();
+//
+//        ob_end_clean();        
+        
+        return '<img src="data:image/png;base64,'.$data.'" style="height: '.$height.'">';
+    }        
+    
     public function getBarCodeImg($data) {
         
         if($data == ''){return '';}
@@ -9634,7 +9650,7 @@ class Mdpos_Model extends Model {
     public function getBasketOrderBookCountModel($storeId = null) {
         
         $posTypeCode = Session::get(SESSION_PREFIX.'posTypeCode');
-        $tempInvoiceDvId = Config::get('CONFIG_POS_TEMP_INVOICE_DVID', 'postype='.$posTypeCode);
+        $tempInvoiceDvId = Config::get('POS_CLOSE_CHECK_DATAVIEW') ? Config::get('POS_CLOSE_CHECK_DATAVIEW') : Config::get('CONFIG_POS_TEMP_INVOICE_DVID', 'postype='.$posTypeCode);
         $tempInvoiceDvId = $tempInvoiceDvId ? $tempInvoiceDvId : '1529014380513';        
         $criteria = array(
             'storeId' => array(
@@ -18803,20 +18819,20 @@ class Mdpos_Model extends Model {
     }
     
     public function qPayGetInvoiceQrModel($params) {
-        $result = $this->ws->runSerializeResponse(self::$gfServiceAddress, 'QPay_create', $params);
+        $result = $this->ws->runSerializeResponse(self::$gfServiceAddress, 'qpay_v2_createInvoice_simple', $params);
 
         if ($result['status'] == 'success') {
-            return array('status' => 'success', 'qrcode' => self::getQrCodeImg($result['result']['qpay_qrcode'], '250px'), 'traceNo' => $result['result']['payment_id']);
+            return array('status' => 'success', 'qrcode' => self::getQpayQrCodeImg($result['result']['qr_image'], '250px'), 'traceNo' => $result['result']['invoice_id']);
         } else {
             return array('status' => 'error', 'message' => $this->ws->getResponseMessage($result));
         }
     }    
     
     public function qpayCheckQrCodeModel($params) {
-        $result = $this->ws->runSerializeResponse(self::$gfServiceAddress, 'QPay_payment_check_post', $params);
+        $result = $this->ws->runSerializeResponse(self::$gfServiceAddress, 'qpay_v2_checkPayment', $params);
 
         if ($result['status'] == 'success') {
-            if ($result['result']['payment_info']['payment_status'] !== 'NOT_PAID') {
+            if ($result['result']['count']) {
                 return array('status' => 'success', 'message' => 'Successfully');
             } else {
                 return array('status' => 'error', 'message' => 'Waiting');

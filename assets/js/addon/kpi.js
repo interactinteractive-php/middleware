@@ -199,6 +199,34 @@ function kpiExport(elem, processMetaDataId, dataViewId, paramData) {
             Core.unblockUI();
         });     
         
+    } else if (objectCode == 'kpiindicatorbycategory') {
+        
+        $.fileDownload(URL_APP + 'mdupgrade/exportObject', {
+            httpMethod: 'POST', 
+            data: postData, 
+        }).done(function(){
+            PNotify.removeAll();
+            new PNotify({
+                title: 'Success',
+                text: 'Амжилттай татагдлаа',
+                type: 'success',
+                sticker: false,
+                hide: true,
+                addclass: pnotifyPosition
+            });
+            Core.unblockUI();
+        }).fail(function (msg, url) {
+            PNotify.removeAll();
+            new PNotify({
+                title: 'Error',
+                text: msg, 
+                type: 'error',
+                sticker: false, 
+                addclass: pnotifyPosition
+            });
+            Core.unblockUI();
+        });
+        
     } else {
         
         $.fileDownload(URL_APP + 'mdupgrade/exportObject', {
@@ -228,7 +256,7 @@ function kpiExport(elem, processMetaDataId, dataViewId, paramData) {
         });   
     }
 }
-function kpiImport(elem, dataViewId) {
+function kpiImport(elem, dataViewId, getParams) {
     var $dialogName = 'dialog-object-import';
     if (!$("#" + $dialogName).length) {
         $('<div id="' + $dialogName + '"></div>').appendTo('body');
@@ -267,6 +295,16 @@ function kpiImport(elem, dataViewId) {
                                 type: 'post',
                                 url: 'mdupgrade/importMetaFile',
                                 dataType: 'json',
+                                beforeSubmit: function (formData, jqForm, options) {
+                                    if (typeof getParams != 'undefined') {
+                                        var paramsObj = qryStrToObj(getParams);
+                                        if (paramsObj) {
+                                            for (var p in paramsObj) {
+                                                formData.push({name: p, value: paramsObj[p]});
+                                            }
+                                        }
+                                    }
+                                },
                                 beforeSend: function () {
                                     Core.blockUI({message: 'Түр хүлээнэ үү...', boxed: true});
                                 },

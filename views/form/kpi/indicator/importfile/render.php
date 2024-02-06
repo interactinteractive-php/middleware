@@ -213,9 +213,7 @@ $(function() {
         var file = $fileInput[0].files[0];
         var fileName = file.name;
         
-        if (mvFileIsImportManage) {
-            $form.find('input[name="name"]').val(fileName);
-        }
+        $form.find('input[name="name"]').val(fileName);
         
         mvFileReaderExtention = (fileName.split('.').pop()).toLowerCase();
         

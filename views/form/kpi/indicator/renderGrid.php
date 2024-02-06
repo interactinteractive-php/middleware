@@ -1,16 +1,15 @@
-<div class="center-sidebar overflow-hidden content">
+<div class="center-sidebar overflow-hidden content mv-datalist-container<?php echo isset($this->row['gridOption']['theme']) ? ' '.$this->row['gridOption']['theme'] : ''; ?>">
     <div class="row">
         
         <?php
         if (!isset($this->isIgnoreFilter)) {
         ?>
-        <div class="col-md-auto pl-0">
-            <div class="kpidv-data-filter-col pr-1"></div>
-        </div>
+            <div class="col-md-auto pl-0 pr-0">
+                <div class="kpidv-data-filter-col pr-1"></div>
+            </div>
         <?php
         }
         ?>
-
         <div class="col right-sidebar-content-for-resize content-wrapper pl-0 pr-0 overflow-hidden">
             <div class="row">
                 <div class="col-md-12">
@@ -97,6 +96,7 @@
                                                 $crudIndicatorId = issetParam($process['crud_indicator_id']);
                                                 $uxFlowActionIndicatorId = issetParam($process['id']);
                                                 $isFillRelation = issetParam($process['is_fill_relation']);
+                                                $isNormalRelation = issetParam($process['is_normal_relation']);
                                                 $typeCode = $process['type_code'];
                                                 $kpiTypeId = $process['kpi_type_id'];
                                                 $buttonName = $className = $onClick = $description = $opt = '';
@@ -108,7 +108,12 @@
                                                         $labelName = $process['label_name'] == 'Нэмэх' ? $this->lang->line('add_btn') : $this->lang->line($process['label_name']);
                                                         $className = 'btn btn-success btn-circle btn-sm';
                                                         $buttonName = '<i class="far fa-plus"></i> '.$labelName;
-                                                        $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '".$this->indicatorId."', false);";
+                                                        
+                                                        if ($isNormalRelation) {
+                                                            $onClick = "mvNormalRelationRender(this, '$kpiTypeId', '".$this->indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId});";
+                                                        } else {
+                                                            $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '".$this->indicatorId."', false);";
+                                                        }
                                                         
                                                     } elseif ($typeCode == 'update') {
                                                         
@@ -121,7 +126,16 @@
                                                         
                                                         $className = 'btn btn-warning btn-circle btn-sm';
                                                         $buttonName = '<i class="far fa-edit"></i> '.$labelName;
-                                                        $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '".$this->indicatorId."', true$opt);";
+                                                        
+                                                        if ($isNormalRelation) {
+                                                            $onClick = "mvNormalRelationRender(this, '$kpiTypeId', '".$this->indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'update'});";
+                                                        } else {
+                                                            if (issetParam($process['widget_code']) !== '') {
+                                                                $onClick = "mvWidgetRelationRender(this, '$kpiTypeId', '".$this->indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'update', widgetCode: '". $process['widget_code'] ."'});";
+                                                            } else {
+                                                                $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '".$this->indicatorId."', true$opt);";
+                                                            }
+                                                        }
                                                         
                                                         $contextMenu[] = array(
                                                             'crudIndicatorId' => $crudIndicatorId, 
@@ -143,7 +157,12 @@
                                                         $isUpdate = true;
                                                         $className = 'btn purple btn-circle btn-sm';
                                                         $buttonName = '<i class="fas fa-eye"></i> '.$this->lang->line('view_btn');
-                                                        $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '".$this->indicatorId."', true, {mode: 'view'});";
+                                                        
+                                                        if ($isNormalRelation) {
+                                                            $onClick = "mvNormalRelationRender(this, '$kpiTypeId', '".$this->indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'view'});";
+                                                        } else {
+                                                            $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '".$this->indicatorId."', true, {mode: 'view'});";
+                                                        }
                                                         
                                                         $contextMenu[] = array(
                                                             'crudIndicatorId' => $crudIndicatorId, 
@@ -263,6 +282,7 @@
                                                     $description = $this->lang->line(issetParam($process['description']));
                                                     $processName = $this->lang->line(issetParam($process['label_name']));
                                                     $isDfillRelation = issetParam($process['is_dfill_relation']);
+                                                    $isCfillRelation = issetParam($process['is_cfill_relation']);
                                                     
                                                     if ($uxFlowActionIndicatorId) { 
                                                         
@@ -281,9 +301,19 @@
                                                             $opt = ', {fillSelectedRow: true, mode: \'create\'}';
                                                         } elseif ($isDfillRelation) {
                                                             $opt = ', {fillDynamicSelectedRow: true, mode: \'create\'}';
+                                                        } elseif ($isCfillRelation) {
+                                                            $opt = ', {consolidateFillSelectedRow: true, mode: \'create\'}';
                                                         }
                                                         
-                                                        $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '$srcIndicatorId', false$opt);";
+                                                        if ($isNormalRelation) {
+                                                            if (issetParam($process['widget_code']) !== '') {
+                                                                $onClick = "mvWidgetRelationRender(this, '$kpiTypeId', '".$this->indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'update', widgetCode: '". $process['widget_code'] ."'});";
+                                                            } else {
+                                                                $onClick = "mvNormalRelationRender(this, '$kpiTypeId', '".$this->indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId});";
+                                                            }
+                                                        } else {
+                                                            $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '$srcIndicatorId', false$opt);";
+                                                        }
                                                         
                                                     } elseif ($typeCode == 'update') {
                                                         
@@ -296,7 +326,15 @@
                                                             $opt = ', {fillDynamicSelectedRow: true, mode: \'update\'}';
                                                         }
                                                         
-                                                        $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '$srcIndicatorId', true$opt);";
+                                                        if ($isNormalRelation) {
+                                                            $onClick = "mvNormalRelationRender(this, '$kpiTypeId', '".$this->indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'update'});";
+                                                        } else {
+                                                            if (issetParam($process['widget_code']) !== '') {
+                                                                $onClick = "mvWidgetRelationRender(this, '$kpiTypeId', '".$this->indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'update', widgetCode: '". $process['widget_code'] ."'});";
+                                                            } else {
+                                                                $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '$srcIndicatorId', true$opt);";
+                                                            }
+                                                        }
                                                         
                                                     } elseif ($typeCode == 'read') {
                                                         
@@ -311,7 +349,11 @@
                                                             $opt = ', {mode: \'view\'}';
                                                         }
                                                         
-                                                        $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '$srcIndicatorId', true$opt);";
+                                                        if ($isNormalRelation) {
+                                                            $onClick = "mvNormalRelationRender(this, '$kpiTypeId', '".$this->indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'view'});";
+                                                        } else {
+                                                            $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '$srcIndicatorId', true$opt);";
+                                                        }
                                                         
                                                     } elseif ($typeCode == 'delete') {
                                                         
@@ -387,6 +429,12 @@
                                             ); 
                                         }
                                         
+                                        echo html_tag('button', array(
+                                            'type' => 'button', 
+                                            'class' => 'btn btn-sm btn-circle btn-secondary', 
+                                            'onclick' => 'dataListToBasket_'.$this->indicatorId.'(this);'
+                                        ), '<i class="far fa-shopping-cart"></i> Сагсанд нэмэх');                                        
+                                        
                                         if (isset($this->isImportManage) && $this->isImportManage) {
                                             
                                             echo html_tag('a', 
@@ -437,7 +485,20 @@
                             ?>
                             <div class="dv-right-tools-btn ml-2 text-right">
                                 <div class="btn-group btn-group-devided">
-                                    <?php
+                                    <?php if ($this->relationComponentsOther) { ?>
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-outline-success dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><i class="icon-stack2"></i></button>
+                                            <div class="dropdown-menu dropdown-menu-right" x-placement="bottom-end" style="position: absolute; transform: translate3d(-75px, 36px, 0px); top: 0px; left: 0px; will-change: transform;">
+                                                <?php echo Html::anchor(
+                                                        'javascript:;', '<i class="far fa-calendar"></i> Calendar', array(
+                                                        'class' => 'dropdown-item',
+                                                        'title' => 'Calendar',     
+                                                        'onclick' => 'kpiIndicatorViewCalendar_'.$this->indicatorId.'(this, \''.$this->indicatorId.'\');'
+                                                    ), true  
+                                                );  ?>
+                                            </div>
+                                        </div>
+                                    <?php }
                                     echo Html::anchor(
                                             'javascript:;', '<i class="far fa-file-excel"></i>', array(
                                             'class' => 'btn btn-secondary btn-circle btn-sm default',
@@ -461,6 +522,14 @@
                                             'onclick' => 'googleMapKpiIndicatorValue(this, \''.$this->indicatorId.'\', \''.$this->coordinateField.'\');'
                                         ), $this->coordinateField ? true : false
                                     );
+                                    
+                                    echo Html::anchor(
+                                            'javascript:;', '<i class="far fa-shopping-cart"></i> <span class="save-database-'. $this->indicatorId .'">0</span>', array(
+                                            'class' => 'btn btn-secondary btn-sm btn-circle default',
+                                            'onclick' => 'dataListUseBasketView_' . $this->indicatorId . '(this);',
+                                            'title' => $this->lang->line('META_00113'),
+                                        ), true
+                                    );                                    
                                     ?>
                                 </div>
                             </div>
@@ -502,12 +571,89 @@
     padding: 0;
 }
 .kpidv-data-filter-col .list-group-item {
-    padding: 0.28rem 0;
+    padding: 0.35rem 0;
+}
+.kpidv-data-filter-col .list-group-item.opened i {
+    -webkit-transform: rotate(90deg);
+    transform: rotate(90deg);        
+}
+.kpidv-data-filter-col .list-group-item i {
+    min-width: 8px;
 }
 .kpidv-data-filter-col .list-group-item.active {
     color: rgba(51,51,51,.85);
-    background-color: rgba(93, 173, 226, 0.3);
+    background-color: transparent;
     border-color: rgba(93, 173, 226, 0.3);
+}
+.mv-datalist-show-filter .kpidv-data-filter-col {
+    padding-top: 0.625rem !important;
+}
+.mv-datalist-show-filter .col.content-wrapper {
+    padding: 0.625rem !important;
+    background-color: #F9F9F9;
+}
+.mv-datalist-container .jeasyuiTheme3 .datagrid-header .datagrid-cell span, 
+.mv-datalist-container .jeasyuiTheme3 .datagrid-view .datagrid-cell-group {
+    font-size: 12px;
+    font-weight: 700;
+    color: #99A1B7;
+}
+.mv-datalist-container .jeasyuiTheme3 .datagrid-header td {
+    background: #eee !important;
+    border-style: solid;
+}
+.mv-datalist-container.no-border .datagrid-header td, 
+.mv-datalist-container.no-border .datagrid-body td, 
+.mv-datalist-container.no-border .datagrid-footer td {
+    border-color: transparent;
+}
+.mv-datalist-container.no-border .panel-header-eui, 
+.mv-datalist-container.no-border .panel-body-eui {
+    border-color: transparent;
+}
+.mv-datalist-container.no-border .datagrid-pager {
+    border-color: transparent;
+}
+.mv-datalist-container.no-border .jeasyuiTheme3 .datagrid-header td {
+    border-color: transparent;
+}
+.kpidv-data-filter-col .jstree-default .jstree-custom-folder-icon.jstree-closed>.jstree-ocl, 
+.kpidv-data-filter-col .jstree-default .jstree-custom-folder-icon.jstree-open>.jstree-ocl {
+    -webkit-font-smoothing: antialiased;
+    background-color: transparent;
+    background-image: none;
+    background-position: 0 0;
+    background-repeat: no-repeat;
+    font: normal normal normal 15px/1 icomoon;
+    color: #333;
+    text-rendering: auto;
+    right: 0;
+    top: -6px;
+}
+.kpidv-data-filter-col .mv-tree-filter-icon {
+    color:#1B84FF;
+    font-size: 15px;
+}
+.kpidv-data-filter-col .jstree-default .jstree-custom-folder-icon.jstree-closed>.jstree-ocl:before {
+    content: "\e9c3";
+}
+.kpidv-data-filter-col .jstree-default .jstree-custom-folder-icon.jstree-open>.jstree-ocl:before {
+    content: "\e9c1";
+}
+.kpidv-data-filter-col .jstree-default .jstree-custom-folder-icon.green.jstree-closed>.jstree-ocl, 
+.kpidv-data-filter-col .jstree-default .jstree-custom-folder-icon.green.jstree-open>.jstree-ocl {
+    color: #41c7ae;
+}
+/*.kpidv-data-filter-col .jstree-node.jstree-custom-folder-icon .nameField {
+    margin-left: 18px;
+}*/
+.kpidv-data-filter-col .jstree-default .jstree-node, 
+.kpidv-data-filter-col .jstree-default .jstree-icon {
+    background-image: none !important;
+}
+.kpidv-data-filter-col .jstree-default .jstree-clicked {
+    background-color: transparent;
+    box-shadow: none;
 }
 </style>
 
@@ -516,10 +662,11 @@ var isIgnoreWfmHistory_<?php echo $this->indicatorId; ?> = false;
 var isGoogleMapView_<?php echo $this->indicatorId; ?> = false;
 var isFilterShowData_<?php echo $this->indicatorId; ?> = <?php echo ($this->isFilterShowData == '1' ? 'true' : 'false'); ?>;
 var idField_<?php echo $this->indicatorId; ?> = '<?php echo $this->idField; ?>';
-var indicatorName_<?php echo $this->indicatorId; ?> = '<?php echo $this->title; ?>';
+var indicatorName_<?php echo $this->indicatorId; ?> = '<?php echo Str::nlTobr($this->title); ?>';
 var objectdatagrid_<?php echo $this->indicatorId; ?> = $('#objectdatagrid-<?php echo $this->indicatorId; ?>');
 var drillDownCriteria_<?php echo $this->indicatorId; ?> = '<?php echo $this->drillDownCriteria; ?>';
 var dynamicHeight = 0;
+var _selectedRows_<?php echo $this->indicatorId; ?> = [];
 
 if (typeof isKpiIndicatorScript === 'undefined') {
     $.cachedScript('<?php echo autoVersion('middleware/assets/js/addon/indicator.js'); ?>');
@@ -561,26 +708,43 @@ filterKpiIndicatorValueForm(<?php echo $this->indicatorId; ?>);
 
 $(function() {
     
+    var queryParams = {
+        indicatorId: '<?php echo $this->indicatorId; ?>', 
+        treeConfigs: '<?php echo $this->isTreeGridData; ?>', 
+        ignoreFirstLoad: isFilterShowData_<?php echo $this->indicatorId; ?>, 
+        drillDownCriteria: drillDownCriteria_<?php echo $this->indicatorId; ?>, 
+        postHiddenParams: '<?php echo $this->postHiddenParams; ?>', 
+        hiddenParams: '<?php echo $this->hiddenParams; ?>', 
+        filter: '<?php echo $this->filter; ?>'
+    };
+    
+    var $checkListParent = objectdatagrid_<?php echo $this->indicatorId; ?>.closest('.mv-checklist-render-parent');
+    
+    if ($checkListParent.length) {
+        var $checkListActive = $checkListParent.find('ul.nav-sidebar a.nav-link.active[data-json]');
+        var checkListRowJson = JSON.parse(html_entity_decode($checkListActive.attr('data-json'), 'ENT_QUOTES'));
+        
+        queryParams.mapSrcMapId = checkListRowJson.mapId;
+        queryParams.mapSelectedRow = $checkListParent.find('input[data-path="headerParams"]').val();
+    }
+        
     objectdatagrid_<?php echo $this->indicatorId; ?>.<?php echo $this->isGridType; ?>({
         <?php
-        if (!$this->isTreeGridData) {
+        if (!$this->isTreeGridData && !$this->subgrid) {
         ?>
-        view: horizonscrollview,
+            view: horizonscrollview,
+        <?php
+        } elseif ($this->subgrid) { 
+        ?>
+            view: detailview,
         <?php
         }
         ?>
         url: 'mdform/indicatorDataGrid',
         method: 'post',
-        queryParams: {
-            indicatorId: '<?php echo $this->indicatorId; ?>', 
-            treeConfigs: '<?php echo $this->isTreeGridData; ?>', 
-            ignoreFirstLoad: isFilterShowData_<?php echo $this->indicatorId; ?>, 
-            drillDownCriteria: drillDownCriteria_<?php echo $this->indicatorId; ?>, 
-            postHiddenParams: '<?php echo $this->postHiddenParams; ?>', 
-            hiddenParams: '<?php echo $this->hiddenParams; ?>', 
-            filter: '<?php echo $this->filter; ?>'
-        }, 
+        queryParams: queryParams, 
         <?php
+        echo $this->subgrid;
         if ($this->isTreeGridData) {
             echo "idField: '".$this->idField."',"."\n"; 
             echo "treeField: '".$this->nameField."',"."\n";
@@ -589,7 +753,7 @@ $(function() {
         resizeHandle: 'right',
         fitColumns: false,
         autoRowHeight: true,
-        striped: true,
+        striped: false,
         nowrap: true,
         showHeader: true,
         showFooter: true,
@@ -621,7 +785,7 @@ $(function() {
         }
         ?> 
         frozenColumns: [
-            [{field: 'ck', rowspan:1, checkbox: true }]
+            <?php echo !$this->isHideCheckBox ? "" : "[{field: 'ck', rowspan:1, checkbox: true }]" ?>
         ],
         columns: [
             <?php echo $this->columns['comboColumnsRender']; ?> 
@@ -659,7 +823,51 @@ $(function() {
         },       
                 
         <?php
-        }
+        } else { 
+            if ($this->isTreeGridData) {
+                echo 'onDblClickRow:function(row) {'."\n";
+            } else {
+                echo 'onDblClickRow:function(index, row) {'."\n";
+            } 
+                if (isset($this->row['uniqueField'])) {
+                    $primaryField = $this->row['uniqueField'];
+                } elseif ($this->idField) {
+                    $primaryField = $this->idField;
+                } else {
+                    $primaryField = 'id';
+                }                   
+                ?>                        
+                var isAdded = false, rowId = row['<?php echo $primaryField; ?>']; 
+
+                for (var key in _selectedRows_<?php echo $this->indicatorId; ?>) {
+                    var basketRow = _selectedRows_<?php echo $this->indicatorId; ?>[key], 
+                        childId = basketRow['<?php echo $primaryField; ?>'];
+
+                    if (rowId == childId) {
+                        isAdded = true;
+                        break;
+                    } 
+                }                            
+                if (!isAdded) {
+                    _selectedRows_<?php echo $this->indicatorId; ?>.push(row);
+                    $('.save-database-<?php echo $this->indicatorId; ?>').text(_selectedRows_<?php echo $this->indicatorId; ?>.length).pulsate({
+                        color: '#F3565D', 
+                        reach: 9,
+                        speed: 500,
+                        glow: false, 
+                        repeat: 1
+                    });   
+                } else {
+                    $('.save-database-<?php echo $this->indicatorId; ?>').pulsate({
+                        color: '#4caf50', 
+                        reach: 9,
+                        speed: 500,
+                        glow: false, 
+                        repeat: 1
+                    });   
+                }  
+            },      
+        <?php }
         if ($this->isTreeGridData) {
         ?>
         onContextMenu: function (e, row) {
@@ -883,19 +1091,27 @@ function filterKpiIndicatorValueForm(indicatorId) {
             
             if (data.status == 'success' && data.html != '') {
                 
-                $filterCol.css('height', dynamicHeight + 47);
+                if ($filterCol.length) {
+                    $filterCol.css('height', dynamicHeight + 100);
+                                
+                    $filterCol.closest('.mv-datalist-container').addClass('mv-datalist-show-filter');
+                    $filterCol.closest('.ws-page-content').removeClass('mt-2');
                 
-                $filterCol.append(data.html).promise().done(function() {
-                    Core.initNumberInput($filterCol);
-                    Core.initLongInput($filterCol);
-                    Core.initDateInput($filterCol);
-                    Core.initSelect2($filterCol);
-                });
+                    $filterCol.append(data.html).promise().done(function() {
+                        Core.initNumberInput($filterCol);
+                        Core.initLongInput($filterCol);
+                        Core.initDateInput($filterCol);
+                        Core.initSelect2($filterCol);
+
+                        if ($('#object-value-list-' + indicatorId).find('.mv-indicator-filter-tree-open-btn').length) {
+                            $('#object-value-list-' + indicatorId).find('.mv-indicator-filter-tree-open-btn').trigger('click');
+                        }                        
+                    });
+                }
                 
             } else {
                 $filterCol.closest('.col-md-auto').remove();
                 objectdatagrid_<?php echo $this->indicatorId; ?>.datagrid('resize');
-                console.log(data);
             }
         }
     });
@@ -905,6 +1121,7 @@ function filterKpiIndicatorValueGrid(elem) {
     var getFilterData = getKpiIndicatorFilterData(elem);
     var indicatorId = getFilterData.indicatorId;
     var filterData = getFilterData.filterData;
+    var forceFilterData = getFilterData.forceFilterData;
     
     window['isFilterShowData_' + indicatorId] = false; 
     
@@ -912,6 +1129,7 @@ function filterKpiIndicatorValueGrid(elem) {
     var queryParams = op.queryParams;
     
     queryParams.filterData = filterData;
+    queryParams.filter = JSON.stringify(forceFilterData);
     queryParams.ignoreFirstLoad = window['isFilterShowData_' + indicatorId];
     
     if (op.idField === null) {
@@ -1129,4 +1347,182 @@ function wfmstatusRender_<?php echo $this->indicatorId ?>(e, type, isIgnoreAlert
         error: function() { alert("Error"); }
     });
 }
+
+function dataListToBasket_<?php echo $this->indicatorId ?>(elem) {
+    var rows = window['objectdatagrid_<?php echo $this->indicatorId ?>'].datagrid('getSelections');
+
+    if (rows.length === 0) {
+        alert(plang.get('msg_pls_list_select'));
+        return;
+    }
+
+    var isAdded = false,
+        isGlConnected = false; 
+
+    for (var key in rows) {
+        var row = rows[key]
+
+        /**
+         * Журналд холбогдсон бол сагсанд нэмэхгүй гэсэн учраас ингэж шалгалаа.
+         * @author Ulaankhuu Ts
+         */
+        if (row.hasOwnProperty('filterisconnectglstring') && row.filterisconnectglstring == '1' && !isGlConnected) {
+            PNotify.removeAll();
+            new PNotify({
+                title: 'Анхааруулга',
+                text: 'Журналд холбогдсон баримт байна.<br> Сагсанд нэмэх боломжгүй!',
+                type: 'warning',
+                addclass: pnotifyPosition,
+                sticker: false
+            });
+
+            isGlConnected = true;
+        }            
+    }
+
+    if (isGlConnected) return;
+
+    <?php
+    if (isset($this->row['uniqueField'])) {
+        $primaryField = $this->row['uniqueField'];
+    } elseif ($this->idField) {
+        $primaryField = $this->idField;
+    } else {
+        $primaryField = 'id';
+    }                   
+    ?>
+
+    for (var key in rows) {
+        var row = rows[key], rowId = row['<?php echo $primaryField; ?>'], isAddedChild = false;             
+
+        for (var key in _selectedRows_<?php echo $this->indicatorId; ?>) {
+            var basketRow = _selectedRows_<?php echo $this->indicatorId; ?>[key], childId = basketRow['<?php echo $primaryField; ?>'];
+
+            if (rowId == childId) {
+                isAddedChild = true;
+                break;
+            } 
+        }    
+
+        if (!isAddedChild) {
+            isAdded = true; 
+            row.basketqty = 1;
+            _selectedRows_<?php echo $this->indicatorId; ?>.push(row);
+        }
+    }
+
+    if (isAdded) {
+        $('.save-database-<?php echo $this->indicatorId; ?>').text(_selectedRows_<?php echo $this->indicatorId; ?>.length).pulsate({
+            color: '#F3565D', 
+            reach: 9,
+            speed: 500,
+            glow: false, 
+            repeat: 1
+        });   
+    } else {
+        $('.save-database-<?php echo $this->indicatorId; ?>').pulsate({
+            color: '#4caf50', 
+            reach: 9,
+            speed: 500,
+            glow: false, 
+            repeat: 1
+        });   
+    }
+
+    return;
+}
+
+function dataListUseBasketView_<?php echo $this->indicatorId; ?>(elem) {
+
+    PNotify.removeAll();
+    var selectedRows = _selectedRows_<?php echo $this->indicatorId; ?>;
+
+    if (selectedRows.length == 0) {
+        new PNotify({
+            title: 'Info',
+            text: plang.get('msg_pls_list_select'),
+            type: 'info',
+            addclass: pnotifyPosition,
+            sticker: false
+        });
+        return;
+    }
+
+    var indicatorDataId = '<?php echo $this->indicatorId; ?>';
+    var $dialogName = 'dataViewBasket-dialog-' + indicatorDataId;
+    if (!$("#" + $dialogName).length) {
+        $('<div id="' + $dialogName + '"></div>').appendTo('body');
+    }
+    var $dialog = $("#" + $dialogName);
+
+    $.ajax({
+        type: 'post',
+        url: 'mdform/dataListUseBasketView',
+        data: {indicatorDataId: indicatorDataId, selectedRows: selectedRows},
+        dataType: 'json',
+        beforeSend: function() {
+            Core.blockUI({message: 'Loading...', boxed: true});
+        },
+        success: function(data) {  
+            $dialog.empty().append(data.Html);
+            $dialog.dialog({
+                cache: false,
+                resizable: true,
+                bgiframe: true,
+                autoOpen: false,
+                title: data.Title,
+                position: { my: "top", at: "top+50" },
+                width: '1200',
+                height: 'auto',
+                modal: true,
+                close: function() {
+                    $dialog.empty().dialog('destroy').remove();
+                },
+                buttons: [
+                    {text: plang.get('close_btn'), class: 'btn blue-hoki btn-sm', click: function() {
+                        $dialog.dialog('close');
+                    }}
+                ]
+            });
+            $dialog.dialog('open');
+
+            Core.unblockUI();
+        },
+        error: function() { alert("Error"); Core.unblockUI(); }
+    }); 
+
+}
+
+function deleteSelectableBasketWindow_<?php echo $this->indicatorId ?>(target) {
+
+    setTimeout(function(){
+        var basketRows = $('#dataListSelectableBasketDataGrid_<?php echo $this->indicatorId ?>').datagrid('getSelections');
+        var selectedRow = basketRows[0], rowId = selectedRow.id; 
+
+        for (var key in _selectedRows_<?php echo $this->indicatorId; ?>) {
+            var row = _selectedRows_<?php echo $this->indicatorId; ?>[key], childId = row.id;
+
+            if (rowId == childId) {
+
+                var index = $('#dataListSelectableBasketDataGrid_<?php echo $this->indicatorId ?>').datagrid('getRowIndex', row);
+                if (index < 0) {
+                    $('#dataListSelectableBasketDataGrid_<?php echo $this->indicatorId ?>').datagrid('deleteRow', 0);
+                    _selectedRows_<?php echo $this->indicatorId; ?>.splice(key, 1);
+                } else {
+                    $('#dataListSelectableBasketDataGrid_<?php echo $this->indicatorId ?>').datagrid('deleteRow', index);
+                }
+
+                _selectedRows_<?php echo $this->indicatorId; ?>.splice(key, 1);
+
+                break;
+            } 
+        }
+
+        $('#dataListSelectableBasketDataGrid_<?php echo $this->indicatorId ?>').datagrid('loadData', _selectedRows_<?php echo $this->indicatorId; ?>);
+
+        $('.save-database-<?php echo $this->indicatorId; ?>').text(_selectedRows_<?php echo $this->indicatorId; ?>.length);
+
+    }, 5);
+}
+    
 </script>

@@ -191,6 +191,14 @@
                                                 <?php if ($row['comparison_dtl'] && $customers) {
                                                     $groupComparison = Arr::groupByArray($row['comparison_dtl'], 'compareid');
                                                     $overDue = '';
+                                                    
+                                                    foreach ($row['comparison_dtl'] as $rdata) {
+                                                        if ($rdata['calcbudgetprice'] !== '' && $rdata['calcbudgetprice'] > 0) {
+                                                            $supplierMin = $rdata['calcbudgetprice'];
+                                                            $supplierIdMin = $rdata['supplierid'];
+                                                            $supplierTotalMin = $rdata['calcbudgetprice'] * $rdata['qty'];    
+                                                        }                                         
+                                                    }
 
                                                     foreach ($this->getProcCustomerList as $cus) {
 
@@ -236,13 +244,7 @@
                                                             echo '</td>';                                                            
                                                             echo '<td class="text-right unitprice'.(empty($totalAmount) ? ' zero-amt' : '').'">' . Number::amount($totalAmount) . '</td>';                                                        
 
-                                                            if ($dtl['calcbudgetprice'] !== '') {
-                                                                if (!isset($supplierMin)) {
-                                                                    $supplierMin = $row['comparison_dtl'][0]['calcbudgetprice'];
-                                                                    $supplierIdMin = $row['comparison_dtl'][0]['supplierid'];
-                                                                    $supplierTotalMin = $row['comparison_dtl'][0]['calcbudgetprice'] * $row['comparison_dtl'][0]['qty'];    
-                                                                }
-
+                                                            if ($dtl['calcbudgetprice'] !== '' && $dtl['calcbudgetprice'] > 0) {
                                                                 if ($supplierMin > $dtl['calcbudgetprice']) {
                                                                     $supplierMin = $dtl['calcbudgetprice'];
                                                                     $supplierIdMin = $dtl['supplierid'];
@@ -741,9 +743,9 @@
         $('.selected-supplier', $windowIdProc<?php echo $this->uniqId ?>).on('click', function(){
             $this = $(this);
 
-            // if ($this.hasClass('zero-amt')) {
-            //     return;
-            // }
+             if ($this.hasClass('zero-amt')) {
+                 return;
+             }
             
             $this.closest('tr').find('.selected-supplier').css('background-color', 'transparent').removeClass('slc');
             $this.closest('tr').find('.selected-supplier').val('');      
@@ -791,7 +793,7 @@
                 }
             });            
         });
-        var $notify_type = <?php echo $this->proc_required_percent_comparison; ?>;
+        var $notify_type = '<?php echo $this->proc_required_percent_comparison; ?>';
         if( $notify_type === '1'){
             $('.proc-indicator-value', $windowIdProc<?php echo $this->uniqId ?>).addClass('error')
         }
@@ -1149,7 +1151,7 @@
     
     function onChangeAttachFIleAddMode(input){
       if($(input).hasExtension(["png", "gif", "jpeg", "pjpeg", "jpg", "x-png", "bmp", "doc", "docx", "xls", "xlsx", "pdf", "ppt", "pptx",
-        "zip", "rar", "mp3", "mp4"])){
+        "zip", "rar", "mp3", "mp4", "msg"])){
         var ext=input.value.match(/\.([^\.]+)$/)[1],
             i = 0;
         if(typeof ext !== "undefined"){
@@ -1178,7 +1180,7 @@
               li+='</a>';
             } else {
               li+='<a href="javascript:;" title="">';
-              li+='<img src="assets/core/global/img/filetype/64/' + extension + '.png"/>';
+              li+='<img src="assets/core/global/img/filetype/64/' + (extension == 'msg' ? 'zip' : extension) + '.png"/>';
               li+='</a>';
             }
 

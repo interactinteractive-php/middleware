@@ -75,6 +75,21 @@
             ?>
         </div>
     </div>
+    <div class="form-group row">
+        <?php echo Form::label(array('text' => 'New description', 'for' => 'newWfmDescription', 'class' => 'col-form-label col-md-3')); ?>
+        <div class="col-md-9">
+            <?php 
+            echo Form::text(
+                array(
+                    'name' => 'newWfmDescription', 
+                    'id' => 'newWfmDescription', 
+                    'class' => 'form-control form-control-sm', 
+                    'value' => Arr::get($this->wfmCriteria, 'NEW_WFM_DESCRIPTION')
+                )
+            ); 
+            ?>
+        </div>
+    </div>
     <div class="form-group row fom-row">
         <div class="col-md-12">
             <?php 

@@ -12856,7 +12856,11 @@ class Mdtimestable_Model extends Model {
                                     $tbody .= '<input type="hidden" data-name="isSelectedCell" name="isSelectedCell[' . $employee['employeeid'] .'][]" value="0">';
                                         $tbody .= $dayPlanTime;
                                     $tbody .= '</td>';        
-                                    $totalAmountPlanTime += ($employee['plantime'. $iday] > 0) ? $employee['plantime'. $iday] : '0';
+                                    if (issetParam($employee['fondminute'])) {
+                                        $totalAmountPlanTime = $employee['fondminute'];
+                                    } else {
+                                        $totalAmountPlanTime += ($employee['plantime'. $iday] > 0) ? $employee['plantime'. $iday] : '0';
+                                    }
                                 }  else {
                                     $tbody .= '<td>';
                                     $tbody .= '</td>';
@@ -12872,7 +12876,7 @@ class Mdtimestable_Model extends Model {
                         $tbody .= '</tr>';
                         $autoNumber++;
                         if ($oneOfWorked === 1) {
-                            $theader .= '<th style="width:40px; max-width:40px; text-align: center;" rowspan="2" class="rowNumber">НИЙТ</th>';
+                            $theader .= '<th style="width:60px; max-width:60px; text-align: center;" rowspan="2" class="rowNumber">НИЙТ</th>';
                             $theader .= '</tr>';
                             $theader .= '<tr class="bp-filter-row">';
                                 $theader .= '<th class="rowNumber" style="background-color: rgb(231, 231, 231); position: relative; z-index: 10; background-clip: padding-box; top: -1px; left: 0px;"></th>';

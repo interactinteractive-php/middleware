@@ -1,10 +1,61 @@
 <div class="kpi-component-wrap" id="kpi-component-<?php echo $this->componentUniqId; ?>">
-    <?php include_once "recordmap2content.php"; ?>
+    <div class="col p-0">
+        <div class="d-flex justify-content-between">
+            <div class="dv-process-buttons">
+              <div class="btn-group btn-group-devided">
+                <a class="btn btn-success btn-circle btn-sm" title="Нэмэх" onclick="runKpiRelatonBp(this, '16425125580661', false);" data-actiontype="update" data-dvbtn-processcode="data_IndicatorMapDV_006" data-ismain="0" href="javascript:;"><i class="far fa-plus"></i></a>
+                <a class="btn btn-warning btn-circle btn-sm" title="Засах" onclick="runKpiRelatonBp(this, '16660589496259', true);" data-actiontype="update" data-dvbtn-processcode="data_IndicatorMapDV_006" data-ismain="0" href="javascript:;"><i class="far fa-edit"></i></a>
+                <a class="btn btn-danger btn-circle btn-sm" title="Устгах" onclick="deleteKpiRelatonBp(this);" data-actiontype="update" data-dvbtn-processcode="data_IndicatorMapDV_006" data-ismain="0" href="javascript:;"><i class="far fa-trash"></i></a>
+              </div>                                    
+            </div>
+            <div>
+                <select class="form-control relation-list-view-type">
+                    <option value="LIST">Жагсаалтаар</option>
+                    <option value="SEMANTIC_TYPE_NAME">Холбоосын төрөл</option>
+                    <option value="CRITERIA">Шалгуур</option>
+                    <option value="TAB_NAME">Таб нэр</option>
+                    <option value="GROUP_NAME">Бүлгийн нэр</option>
+                    <option value="LOOKUP_META_DATA_ID">Үзүүлэлт</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="back-action" style="display: none;">
+        <div class="col p-0 mt-2 d-flex back-action" style="display: none;">
+            <a href="javascript:;" class="back-item-btn d-block"><i class="icon-arrow-left8" style="color:#000"></i></a>
+            <div class="item-card-toptitle"></div>
+        </div>
+    </div>
+    <div class="row recordmap2content-container">    
+        <?php include_once "recordmap2content.php"; ?>
+    </div>
 </div>
 
 <style type="text/css">
+#kpi-component-<?php echo $this->componentUniqId; ?> .reldetail {
+    margin-bottom: 8px;
+    height: 83px;
+    background-color: #f1f8e9; 
+    border: 1px solid #e0e0e0;
+}
 #kpi-component-<?php echo $this->componentUniqId; ?> .reldetail.active {
     background-color: #afe4fb !important;
+}
+#kpi-component-<?php echo $this->componentUniqId; ?> .item-card-toptitle {
+    font-size: 15px;
+    padding-top: 10px;
+    padding-left: 15px;
+    text-transform: uppercase;
+}
+#kpi-component-<?php echo $this->componentUniqId; ?> .back-item-btn {
+    background: #FFFFFF;
+    border: 1px solid #E6E6E6;
+    box-sizing: border-box;
+    border-radius: 10px;
+    width: 40px;
+    height: 40px;
+    text-align: center;
+    padding-top: 12px;
 }
 </style>
 <script type="text/javascript">
@@ -42,8 +93,39 @@ $(function() {
         $this.addClass('active');
     });
     
+    $('#kpi-component-<?php echo $this->componentUniqId; ?>').on('click', '.back-item-btn', function() {
+        var $this = $(this);
+        $('#kpi-component-<?php echo $this->componentUniqId; ?>').find('.view-type-all').addClass('d-none');
+        $("#kpi-component-<?php echo $this->componentUniqId; ?> .back-action").hide();
+        $('#kpi-component-<?php echo $this->componentUniqId; ?>').find('.view-type').removeClass('d-none');
+    });
+    
+    $('#kpi-component-<?php echo $this->componentUniqId; ?>').on('change', '.relation-list-view-type', function() {
+        var $this = $(this);
+        $.ajax({
+          type: "post",
+          url: "mdform/renderRelationKpiViewType",
+          data: {
+              viewType: $this.val(),
+              indicatorId: '<?php echo $this->indicatorId; ?>'
+          },
+        beforeSend: function () {
+          Core.blockUI({
+            message: "Loading...",
+            boxed: true,
+          });
+        },          
+          dataType: "json",                 
+          success: function (data) {
+                $("#kpi-component-<?php echo $this->componentUniqId; ?> .back-action").hide();
+                $("#kpi-component-<?php echo $this->componentUniqId; ?> .recordmap2content-container").empty().append(data.html);            
+                Core.unblockUI();
+          }
+        });  
+    });
+    
     $.contextMenu({
-        selector: "#kpi-component-<?php echo $this->componentUniqId; ?> .col.reldetail",
+        selector: "#kpi-component-<?php echo $this->componentUniqId; ?> .reldetail",
         events: {
             show: function(opt) {
                 var $this = $(opt.$trigger);
@@ -63,6 +145,13 @@ $(function() {
     
 }); 
 
+function relationListViewTypeMore(viewType, viewType2) {
+    $('#kpi-component-<?php echo $this->componentUniqId; ?>').find('.view-type').addClass('d-none');
+    $('#kpi-component-<?php echo $this->componentUniqId; ?>').find('.view-type-'+viewType).removeClass('d-none');
+    $("#kpi-component-<?php echo $this->componentUniqId; ?> .back-item-btn").attr('data-view-type', viewType);
+    $("#kpi-component-<?php echo $this->componentUniqId; ?> .item-card-toptitle").text(viewType2);
+    $("#kpi-component-<?php echo $this->componentUniqId; ?> .back-action").show();
+}
 function kpiIndicatorMainRelationFillRows(elem, indicatorId, rows, idField, codeField, nameField, chooseType) {
     
     var html = [], $tbody = elem.closest('.reldetail').find('table.mv-record-map-tbl > tbody:eq(0)');
@@ -124,7 +213,8 @@ function kpiIndicatorMainRelationFillRows(elem, indicatorId, rows, idField, code
               },
               dataType: "json",                 
               success: function (data) {
-                $("#kpi-component-<?php echo $this->componentUniqId; ?>").empty().append(data.html);
+                $("#kpi-component-<?php echo $this->componentUniqId; ?> .recordmap2content-container").append(data.html)
+                $("#kpi-component-<?php echo $this->componentUniqId; ?> .relation-list-view-type").val('LIST').trigger('change');
                 Core.unblockUI();
               },
             });             
@@ -207,7 +297,8 @@ function kpiIndicatorMainRelationMetaFillRows(metaDataCode,
               },
               dataType: "json",                 
               success: function (data) {
-                $("#kpi-component-<?php echo $this->componentUniqId; ?>").empty().append(data.html);
+                $("#kpi-component-<?php echo $this->componentUniqId; ?> .recordmap2content-container").append(data.html)
+                $("#kpi-component-<?php echo $this->componentUniqId; ?> .relation-list-view-type").val('LIST').trigger('change');
                 Core.unblockUI();
               },
             });             
@@ -223,7 +314,7 @@ function kpiIndicatorMainRelationMetaFillRows(metaDataCode,
       },
     });    
 }
-function runKpiRelatonBp(elem, metaDataId) {
+function runKpiRelatonBp(elem, metaDataId, isEdit) {
   var $this = $(elem);
   var workSpaceId = '', workSpaceParams = '';    
   var $dialogName = "dialog-kpi-relation-bp";
@@ -234,6 +325,17 @@ function runKpiRelatonBp(elem, metaDataId) {
   }
   var $dialog = $("#" + $dialogName);
   var recordId = $('#kpi-component-<?php echo $this->componentUniqId; ?>').find('.reldetail.active').data('rowid');
+  
+    if (isEdit && !recordId) {
+        PNotify.removeAll();
+        new PNotify({
+          title: "Warning",
+          text: 'Мөр сонгоно уу!',
+          type: "warning",
+          sticker: false
+        });        
+        return;
+    }  
 
   if ($this.closest("div.ws-area").length > 0) {
       var wsArea = $this.closest("div.ws-area");
@@ -304,7 +406,8 @@ function runKpiRelatonBp(elem, metaDataId) {
                         data: {indicatorId: '<?php echo $this->indicatorId; ?>'},
                         dataType: "json",                 
                         success: function (data) {
-                          $("#kpi-component-<?php echo $this->componentUniqId; ?>").empty().append(data.html);
+                          $("#kpi-component-<?php echo $this->componentUniqId; ?> .recordmap2content-container").append(data.html)
+                          $("#kpi-component-<?php echo $this->componentUniqId; ?> .relation-list-view-type").val('LIST').trigger('change');
                           Core.unblockUI();
                         }
                       });                                            
@@ -377,6 +480,109 @@ function runKpiRelatonBp(elem, metaDataId) {
     Core.initBPAjax($dialog);
     Core.unblockUI();
   });
+}
+function deleteKpiRelatonBp(elem, metaDataId) {
+    var $this = $(elem);
+    var recordId = $('#kpi-component-<?php echo $this->componentUniqId; ?>').find('.reldetail.active').data('rowid');
+    var userId = $('#kpi-component-<?php echo $this->componentUniqId; ?>').find('.reldetail.active').data('userid');
+    
+    if (!recordId) {
+        PNotify.removeAll();
+        new PNotify({
+          title: "Warning",
+          text: 'Мөр сонгоно уу!',
+          type: "warning",
+          sticker: false
+        });        
+        return;
+    }
+    
+    if (userId != '<?php echo Ue::sessionUserKeyId() ?>') {
+        PNotify.removeAll();
+        new PNotify({
+          title: "Warning",
+          text: 'Үүсгэсэн хэрэглэгч устгах боломжтой!',
+          type: "warning",
+          sticker: false
+        });        
+        return;
+    }
+    
+    var $dialogName = "dialog-kpi-relation-confirm";
+    if (!$("#" + $dialogName).length) {
+      $('<div id="' + $dialogName + '"></div>').appendTo("body");
+    }
+    var $dialog = $("#" + $dialogName);
+
+    $dialog.empty().append(plang.get("msg_delete_confirm"));
+    $dialog.dialog({
+      cache: false,
+      resizable: false,
+      bgiframe: true,
+      autoOpen: false,
+      title: plang.get('msg_title_confirm'), 
+      width: 320,
+      height: "auto",
+      modal: true,
+      close: function () {
+        $dialog.empty().dialog("destroy").remove();
+      },
+      buttons: [
+        {
+            text: plang.get('yes_btn'),
+            class: "btn green-meadow btn-sm",
+            click: function () {
+                $.ajax({
+                    type: "post",
+                    url: "api/callProcess",
+                    data: {
+                      processCode: "data_IndicatorMapDV_005",
+                      paramData: { 
+                          id: recordId
+                      }
+                    },
+                    beforeSend: function () {
+                      Core.blockUI({
+                        message: "Loading...",
+                        boxed: true
+                      });
+                    },            
+                    dataType: "json",
+                    success: function (data) {
+                        PNotify.removeAll();
+                        if (data.status === "success") {
+                            new PNotify({
+                              title: "Success",
+                              text: "Амжилттай устгагдлаа",
+                              type: "success",
+                              sticker: false
+                            });                               
+                            $('#kpi-component-<?php echo $this->componentUniqId; ?>').find('.reldetail.active').remove();
+                        } else {
+                            new PNotify({
+                              title: "Warning",
+                              text: data.text,
+                              type: "warning",
+                              sticker: false
+                            });                    
+                        }
+                        Core.unblockUI();
+                        $dialog.dialog("close");
+                    }
+                }); 
+            }
+        },
+        {
+            text: plang.get('no_btn'),
+            class: "btn blue-madison btn-sm",
+            click: function () {
+              $dialog.dialog("close");
+            }
+        }
+      ]
+    });
+
+    $dialog.dialog("open");
 }
 function kpiIndicatorRelation2RemoveRows(elem, mapId) {
   var $dialogName = "dialog-relation-config-confirm";

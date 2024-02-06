@@ -258,9 +258,7 @@ class Mdintegration_model extends Model {
                     self::createServiceMethodLog($url, 'golomtbankTransfer', null, $errNo.'-'.$err, true);
                     
                     if ($errNo == 28) { 
-                        
                         throw new Exception('Банкнаас хариу ирэхгүй удсан тул та банкны систем рүү орж гүйлгээг шалгана уу!'); 
-                        
                     } else {
                         throw new Exception('Банктай холбогдож чадсангүй!'); 
                     }

@@ -31,7 +31,7 @@ if ($this->isDialog == false) {
                 ), '<i class="icon-arrow-left22"></i>', true
             );
             $mainProcessBtnBar .= ' <div class="main-process-text">';
-                $mainProcessBtnBar .= ' <span class="bp-text">' . $this->lang->line('business_process') . ' - </span>';
+                //$mainProcessBtnBar .= ' <span class="bp-text">' . $this->lang->line('business_process') . ' - </span>';
                 $mainProcessBtnBar .= '<span>' . $this->lang->line($this->methodRow['META_DATA_NAME']) . '</span>';
             $mainProcessBtnBar .= '</div>';
         } else {
@@ -490,13 +490,18 @@ if ($this->isDialog == false) {
                                     '. $content .'
                                 </div><hr>';
                             } else {
-
-                                $grouptHtmlWithoutTab .= '<div data-section-path="' . $row['code'] . '" '.($row['columnWidth'] ? 'class="float-left" style="width:'.$row['columnWidth'].'"' : '').' data-isclear="' . $row['isRefresh'] . '">
-                                    <fieldset class="collapsible">
-                                        <legend>' . $this->lang->line($row['name']) . '</legend>
+                                if (issetParam($row['widgetCode']) === 'detail_calendar_sidebar') {
+                                    $grouptHtmlWithoutTab .= '<div data-section-path="' . $row['code'] . '" '.($row['columnWidth'] ? 'class="float-left" style="width:'.$row['columnWidth'].'"' : '').' data-isclear="' . $row['isRefresh'] . '">
                                         ' . $content . ' 
-                                    </fieldset>
-                                </div>';
+                                    </div>';
+                                } else {
+                                    $grouptHtmlWithoutTab .= '<div data-section-path="' . $row['code'] . '" '.($row['columnWidth'] ? 'class="float-left" style="width:'.$row['columnWidth'].'"' : '').' data-isclear="' . $row['isRefresh'] . '">
+                                        <fieldset class="collapsible">
+                                            <legend>' . $this->lang->line($row['name']) . '</legend>
+                                            ' . $content . ' 
+                                        </fieldset>
+                                    </div>';
+                                }
                             }
                         }
                         

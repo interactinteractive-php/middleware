@@ -3182,7 +3182,7 @@ class Mdsalary_Model extends Model {
                     continue;
 
                 $response[] = array(
-                    'text'     => $row['code'] . ' - ' . (isset($row['depname']) ? $row['depname'] : $row['departmentname']),
+                    'text'     => $row['code'] . ' - ' . (isset($row['depname']) ? $row['depname'] : issetParam($row['departmentname'])),
                     'id'       => $row['departmentid'],
                     'icon'     => 'fa fa-folder text-orange-400',
                     'state'    => array(
@@ -3203,7 +3203,7 @@ class Mdsalary_Model extends Model {
     public function childDepartmentData($departmentChildList, $depIds, $pSelected) {
         foreach ($departmentChildList as $row) {
             $responseChild[] = array(
-                'text'     => $row['code'] . ' - ' . $row['depname'],
+                'text'     => $row['code'] . ' - ' . (isset($row['depname']) ? $row['depname'] : issetParam($row['departmentname'])),
                 'id'       => $row['departmentid'],
                 'icon'     => 'fa fa-folder text-orange-400',
                 'state'    => array(

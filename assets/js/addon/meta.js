@@ -647,61 +647,69 @@ function updateMetaForm(elem, submitType, $mainMetaDataId) {
     var $editMetaSystemForm = $('#editMetaSystemForm');
     $editMetaSystemForm.validate({ errorPlacement: function() {} });
     if ($editMetaSystemForm.valid()) {
+        var $saveBtn = $(elem);
         var url = 'mdmetadata/updateMetaSystemModuleForm';
         if (typeof submitType !== 'undefined' && submitType === 1) {
             url = 'mdmetadata/createMetaSystemModuleForm'
         }
-        $editMetaSystemForm.ajaxSubmit({
-            type: 'post',
-            url: url,
-            dataType: 'json',
-            beforeSend: function() {
-                Core.blockUI({message: plang.get('msg_saving_block'), boxed: true});
-            },
-            success: function(data) {
-                PNotify.removeAll();
-                if (data.status === 'success') {
-                    new PNotify({
-                        title: 'Success',
-                        text: data.message,
-                        type: 'success',
-                        sticker: false
-                    });
-                    if (typeof submitType !== 'undefined' && submitType === 1) {
-                        if (typeof data.metaTypeId != 'undefined' && data.metaTypeId == 'dashboard') {
-                            window['objectDashboardView_' + $mainMetaDataId]();
-                        } else {
-                            if (typeof data.metaTypeId != 'undefined' && data.metaTypeId == 'reportTemplate') {
-                                window['objectReportTemplateView_' + $mainMetaDataId]();
-                            }
-                        }
-                        return false;
-                    }
-                    if (data.folderId == '' || data.folderId == 'null' || data.folderId == null) {
-                        metaDataDefault();
-                    } else {
-                        refreshList(data.folderId, 'folder');
-                    }
-                    viewMetaData(data.metaDataId, data.folderId);
-                } else {
-
-                    if (data.status === 'locked') {
-                        lockedRequestMeta(data);
-                    } else {
-                        if (typeof data.fieldName !== 'undefined') {
-                            $("input[name='" + data.fieldName + "']", 'form#editMetaSystemForm').addClass("error");
-                        }
+        
+        Core.blockUI({message: plang.get('msg_saving_block'), boxed: true});
+        $saveBtn.attr({'disabled': 'disabled'}).prepend('<i class="fa fa-spinner fa-pulse fa-fw"></i>');
+        
+        setTimeout(function() {
+            
+            $editMetaSystemForm.ajaxSubmit({
+                type: 'post',
+                url: url,
+                dataType: 'json',
+                success: function(data) {
+                    PNotify.removeAll();
+                    if (data.status == 'success') {
                         new PNotify({
                             title: data.status,
                             text: data.message,
                             type: data.status,
                             sticker: false
                         });
+                        $editMetaSystemForm.trigger('remove');
+                        if (typeof submitType !== 'undefined' && submitType === 1) {
+                            if (typeof data.metaTypeId != 'undefined' && data.metaTypeId == 'dashboard') {
+                                window['objectDashboardView_' + $mainMetaDataId]();
+                            } else {
+                                if (typeof data.metaTypeId != 'undefined' && data.metaTypeId == 'reportTemplate') {
+                                    window['objectReportTemplateView_' + $mainMetaDataId]();
+                                }
+                            }
+                            return false;
+                        }
+                        if (data.folderId == '' || data.folderId == 'null' || data.folderId == null) {
+                            metaDataDefault();
+                        } else {
+                            refreshList(data.folderId, 'folder');
+                        }
+                        viewMetaData(data.metaDataId, data.folderId);
+                        
+                    } else {
+                        if (data.status === 'locked') {
+                            lockedRequestMeta(data);
+                        } else {
+                            if (typeof data.fieldName !== 'undefined') {
+                                $("input[name='" + data.fieldName + "']", 'form#editMetaSystemForm').addClass("error");
+                            }
+                            new PNotify({
+                                title: data.status,
+                                text: data.message,
+                                type: data.status,
+                                sticker: false
+                            });
+                        }
                     }
+                    $saveBtn.removeAttr('disabled').find('i:eq(0)').remove();
+                    Core.unblockUI();
                 }
-                Core.unblockUI();
-            }
-        });
+            });
+        
+        }, 100);
     }
 }
 
@@ -3917,9 +3925,7 @@ function groupConfigBackup(metaDataId) {
         data: { metaDataId: metaDataId },
         dataType: 'json',
         beforeSend: function() {
-            Core.blockUI({
-                animate: true
-            });
+            Core.blockUI({animate: true});
         },
         success: function(data) {
             var $dialogName = 'dialog-configbackup';
@@ -4801,6 +4807,17 @@ function bpFullExpression(metaDataId, isTempSave) {
             Core.blockUI({message: 'Loading...', boxed: true});
         },
         success: function(data) {
+            PNotify.removeAll();
+            if (data.status != 'success') {
+                new PNotify({
+                    title: data.status,
+                    text: data.message,
+                    type: data.status,
+                    sticker: false
+                });
+                return;
+            }
+                
             $.cachedScript('assets/custom/addon/plugins/codemirror/lib/codemirror.min.js').done(function() {
                 if ($("link[href='assets/custom/addon/plugins/codemirror/lib/codemirror.v1.css']").length == 0) {
                     $("head").append('<link rel="stylesheet" type="text/css" href="assets/custom/addon/plugins/codemirror/lib/codemirror.v1.css"/>');
@@ -5209,13 +5226,14 @@ function metaFullOptions(metaDataId, folderId, element, isMetaArea) {
                         Core.initComponentSwitchery($dialog);
                     },
                     beforeClose: function() {
-                    
-                        if ($dialog.data('can-close')) {
-                            $dialog.removeData('can-close');
-                            return true;
-                        }
                         
                         var $form = $('#meta-form-v2');
+                        
+                        if ($dialog.data('can-close')) {
+                            $dialog.removeData('can-close');
+                            $form.trigger('remove');
+                            return true;
+                        }
 
                         if ($form.length && $form.hasAttr('data-changed') && $form.attr('data-changed') == '1') {
 
@@ -5251,6 +5269,7 @@ function metaFullOptions(metaDataId, folderId, element, isMetaArea) {
                             return false;
 
                         } else {
+                            $form.trigger('remove');
                             return true;
                         }
                     },
@@ -5259,71 +5278,76 @@ function metaFullOptions(metaDataId, folderId, element, isMetaArea) {
                         $dialog.empty().dialog('destroy').remove();
                     },
                     buttons: [
-                        {text: plang.get('save_btn'), class: 'btn btn-sm green-meadow bp-btn-save', click: function() {
+                        {text: plang.get('save_btn'), class: 'btn btn-sm green-meadow bp-btn-save', click: function(e) {
                             
                             var $metaSystemForm = $('#meta-form-v2');
                             $metaSystemForm.validate({ errorPlacement: function() {} });
                             
                             if ($metaSystemForm.valid()) {
+                                var $saveBtn = $(e.target);
                                 
-                                if (typeof fullExpressionEditor !== 'undefined') {
-                                    fullExpressionEditor.save();
-                                    fullExpressionOpenEditor.save();
-                                    fullExpressionVarFncEditor.save();
-                                    fullExpressionSaveEditor.save();  
-                                    fullExpressionAfterSaveEditor.save();
-                                }
-                                
-                                $metaSystemForm.ajaxSubmit({
-                                    type: 'post',
-                                    url: 'mdmetadata/updateMetaSystemModuleForm',
-                                    dataType: 'json',
-                                    beforeSend: function() {
-                                        Core.blockUI({message: plang.get('msg_saving_block'), boxed: true});
-                                    },
-                                    success: function(data) {
-                                        PNotify.removeAll();
-                                        
-                                        if (data.status == 'success') {
-                                            
-                                            new PNotify({
-                                                title: data.status,
-                                                text: metaSuccessMessage(data.message, metaDataId),
-                                                type: data.status,
-                                                sticker: false, 
-                                                delay: 4000
-                                            });
-                                            $dialog.data('can-close', true);
-                                            $dialog.dialog('close');
-                                            
-                                            if (typeof isMetaArea == 'undefined') {
-                                                if (data.folderId == '' || data.folderId == 'null' || data.folderId == null) {
-                                                    metaDataDefault();
-                                                } else {
-                                                    refreshList(data.folderId, 'folder');
-                                                }
-                                            }
-                    
-                                        } else {
-                                            if (data.status === 'locked') {
-                                                lockedRequestMeta(data);
-                                            } else {
-                                                if (typeof data.fieldName !== 'undefined') {
-                                                    $metaSystemForm.find("input[name='" + data.fieldName + "']").addClass('error');
-                                                }
+                                Core.blockUI({message: plang.get('msg_saving_block'), boxed: true});
+                                $saveBtn.attr({'disabled': 'disabled'}).prepend('<i class="fa fa-spinner fa-pulse fa-fw"></i>');
+
+                                setTimeout(function() {
+                                    
+                                    if (typeof fullExpressionEditor !== 'undefined') {
+                                        fullExpressionEditor.save();
+                                        fullExpressionOpenEditor.save();
+                                        fullExpressionVarFncEditor.save();
+                                        fullExpressionSaveEditor.save();  
+                                        fullExpressionAfterSaveEditor.save();
+                                    }
+
+                                    $metaSystemForm.ajaxSubmit({
+                                        type: 'post',
+                                        url: 'mdmetadata/updateMetaSystemModuleForm',
+                                        dataType: 'json',
+                                        success: function(data) {
+                                            PNotify.removeAll();
+
+                                            if (data.status == 'success') {
+
                                                 new PNotify({
                                                     title: data.status,
-                                                    text: data.message,
+                                                    text: metaSuccessMessage(data.message, metaDataId),
                                                     type: data.status,
-                                                    sticker: false
+                                                    sticker: false, 
+                                                    delay: 4000
                                                 });
+                                                $dialog.data('can-close', true);
+                                                $dialog.dialog('close');
+
+                                                if (typeof isMetaArea == 'undefined') {
+                                                    if (data.folderId == '' || data.folderId == 'null' || data.folderId == null) {
+                                                        metaDataDefault();
+                                                    } else {
+                                                        refreshList(data.folderId, 'folder');
+                                                    }
+                                                }
+
+                                            } else {
+                                                if (data.status === 'locked') {
+                                                    lockedRequestMeta(data);
+                                                } else {
+                                                    if (typeof data.fieldName !== 'undefined') {
+                                                        $metaSystemForm.find("input[name='" + data.fieldName + "']").addClass('error');
+                                                    }
+                                                    new PNotify({
+                                                        title: data.status,
+                                                        text: data.message,
+                                                        type: data.status,
+                                                        sticker: false
+                                                    });
+                                                }
+                                                $saveBtn.removeAttr('disabled').find('i:eq(0)').remove();
                                             }
+                                            Core.unblockUI();
                                         }
-                                        Core.unblockUI();
-                                    }
-                                });
+                                    });
+                                
+                                }, 100);
                             }
-                            
                         }}, 
                         {text: plang.get('close_btn'), class: 'btn btn-sm blue-hoki', click: function() {
                             $dialog.dialog('close');
@@ -6148,13 +6172,13 @@ function kpiExportInit(elem, processMetaDataId, dataViewId, paramData) {
         kpiExport(elem, processMetaDataId, dataViewId, paramData);
     }
 }
-function kpiImportInit(elem, dataViewId) {
+function kpiImportInit(elem, dataViewId, getParams) {
     if (typeof isKpiAddonScript === 'undefined') {
         $.getScript('middleware/assets/js/addon/kpi.js').done(function() {
-            kpiImport(elem, dataViewId);
+            kpiImport(elem, dataViewId, getParams);
         });
     } else {
-        kpiImport(elem, dataViewId);
+        kpiImport(elem, dataViewId, getParams);
     }
 }
 function metaExportInit(elem, processMetaDataId, dataViewId, postParams) {
@@ -6948,10 +6972,7 @@ function importLicense(elem, processMetaDataId, dataViewId) {
         url: 'mdlicense/importLicense',
         dataType: 'json',
         beforeSend: function() {
-            Core.blockUI({
-                message: 'Loading...',
-                boxed: true
-            });
+            Core.blockUI({message: 'Loading...', boxed: true});
         },
         success: function(data) {
             PNotify.removeAll();
@@ -6966,9 +6987,7 @@ function importLicense(elem, processMetaDataId, dataViewId) {
             }
             Core.unblockUI();
         },
-        error: function() {
-            alert('Error');
-        }
+        error: function() { alert('Error'); }
     });
 }
 
@@ -6977,7 +6996,6 @@ function lockedRequestMeta(options) {
     if (!$("#" + $dialogName).length) {
         $('<div id="' + $dialogName + '"></div>').appendTo('body');
     }
-
     var $dialog = $('#' + $dialogName);
 
     $dialog.empty().append(options.html);
@@ -7004,7 +7022,6 @@ function lockedRequestMeta(options) {
                     if (!$("#" + $dialogNameRequest).length) {
                         $('<div id="' + $dialogNameRequest + '"></div>').appendTo('body');
                     }
-
                     var $dialogRequest = $('#' + $dialogNameRequest);
 
                     $.ajax({
@@ -7012,10 +7029,7 @@ function lockedRequestMeta(options) {
                         url: 'mdlock/requestEdit',
                         dataType: 'json',
                         beforeSend: function() {
-                            Core.blockUI({
-                                message: 'Loading...',
-                                boxed: true
-                            });
+                            Core.blockUI({message: 'Loading...', boxed: true});
                         },
                         success: function(data) {
 
@@ -7046,10 +7060,7 @@ function lockedRequestMeta(options) {
                                                     data: $('#request-edit-form').serialize() + '&metaDataId=' + options.metaDataId,
                                                     dataType: 'json',
                                                     beforeSend: function() {
-                                                        Core.blockUI({
-                                                            message: 'Loading...',
-                                                            boxed: true
-                                                        });
+                                                        Core.blockUI({message: 'Loading...', boxed: true});
                                                     },
                                                     success: function(dataSub) {
                                                         Core.unblockUI();
@@ -7107,7 +7118,6 @@ function posApiSendDataInit(dataViewId, row) {
         posApiSendData(dataViewId, row);
     }
 }
-
 function posDiscountDrugImportInit(dataViewId) {
     if (typeof isPosAddonScript === 'undefined') {
         $.getScript('middleware/assets/js/pos/addon.js').done(function() {
@@ -7126,7 +7136,6 @@ function electronRegisterLegal(elem, processMetaDataId, dataViewId, selectedRow,
         electronRegisterLegalInit(elem, processMetaDataId, dataViewId, selectedRow, paramData, $type);
     }
 }
-
 function electronRegisterLegalView(elem, processMetaDataId, dataViewId, selectedRow, paramData, $type) {
 
     if (typeof $type !== 'undefined' && $type === '3') {
@@ -7152,9 +7161,7 @@ function electronRegisterLegalView(elem, processMetaDataId, dataViewId, selected
             electronRegisterLegalViewInit(elem, processMetaDataId, dataViewId, selectedRow, paramData, $type);
         }
     }
-
 }
-
 function erlDirectScan(elem, processMetaDataId, dataViewId, selectedRow, paramData, $type, variable) {
     var addinVariable = (typeof variable !== 'undefined') ? variable : '';
     if (typeof IS_LOAD_ERL_SCRIPT === 'undefined') {
@@ -7165,7 +7172,6 @@ function erlDirectScan(elem, processMetaDataId, dataViewId, selectedRow, paramDa
         erlDirectScanInit(elem, processMetaDataId, dataViewId, selectedRow, paramData, $type, addinVariable);
     }
 }
-
 function erlReDirectScan(elem, processMetaDataId, dataViewId, selectedRow, paramData, $type, variable) {
     var addinVariable = (typeof variable !== 'undefined') ? variable : '';
     if (typeof IS_LOAD_ERL_SCRIPT === 'undefined') {
@@ -7218,6 +7224,24 @@ function metaSendToById(metaId) {
         metaSendTo(exportMetaId);
     }
 }
+function metaCopyReplaceById(metaId, folderId) {
+    if (typeof isMetaUpgrade === 'undefined') {
+        $.getScript('middleware/assets/js/upgrade/script.js').done(function() {
+            metaCopyReplace(metaId, folderId);
+        });
+    } else {
+        metaCopyReplace(metaId, folderId);
+    }
+}
+function metaReplaceById(metaId, folderId) {
+    if (typeof isMetaUpgrade === 'undefined') {
+        $.getScript('middleware/assets/js/upgrade/script.js').done(function() {
+            metaReplace(metaId, folderId);
+        });
+    } else {
+        metaReplace(metaId, folderId);
+    }
+}
 function callPosLocker(elem, processMetaDataId, dataViewId, selectedRow, paramData, customerId, objectParam) {
     if (typeof selectedRow === 'undefined') {
         var dataGrid = window['objectdatagrid_' + dataViewId];
@@ -7225,7 +7249,7 @@ function callPosLocker(elem, processMetaDataId, dataViewId, selectedRow, paramDa
         selectedRow = rows[0];
     }
 
-    $tabMainContainer = $('body').find("div.m-tab > div.tabbable-line > ul.card-multi-tab-navtabs");
+    var $tabMainContainer = $('body').find("div.m-tab > div.tabbable-line > ul.card-multi-tab-navtabs");
     if ($tabMainContainer.find("a[href='#app_tab_mdposLocker_1566556713853_1991']").length) {
         $('div.card-multi-tab > div.card-body > div.card-multi-tab-content').find('div#app_tab_mdposLocker_1566556713853_1991').empty().remove();
         $tabMainContainer.find("a[href='#app_tab_mdposLocker_1566556713853_1991']").closest('li').remove();
@@ -7525,11 +7549,23 @@ function dataViewQueryEditorInit(metaId) {
         type: 'post',
         url: 'mdmeta/dvQueryEditor',
         data: {metaId: metaId},
+        dataType: 'json', 
         beforeSend: function() {
             Core.blockUI({message: 'Loading...', boxed: true});
         },
         success: function(data) {
-            $dialog.empty().append(data);
+            PNotify.removeAll();
+            if (data.status != 'success') {
+                new PNotify({
+                    title: data.status,
+                    text: data.message,
+                    type: data.status,
+                    sticker: false
+                });
+                return;
+            }
+            
+            $dialog.empty().append(data.html);
             $dialog.dialog({
                 cache: false,
                 resizable: true,
@@ -7678,7 +7714,18 @@ function bpInputParamsInit(metaId) {
         data: {metaDataId: metaId},
         dataType: 'json',
         success: function (data) {
-
+            
+            PNotify.removeAll();
+            if (data.status != 'success') {
+                new PNotify({
+                    title: data.status,
+                    text: data.message,
+                    type: data.status,
+                    sticker: false
+                });
+                return;
+            }
+            
             $dialogContainer.empty().append('<form method="post" id="bpinputparams-form">' + data.Html + '</form>');
 
             var $detachedChildren = $dialogContainer.children().detach();
@@ -9246,12 +9293,14 @@ function pfQuickLinkDataView() {
                             html.push('<i class="icon-search4 text-muted"></i>');
                         html.push('</div>');
                     html.push('</div>');
-
-                    const groupByRows = rows.reduce((group, product) => {
-                        const { groupname } = product;
-                        group[groupname] = group[groupname] ?? [];
-                        group[groupname].push(product);
-                        return group;
+                    
+                    const groupByRows = rows.reduce((acc, obj) => {
+                        const key = obj['groupname'];
+                        if (!acc[key]) {
+                            acc[key] = [];
+                        }
+                        acc[key].push(obj);
+                        return acc;
                     }, {});
                     
                     html.push('<div class="list-group pf-quick-link" style="max-height: 500px; overflow: auto;">');
@@ -9426,5 +9475,44 @@ function tempBpFullExpressionSave() {
 
         var $processElement = $('body').find("div[id*='bp-window-']:visible");
         bpFullExpression($processElement.attr('data-process-id'), true);
+    }
+}
+
+var metaConfigChangeLogRequest = null;
+function metaConfigChangeLog(mainSelector, isSetUniqId) {
+    if (isSetUniqId == true && !mainSelector.hasAttr('data-uniqid')) {
+        if (metaConfigChangeLogRequest != null) {
+            metaConfigChangeLogRequest.abort();
+        }
+        metaConfigChangeLogRequest = $.ajax({
+            type: 'post',
+            url: 'mdlog/metaConfigChangeLog',
+            data: {metaId: mainSelector.attr('data-metadataid')},
+            dataType: 'json',
+            success: function(data) {
+                metaConfigChangeLogRequest = null;
+                if (data.status == 'success') {
+                    mainSelector.attr('data-uniqid', data.uniqId);
+                }
+            },
+            error: function(e) { console.log(e); }
+        });
+    } else if (isSetUniqId == false && mainSelector.hasAttr('data-uniqid')) {
+        if (metaConfigChangeLogRequest != null) {
+            metaConfigChangeLogRequest.abort();
+        }
+        metaConfigChangeLogRequest = $.ajax({
+            type: 'post',
+            url: 'mdlog/metaConfigChangeLog',
+            data: {metaId: mainSelector.attr('data-metadataid'), uniqId: mainSelector.attr('data-uniqid')},
+            dataType: 'json',
+            success: function(data) { 
+                metaConfigChangeLogRequest = null;
+                if (data.status == 'success') {
+                    mainSelector.removeAttr('data-changed data-uniqid');
+                }
+            },
+            error: function(e) { console.log(e); }
+        });
     }
 }

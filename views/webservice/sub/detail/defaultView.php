@@ -25,8 +25,9 @@ $availableChartWidgets = array(
 
 $availableDetailWidgets = array(
     'detail_withoutlabel1', 'detail_withoutlabel2', 'detail_user_card_001', 
-    'detail_attachments2', 'detail_doc_history', 'detail_buttons', 'detail_circle_icon', 'detail_circle_file',
-    'detail_notes', 'detail_file_preview_001'
+    'detail_attachments', 'detail_attachments2', 'detail_doc_history', 'detail_buttons', 
+    'detail_circle_icon', 'detail_circle_file', 'detail_notes', 'detail_file_preview_001', 
+    'detail_cart_slider', 'detail_calendar_sidebar'
 );
 
 $bpAddonWidgets = array('pfprocessphotowidget', 'pfprocessfilewidget', 'pfprocesscommentwidget');
@@ -45,6 +46,14 @@ if ($row['recordtype'] == 'rows' && !empty($row['sidebarName'])) {
 
 } elseif ($row['recordtype'] && in_array($widgetCode, $availableDetailWidgets)) {
     
+    $addRowResult = (new Mdwidget())->bpDetailAddRow(
+        array(
+            'methodId' => $this->methodId, 
+            'uniqId'   => $this->uniqId, 
+            'row'      => $row
+        )
+    );
+    
     $content = '<div data-section-path="' . $row['code'] . '" class="row mb10">';
         $content .= '<div class="col-md-12" data-bp-detail-container="1">';
         
@@ -56,8 +65,7 @@ if ($row['recordtype'] == 'rows' && !empty($row['sidebarName'])) {
             $gridBodyData = issetParam($fillRender['gridBodyData']);
         }
         
-        $content .= $ws->renderCustomParent($row, $gridBodyData, issetParam($addRowResult['bottomCustomAddRow']));
-            
+        $content .= $ws->renderCustomParent($row, $gridBodyData, issetParam($addRowResult['bottomCustomAddRow'])); 
         $content .= '</div>';
     $content .= '</div>';
 

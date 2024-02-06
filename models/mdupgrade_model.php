@@ -23,6 +23,7 @@ class Mdupgrade_Model extends Model {
     private static $exportCreateTables = array();
     private static $metaFolderId = null;
     private static $insertDataFilter = null;
+    private static $deleteScript = null;
     private static $isIgnoreMetaFolder = false;
     private static $isIgnoreTranslate = false;
     private static $isIdReplace = false;
@@ -2273,11 +2274,11 @@ class Mdupgrade_Model extends Model {
                         NULL AS SRC_RECORD_ID
                     FROM META_BUG_FIXING HDR 
                         INNER JOIN META_BUG_FIXING_DTL DTL ON DTL.META_BUG_FIXING_ID = HDR.ID 
-                        INNER JOIN NTF_NOTIFICATION MD ON MD.NOTIFICATION_ID = DTL.NOTIFICATION_ID   
+                        INNER JOIN NTF_NOTIFICATION MD ON MD.NOTIFICATION_ID = DTL.NOTIFICATION_ID 
                         LEFT JOIN UM_USER US ON US.USER_ID = MD.CREATED_USER_ID 
                         LEFT JOIN UM_SYSTEM_USER UM ON UM.USER_ID = US.SYSTEM_USER_ID 
-                        LEFT JOIN UM_SYSTEM_USER UD ON UD.USER_ID = MD.MODIFIED_USER_ID  
-                    WHERE HDR.ID IN ($ids)  
+                        LEFT JOIN UM_SYSTEM_USER UD ON UD.USER_ID = MD.MODIFIED_USER_ID 
+                    WHERE HDR.ID IN ($ids) 
                     
                     UNION 
 
@@ -2295,7 +2296,7 @@ class Mdupgrade_Model extends Model {
                         LEFT JOIN UM_USER US ON US.USER_ID = MD.CREATED_USER_ID 
                         LEFT JOIN UM_SYSTEM_USER UM ON UM.USER_ID = US.SYSTEM_USER_ID 
                         LEFT JOIN UM_SYSTEM_USER UD ON UD.USER_ID = MD.MODIFIED_USER_ID 
-                    WHERE HDR.ID IN ($ids)  
+                    WHERE HDR.ID IN ($ids) 
                         
                     UNION 
 
@@ -2890,8 +2891,12 @@ class Mdupgrade_Model extends Model {
                     } 
 
                     $deleteScript = self::generateDeleteScript($separator);
-
-                    $script = $deleteScript . $script;
+                    
+                    if (self::$isMetaImportCopy) {
+                        self::$deleteScript = $deleteScript;
+                    } else {
+                        $script = $deleteScript . $script;
+                    }
                     
                     $xmlScript = '<meta id="'.$metaId.'" typeId="'.$metaTypeId.'" code="'.$metaCode.'" userName="'.$userName.'" modifiedDate="'.$modifiedDate.'">' . "\n";
                     
@@ -3145,11 +3150,22 @@ class Mdupgrade_Model extends Model {
                             $insertScripts = self::generateInsertQuery($tmpCreateTableName, self::$insertDataFilter, Mdcommon::$separator);
                         }
                         
-                        $insertScripts = str_replace('INTO '.$kpiDbSchemaName . '.', 'INTO [kpiDbSchemaName].', $insertScripts);
+                        $insertScripts = str_replace('INTO '.$kpiDbSchemaName.'.', 'INTO [kpiDbSchemaName].', $insertScripts);
+                        $insertScripts = str_replace('INTO '.$createTableName.' (', 'INTO [kpiDbSchemaName].'.$createTableName.' (', $insertScripts);
                         $columnName    = $row['columnName'];
 
                         if ($columnName == 'TEMPLATE_TABLE_NAME') {
                             $deleteScripts = "DELETE FROM $dbTableName" . Mdcommon::$separator . "\n";
+                        }
+                        
+                        if (self::$clobColumns) {
+                            foreach (self::$clobColumns as $c => $clobTbl) {
+                                $clobTblName = $clobTbl['tblName'];
+                                
+                                if ($clobTblName == $createTableName) {
+                                    self::$clobColumns[$c]['tblName'] = '[kpiDbSchemaName].'.$clobTblName;
+                                }
+                            }
                         }
 
                         $rowXml .= '<createTable tblName="'.$createTableName.'" skipError="1">' . "\n";
@@ -3383,125 +3399,130 @@ class Mdupgrade_Model extends Model {
             
             foreach ($data as $row) {
                 
-                if ($tblName == 'META_PROCESS_PARAM_LINK' || $tblName == 'KPI_INDICATOR_MAP_CRITERIA') {
+                $isExportRow = true;
+                
+                if ($tblName == 'META_PROCESS_PARAM_LINK' || $tblName == 'KPI_INDICATOR_MAP_CRITERIA' || $tblName == 'KPI_INDICATOR_INDICATOR_MAP') {
                     
                     if (isset(self::$exportedRecordIds[$tblName][$row[$primaryColumn]])) {
-                        continue;
-                    }
-                    
-                    self::$exportedRecordIds[$tblName][$row[$primaryColumn]] = 1;
-                }
-                
-                if (self::$childCreateTable) {
-                    
-                    foreach (self::$childCreateTable as $tblRow) {
-                        
-                        $tableColumnName = $tblRow['tableColumnName'];
-                        $dataTableName   = issetParam($row[$tableColumnName]);
-                        
-                        if ($dataTableName) {
-                            
-                            if ($tblRow['isCreateTable']) {
-                                
-                                self::$exportCreateTables[strtolower($dataTableName)] = array(
-                                    'mainTableName' => $tblName, 
-                                    'columnName'    => $tableColumnName, 
-                                    'tableName'     => $dataTableName, 
-                                    'recordId'      => $row[$primaryColumn]
-                                );
-                            }
-                            
-                            $row[$tableColumnName] = '[kpiDbSchemaName].' . str_replace($kpiDbSchemaName.'.', '', $dataTableName);
-                        }
+                        $isExportRow = false;
+                    } else {
+                        self::$exportedRecordIds[$tblName][$row[$primaryColumn]] = 1;
                     }
                 }
                 
-                $columns = $values = '';
-                $sql     .= 'INSERT INTO ' . $tblName . ' (';
+                if ($isExportRow) {
+                    
+                    if (self::$childCreateTable) {
 
-                foreach ($fields as $col) {
+                        foreach (self::$childCreateTable as $tblRow) {
 
-                    if (!in_array($col['name'], self::$exportIgnoreColumns) && !isset(self::$exportIgnoreTableColumns[$tblName][$col['name']])) {
+                            $tableColumnName = $tblRow['tableColumnName'];
+                            $dataTableName   = issetParam($row[$tableColumnName]);
 
-                        if ($col['type'] == 'INT' || $col['type'] == 'NUMBER') {
-                            
-                            if ($row[$col['name']] != '') {
-                                
-                                $sId = $row[$col['name']];
-                                
-                                $columns .= $col['name'] . ', ';
-                                
-                                $values .= $sId . ', ';
-                                
-                                if (self::$isIdReplace && $primaryColumn == $col['name']) {
-                                    array_push(self::$replaceIds, $sId);
+                            if ($dataTableName) {
+
+                                if ($tblRow['isCreateTable']) {
+
+                                    self::$exportCreateTables[strtolower($dataTableName)] = array(
+                                        'mainTableName' => $tblName, 
+                                        'columnName'    => $tableColumnName, 
+                                        'tableName'     => $dataTableName, 
+                                        'recordId'      => $row[$primaryColumn]
+                                    );
                                 }
+
+                                $row[$tableColumnName] = '[kpiDbSchemaName].' . str_replace($kpiDbSchemaName.'.', '', $dataTableName);
                             }
-
-                        } elseif ($col['type'] == 'DATE') {
-                            
-                            if ($row[$col['name']] != '') {
-                                
-                                $columns .= $col['name'] . ', ';
-                                
-                                $values .= $this->db->SQLDate('Y-m-d H:i:s', "'" . $row[$col['name']] . "'", 'TO_DATE') . ', ';
-                            } 
-
-                        } elseif ($col['type'] == 'CLOB') {
-
-                            if ($row[$col['name']] != '') {
-                                
-                                self::$clobColumns[] = array(
-                                    'tblName'    => $tblName, 
-                                    'colName'    => $col['name'], 
-                                    'equalField' => $primaryColumn, 
-                                    'recordId'   => $row[$primaryColumn], 
-                                    'content'    => $row[$col['name']]
-                                );  
-                            }
-
-                        } elseif ($col['type'] == 'BLOB') {
-
-                            if ($row[$col['name']] != '') {
-                                
-                                self::$blobColumns[] = array(
-                                    'tblName'    => $tblName, 
-                                    'colName'    => $col['name'], 
-                                    'equalField' => $primaryColumn, 
-                                    'recordId'   => $row[$primaryColumn], 
-                                    'content'    => $row[$col['name']]
-                                );  
-                            } 
-
-                        } else {
-                            
-                            if (isset(self::$fileColumn[$col['name']])) {
-                                
-                                self::$fileColumns[] = array(
-                                    'tblName'    => $tblName, 
-                                    'colName'    => $col['name'], 
-                                    'equalField' => $primaryColumn, 
-                                    'recordId'   => $row[$primaryColumn], 
-                                    'content'    => $row[$col['name']], 
-                                    'fileType'   => self::$fileColumn[$col['name']]
-                                );
-                            } 
-                            
-                            if ($row[$col['name']] != '') {
-                                
-                                $columns .= $col['name'] . ', ';
-                                
-                                $values .= "'" . str_replace("'", "''", $row[$col['name']]) . "', ";
-                            } 
                         }
                     }
-                }
-                
-                $sql .= rtrim($columns, ', ') . ') VALUES (' . rtrim($values, ', ') . ')' . $separator . "\n";
 
-                if ($tblName == 'META_DATA_FOLDER_MAP' && $row['FOLDER_ID']) {
-                    
-                    self::$metaFolderId = $row['FOLDER_ID'];
+                    $columns = $values = '';
+                    $sql     .= 'INSERT INTO ' . $tblName . ' (';
+
+                    foreach ($fields as $col) {
+
+                        if (!in_array($col['name'], self::$exportIgnoreColumns) && !isset(self::$exportIgnoreTableColumns[$tblName][$col['name']])) {
+
+                            if ($col['type'] == 'INT' || $col['type'] == 'NUMBER') {
+
+                                if ($row[$col['name']] != '') {
+
+                                    $sId = $row[$col['name']];
+
+                                    $columns .= $col['name'] . ', ';
+
+                                    $values .= $sId . ', ';
+
+                                    if (self::$isIdReplace && $primaryColumn == $col['name']) {
+                                        array_push(self::$replaceIds, $sId);
+                                    }
+                                }
+
+                            } elseif ($col['type'] == 'DATE') {
+
+                                if ($row[$col['name']] != '') {
+
+                                    $columns .= $col['name'] . ', ';
+
+                                    $values .= $this->db->SQLDate('Y-m-d H:i:s', "'" . $row[$col['name']] . "'", 'TO_DATE') . ', ';
+                                } 
+
+                            } elseif ($col['type'] == 'CLOB') {
+
+                                if ($row[$col['name']] != '') {
+
+                                    self::$clobColumns[] = array(
+                                        'tblName'    => $tblName, 
+                                        'colName'    => $col['name'], 
+                                        'equalField' => $primaryColumn, 
+                                        'recordId'   => $row[$primaryColumn], 
+                                        'content'    => $row[$col['name']]
+                                    );  
+                                }
+
+                            } elseif ($col['type'] == 'BLOB') {
+
+                                if ($row[$col['name']] != '') {
+
+                                    self::$blobColumns[] = array(
+                                        'tblName'    => $tblName, 
+                                        'colName'    => $col['name'], 
+                                        'equalField' => $primaryColumn, 
+                                        'recordId'   => $row[$primaryColumn], 
+                                        'content'    => $row[$col['name']]
+                                    );  
+                                } 
+
+                            } else {
+
+                                if (isset(self::$fileColumn[$col['name']])) {
+
+                                    self::$fileColumns[] = array(
+                                        'tblName'    => $tblName, 
+                                        'colName'    => $col['name'], 
+                                        'equalField' => $primaryColumn, 
+                                        'recordId'   => $row[$primaryColumn], 
+                                        'content'    => $row[$col['name']], 
+                                        'fileType'   => self::$fileColumn[$col['name']]
+                                    );
+                                } 
+
+                                if ($row[$col['name']] != '') {
+
+                                    $columns .= $col['name'] . ', ';
+
+                                    $values .= "'" . str_replace("'", "''", $row[$col['name']]) . "', ";
+                                } 
+                            }
+                        }
+                    }
+
+                    $sql .= rtrim($columns, ', ') . ') VALUES (' . rtrim($values, ', ') . ')' . $separator . "\n";
+
+                    if ($tblName == 'META_DATA_FOLDER_MAP' && $row['FOLDER_ID']) {
+
+                        self::$metaFolderId = $row['FOLDER_ID'];
+                    }
                 }
                 
                 if ($childs) {
@@ -4441,17 +4462,38 @@ class Mdupgrade_Model extends Model {
                         GROUP BY TMP.META_DATA_ID, TMP.META_TYPE_ID, TMP.META_DATA_CODE"
                     );
 
-                } elseif ($objectCode == 'impexcel') {
-
+                } elseif ($objectCode == 'kpiindicatorbycategory') { 
+                    
                     $objects = $this->db->GetAll("
                         SELECT 
-                            ID AS META_DATA_ID, 
-                            'impexcel' AS META_TYPE_ID, 
-                            CODE AS META_DATA_CODE 
-                        FROM IMP_EXCEL_TEMPLATE 
-                        WHERE ID IN ($ids)"
-                    );
-
+                            TMP.* 
+                        FROM ( 
+                            SELECT 
+                                KI.ID AS META_DATA_ID, 
+                                'kpiindicatorbycategory' AS META_TYPE_ID, 
+                                KI.CODE AS META_DATA_CODE 
+                            FROM KPI_INDICATOR_INDICATOR_MAP M 
+                                INNER JOIN KPI_INDICATOR KI ON M.TRG_INDICATOR_ID = KI.ID 
+                            WHERE M.SEMANTIC_TYPE_ID = 10000009 
+                                AND M.SRC_INDICATOR_ID IN ( 
+                                    SELECT 
+                                        INDICATOR_ID 
+                                    FROM KPI_INDICATOR_CATEGORY 
+                                    WHERE CATEGORY_ID IN ($ids) 
+                                )
+                                
+                            UNION  
+                            
+                            SELECT 
+                                T1.ID AS META_DATA_ID, 
+                                'kpiindicatorbycategory' AS META_TYPE_ID, 
+                                T1.CODE AS META_DATA_CODE 
+                            FROM KPI_INDICATOR_CATEGORY T0 
+                                INNER JOIN KPI_INDICATOR T1 ON T1.ID = T0.INDICATOR_ID 
+                            WHERE CATEGORY_ID IN ($ids) 
+                        ) TMP 
+                        GROUP BY TMP.META_DATA_ID, TMP.META_TYPE_ID, TMP.META_DATA_CODE");
+                    
                 } elseif ($objectCode == 'kpitype') {
 
                     $objects = $this->db->GetAll("
@@ -4488,6 +4530,17 @@ class Mdupgrade_Model extends Model {
                             INNER JOIN KPI_INDICATOR KI ON KI.ID = KT.RELATED_INDICATOR_ID 
                         ) T0 
                         ORDER BY T0.META_TYPE_ID DESC"
+                    );
+
+                } elseif ($objectCode == 'impexcel') {
+
+                    $objects = $this->db->GetAll("
+                        SELECT 
+                            ID AS META_DATA_ID, 
+                            'impexcel' AS META_TYPE_ID, 
+                            CODE AS META_DATA_CODE 
+                        FROM IMP_EXCEL_TEMPLATE 
+                        WHERE ID IN ($ids)"
                     );
 
                 } elseif ($objectCode == 'metawidget') {
@@ -4547,7 +4600,14 @@ class Mdupgrade_Model extends Model {
                     self::$insertDataFilter = 'SRC_RECORD_ID='.$object['SRC_RECORD_ID'];
                     
                     $object['META_TYPE_ID'] = 'kpiindicator';
-                } 
+                    
+                } elseif ($object['META_TYPE_ID'] == 'kpiindicatorbycategory') {
+                    
+                    self::$isCreateTable = false;
+                    self::$isInsertData = false;
+                    
+                    $object['META_TYPE_ID'] = 'kpiindicator';
+                }
 
                 $objectResult = self::oneObjectModel($object['META_DATA_ID'], $object['META_TYPE_ID'], $object['META_DATA_CODE']);
 
@@ -4558,11 +4618,11 @@ class Mdupgrade_Model extends Model {
                     if (isset($object['PROCESS_META_DATA_ID']) && $object['PROCESS_META_DATA_ID']) {
                         
                         $meta = array(
-                            'META_TYPE_ID' => $object['PROCESS_META_TYPE_ID'], 
-                            'META_DATA_ID' => $object['PROCESS_META_DATA_ID'], 
+                            'META_TYPE_ID'   => $object['PROCESS_META_TYPE_ID'], 
+                            'META_DATA_ID'   => $object['PROCESS_META_DATA_ID'], 
                             'META_DATA_CODE' => $object['PROCESS_META_DATA_CODE'], 
-                            'USER_NAME' => '', 
-                            'MODIFIED_DATE' => ''
+                            'USER_NAME'      => '', 
+                            'MODIFIED_DATE'  => ''
                         );
                         
                         $metaResult = self::oneMetaModel($meta);
@@ -4605,7 +4665,10 @@ class Mdupgrade_Model extends Model {
     
     public function importMetaFileModel() {
         
-        if (!Mdmeta::isAccessMetaImport()) {
+        $isAccessMetaImport = Mdmeta::isAccessMetaImport();
+        $objectCode = Input::post('objectCode');
+        
+        if (!$isAccessMetaImport && $objectCode != 'dbupdate') {
             return array('status' => 'error', 'message' => 'Импорт хийх боломжгүй байна.');
         }
         
@@ -4624,7 +4687,19 @@ class Mdupgrade_Model extends Model {
                 $fileContent = Compression::gzinflate(file_get_contents($_FILES['import_file']['tmp_name'][$i]));
                 
                 if ($fileContent && strpos($fileContent, '<meta id="') !== false) {
-                    $fileSources[] = $fileContent;
+                    
+                    if (!$isAccessMetaImport && $objectCode == 'dbupdate') {
+                        
+                        if (strpos($fileContent, '<meta id="9999999999999" typeId="222222222222" code="databaseCompareScripts"') !== false) {
+                            $fileSources[] = $fileContent;
+                        } else {
+                            return array('status' => 'error', 'message' => 'DBSyncTool-р гарган авсан файл уншуулна уу!');
+                        }
+                        
+                    } else {
+                        $fileSources[] = $fileContent;
+                    }
+                    
                 } else {
                     return array('status' => 'error', 'message' => 'PHP export хийсэн файл уншуулна уу!');
                 }
@@ -4663,30 +4738,30 @@ class Mdupgrade_Model extends Model {
         
         $isCustomerServer = Config::getFromCache('isCustomerServer');
         $isIgnoreCheckLock = Config::getFromCache('CONFIG_IGNORE_CHECK_LOCK');
+        $isIgnorePatchScript = Config::getFromCache('PF_IS_IGNORE_PATCH_SCRIPT');
+        $isIgnoreCreatedAlready = Config::getFromCache('PF_IS_IGNORE_IMPORT_CREATED_ALREADY');
         $kpiDbSchemaName = Config::getFromCache('kpiDbSchemaName');
         
-        $sessionUserId = Ue::sessionUserId();
         $kpiDbSchemaName = $kpiDbSchemaName ? $kpiDbSchemaName . '.' : '';
+        $sessionUserId = Ue::sessionUserId();
         $metaCount = $metaLockedCount = 0;
-        $successMetas = $translateList = array();
         $lockedMetaMessage = $logs = '';
+        $successMetas = $translateList = [];
+        
+        if ($isIgnoreCreatedAlready) {
+            $isIgnoreCheckLock = 1;
+        }
 
         $this->db->BeginTrans(); 
 
         foreach ($fileSources as $fileSource) {
             
-            /*if (DB_DRIVER != 'oci8') {
-                
-                $fileSource = str_replace('TO_CHAR(', '', $fileSource);
-                $fileSource = str_replace('TO_DATE(', '', $fileSource);
-                $fileSource = str_replace(",'YYYY-MM-DD HH24:MI:SS')", '', $fileSource);
-            }*/
-            
             $fileSource = str_replace('[kpiDbSchemaName].', $kpiDbSchemaName, $fileSource);
-
+            $fileSource = str_replace('_alteredUserId', $sessionUserId, $fileSource);
+            
             $decryptedArray = Xml::createArray($fileSource);
             
-            if (isset($decryptedArray['documents']['scripts']['@cdata']) && $decryptedArray['documents']['scripts']['@cdata']) {
+            if (isset($decryptedArray['documents']['scripts']['@cdata']) && $decryptedArray['documents']['scripts']['@cdata'] && $isIgnorePatchScript != '1') {
                 
                 $scripts = trim($decryptedArray['documents']['scripts']['@cdata']);
                 
@@ -4755,6 +4830,10 @@ class Mdupgrade_Model extends Model {
                     $metaTypeId = $metaAttributes['typeId'];
                     
                     if (self::$isPreviewUpdateMeta && !isset(self::$updateMetaIds[$metaDataId])) {
+                        continue;
+                    }
+                    
+                    if ($isIgnoreCreatedAlready && self::checkCreatedAlreadyModel($metaTypeId, $metaDataId)) {
                         continue;
                     }
                     
@@ -6180,7 +6259,7 @@ class Mdupgrade_Model extends Model {
             
             $metaIdPh = $this->db->Param(0);
             
-            $metas = $this->db->GetAll("
+            $meta = $this->db->GetRow("
                 SELECT 
                     MD.META_DATA_ID, 
                     MD.META_TYPE_ID, 
@@ -6195,7 +6274,7 @@ class Mdupgrade_Model extends Model {
                 array($targetId) 
             );
             
-            if ($metas) {
+            if ($meta) {
                 
                 $isUseMetaUserId = Config::getFromCache('IS_USE_META_CREATED_MODIFIED_USER_ID');
             
@@ -6207,21 +6286,26 @@ class Mdupgrade_Model extends Model {
                 self::$isIgnoreTranslate = true;
                 self::$isIdReplace = true;
                 
-                $meta = $metas[0];
-                
                 $metaResult = self::oneMetaModel($meta);
 
                 if ($metaResult['status'] == 'success') {
                     
                     $result = $metaResult['result'];
                     
-                    $sourceMetaRow = self::getMetaColumnDatas($sourceId);
+                    if ($sourceCode = Input::post('sourceCode')) {
+                        $sourceMetaRow = array('META_DATA_CODE' => $sourceCode, 'META_DATA_NAME' => Input::post('sourceName'), 'META_GROUP_LINK_ID' => null);
+                    } else {
+                        $sourceMetaRow = self::getMetaColumnDatas($sourceId);
+                    }
+                    
                     $targetMetaRow = self::getMetaColumnDatas($targetId);
                     
                     $sourceMetaCode = $sourceMetaRow['META_DATA_CODE'];
                     $targetMetaCode = $targetMetaRow['META_DATA_CODE'];
                     $sourceMetaName = $sourceMetaRow['META_DATA_NAME'];
                     $targetMetaName = $targetMetaRow['META_DATA_NAME'];
+                    
+                    $targetMetaGroupLinkId = $sourceMetaGroupLinkId = '';
                     
                     $result = str_replace(
                         array(
@@ -6259,6 +6343,10 @@ class Mdupgrade_Model extends Model {
                             ),
                             $result
                         );
+                        
+                    } elseif ($meta['META_TYPE_ID'] == Mdmetadata::$reportTemplateMetaTypeId) {
+                        
+                        $result = str_replace('/'.$targetId.'.html', '/'.$sourceId.'.html', $result);
                     }
                     
                     if (self::$replaceIds) {
@@ -6301,7 +6389,14 @@ class Mdupgrade_Model extends Model {
                         $response = self::executeUpgradeScript(array($xml));
                         
                     } else {
-                        $response = array('status' => 'success', 'xmlData' => $xml);
+                        $response = array(
+                            'status' => 'success', 
+                            'metaTypeId' => $meta['META_TYPE_ID'], 
+                            'metaCode' => $meta['META_DATA_CODE'], 
+                            'oldMetaGroupLinkId' => $targetMetaGroupLinkId,
+                            'newMetaGroupLinkId' => $sourceMetaGroupLinkId,
+                            'xmlData' => $xml
+                        );
                     }
                     
                 } else {
@@ -6798,7 +6893,7 @@ class Mdupgrade_Model extends Model {
     public function metaImportCopyFileModel() {
         
         if (!Mdmeta::isAccessMetaImport()) {
-            return array('status' => 'error', 'message' => 'Импорт хийх боломжгүй байна.');
+            return array('status' => 'error', 'message' => 'Импорт хийх боломжгүй байна!');
         }
         
         set_time_limit(0);
@@ -6892,7 +6987,573 @@ class Mdupgrade_Model extends Model {
             } 
             
         } else {
-            $response = array('status' => 'error', 'message' => 'Файлаас шинэчлэлтийн дата олдсонгүй! /Only Process, Metagroup/');
+            $response = array('status' => 'error', 'message' => 'Файлаас шинэчлэлтийн дата олдсонгүй! /Only Process, Metagroup, Statement/');
+        }
+        
+        return $response;
+    }
+    
+    public function metaCopyReplaceModel() {
+        
+        if (!Mdmeta::isAccessMetaImport()) {
+            return array('status' => 'error', 'message' => 'Энэ үйлдэл боломжгүй байна!');
+        }
+        
+        set_time_limit(0);
+        ini_set('memory_limit', '-1');
+        
+        $this->load->model('mdmetadata', 'middleware/models/');
+        
+        $newMetaCode = Input::post('newMetaCode');
+        
+        if ($this->model->checkMetaDataCodeModel($newMetaCode)) {
+            return array('status' => 'error', 'message' => 'Шинэ код давхардаж байна!');
+        }
+        
+        includeLib('Compress/Compression');
+        $this->load->model('mdupgrade', 'middleware/models/');
+        
+        $copyMetaDataId = Input::numeric('copyMetaDataId');
+        $newMetaId      = Input::numeric('newMetaId');
+        $newMetaName    = Input::post('newMetaName');
+        
+        $_POST['sourceId']   = $newMetaId;
+        $_POST['sourceCode'] = $newMetaCode;
+        $_POST['sourceName'] = $newMetaName;
+        $_POST['targetId']   = $copyMetaDataId;
+        
+        self::$isMetaImportCopy = true;
+        
+        $copyResult = self::metaConfigReplaceModel();
+
+        if ($copyResult['status'] == 'success') {
+            $xmlData = $copyResult['xmlData'];
+        } else {
+            $response = $copyResult;
+        }
+
+        if (isset($xmlData)) {
+
+            self::$ignoreDbCommitTrans = true;
+            self::$isMetaImportCopy = false;
+
+            $response = self::executeUpgradeScript(array($xmlData));
+
+            if ($response['status'] != 'success') {
+                
+                $this->db->RollbackTrans();
+                $response['message'] = 'new copy: ' . $response['message'];
+                
+            } else {
+                
+                $newMetaType = $copyResult['metaTypeId'];
+                $folderId    = Input::numeric('folderId');
+                $isMetaCopyReplace = true;
+                
+                try {
+                        
+                    if ($folderId) {
+
+                        $metaDataFolderMap = array(
+                            'ID'           => getUID(), 
+                            'FOLDER_ID'    => $folderId, 
+                            'META_DATA_ID' => $newMetaId, 
+                            'CREATED_DATE' => Date::currentDate()
+                        );
+                        $this->db->AutoExecute('META_DATA_FOLDER_MAP', $metaDataFolderMap);
+                    }
+                    
+                    if ($isMetaCopyReplace) {
+                        
+                        $replaceResult = self::oldMetaNewMetaReplace(array(
+                            'metaTypeId'  => $newMetaType, 
+                            'oldMetaId'   => $copyMetaDataId, 
+                            'newMetaId'   => $newMetaId, 
+                            'oldMetaCode' => $copyResult['metaCode'], 
+                            'newMetaCode' => $newMetaCode, 
+                            'oldMetaGroupLinkId' => $copyResult['oldMetaGroupLinkId'], 
+                            'newMetaGroupLinkId' => $copyResult['newMetaGroupLinkId']
+                        ));
+
+                        if ($replaceResult['status'] != 'success') {
+                            throw new Exception($replaceResult['message']);
+                        }
+
+                        if (self::$deleteScript) {
+
+                            $deleteScriptArr = explode(Mdcommon::$separator, self::$deleteScript);
+
+                            foreach ($deleteScriptArr as $deleteScript) {
+
+                                $deleteScript = trim($deleteScript);
+
+                                if ($deleteScript) {
+
+                                    if (DB_DRIVER == 'postgres9') {
+                                        $deleteScript = 'DO $$ BEGIN '.$deleteScript.'; EXCEPTION WHEN others THEN END; $$;';
+                                    }
+
+                                    $this->db->Execute($deleteScript);
+                                }
+                            }
+                        }
+                    }
+                    
+                    $logData = array(
+                        'ID'               => getUID(),
+                        'META_DATA_ID'     => $copyMetaDataId, 
+                        'NEW_META_DATA_ID' => $newMetaId,
+                        'CREATED_USER_ID'  => Ue::sessionUserId(),
+                        'CREATED_DATE'     => Date::currentDate(),
+                        'IS_IMPORT'        => 2
+                    );
+                    $this->db->AutoExecute('CUSTOMER_META_COPY_LOG', $logData);
+                    
+                    /*$this->db->Execute("DELETE FROM META_DATA_FOLDER_MAP WHERE META_DATA_ID = $copyMetaDataId");
+                    $metaDataFolderMap = array(
+                        'ID'           => getUID(), 
+                        'FOLDER_ID'    => 999, 
+                        'META_DATA_ID' => $copyMetaDataId, 
+                        'CREATED_DATE' => Date::currentDate()
+                    );
+                    $this->db->AutoExecute('META_DATA_FOLDER_MAP', $metaDataFolderMap);*/
+
+                    $this->db->CommitTrans();
+                    
+                    if ($newMetaType == Mdmetadata::$businessProcessMetaTypeId) {
+
+                        (new Mdmeta())->bpParamsClearCache($copyMetaDataId, $copyResult['metaCode'], true);
+
+                    } elseif ($newMetaType == Mdmetadata::$metaGroupMetaTypeId) {
+
+                        (new Mdmeta())->dvCacheClearByMetaId($copyMetaDataId, true);
+                    }
+                    
+                    $response = array('status' => 'success', 'message' => 'Амжилттай!', 'folderId' => $folderId);
+                
+                } catch (Exception $ex) {
+                    
+                    $this->db->RollbackTrans();
+                    $response = array('status' => 'error', 'message' => $ex->getMessage());
+                }
+            }
+        }
+        
+        return $response;
+    }
+    
+    public function oldMetaNewMetaReplace($param) {
+        
+        try {
+            
+            $metaTypeId  = $param['metaTypeId'];
+            $oldMetaId   = $param['oldMetaId'];
+            $newMetaId   = $param['newMetaId'];
+            $oldMetaCode = $param['oldMetaCode'];
+            $newMetaCode = $param['newMetaCode'];
+            
+            $oldMetaCodeLower = Str::lower($oldMetaCode);
+            
+            $idPh1 = $this->db->Param(0);
+            $idPh2 = $this->db->Param(1);
+            
+            if (Mdmetadata::$metaGroupMetaTypeId == $metaTypeId) { 
+                
+                $oldMetaGroupLinkId = $param['oldMetaGroupLinkId'];
+                $newMetaGroupLinkId = $param['newMetaGroupLinkId'];
+                
+                $this->db->Execute("UPDATE CUSTOMER_DV_FILTER SET DV_META_DATA_ID = $idPh1 WHERE DV_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE CUSTOMER_DV_HDR_FTR SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE CUSTOMER_DV_IGNORE_LOAD SET DV_META_DATA_ID = $idPh1 WHERE DV_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE CUSTOMER_TEMPLATE SET DATA_VIEW_ID = $idPh1 WHERE DATA_VIEW_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE CUSTOMER_TEMPLATE_MAP SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_BUSINESS_PROCESS_LINK SET REF_META_GROUP_ID = $idPh1 WHERE REF_META_GROUP_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_BUSINESS_PROCESS_LINK SET SYSTEM_META_GROUP_ID = $idPh1 WHERE SYSTEM_META_GROUP_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_BUSINESS_PROCESS_LINK SET COMMENT_STRUCTURE_ID = $idPh1 WHERE COMMENT_STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
+
+                $this->db->Execute("UPDATE META_CARD SET DATA_VIEW_ID = $idPh1 WHERE DATA_VIEW_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_CARD SET CHART_DATA_VIEW_ID = $idPh1 WHERE CHART_DATA_VIEW_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_DATAMART_COLUMN SET META_GROUP_ID = $idPh1 WHERE META_GROUP_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_DM_PROCESS_DTL SET AUTO_MAP_DATAVIEW_ID = $idPh1 WHERE AUTO_MAP_DATAVIEW_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_GROUP_CONFIG_USER SET MAIN_META_DATA_ID = $idPh1 WHERE MAIN_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_GROUP_CRITERIA_TEMPLATE SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_GROUP_LINK SET REF_META_GROUP_ID = $idPh1 WHERE REF_META_GROUP_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_GROUP_LINK SET DATA_LEGEND_DV_ID = $idPh1 WHERE DATA_LEGEND_DV_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_GROUP_LINK SET QS_META_DATA_ID = $idPh1 WHERE QS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_GROUP_LINK SET EXTERNAL_META_DATA_ID = $idPh1 WHERE EXTERNAL_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_GROUP_LINK SET BANNER_META_DATA_ID = $idPh1 WHERE BANNER_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_GROUP_CONFIG SET LOOKUP_KEY_META_DATA_ID = $idPh1 WHERE LOOKUP_KEY_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_GROUP_CONFIG SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_GROUP_CONFIG SET LOOKUP_META_DATA_ID = $idPh1 WHERE LOOKUP_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_GROUP_PARAM_CONFIG SET LOOKUP_META_DATA_ID = $idPh1 WHERE LOOKUP_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_GROUP_PARAM_CONFIG SET PARAM_META_DATA_ID = $idPh1 WHERE PARAM_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_GROUP_PRINT_USER SET DV_META_DATA_ID = $idPh1 WHERE DV_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_GROUP_RELATION SET SRC_META_GROUP_ID = $idPh1 WHERE SRC_META_GROUP_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_GROUP_RELATION SET TRG_META_GROUP_ID = $idPh1 WHERE TRG_META_GROUP_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_LAYOUT_LINK SET CRITERIA_DATA_VIEW_ID = $idPh1 WHERE CRITERIA_DATA_VIEW_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_PARAM_VALUES SET LOOKUP_META_DATA_ID = $idPh1 WHERE LOOKUP_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_PROCESS_LOOKUP_MAP SET LOOKUP_META_ID = $idPh1 WHERE LOOKUP_META_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_PROCESS_LOOKUP_MAP SET GROUP_META_DATA_ID = $idPh1 WHERE GROUP_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_PROCESS_NTF SET SYSTEM_META_GROUP_ID = $idPh1 WHERE SYSTEM_META_GROUP_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_PROCESS_PARAM_ATTR_LINK SET LOOKUP_KEY_META_DATA_ID = $idPh1 WHERE LOOKUP_KEY_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_PROCESS_PARAM_ATTR_LINK SET LOOKUP_META_DATA_ID = $idPh1 WHERE LOOKUP_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_PROCESS_SCHEDULE SET DATAVIEW_ID = $idPh1 WHERE DATAVIEW_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_REPORT_TEMPLATE_LINK SET DATA_MODEL_ID = $idPh1 WHERE DATA_MODEL_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_STATEMENT_LINK SET GROUP_DATA_VIEW_ID = $idPh1 WHERE GROUP_DATA_VIEW_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_STATEMENT_LINK SET ROW_DATA_VIEW_ID = $idPh1 WHERE ROW_DATA_VIEW_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_STATEMENT_LINK SET DATA_VIEW_ID = $idPh1 WHERE DATA_VIEW_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_WFM_ASSIGNMENT SET SYSTEM_META_GROUP_ID = $idPh1 WHERE SYSTEM_META_GROUP_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_WFM_FIELD SET SELECT_META_DATA_ID = $idPh1 WHERE SELECT_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_WFM_FIELD SET LOOKUP_META_DATA_ID = $idPh1 WHERE LOOKUP_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_WFM_STATUS SET ASSIGN_DATAVIEW_ID = $idPh1 WHERE ASSIGN_DATAVIEW_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_WORKSPACE_LINK SET ROW_DATAVIEW_ID = $idPh1 WHERE ROW_DATAVIEW_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_WORKSPACE_LINK SET GROUP_META_DATA_ID = $idPh1 WHERE GROUP_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_DM_TEMPLATE_DTL SET META_GROUP_LINK_ID = $idPh1 WHERE META_GROUP_LINK_ID = $idPh2", array($newMetaGroupLinkId, $oldMetaGroupLinkId));
+                
+                $this->db->Execute("UPDATE KPI_TEMPLATE SET LIST_META_DATA_ID = $idPh1 WHERE LIST_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE KPI_TEMPLATE_FACT SET LOOKUP_META_DATA_ID = $idPh1 WHERE LOOKUP_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE KPI_TEMPLATE_FACT SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE KPI_TEMPLATE_DTL_FACT SET LOOKUP_META_DATA_ID = $idPh1 WHERE LOOKUP_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE KPI_INDICATOR_FACT SET LOOKUP_META_DATA_ID = $idPh1 WHERE LOOKUP_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE KPI_INDICATOR_FACT SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE KPI_INDICATOR_INDICATOR_FACT SET LOOKUP_META_DATA_ID = $idPh1 WHERE LOOKUP_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE KPI_INDICATOR SET LIST_META_DATA_ID = $idPh1 WHERE LIST_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE KPI_INDICATOR SET LOOKUP_META_DATA_ID = $idPh1 WHERE LOOKUP_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE FIN_ACCOUNT_TYPE_BP_CONFIG SET DATAVIEW_ID = $idPh1 WHERE DATAVIEW_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE FIN_ACCOUNT_TYPE_BP_CONFIG SET CHECK_DATAVIEW_ID = $idPh1 WHERE CHECK_DATAVIEW_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE REP_FIN_GENERAL_LEDGER_MAP SET DATA_VIEW_ID = $idPh1 WHERE DATA_VIEW_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE FIN_GENERAL_LEDGER_TMP SET CRITERIA = REPLACE(CRITERIA, '$oldMetaId', '$newMetaId') WHERE CRITERIA LIKE '%$oldMetaId%'");
+                
+                /*
+                $this->db->Execute("UPDATE UM_USER_ALIAS SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_WFM_LOG SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_DATAMART_LINK SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_GROUP_LINK SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_SEMANTIC_CONFIG SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_WFM_ALIAS_LOG SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_WFM_ASSIGNMENT SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_WFM_ASSIGNMENT SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_WFM_AUTO_TRANSITION SET STRUCTURE_ID = $idPh1 WHERE STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_WFM_CRITERIA SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_WFM_FIELD SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_WFM_INHERITANCE SET SRC_REF_STRUCTURE_ID = $idPh1 WHERE SRC_REF_STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_WFM_INHERITANCE SET TRG_REF_STRUCTURE_ID = $idPh1 WHERE TRG_REF_STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_WFM_PENDING_LOG SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_WFM_STATUS_LINK SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_WFM_WORKFLOW SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
+                */
+                
+            } elseif (Mdmetadata::$businessProcessMetaTypeId == $metaTypeId) {
+                
+                $this->db->Execute("UPDATE META_BUSINESS_PROCESS_LINK SET GETDATA_PROCESS_ID = $idPh1 WHERE GETDATA_PROCESS_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_BUSINESS_PROCESS_LINK SET RULE_META_DATA_ID = $idPh1 WHERE RULE_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_CARD SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_DATAMART_SCHEDULE SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_DM_PROCESS_DTL SET AUTO_MAP_DELETE_PROCESS_ID = $idPh1 WHERE AUTO_MAP_DELETE_PROCESS_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_DM_ROW_PROCESS_PARAM SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_GROUP_CONFIG SET INLINE_PROCESS_ID = $idPh1 WHERE INLINE_PROCESS_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_GROUP_CONFIG SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_GROUP_PARAM_CONFIG SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_GROUP_LINK SET RULE_PROCESS_ID = $idPh1 WHERE RULE_PROCESS_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_GROUP_LINK SET CALCULATE_PROCESS_ID = $idPh1 WHERE CALCULATE_PROCESS_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_PROCESS_PARAM_LINK SET DEFAULT_VALUE = $idPh1 WHERE DEFAULT_VALUE = $idPh2", array($newMetaCode, $oldMetaCode));
+                $this->db->Execute("UPDATE META_PROCESS_PARAM_LINK SET DONE_BP_ID = $idPh1 WHERE DONE_BP_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_PROCESS_PARAM_LINK SET DO_BP_ID = $idPh1 WHERE DO_BP_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_PROCESS_REPEATER SET PROCESS_ID = $idPh1 WHERE PROCESS_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_PROCESS_RULE SET RULE_PROCESS_ID = $idPh1 WHERE RULE_PROCESS_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_PROCESS_SCHEDULE SET PROCESS_ID = $idPh1 WHERE PROCESS_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_PROCESS_UNIQUE_MESSAGE SET MAIN_META_DATA_ID = $idPh1 WHERE MAIN_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_PROCESS_WORKFLOW SET DO_BP_ID = $idPh1 WHERE DO_BP_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_STATEMENT_LINK SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_VALIDATION_RULE SET CHECK_PROCESS_META_DATA_ID = $idPh1 WHERE CHECK_PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_VALIDATION_RULE SET RUN_PROCESS_META_DATA_ID = $idPh1 WHERE RUN_PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_VALIDATION_RULE SET SKIP_PROCESS_META_DATA_ID = $idPh1 WHERE SKIP_PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_WFM_STATUS SET MOBILE_PROCESS_META_DATA_ID = $idPh1 WHERE MOBILE_PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_WFM_STATUS SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_PROCESS_PARAM_ATTR_LINK SET GET_PROCESS_META_DATA_ID = $idPh1 WHERE GET_PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_PROCESS_PARAM_ATTR_LINK SET EDIT_PROCESS_META_DATA_ID = $idPh1 WHERE EDIT_PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_PROCESS_DEFAULT_GET SET GETDATA_PROCESS_ID = $idPh1 WHERE GETDATA_PROCESS_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_PROCESS_WF_BEHAVIOUR SET CRITERIA = REGEXP_REPLACE(CRITERIA, '$oldMetaCode.', '$newMetaCode.', 1, 0, 'i') WHERE CRITERIA IS NOT NULL AND LOWER(CRITERIA) LIKE '$oldMetaCodeLower.%'");
+                $this->db->Execute("UPDATE META_PROCESS_WF_BEHAVIOUR SET CRITERIA = REGEXP_REPLACE(CRITERIA, 'done.$oldMetaCode.', 'done.$newMetaCode.', 1, 0, 'i') WHERE CRITERIA IS NOT NULL AND LOWER(CRITERIA) LIKE '%done.$oldMetaCodeLower.%'");
+                $this->db->Execute("UPDATE META_PROCESS_WF_BEHAVIOUR SET CRITERIA = REGEXP_REPLACE(CRITERIA, ' $oldMetaCode.', ' $newMetaCode.', 1, 0, 'i') WHERE CRITERIA IS NOT NULL AND LOWER(CRITERIA) LIKE '% $oldMetaCodeLower.%'");
+                $this->db->Execute("UPDATE META_PROCESS_WF_BEHAVIOUR SET CRITERIA = REGEXP_REPLACE(CRITERIA, '($oldMetaCode.', '($newMetaCode.', 1, 0, 'i') WHERE CRITERIA IS NOT NULL AND LOWER(CRITERIA) LIKE '%($oldMetaCodeLower.%'");
+                
+                $this->db->Execute("UPDATE META_PROCESS_NTF SET SYSTEM_META_GROUP_ID = $idPh1 WHERE SYSTEM_META_GROUP_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE NTF_NOTIFICATION_ACTION SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE KPI_TEMPLATE SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE KPI_TEMPLATE_DTL SET GET_PROCESS_ID = $idPh1 WHERE GET_PROCESS_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE KPI_TEMPLATE_DTL SET HELP_PROCESS_META_ID = $idPh1 WHERE HELP_PROCESS_META_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE KPI_TEMPLATE_FACT SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE KPI_TEMPLATE_DTL_FACT SET GET_PROCESS_ID = $idPh1 WHERE GET_PROCESS_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE KPI_INDICATOR_FACT SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE KPI_INDICATOR_INDICATOR_FACT SET GET_PROCESS_ID = $idPh1 WHERE GET_PROCESS_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE FIN_ACCOUNT_TYPE_BP_CONFIG SET DEBIT_PROCESS_ID = $idPh1 WHERE DEBIT_PROCESS_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE FIN_ACCOUNT_TYPE_BP_CONFIG SET CREDIT_PROCESS_ID = $idPh1 WHERE CREDIT_PROCESS_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE FIN_ACCOUNT_TYPE_BP_CONFIG SET DEBIT_EDIT_PROCESS_ID = $idPh1 WHERE DEBIT_EDIT_PROCESS_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE FIN_ACCOUNT_TYPE_BP_CONFIG SET CREDIT_EDIT_PROCESS_ID = $idPh1 WHERE CREDIT_EDIT_PROCESS_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE FIN_ACCOUNT_TYPE_BP_CONFIG SET DELETE_PROCESS_ID = $idPh1 WHERE DELETE_PROCESS_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+            } elseif (Mdmetadata::$statementMetaTypeId == $metaTypeId) {
+                
+                $this->db->Execute("UPDATE CUSTOMER_DEFAULT_META SET SRC_META_DATA_ID = $idPh1 WHERE SRC_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE CUSTOMER_DEFAULT_META SET ACTION_META_DATA_ID = $idPh1 WHERE ACTION_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE CUSTOMER_ST_GROUPING_CONFIG SET STATEMENT_META_DATA_ID = $idPh1 WHERE STATEMENT_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_STATEMENT_TEMPLATE SET TRG_META_DATA_ID = $idPh1 WHERE TRG_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_DM_STATEMENT_DTL SET STATEMENT_META_DATA_ID = $idPh1 WHERE STATEMENT_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+            } elseif (Mdmetadata::$reportTemplateMetaTypeId == $metaTypeId) {
+                
+                $this->db->Execute("UPDATE CUSTOMER_TEMPLATE_MAP SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_DM_TEMPLATE_DTL SET TEMPLATE_META_DATA_ID = $idPh1 WHERE TEMPLATE_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_PROCESS_TEMPLATE SET TEMPLATE_META_DATA_ID = $idPh1 WHERE TEMPLATE_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+            } elseif (Mdmetadata::$menuMetaTypeId == $metaTypeId) {
+                
+                $this->db->Execute("UPDATE META_WORKSPACE_LINK SET MENU_META_DATA_ID = $idPh1 WHERE MENU_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_WORKSPACE_LINK SET SUBMENU_META_DATA_ID = $idPh1 WHERE SUBMENU_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_WORKSPACE_LINK SET DEFAULT_MENU_ID = $idPh1 WHERE DEFAULT_MENU_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE UM_USER SET CLICK_MENU_ID = $idPh1 WHERE CLICK_MENU_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE UM_USER SET DEFAULT_MENU_ID = $idPh1 WHERE DEFAULT_MENU_ID = $idPh2", array($newMetaId, $oldMetaId));
+            }
+            
+            if (Mdmetadata::$metaGroupMetaTypeId == $metaTypeId || Mdmetadata::$businessProcessMetaTypeId == $metaTypeId) {
+                
+                $this->db->Execute("UPDATE CUSTOMER_META_USER_CONFIG SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE CUSTOMER_META_WS SET SRC_META_DATA_ID = $idPh1 WHERE SRC_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE CUSTOMER_META_WS SET TRG_META_DATA_ID = $idPh1 WHERE TRG_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE CUSTOMER_DV_FIELD SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE CUSTOMER_DV_OFFLINE_MOBILE SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE CUSTOMER_META_OFFLINE SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_MENU_LINK SET COUNT_META_DATA_ID = $idPh1 WHERE COUNT_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_GROUP_RELATION SET SRC_META_DATA_ID = $idPh1 WHERE SRC_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_GROUP_RELATION SET TRG_META_DATA_ID = $idPh1 WHERE TRG_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_GROUP_CONFIG SET TRG_META_DATA_ID = $idPh1 WHERE TRG_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_SEMANTIC_TYPE SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_SRC_TRG_PARAM SET SRC_META_DATA_ID = $idPh1 WHERE SRC_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_TAG_MAP SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_VALIDATION_RULE SET LINK_META_DATA_ID = $idPh1 WHERE LINK_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_BP_LAYOUT_SECTION SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_DM_PROCESS_DTL SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_DM_TRANSFER_PROCESS SET GET_META_DATA_ID = $idPh1 WHERE GET_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_DM_TRANSFER_PROCESS SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_DM_TRANSFER_PROCESS SET DEFAULT_VALUE = $idPh1 WHERE DEFAULT_VALUE = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_DASHBOARD_LINK SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_DASHBOARD_LINK SET PROCESS_META_DATA_ID4 = $idPh1 WHERE PROCESS_META_DATA_ID4 = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_DASHBOARD_LINK SET PROCESS_META_DATA_ID3 = $idPh1 WHERE PROCESS_META_DATA_ID3 = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_DASHBOARD_LINK SET PROCESS_META_DATA_ID2 = $idPh1 WHERE PROCESS_META_DATA_ID2 = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_LAYOUT_PARAM_MAP SET BP_META_DATA_ID = $idPh1 WHERE BP_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_PACKAGE_LINK SET COUNT_META_DATA_ID = $idPh1 WHERE COUNT_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_PARAM_VALUES SET PARAM_META_DATA_ID = $idPh1 WHERE PARAM_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_PROCESS_PARAM_ATTR_LINK SET MORE_META_DATA_ID = $idPh1 WHERE MORE_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_PROCESS_PARAM_LINK SET DEFAULT_VALUE = $idPh1 WHERE DEFAULT_VALUE = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_DATA_ATTACH SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_DATA_SEQUENCE_CONFIG SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+            }
+            
+            if (Mdmetadata::$metaGroupMetaTypeId == $metaTypeId 
+                || Mdmetadata::$businessProcessMetaTypeId == $metaTypeId 
+                || Mdmetadata::$statementMetaTypeId == $metaTypeId 
+                || Mdmetadata::$reportTemplateMetaTypeId == $metaTypeId) {
+                
+                $this->db->Execute("UPDATE CUSTOMER_PROXY_CONFIG SET ACTION_META_DATA_ID = $idPh1 WHERE ACTION_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE CUSTOMER_USE_CHILD SET TRG_META_DATA_ID = $idPh1 WHERE TRG_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE CUSTOMER_USE_CHILD SET SRC_META_DATA_ID = $idPh1 WHERE SRC_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_MENU_LINK SET ACTION_META_DATA_ID = $idPh1 WHERE ACTION_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_DM_DM_MAP SET SRC_META_DATA_ID = $idPh1 WHERE SRC_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_DM_DM_MAP SET TRG_META_DATA_ID = $idPh1 WHERE TRG_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_DM_DRILLDOWN_DTL SET LINK_META_DATA_ID = $idPh1 WHERE LINK_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_DM_PROCESS_IGNORE SET MAIN_META_DATA_ID = $idPh1 WHERE MAIN_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_DM_PROCESS_IGNORE SET TRG_META_DATA_ID = $idPh1 WHERE TRG_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_DM_PROCESS_IGNORE SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_DM_TEMPLATE_DTL SET SRC_META_DATA_ID = $idPh1 WHERE SRC_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_PACKAGE_LINK SET DEFAULT_META_ID = $idPh1 WHERE DEFAULT_META_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_BUG_FIXING_DTL SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_BP_EXPRESSION_PROCESS SET USE_META_DATA_ID = $idPh1 WHERE USE_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_WORKSPACE_PARAM_MAP SET TARGET_META_ID = $idPh1 WHERE TARGET_META_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_WORKSPACE_PARAM_MAP SET LINK_META_DATA_ID = $idPh1 WHERE LINK_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE META_BUSINESS_PROCESS_LINK SET LOAD_EXPRESSION_STRING = REPLACE(LOAD_EXPRESSION_STRING, '$oldMetaId', '$newMetaId') WHERE LOAD_EXPRESSION_STRING LIKE '%$oldMetaId%'");
+                $this->db->Execute("UPDATE META_BUSINESS_PROCESS_LINK SET EVENT_EXPRESSION_STRING = REPLACE(EVENT_EXPRESSION_STRING, '$oldMetaId', '$newMetaId') WHERE EVENT_EXPRESSION_STRING LIKE '%$oldMetaId%'");
+                $this->db->Execute("UPDATE META_BUSINESS_PROCESS_LINK SET VAR_FNC_EXPRESSION_STRING = REPLACE(VAR_FNC_EXPRESSION_STRING, '$oldMetaId', '$newMetaId') WHERE VAR_FNC_EXPRESSION_STRING LIKE '%$oldMetaId%'");
+                $this->db->Execute("UPDATE META_BUSINESS_PROCESS_LINK SET SAVE_EXPRESSION_STRING = REPLACE(SAVE_EXPRESSION_STRING, '$oldMetaId', '$newMetaId') WHERE SAVE_EXPRESSION_STRING LIKE '%$oldMetaId%'");
+                
+                $this->db->Execute("UPDATE META_BUSINESS_PROCESS_LINK SET LOAD_EXPRESSION_STRING = REPLACE(LOAD_EXPRESSION_STRING, '''$oldMetaCode''', '''$newMetaCode''') WHERE LOAD_EXPRESSION_STRING LIKE '%''$oldMetaCode''%'");
+                $this->db->Execute("UPDATE META_BUSINESS_PROCESS_LINK SET EVENT_EXPRESSION_STRING = REPLACE(EVENT_EXPRESSION_STRING, '''$oldMetaCode''', '''$newMetaCode''') WHERE EVENT_EXPRESSION_STRING LIKE '%''$oldMetaCode''%'");
+                $this->db->Execute("UPDATE META_BUSINESS_PROCESS_LINK SET VAR_FNC_EXPRESSION_STRING = REPLACE(VAR_FNC_EXPRESSION_STRING, '''$oldMetaCode''', '''$newMetaCode''') WHERE VAR_FNC_EXPRESSION_STRING LIKE '%''$oldMetaCode''%'");
+                $this->db->Execute("UPDATE META_BUSINESS_PROCESS_LINK SET SAVE_EXPRESSION_STRING = REPLACE(SAVE_EXPRESSION_STRING, '''$oldMetaCode''', '''$newMetaCode''') WHERE SAVE_EXPRESSION_STRING LIKE '%''$oldMetaCode''%'");
+                
+                $this->db->Execute("UPDATE META_BP_EXPRESSION_DTL SET EVENT_EXPRESSION_STRING = REPLACE(EVENT_EXPRESSION_STRING, '$oldMetaId', '$newMetaId') WHERE EVENT_EXPRESSION_STRING LIKE '%$oldMetaId%'");
+                $this->db->Execute("UPDATE META_BP_EXPRESSION_DTL SET LOAD_EXPRESSION_STRING = REPLACE(LOAD_EXPRESSION_STRING, '$oldMetaId', '$newMetaId') WHERE LOAD_EXPRESSION_STRING LIKE '%$oldMetaId%'");
+                $this->db->Execute("UPDATE META_BP_EXPRESSION_DTL SET VAR_FNC_EXPRESSION_STRING = REPLACE(VAR_FNC_EXPRESSION_STRING, '$oldMetaId', '$newMetaId') WHERE VAR_FNC_EXPRESSION_STRING LIKE '%$oldMetaId%'");
+                $this->db->Execute("UPDATE META_BP_EXPRESSION_DTL SET SAVE_EXPRESSION_STRING = REPLACE(SAVE_EXPRESSION_STRING, '$oldMetaId', '$newMetaId') WHERE SAVE_EXPRESSION_STRING LIKE '%$oldMetaId%'");
+                
+                $this->db->Execute("UPDATE META_BP_EXPRESSION_DTL SET EVENT_EXPRESSION_STRING = REPLACE(EVENT_EXPRESSION_STRING, '''$oldMetaCode''', '''$newMetaCode''') WHERE EVENT_EXPRESSION_STRING LIKE '%''$oldMetaCode''%'");
+                $this->db->Execute("UPDATE META_BP_EXPRESSION_DTL SET LOAD_EXPRESSION_STRING = REPLACE(LOAD_EXPRESSION_STRING, '''$oldMetaCode''', '''$newMetaCode''') WHERE LOAD_EXPRESSION_STRING LIKE '%''$oldMetaCode''%'");
+                $this->db->Execute("UPDATE META_BP_EXPRESSION_DTL SET VAR_FNC_EXPRESSION_STRING = REPLACE(VAR_FNC_EXPRESSION_STRING, '''$oldMetaCode''', '''$newMetaCode''') WHERE VAR_FNC_EXPRESSION_STRING LIKE '%''$oldMetaCode''%'");
+                $this->db->Execute("UPDATE META_BP_EXPRESSION_DTL SET SAVE_EXPRESSION_STRING = REPLACE(SAVE_EXPRESSION_STRING, '''$oldMetaCode''', '''$newMetaCode''') WHERE SAVE_EXPRESSION_STRING LIKE '%''$oldMetaCode''%'");
+                
+                $this->db->Execute("UPDATE KPI_TEMPLATE SET EVENT_EXPRESSION_STRING = REPLACE(EVENT_EXPRESSION_STRING, '$oldMetaId', '$newMetaId') WHERE EVENT_EXPRESSION_STRING LIKE '%$oldMetaId%'");
+                $this->db->Execute("UPDATE KPI_TEMPLATE SET SAVE_EXPRESSION_STRING = REPLACE(SAVE_EXPRESSION_STRING, '$oldMetaId', '$newMetaId') WHERE SAVE_EXPRESSION_STRING LIKE '%$oldMetaId%'");
+                $this->db->Execute("UPDATE KPI_TEMPLATE SET VAR_FNC_EXPRESSION_STRING = REPLACE(VAR_FNC_EXPRESSION_STRING, '$oldMetaId', '$newMetaId') WHERE VAR_FNC_EXPRESSION_STRING LIKE '%$oldMetaId%'");
+                
+                $this->db->Execute("UPDATE KPI_TEMPLATE SET EVENT_EXPRESSION_STRING = REPLACE(EVENT_EXPRESSION_STRING, '''$oldMetaCode''', '''$newMetaCode''') WHERE EVENT_EXPRESSION_STRING LIKE '%''$oldMetaCode''%'");
+                $this->db->Execute("UPDATE KPI_TEMPLATE SET SAVE_EXPRESSION_STRING = REPLACE(SAVE_EXPRESSION_STRING, '''$oldMetaCode''', '''$newMetaCode''') WHERE SAVE_EXPRESSION_STRING LIKE '%''$oldMetaCode''%'");
+                $this->db->Execute("UPDATE KPI_TEMPLATE SET VAR_FNC_EXPRESSION_STRING = REPLACE(VAR_FNC_EXPRESSION_STRING, '''$oldMetaCode''', '''$newMetaCode''') WHERE VAR_FNC_EXPRESSION_STRING LIKE '%''$oldMetaCode''%'");
+                
+                $this->db->Execute("UPDATE KPI_INDICATOR SET EVENT_EXPRESSION_STRING = REPLACE(EVENT_EXPRESSION_STRING, '$oldMetaId', '$newMetaId') WHERE EVENT_EXPRESSION_STRING LIKE '%$oldMetaId%'");
+                $this->db->Execute("UPDATE KPI_INDICATOR SET LOAD_EXPRESSION_STRING = REPLACE(LOAD_EXPRESSION_STRING, '$oldMetaId', '$newMetaId') WHERE LOAD_EXPRESSION_STRING LIKE '%$oldMetaId%'");
+                $this->db->Execute("UPDATE KPI_INDICATOR SET VAR_FNC_EXPRESSION_STRING = REPLACE(VAR_FNC_EXPRESSION_STRING, '$oldMetaId', '$newMetaId') WHERE VAR_FNC_EXPRESSION_STRING LIKE '%$oldMetaId%'");
+                $this->db->Execute("UPDATE KPI_INDICATOR SET SAVE_EXPRESSION_STRING = REPLACE(SAVE_EXPRESSION_STRING, '$oldMetaId', '$newMetaId') WHERE SAVE_EXPRESSION_STRING LIKE '%$oldMetaId%'");
+                $this->db->Execute("UPDATE KPI_INDICATOR SET AFTER_SAVE_EXPRESSION_STRING = REPLACE(AFTER_SAVE_EXPRESSION_STRING, '$oldMetaId', '$newMetaId') WHERE AFTER_SAVE_EXPRESSION_STRING LIKE '%$oldMetaId%'");
+                
+                $this->db->Execute("UPDATE KPI_INDICATOR SET EVENT_EXPRESSION_STRING = REPLACE(EVENT_EXPRESSION_STRING, '''$oldMetaCode''', '''$newMetaCode''') WHERE EVENT_EXPRESSION_STRING LIKE '%''$oldMetaCode''%'");
+                $this->db->Execute("UPDATE KPI_INDICATOR SET LOAD_EXPRESSION_STRING = REPLACE(LOAD_EXPRESSION_STRING, '''$oldMetaCode''', '''$newMetaCode''') WHERE LOAD_EXPRESSION_STRING LIKE '%''$oldMetaCode''%'");
+                $this->db->Execute("UPDATE KPI_INDICATOR SET VAR_FNC_EXPRESSION_STRING = REPLACE(VAR_FNC_EXPRESSION_STRING, '''$oldMetaCode''', '''$newMetaCode''') WHERE VAR_FNC_EXPRESSION_STRING LIKE '%''$oldMetaCode''%'");
+                $this->db->Execute("UPDATE KPI_INDICATOR SET SAVE_EXPRESSION_STRING = REPLACE(SAVE_EXPRESSION_STRING, '''$oldMetaCode''', '''$newMetaCode''') WHERE SAVE_EXPRESSION_STRING LIKE '%''$oldMetaCode''%'");
+                $this->db->Execute("UPDATE KPI_INDICATOR SET AFTER_SAVE_EXPRESSION_STRING = REPLACE(AFTER_SAVE_EXPRESSION_STRING, '''$oldMetaCode''', '''$newMetaCode''') WHERE AFTER_SAVE_EXPRESSION_STRING LIKE '%''$oldMetaCode''%'");
+                
+                $this->db->Execute("UPDATE UM_META_BLOCK SET ACTION_META_DATA_ID = $idPh1 WHERE ACTION_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE UM_META_LOCK SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE UM_CRITERIA SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE UM_OBJECT SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                
+                $this->db->Execute("UPDATE CONFIG_VALUE SET CONFIG_VALUE = $idPh1 WHERE CONFIG_VALUE = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE CONFIG_VALUE SET CONFIG_VALUE = $idPh1 WHERE LOWER(CONFIG_VALUE) = $idPh2", array($newMetaCode, Str::lower($oldMetaCode)));
+            }
+            
+            $this->db->Execute("UPDATE META_META_MAP SET TRG_META_DATA_ID = $idPh1 WHERE TRG_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+            $this->db->Execute("UPDATE META_PROXY_MAP SET TRG_META_DATA_ID = $idPh1 WHERE TRG_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+            
+            $this->db->Execute("UPDATE KPI_INDICATOR_INDICATOR_MAP SET LOOKUP_META_DATA_ID = $idPh1 WHERE LOOKUP_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+            
+            $this->db->Execute("UPDATE UM_QUICK_MENU SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+            $this->db->Execute("UPDATE UM_META_PERMISSION SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+            $this->db->Execute("UPDATE UM_META_PERMISSION_CACHE SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+            $this->db->Execute("UPDATE UM_META_PERMISSION_CACHE SET PARENT_META_DATA_ID = $idPh1 WHERE PARENT_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+            
+            $result = array('status' => 'success');
+            
+        } catch (Exception $ex) {
+            $result = array('status' => 'error', 'message' => $ex->getMessage());
+        }
+        
+        return $result;
+    }
+    
+    public function metaReplaceModel() {
+        
+        try {
+            
+            if (!Mdmeta::isAccessMetaImport()) {
+                throw new Exception('Энэ үйлдэл боломжгүй байна!');
+            }
+
+            set_time_limit(0);
+            ini_set('memory_limit', '-1');
+
+            $oldMetaDataId = Input::numeric('oldMetaDataId');
+            $replaceMetaId = Input::numeric('replaceMetaId');
+
+            $this->load->model('mdmetadata', 'middleware/models/');
+            
+            $oldMetaRow = $this->model->getMetaDataModel($oldMetaDataId);
+            $newMetaRow = $this->model->getMetaDataModel($replaceMetaId);
+            
+            $this->load->model('mdupgrade', 'middleware/models/');
+            
+            $oldGroupLink = self::getMetaColumnDatas($oldMetaDataId);
+            $newGroupLink = self::getMetaColumnDatas($replaceMetaId);
+            
+            $oldMetaGroupLinkId = $oldGroupLink['META_GROUP_LINK_ID'];
+            $newMetaGroupLinkId = $newGroupLink['META_GROUP_LINK_ID'];
+            
+            $newMetaType = $newMetaRow['META_TYPE_ID'];
+            $newMetaCode = $newMetaRow['META_DATA_CODE'];
+            $oldMetaCode = $oldMetaRow['META_DATA_CODE'];
+            
+            $this->db->BeginTrans(); 
+
+            $replaceResult = self::oldMetaNewMetaReplace(array(
+                'metaTypeId'  => $newMetaType, 
+                'oldMetaId'   => $oldMetaDataId, 
+                'newMetaId'   => $replaceMetaId, 
+                'oldMetaCode' => $oldMetaCode, 
+                'newMetaCode' => $newMetaCode, 
+                'oldMetaGroupLinkId' => $oldMetaGroupLinkId, 
+                'newMetaGroupLinkId' => $newMetaGroupLinkId
+            ));
+
+            if ($replaceResult['status'] != 'success') {
+                throw new Exception($replaceResult['message']);
+            }
+
+            $logData = array(
+                'ID'               => getUID(),
+                'META_DATA_ID'     => $oldMetaDataId, 
+                'NEW_META_DATA_ID' => $replaceMetaId,
+                'CREATED_USER_ID'  => Ue::sessionUserId(),
+                'CREATED_DATE'     => Date::currentDate(),
+                'IS_IMPORT'        => 3
+            );
+            $this->db->AutoExecute('CUSTOMER_META_COPY_LOG', $logData);
+            
+            $this->db->CommitTrans();
+
+            if ($newMetaType == Mdmetadata::$businessProcessMetaTypeId) {
+
+                (new Mdmeta())->bpParamsClearCache($oldMetaDataId, $oldMetaCode, true);
+
+            } elseif ($newMetaType == Mdmetadata::$metaGroupMetaTypeId) {
+
+                (new Mdmeta())->dvCacheClearByMetaId($oldMetaDataId, true);
+            }
+            
+            $response = array('status' => 'success', 'message' => 'Амжилттай!');
+        
+        } catch (Exception $ex) {
+            
+            $this->db->RollbackTrans();
+            $response = array('status' => 'error', 'message' => $ex->getMessage());
         }
         
         return $response;
@@ -6976,6 +7637,53 @@ class Mdupgrade_Model extends Model {
             
         } else {
             return array('status' => 'error', 'message' => 'Татах өгөгдөл олдсонгүй!');
+        }
+    }
+    
+    public function checkCreatedAlreadyModel($metaTypeId, $metaDataId) {
+        try {
+            
+            if ($metaTypeId == '222222222222' || $metaTypeId == 'bugfix') {
+                return false;
+            }
+            
+            $idPh = $this->db->Param(0);
+            
+            if (is_numeric($metaTypeId)) {
+                
+                $checkData = $this->db->GetOne("SELECT META_DATA_ID FROM META_DATA WHERE META_DATA_ID = $idPh", [$metaDataId]);
+                
+                if ($checkData) {
+                    return true;
+                }
+                
+            } else {
+                
+                $objectTableRelation = self::objectTableRelation();
+                
+                if (isset($objectTableRelation[$metaTypeId])) {
+                    
+                    $relations = $objectTableRelation[$metaTypeId];
+                    $tblName = array_key_first($relations);
+                    
+                    if (isset($relations[$tblName][0]['link'][0]['src'])) {
+                        $primaryField = $relations[$tblName][0]['link'][0]['src'];
+                    } else {
+                        $primaryField = self::tablePrimaryField($tblName);
+                    }
+                    
+                    $checkData = $this->db->GetOne("SELECT $primaryField FROM $tblName WHERE $primaryField = $idPh", [$metaDataId]);
+                
+                    if ($checkData) {
+                        return true;
+                    }
+                }
+            }
+            
+            return false;
+            
+        } catch (Exception $ex) {
+            return true;
         }
     }
     

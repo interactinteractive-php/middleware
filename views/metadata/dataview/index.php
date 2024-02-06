@@ -245,7 +245,7 @@ function dataViewer_<?php echo $this->metaDataId; ?>(elem, viewType, metaDataId,
         callerType: 'changeViewer'
     };
 
-    if ($elem.length && ($elem.hasClass('btn') || $elem.hasClass('dropdown-item'))) {
+    if ($elem.length && ($elem.hasClass('btn') || $elem.hasClass('fc-button') || $elem.hasClass('dropdown-item'))) {
         postData.isSaveViewer = 1;
         
         var $package = $elem.closest('.dvecommerce-package');

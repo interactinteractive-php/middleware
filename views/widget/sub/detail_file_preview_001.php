@@ -90,6 +90,7 @@
             <?php
             $row = $this->row;
             
+            $isDownload = !Config::getFromCache('PF_IGNORE_FILE_DOWNLOAD');
             $isIframe = false;
                 
             if (defined('CONFIG_FILE_VIEWER_ADDRESS') && CONFIG_FILE_VIEWER_ADDRESS) {
@@ -99,6 +100,7 @@
             foreach ($this->fillParamData as $rk => $rowData) {
                 
                 $position = array();
+                $isIgnoreDownload = issetParam($rowData['isignoredownload']);
                 
                 foreach ($row['data'] as $ind => $val) {
                     if ($val['THEME_POSITION_NO']) {
@@ -111,7 +113,7 @@
                 $path = issetParam($position[3]);
                 $name = issetParam($position[4]);
             ?>
-                <div class="mfm-thumbnail" data-id="<?php echo $contentId; ?>" data-path="<?php echo $path; ?>" data-extention="<?php echo $extention; ?>">
+                <div class="mfm-thumbnail<?php echo $isIgnoreDownload ? ' not-dwnld' : ''; ?>" data-id="<?php echo $contentId; ?>" data-path="<?php echo $path; ?>" data-extention="<?php echo $extention; ?>">
                     <div class="mfm-thumbnail-name"><?php echo $name; ?></div>
                     
                     <?php
@@ -215,11 +217,11 @@ $(function() {
                 
             } else if (fileExt == 'mp4' || fileExt == 'webm' || fileExt == 'avi') {
                 
-                $viewer.append('<video controls><source src="'+filePath+'" type="video/'+fileExt+'">Your browser does not support HTML5 video.</video>');
+                $viewer.append('<video controls data-id="'+contentId+'"><source src="'+filePath+'" type="video/'+fileExt+'">Your browser does not support HTML5 video.</video>');
                 
             } else if (fileExt == 'mp3' || fileExt == 'wav' || fileExt == 'ogg') {
                 
-                $viewer.append('<audio controls><source src="'+filePath+'" type="audio/'+fileExt+'">Your browser does not support the audio element.</audio>');
+                $viewer.append('<audio controls data-id="'+contentId+'"><source src="'+filePath+'" type="audio/'+fileExt+'">Your browser does not support the audio element.</audio>');
                 
             }
             <?php
@@ -348,7 +350,7 @@ $(function() {
     });
     
     $.contextMenu({
-        selector: '#multi-file-viewer-<?php echo $this->uniqId; ?> .mfm-thumbnail',
+        selector: '#multi-file-viewer-<?php echo $this->uniqId; ?> .mfm-thumbnail:not(.not-dwnld)',
         trigger: 'right',
         callback: function (key, opt) {
             if (key === 'download') {

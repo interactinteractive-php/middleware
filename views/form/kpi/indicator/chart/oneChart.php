@@ -60,10 +60,9 @@
             <div class="card p-3 kl-sectioncode1-card kpidv-data-filter-col">
             </div>
         </div>
-        
         <div class="col">
             <div class="row">
-                <div class="col-md-12 col-form bl-section" data-kl-col="1" data-kpis-indicatorid="<?php echo $this->indicatorId; ?>" data-src-indicatorid="<?php echo $this->row['SRC_INDICATOR_ID']; ?>">
+                <div class="col col-form bl-section" data-kl-col="1" data-kpis-indicatorid="<?php echo $this->indicatorId; ?>" data-src-indicatorid="<?php echo $this->row['SRC_INDICATOR_ID']; ?>">
                     <div class="card p-3 h-100 kl-sectioncode1-card">
 
                         <div class="card-header">
@@ -108,22 +107,38 @@ var kpiChartRefreshTimer = 60 * 1000;
 if (dynamicHeight_<?php echo $this->uniqId; ?> < 230) {
     dynamicHeight_<?php echo $this->uniqId; ?> = 350;
 }
-
-if (typeof isKpiIndicatorScript === 'undefined') {
-    $.cachedScript('<?php echo autoVersion('middleware/assets/js/addon/indicator.js'); ?>').done(function() {      
+if (typeof isKpiIndicatorEchartsScript === 'undefined') {
+    $.cachedScript('<?php echo autoVersion('middleware/assets/js/addon/echartsBuilder.js'); ?>').done(function() {      
+        if (typeof isKpiIndicatorScript === 'undefined') {
+            $.cachedScript('<?php echo autoVersion('middleware/assets/js/addon/indicator.js'); ?>').done(function() {
+                kpiChartLoad_<?php echo $this->uniqId; ?>();
+            setInterval(function() {
+                kpiChartLoad_<?php echo $this->uniqId; ?>();
+            }, kpiChartRefreshTimer);
+            });
+        } else {
+            kpiChartLoad_<?php echo $this->uniqId; ?>();
+            setInterval(function() {
+                kpiChartLoad_<?php echo $this->uniqId; ?>();
+            }, kpiChartRefreshTimer);
+        }
+    });
+} else {
+    if (typeof isKpiIndicatorScript === 'undefined') {
+        $.cachedScript('<?php echo autoVersion('middleware/assets/js/addon/indicator.js'); ?>').done(function() {
+            kpiChartLoad_<?php echo $this->uniqId; ?>();
+            setInterval(function() {
+                kpiChartLoad_<?php echo $this->uniqId; ?>();
+            }, kpiChartRefreshTimer);
+        });
+    } else {
         kpiChartLoad_<?php echo $this->uniqId; ?>();
-        
         setInterval(function() {
             kpiChartLoad_<?php echo $this->uniqId; ?>();
         }, kpiChartRefreshTimer);
-    });
-} else {
-    kpiChartLoad_<?php echo $this->uniqId; ?>();
-    
-    setInterval(function() {
-        kpiChartLoad_<?php echo $this->uniqId; ?>();
-    }, kpiChartRefreshTimer);
-}    
+    }
+}
+
 
 function kpiChartLoad_<?php echo $this->uniqId; ?>(elem) {
 
@@ -173,14 +188,27 @@ function kpiChartLoad_<?php echo $this->uniqId; ?>(elem) {
                     data: postData,
                     dataType: 'json',
                     success: function(data) {
+                        console.log(chartConfig);
                         if (data.status == 'success') {
-                            kpiDataMartChartRender({
-                                isRunInterval: true, 
-                                elemId: chartId, 
-                                chartConfig: chartConfig, 
-                                data: data.data, 
-                                columnsConfig: data.columnsConfig
-                            });
+                            if (typeof chartConfig.mainType !== 'undefined' && chartConfig.mainType === 'echart') {
+                                var kpiChartObj = {
+                                    elemId: chartId, 
+                                    chartConfig: chartConfig, 
+                                    data: data.data, 
+                                    dataXaxis: data.dataXaxis, 
+                                    columnsConfig: data.columnsConfig,
+                                    useData: '3',
+                                }
+                                EchartBuilder.chartRender(kpiChartObj);
+                            }  else {
+                                kpiDataMartChartRender({
+                                    isRunInterval: true, 
+                                    elemId: chartId, 
+                                    chartConfig: chartConfig, 
+                                    data: data.data, 
+                                    columnsConfig: data.columnsConfig
+                                });
+                            }
                         } else {
                             console.log(data);
                         }
@@ -232,8 +260,8 @@ function filterKpiIndicatorValueChartList(uniqId, indicatorId) {
 }
 function filterKpiIndicatorValueChartListLoad(elem) {
     var $this = $(elem), 
-        $parent = $this.closest('.list-group'), 
-        uniqId = $parent.attr('data-uniqid');
+        $parentFilter = $this.closest('.list-group'), 
+        uniqId = $parentFilter.attr('data-uniqid');
     
     if ($this.hasClass('active')) {
         $this.removeClass('active');
@@ -242,6 +270,12 @@ function filterKpiIndicatorValueChartListLoad(elem) {
         $this.addClass('active');
         $this.find('i').removeClass('far fa-square').addClass('fas fa-check-square');
     }
+    
+    var getFilterData = getKpiIndicatorFilterData(elem, $parentFilter);
+    var indicatorId = getFilterData.indicatorId;
+    var filterData = getFilterData.filterData;
+    
+    mvFilterRelationLoadData(elem, indicatorId, filterData);
     
     window['kpiChartLoad_' + uniqId](elem);
 }

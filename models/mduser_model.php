@@ -1095,6 +1095,14 @@ class Mduser_Model extends Model {
         if (isset($resultClient['result']['sessionvalues']) && $resultClient['result']['sessionvalues']) {
             Session::set(SESSION_PREFIX.'sessionValues', $resultClient['result']['sessionvalues']);
         }
+        
+        $this->load->model('login');
+        $response = $this->model->getUserKeyRow($decryptedUserKeyId, Ue::sessionUserId());
+        $defaultModuleId = ($response['DEFAULT_MENU_ID']) ? $response['DEFAULT_MENU_ID'] : $response['MODULE_MENU_ID'];
+        
+        Session::set(SESSION_PREFIX . 'isUseFolderPermission', $response['IS_USE_FOLDER_PERMISSION']);
+        Session::set(SESSION_PREFIX . 'defaultModuleId', $defaultModuleId);
+        Session::set(SESSION_PREFIX . 'isTranslateUser', $response['IS_TRANSLATE_USER']);
 
         Ue::loginCacheClear();
         Ue::startFiscalPeriod();

@@ -39,7 +39,7 @@ class Mdprocess extends Controller {
         echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
-    public function addBpUploadPhoto() {
+    public function addBpUploadPhoto($useOrigImage = '0', $returnType='json') {
         Auth::handleLogin();
         
         $result = array();
@@ -72,19 +72,32 @@ class Mdprocess extends Controller {
                         
                         $origImage = $photo_original.$photoName;
                         $thumbImage = $photo_thumb.$photoName;
-                        $thumbImageData = base64_encode(file_get_contents($thumbImage));
-                        $origImageData = base64_encode(file_get_contents($origImage));
                         $mimeType = getMimetypeByExtension($photoExtension);
-                        
-                        $result[] = array(
-                            'extension'       => $photoExtension, 
-                            'mimeType'        => $mimeType, 
-                            'thumbBase64Data' => $thumbImageData, 
-                            'origBase64Data'  => $origImageData
-                        );
-                        
-                        @unlink($thumbImage);
-                        @unlink($origImage);
+
+                        if ($useOrigImage) {
+                            
+                            $result[] = array(
+                                'extension'       => $photoExtension, 
+                                'mimeType'        => $mimeType, 
+                                'origImage'       => $origImage, 
+                                'fileName'        => $newPhotoName, 
+                                'thumbImage'      => $thumbImage
+                            );
+                            
+                        } else {
+                            $thumbImageData = base64_encode(file_get_contents($thumbImage));
+                            $origImageData = base64_encode(file_get_contents($origImage));
+                            
+                            $result[] = array(
+                                'extension'       => $photoExtension, 
+                                'mimeType'        => $mimeType, 
+                                'thumbBase64Data' => $thumbImageData, 
+                                'origBase64Data'  => $origImageData
+                            );
+                            
+                            @unlink($thumbImage);
+                            @unlink($origImage);
+                        }
                     }
                 }
             }
@@ -97,8 +110,42 @@ class Mdprocess extends Controller {
         } else {
             $response = array('status' => 'info', 'message' => '');
         }
+        if ($returnType === 'json') {
+            echo json_encode($response, JSON_UNESCAPED_UNICODE);
+        } else {
+            return $response;
+        }
+    }
+    
+    public function addBpUploadBannerPhoto() {
+        Auth::handleLogin();
         
-        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+        $result = self::addBpUploadPhoto('1', '');
+        $bannerProcessTypeId = Input::post('bannerProcessTypeId');
+        
+        if (issetParamArray($result['imageData'])) {
+            $currentDate = Date::currentDate();
+            foreach ($result['imageData'] as $key => $row) {
+                $data = array(
+                    'CONTENT_ID' => getUID(),
+                    'CONTENT_NAME' => $row['fileName'],
+                    'CONTENT_DATA' => $row['origImage'],
+                    'CONTENT_TYPE_ID' => $bannerProcessTypeId,
+                    'IS_ACTIVE' => '1',
+                    'CREATED_DATE' => $currentDate,
+                    'CONTENT_TYPE' => 'photo',
+                );
+                
+                $this->db->AutoExecute('META_PROCESS_CONTENT', $data);
+            }
+        }
+
+        convJson($result);
+    }
+
+    public function deleteProcessBanner() {
+        $this->db->AutoExecute('META_PROCESS_CONTENT', array('IS_ACTIVE' => '1'), 'UPDATE', "CONTENT_ID = " . Input::post('id'));
+        $response = array('status' => 'success', 'message' => Lang::line('msg_delete_success'));
     }
     
     public function addBpTmpUploadPhoto() {

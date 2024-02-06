@@ -134,11 +134,16 @@ $(function () {
                                     metaTypeId = treeData[key]['metatypeid'];
                                 }
 
-                                subMenu += '<li class="nav-item'+subMenuClass+'"><a href="javascript:void(0);" data-id="' + treeData[key][idField_<?php echo $this->uniqId; ?>] + '" data-listmetadataid="' + treeData[key]['metadataid'] + '" data-listmetadatacriteria="'+listMetaDataCriteria+'" data-metatypeid="'+metaTypeId+'" data-rowdata="'+htmlentities(JSON.stringify(treeData[key]), 'ENT_QUOTES', 'UTF-8')+'" class="nav-link v2">' + icon + treeData[key][nameField_<?php echo $this->uniqId; ?>] + '</a></li>';
+                                subMenu += '<li class="nav-item'+subMenuClass+'"><a href="javascript:void(0);" data-id="' + treeData[key][idField_<?php echo $this->uniqId; ?>] + '" data-listmetadataid="' + treeData[key]['metadataid'] + '" data-listmetadatacriteria="'+listMetaDataCriteria+'" data-metatypeid="'+metaTypeId+'" data-rowdata="'+htmlentities(JSON.stringify(treeData[key]), 'ENT_QUOTES', 'UTF-8')+'" class="nav-link v2">' + icon + treeData[key][nameField_<?php echo $this->uniqId; ?>];
+                                if (treeData[key].hasOwnProperty('iscountmeta') && treeData[key]['iscountmeta']) {
+                                    subMenu += '<span class="badge badge-success ml-auto left-menu-count-meta position-relative mr-3" data-id="' + treeData[key][idField_<?php echo $this->uniqId; ?>] + '" data-listmetadatacriteria="'+listMetaDataCriteria+'" data-counmetadataid="' + treeData[key]['metadataid'] + '"><i class="fa fa-spinner fa-spin mr-0" style="font-size: 8px !important"></i></span>';
+                                }
+                                subMenu += '</a></li>';
                             }
 
                             $parent.append('<ul class="nav nav-group-sub" style="display: block;">'+subMenu+'</ul>');
                             $parent.addClass('nav-item-open');
+                            getLeftMenuCount(false, $parent.find('ul'));
                         }
                         
                         $this.removeClass('click-disabled');

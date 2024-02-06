@@ -1,3 +1,10 @@
+<?php
+if (Mdform::$addRowsTemplate) {
+    $addRowsTemplate = implode('', Mdform::$addRowsTemplate);
+    $addRowsTemplate = str_replace('type="text/template"', 'type="text/template" data-uniqid="'.$this->subUniqId.'"', $addRowsTemplate);
+    echo $addRowsTemplate;
+}
+?>
 <script type="text/javascript">
 var $kpiTmp_<?php echo $this->subUniqId; ?> = $('div[data-addonform-uniqid="<?php echo $this->subUniqId; ?>"]');
 var bp_window_<?php echo $this->subUniqId; ?> = $kpiTmp_<?php echo $this->subUniqId; ?>;

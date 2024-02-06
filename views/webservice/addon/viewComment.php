@@ -7,16 +7,19 @@
         width: 0;
         margin-left: .4rem;
     }
+/*    .emojiChooser {
+        bottom: 252px !important;
+    }*/
 </style>
 <script type="text/javascript">
-    mdCommentMetaProcessLoad_<?php echo $this->uniqId; ?>('<?php echo $this->processId; ?>', '<?php echo $this->metaDataId; ?>', '<?php echo $this->metaValueId; ?>');
+    mdCommentMetaProcessLoad_<?php echo $this->uniqId; ?>('<?php echo $this->processId; ?>', '<?php echo $this->metaDataId; ?>', '<?php echo $this->metaValueId; ?>', '<?php echo $this->listMetaDataId; ?>');
     
     function saveMdCommentProcessValue_<?php echo $this->uniqId; ?>(elem, textPhoto) {
         
         var $this = $(elem), text = '';
         
         if (typeof textPhoto === 'undefined') {
-            text = $.trim($this.val());
+            text = encodeEmojis($.trim($this.val()));
             textPhoto = '';
             if (text.length === 0) {
                 return;
@@ -27,6 +30,7 @@
             $commentRow = $this.closest('[data-comment-id]'), 
             $commentStructure = $this.closest('[data-commentstructureid]'), 
             $processForm = $this.closest('form'),
+            $listMetaDataId = $thisParent.find("input[name=listMetaDataId]"), 
             commentData = {
                 commentText: text,
                 commentBase64File: textPhoto,
@@ -45,6 +49,10 @@
             commentData['commentStructureId'] = $commentStructure.attr('data-commentstructureid');
         }
         
+        if ($listMetaDataId.length && $listMetaDataId.val() != '') {
+            commentData['listMetaDataId'] = $listMetaDataId.val();
+        }
+        
         var mmid = Core.getURLParameter('mmid');
 
         if (mmid) {
@@ -59,12 +67,16 @@
             type: 'post',
             url: 'mdcomment/saveCommentProcess',
             data: commentData,
+            beforeSend: function() {
+                Core.blockUI({message: 'Loading...', boxed: true});
+            },            
             dataType: 'json',
             success:function(data) {
                 if (data.status === 'success') {
                     $this.val('');
-                    $.when(mdCommentMetaProcessLoad_<?php echo $this->uniqId; ?>('<?php echo $this->processId; ?>', $thisParent.find("input[name=metaDataId]").val(), $thisParent.find("input[name=metaValueId]").val())).then(function(){
+                    $.when(mdCommentMetaProcessLoad_<?php echo $this->uniqId; ?>('<?php echo $this->processId; ?>', $thisParent.find("input[name=metaDataId]").val(), $thisParent.find("input[name=metaValueId]").val(), $thisParent.find("input[name=listMetaDataId]").val())).then(function(){
                         $('#mdCommentMetaValue_<?php echo $this->uniqId; ?>').animate({"scrollTop": $('#mdCommentMetaValue_<?php echo $this->uniqId; ?>')[0].scrollHeight}, "slow");
+                        Core.unblockUI();
                     });
                 }
             },
@@ -77,16 +89,16 @@
         saveMdCommentProcessValue_<?php echo $this->uniqId; ?>($this);
     }
     
-    function mdCommentMetaProcessLoad_<?php echo $this->uniqId; ?>(processId, metaDataId, metaValueId){
+    function mdCommentMetaProcessLoad_<?php echo $this->uniqId; ?>(processId, metaDataId, metaValueId, listMetaDataId){
         var $commentContainer = $('#mdCommentMetaValue_<?php echo $this->uniqId; ?>');
         $.ajax({
             type: 'post',
             url: 'mdcomment/loadMetaProcess',
-            data: {uniqId: '<?php echo $this->uniqId; ?>', processId: processId, metaDataId: metaDataId, metaValueId: metaValueId},
+            data: {uniqId: '<?php echo $this->uniqId; ?>', processId: processId, metaDataId: metaDataId, metaValueId: metaValueId, listMetaDataId: listMetaDataId},
             dataType: "json",
-            beforeSend: function() {
-                $commentContainer.text('Loading...')
-            },
+            /*beforeSend: function() {
+                $commentContainer.text('Loading...');
+            },*/
             success: function(data) {
                 $commentContainer.empty().append(data.html).promise().done(function() {
                     bpCommentMentionsInputInit($commentContainer);  
@@ -107,6 +119,56 @@
             },
             error: function() { alert('Error'); }
         });
+    }
+    
+    function emojiPickerMode_<?php echo $this->uniqId; ?>(input) {
+        
+        var $this = $(input), $parent = $this.closest('.chat-addcontrol'), $textarea = $parent.find('textarea');
+        var parentOffset = $(input).offset(); 
+        var relY = parentOffset.top;                        
+        var wTop = $(window).scrollTop() - 30;
+        
+        if ($().emojiChooser) {
+            
+            if ($parent.hasAttr('data-emoji')) {
+                $textarea.emojiChooser('toggle');
+            } else {
+                $textarea.emojiChooser({
+                    mode: 'chat', 
+                    width: '250px',
+                    height: '270px', 
+                    recentCount: 10, 
+                    button: false, 
+                    footer: false
+                });
+                $textarea.emojiChooser('toggle');
+                $parent.attr('data-emoji', '1');
+                
+                setTimeout(function () {
+                  $('.emojiChooser').css('top', relY - wTop+'px');
+                }, 50);                
+            }
+            
+        } else {
+            
+            $('head').append('<link rel="stylesheet" type="text/css" href="assets/custom/addon/plugins/emoji-picker/css/jquery.emojichooser.css?v=4"/>');
+            
+            $.cachedScript('assets/custom/addon/plugins/emoji-picker/js/jquery.emojichooser.js').done(function(script, textStatus) {
+                $textarea.emojiChooser({
+                    mode: 'chat', 
+                    width: '250px',
+                    height: '270px', 
+                    recentCount: 10, 
+                    button: false, 
+                    footer: false
+                });
+                $textarea.emojiChooser('toggle');
+                $parent.attr('data-emoji', '1');
+                setTimeout(function () {
+                  $('.emojiChooser').css('top', relY - wTop+'px');
+                }, 50);                                
+            });
+        }
     }
     
     function onChangeAttachFIleAddMode_<?php echo $this->uniqId; ?>(input) {

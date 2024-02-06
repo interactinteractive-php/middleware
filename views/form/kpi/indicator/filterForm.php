@@ -1,5 +1,5 @@
 <?php
-if ($this->filterData) {
+if ($this->filterData || $this->filterTreeData) {
     
     if (isset($this->isDashboard) && $this->isDashboard == 1) {
         $clickFnc = 'filterKpiIndicatorToggleValue';
@@ -24,7 +24,8 @@ if ($this->filterData) {
     $html[] = '<div class="text-uppercase font-weight-bold mt-0 mb-2 kpi-indicator-filter-title"><i class="far fa-search"></i> '.$this->lang->line('filter').'</div>';
         $html[] = '<div class="list-group" data-uniqid="'.$this->uniqId.'" data-indicatorid="'.$this->indicatorId.'">';
         
-    foreach ($this->filterData as $columnName => $filter) {
+        if ($this->filterData) {
+            foreach ($this->filterData as $columnName => $filter) {
         
         $rowConfig = $filter['config'];
         $labelName = Lang::line($rowConfig['labelName']);
@@ -37,8 +38,8 @@ if ($this->filterData) {
             $html[] = '<div data-filter-type="checkbox" data-filter-column="'.$columnName.'">';
             
             $html[] = '
-                <a href="javascript:;" class="list-group-item font-weight-bold font-size-14 line-height-normal justify-content-between kpi-indicator-filter-collapse-btn" style="color: #000">
-                    '.$labelName.' <i class="far fa-plus-square ml-1"></i>
+                <a href="javascript:;" class="list-group-item font-weight-bold font-size-13 line-height-normal justify-content-between kpi-indicator-filter-collapse-btn" style="color: #333">
+                    '.$labelName.' <i class="icon-arrow-right13 ml-1"></i>
                 </a>';
             
             $html[] = '<div class="list-group-body d-none">';
@@ -69,7 +70,7 @@ if ($this->filterData) {
                     }
                     
                     $html[] = '<a href="javascript:;" class="list-group-item list-group-item-action line-height-normal'.$activeClass.'" onclick="'.$clickFnc.'(this);" data-colname="'.$columnName.'">
-                        <i class="'.$iconClass.' font-size-16 mr7"></i><span data-value-mode="'.$valueMode.'">'.$valueName.'</span>'.$recordCount.'
+                        <i class="'.$iconClass.' font-size-16 mr7" style="color:#1B84FF"></i><span data-value-mode="'.$valueMode.'">'.$valueName.'</span>'.$recordCount.'
                     </a>';
                 }
                 
@@ -82,8 +83,8 @@ if ($this->filterData) {
             $html[] = '<div data-filter-type="input" data-filter-column="'.$columnName.'">';
             
             $html[] = '
-                <a href="javascript:;" class="list-group-item font-weight-bold font-size-14 line-height-normal justify-content-between kpi-indicator-filter-collapse-btn" style="color: #000">
-                    '.$labelName.' <i class="far fa-minus-square ml-1"></i>
+                <a href="javascript:;" class="list-group-item font-weight-bold font-size-13 line-height-normal justify-content-between kpi-indicator-filter-collapse-btn opened" style="color: #333">
+                    '.$labelName.' <i class="icon-arrow-right13 ml-1"></i>
                 </a>';
             
             $html[] = '<div class="list-group-body">';
@@ -204,7 +205,34 @@ if ($this->filterData) {
         
         $html[] = '</div>';
     }
-    
+        }
+        
+        if (isset($this->filterTreeData) && $this->filterTreeData) {
+            $openClassName = ' mv-indicator-filter-tree-open-btn';
+
+            foreach ($this->filterTreeData as $columnName => $filter) {    
+                $rowConfig = $filter['config'];
+                $labelName = Lang::line($rowConfig['labelName']);
+                $defaultValue = issetParam($rowConfig['defaultValue']);        
+                $showType = $rowConfig['showType'];
+
+                $html[] = '<div data-filter-type="input" data-filter-column="'.$columnName.'">';
+
+                $html[] = '
+                    <a href="javascript:;" class="list-group-item font-weight-bold font-size-13 line-height-normal justify-content-between kpi-indicator-filter-collapse-btn'.$openClassName.'" style="color: #333">
+                        '.$labelName.' <i class="ml-1 icon-arrow-right13"></i>
+                    </a>';
+
+                $html[] = '<div class="list-group-body d-none mv-tree-filter-container">';        
+                $html[] = '<div class="" onclick="'.$clickFnc.'(this);" data-colname="'.$columnName.'"><span data-value-mode></span></div>';        
+                $html[] = '<div><input type="text" class="form-control w-100 mb-2 mv-tree-filter-name-search" placeholder="Хайх..."></div>';
+                $html[] = '<div id="indicatorTreeView_'.$rowConfig['filterIndicatorId'].'" data-indicatorid="'.$rowConfig['filterIndicatorId'].'" class="tree-demo mt-1"></div>';
+                $html[] = '</div>';
+                $html[] = '</div>';    
+                $openClassName = '';
+            }        
+        }        
+        
     $html[] = '</div>';
     
     echo implode('', $html);

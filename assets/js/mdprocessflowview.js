@@ -1013,7 +1013,7 @@ function autoRunTaskFlowRenderBp(elem) {
         },
         error: function () {
           alert("Error");
-        },
+        }
     });
     
     if (_taskFlowSelectedRow) {
@@ -1033,7 +1033,8 @@ function autoRunTaskFlowRenderBp(elem) {
         workSpaceId: workSpaceId,
         workSpaceParams: workSpaceParams,
         taskFlowCode: $('input[name="mainBpId_displayField"]').val(),
-        isTaskFlowView: 1
+        isTaskFlowView: 1,
+        isTaskFlowAutoRun: 1
       },
       dataType: "json",
       beforeSend: function () {
@@ -1053,6 +1054,19 @@ function autoRunTaskFlowRenderBp(elem) {
                 }
             } catch (e) { }
             Core.unblockUI();   
+            return;
+        } else {
+            try {
+                if ($('#dialog-businessprocess-'+baseBpId).length) {
+                    $('#dialog-businessprocess-'+baseBpId).dialog("close");
+                }
+            } catch (e) { }            
+            new PNotify({
+                title: 'Success',
+                text: plang.get('msg_save_success'),
+                type: 'success',
+                sticker: false
+            });                                      
             return;
         }
         $dialog.empty().append(data.Html);

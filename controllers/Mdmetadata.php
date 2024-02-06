@@ -457,7 +457,11 @@ class Mdmetadata extends Controller {
         $this->view->metaDataId = Input::numeric('metaDataId');
         
         if ($accessResponse = $this->model->isAccessMetaModel($this->view->metaDataId)) {
-            echo json_encode($accessResponse); exit;
+            echo json_encode($accessResponse, JSON_UNESCAPED_UNICODE); exit;
+        }
+        
+        if ($changeLogResponse = $this->model->isCheckChangeLogMetaModel($this->view->metaDataId)) {
+            echo json_encode($changeLogResponse, JSON_UNESCAPED_UNICODE); exit;
         }
         
         $this->view->folderId = Input::post('folderId');
@@ -826,6 +830,7 @@ class Mdmetadata extends Controller {
         $this->view->metaDataId = Input::numeric('metaDataId');
         $this->view->menuRow = $this->model->getMetaMenuLinkModel($this->view->metaDataId);
         $this->view->widgetData = $this->model->getDetailWidgetModel(4);
+        $this->view->menuColorData = $this->model->getMenuColorListModel();
         
         $this->view->render('system/link/menu/menuLinkEditMode', self::$viewPath);
     }
@@ -1190,9 +1195,9 @@ class Mdmetadata extends Controller {
         return $data;
     }
 
-    public function getMetaFieldPattern() {
+    public function getMetaFieldPattern($isDataMask = false) {
         $this->load->model('mdmetadata', 'middleware/models/');
-        $data = $this->model->getMetaFieldPatternModel();
+        $data = $this->model->getMetaFieldPatternModel($isDataMask);
         return $data;
     }
 
@@ -2303,7 +2308,11 @@ class Mdmetadata extends Controller {
         if ($this->view->metaDataId) {
             
             if ($accessResponse = $this->model->isAccessMetaModel($this->view->metaDataId)) {
-                echo json_encode($accessResponse); exit;
+                echo json_encode($accessResponse, JSON_UNESCAPED_UNICODE); exit;
+            }
+            
+            if ($changeLogResponse = $this->model->isCheckChangeLogMetaModel($this->view->metaDataId)) {
+                echo json_encode($changeLogResponse, JSON_UNESCAPED_UNICODE); exit;
             }
             
             $this->view->metaRow = $this->model->getMetaDataBySystem($this->view->metaDataId);
@@ -2507,6 +2516,10 @@ class Mdmetadata extends Controller {
 
         $this->view->metaDataId = Input::numeric('metaDataId');
         
+        /*if ($changeLogResponse = $this->model->isCheckChangeLogMetaModel($this->view->metaDataId)) {
+            echo json_encode($changeLogResponse, JSON_UNESCAPED_UNICODE); exit;
+        }*/
+        
         $this->view->depth = 0;
         $this->view->isNew = 0;
         $this->view->rowId = '';
@@ -2524,10 +2537,11 @@ class Mdmetadata extends Controller {
         $response = array(
             'Html' => $this->view->renderPrint('system/link/process/v2/setParamAttributesEditMode', self::$viewPath),
             'Title' => $this->lang->line('META_00046'),
+            'status' => 'success', 
             'save_btn' => $this->lang->line('save_btn'),
             'close_btn' => $this->lang->line('close_btn')
         );
-        echo json_encode($response); exit;
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
     public function setOutputParamAttributesEditModeNew() {
@@ -3031,6 +3045,7 @@ class Mdmetadata extends Controller {
         if ($this->view->isGroup == 'true') {
             $this->view->render('system/link/group/v2/inputAddonGroup', self::$viewPath);
         } else {
+            $this->view->dataMask = (new Mdmetadata())->getMetaFieldPattern(true);
             $this->view->render('system/link/group/v2/inputAddon', self::$viewPath);
         }
     }

@@ -51,7 +51,7 @@ function gridIntegerField(val) {
 }
 function gridPercentField(val) {
     if (val != '' && val != null && (val !== undefined || val !== 'undefined')) {
-        return val + '%';
+        return parseFloat(val) + '%';
     }
     return '';
 }

@@ -137,7 +137,7 @@ class Restapi_Model extends Model {
             
             $this->load->model('mdform', 'middleware/models/');
             
-            $runIndicators = array();
+            $runIndicators = [];
             
             foreach ($indicators as $indicator) {
                 
@@ -170,10 +170,10 @@ class Restapi_Model extends Model {
                             GROUP BY  
                                 PM.SRC_INDICATOR_PATH, 
                                 PM.TRG_META_DATA_PATH", 
-                            array($indicatorId, $bpId)
+                            [$indicatorId, $bpId]
                         );
                         
-                        $tmpParams = $bindParams = array();
+                        $tmpParams = $bindParams = [];
                         
                         foreach ($params as $row) {
                             $bpPath = $row['TRG_PATH'];
@@ -195,7 +195,7 @@ class Restapi_Model extends Model {
                         $logParam = array(
                             'indicatorId' => $indicatorId, 
                             'affectedRows' => null, 
-                            'executedQuery' => $queryString."\n\n".$jsonParam, 
+                            'executedQuery' => $queryString."\n\n".$jsonParam."\n\n".json_encode($bindParams), 
                             'errorMsg' => null
                         );
                         

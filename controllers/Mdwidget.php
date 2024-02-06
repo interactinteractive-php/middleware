@@ -6,6 +6,7 @@ class Mdwidget extends Controller {
     public static $_trackerStatus = array(0 => 'NotFound', 1 => 'Editing', 2 => 'MustSave', 3 => 'Corrupted', 4 => 'Closed');  
     public static $configs = array();
     public static $loadedSectionCss = array();
+    public static $subUniqId = '';
 
     public function __construct() {
         parent::__construct();
@@ -50,6 +51,10 @@ class Mdwidget extends Controller {
                 'topAddRow' => false, 
                 'topAddOneRow' => false
             ), 
+            'detail_cart_slider' => array(
+                'topAddRow' => false, 
+                'topAddOneRow' => false
+            ), 
             'detail_circle_file' => array(
                 'topAddRow' => false, 
                 'topAddOneRow' => false
@@ -83,6 +88,10 @@ class Mdwidget extends Controller {
                 'topAddOneRow' => false
             ),
             'detail_frame_paper_tree' => array(
+                'topAddRow' => false, 
+                'topAddOneRow' => false
+            ),
+            'detail_calendar_sidebar' => array(
                 'topAddRow' => false, 
                 'topAddOneRow' => false
             )            
@@ -120,6 +129,23 @@ class Mdwidget extends Controller {
         return null;
     }
     
+    public static function mvDataSetAvailableWidgets($widgetCode) {
+        
+        $availableWidgets = array(
+            '16176940056521' => array(
+                'topAddRow' => true, 
+                'topAddOneRow' => true,
+                'name' => 'fileView'
+            )            
+        );
+        
+        if (isset($availableWidgets[$widgetCode])) {
+            return $availableWidgets[$widgetCode];
+        }
+        
+        return null;
+    }    
+    
     public function run($args = array()) {
         
         $this->view->uniqId = getUID();
@@ -139,9 +165,8 @@ class Mdwidget extends Controller {
         $this->view->fillParamData = $args['fillParamData'];
         
         $widgetCode = $args['row']['widgetCode'];
-            
         return $this->view->renderPrint('sub/' . $widgetCode, self::$viewPath);
-    }
+    }   
     
     public function bpDetailAddRow($args = array()) {
         
@@ -4157,7 +4182,108 @@ class Mdwidget extends Controller {
         return array('html' => $pageHtml, 'css' => $pageCss);
 
     }
+    
+    public function mvWidgetRelationRender () {
+        
+        self::$subUniqId = $this->view->uniqId = getUID();
 
+        $postData = Input::postData();
+        $this->view->mainIndicatorId = Input::post('mainIndicatorId');
+        $this->view->crudIndicatorId = $this->view->methodIndicatorId = Input::post('methodIndicatorId');
+        $this->view->indicatorId = $this->view->structureIndicatorId = Input::post('structureIndicatorId');
+        $this->view->widgetCode = Input::post('widgetCode');
 
+        $strIndicatorId = Input::numeric('strIndicatorId');
+        $idField = checkDefaultVal($postData['idField'], 'IDFIELD');
+        $rowId = $postData['selectedRow'][$idField];
+
+        $mdf = &getInstance();
+        $mdf->load->model('mdform', 'middleware/models/');
+
+        $data = $mdf->model->getKpiIndicatorTemplateModel($this->view->indicatorId);
+        $this->view->form = '';
+
+        if ($data) {
+            
+            $dataFirstRow = $data[0];
+             
+            $this->view->structureIndicatorId = issetParam($paramData['structureIndicatorId']); 
+            $this->view->uxFlowActionIndicatorId = issetParam($paramData['uxFlowActionIndicatorId']); 
+            $this->view->uxFlowIndicatorId = issetParam($paramData['uxFlowIndicatorId']); 
+            $this->view->isKpiIndicatorRender = issetParam($paramData['isKpiIndicatorRender']); 
+            $this->view->actionType = 'update'; //issetParam($paramData['actionType']); 
+            $this->view->recordMapRender = '';
+            $this->view->uniqId = getUID();                  
+            
+            if (isset($structureIndicatorRow)) {
+                
+                $this->view->dataTableName = $structureIndicatorRow['TABLE_NAME'];
+                $this->view->kpiTypeId = $structureIndicatorRow['KPI_TYPE_ID'];
+                $this->view->namePattern = $structureIndicatorRow['NAME_PATTERN'];
+                
+            } else {
+                $this->view->dataTableName = $dataFirstRow['TABLE_NAME'];
+                $this->view->kpiTypeId = $dataFirstRow['KPI_TYPE_ID'];
+                $this->view->namePattern = $dataFirstRow['NAME_PATTERN'];
+            }
+
+            $this->view->isUseComponent = $dataFirstRow['IS_USE_COMPONENT'];
+            Mdwebservice::$processCode = $dataFirstRow['CODE'];
+            self::$subUniqId = $this->view->uniqId;
+            
+            if ($dataFirstRow['LABEL_WIDTH']) {
+                self::$labelWidth = $dataFirstRow['LABEL_WIDTH'];
+            }
+
+        }
+        
+        $this->view->title = $this->lang->line($dataFirstRow['NAME']);
+        $this->view->logoImage = issetParam($dataFirstRow['ICON']);
+        $this->view->bgImage = $dataFirstRow['PROFILE_PICTURE'];
+
+        $this->view->standardHiddenFields = $mdf->model->standardHiddenFieldsModel();
+        $this->view->relationComponents = $mdf->model->getKpiIndicatorMapWithoutTypeModel($this->view->mainIndicatorId, 10000009);
+        $this->view->relationComponents = Arr::groupByArrayOnlyRow($this->view->relationComponents, 'ID', false);
+        
+        if ($this->view->relationComponents) {
+            $this->view->relationComponentsConfigData = $mdf->model->getRelationComponentsContentConfigModel($this->view->relationComponents[$this->view->methodIndicatorId]['MAP_ID'], 'TRG_META_DATA_PATH', 'LEFT');
+        } else {
+            $this->view->relationComponentsConfigData = array();
+        }
+        
+        $_POST = array (
+            'param' => 
+                array (
+                    'indicatorId' => Input::post('structureIndicatorId'),
+                    'actionType' => 'update',
+                    'mainIndicatorId' => Input::post('mainIndicatorId'),
+                    'crudIndicatorId' => Input::post('methodIndicatorId'),
+                    'columns' => NULL,
+                    'mapId' => NULL,
+                ),
+            'fillSelectedRow' => Input::post('selectedRow'),
+        );
+
+        switch ($this->view->widgetCode) {
+            case 'exam_checklist':
+                $htmlPath = 'relation/checklist';
+                break;
+            default:
+                $htmlPath = 'relation/check_preview';
+                break;
+        }
+        
+        $this->view->rowData = $mdf->model->getDefaultFillDataModel($this->view->mainIndicatorId);
+        $response = array(
+            'uniqId' => $this->view->uniqId, 
+            /* 'dataFirstRow' => $dataFirstRow,  */
+            /* 'data' => $this->view->rowData,  */
+            'status' => 'success', 
+            'html' => $this->view->renderPrint($htmlPath, self::$viewPath)
+        );
+
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+        
+    }
     
 }

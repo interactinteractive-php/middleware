@@ -23,6 +23,7 @@ class Mdconfig extends Controller {
 
     public function main() {
         Auth::handleLogin();
+        Uri::isUrlAuth();
         
         $this->view->title = Lang::line('main_config');
 
@@ -286,12 +287,12 @@ class Mdconfig extends Controller {
     
     public function getConfigValue() {
         $response = $this->model->getConfigValueModel();
-        echo json_encode($response, JSON_UNESCAPED_UNICODE); exit;
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
     public function getConfigValueFromCache() {
         $code = Input::post('key');
-        echo json_encode(Config::getFromCache($code), JSON_UNESCAPED_UNICODE); exit;
+        echo json_encode(Config::getFromCache($code), JSON_UNESCAPED_UNICODE);
     }
     
     public function phptodb() {

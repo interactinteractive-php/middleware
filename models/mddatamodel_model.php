@@ -416,7 +416,7 @@ class Mddatamodel_Model extends Model {
                     $name = $sqlLowerResult[$getCodeNameFieldName['name']];
                 }
 
-                $rowData = htmlentities(str_replace('&quot;', '\\&quot;', json_encode($sqlLowerResult)), ENT_QUOTES, 'UTF-8');
+                $rowData = htmlentities(str_replace('&quot;', '\\&quot;', json_encode($sqlLowerResult, JSON_UNESCAPED_UNICODE)), ENT_QUOTES, 'UTF-8');
             }
         }
 

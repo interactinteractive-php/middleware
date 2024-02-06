@@ -193,6 +193,28 @@ class Mdmeta extends Controller {
         return $menuHtml;
     }
     
+    public function sidebarMetaLimitMenuRenderByService($isChild, $menuOpen = '') {
+        $this->load->model('mdmeta', 'middleware/models/');
+
+        $url = Input::get('url');
+        
+        $urlArr = explode('/', $url);
+        $urlId = '';
+        if (isset($urlArr[2])) {
+            $urlId = $urlArr[2];
+        }
+        
+        $menuData = $this->model->getMetaMenuListByServiceModel('TOP_MENU');
+                
+        if ($menuData['status'] == 'success') {
+            $menuHtml = $this->model->sidebarMetaMenuRenderByLimitDataModel($menuData['menuData'], '', 0, $isChild, $menuOpen, $urlId);
+        } else {
+            $menuHtml = '';
+        }
+        
+        return $menuHtml;
+    }
+    
     public function topMetaMenuRenderByModuleId($isChild, $moduleId, $menuOpen = '') {
         $this->load->model('mdmeta', 'middleware/models/');
         if (!isset($this->view)) {
@@ -2283,11 +2305,13 @@ class Mdmeta extends Controller {
     }
     
     public function createConfigBackup() {
-        echo json_encode($this->model->createConfigBackupModel()); exit;       
+        $response = $this->model->createConfigBackupModel();
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
     public function restoreConfigBackUp() {
-        echo json_encode($this->model->restoreConfigBackUpModel()); exit;   
+        $response = $this->model->restoreConfigBackUpModel();
+        echo json_encode($response, JSON_UNESCAPED_UNICODE); 
     }
     
     public function setStatementReportGrouping() {
@@ -2639,6 +2663,11 @@ class Mdmeta extends Controller {
             @unlink($bpRunProcessFile);
         }
         
+        $bpFiles = glob($tmp_dir."/*/bp/bp_".$processMetaDataId."_*.txt");
+        foreach ($bpFiles as $bpFile) {
+            @unlink($bpFile);
+        }
+        
         return true;
     }
     
@@ -2884,7 +2913,11 @@ class Mdmeta extends Controller {
         $dvUserConfigsMerge = glob($tmp_dir."/*/dv/dvUserConfigMergeCols2_".$dvId."_*.txt");
         foreach ($dvUserConfigsMerge as $dvUserConfigMerge) {
             @unlink($dvUserConfigMerge);
-        }            
+        }    
+        $dvFiles = glob($tmp_dir."/*/dv/dv_".$dvId."_*.txt");
+        foreach ($dvFiles as $dvFile) {
+            @unlink($dvFile);
+        }        
         
         self::bpConfigsClearCache($tmp_dir, $dvId);
         self::bpOnlyExpressionClearCache($dvId, $tmp_dir);
@@ -3110,6 +3143,14 @@ class Mdmeta extends Controller {
     public function setProcessFullExpressionCriteria() {
         
         $this->view->metaDataId = Input::numeric('metaDataId');
+        
+        $this->load->model('mdmetadata', 'middleware/models/');
+        
+        if ($changeLogResponse = $this->model->isCheckChangeLogMetaModel($this->view->metaDataId)) {
+            echo json_encode($changeLogResponse, JSON_UNESCAPED_UNICODE); exit;
+        }
+        
+        $this->load->model('mdmeta', 'middleware/models/');
         $this->view->metaDatas = $this->model->getMetaProcessByMetaSingleDatasModel($this->view->metaDataId);
         
         $this->view->addVersion = Input::post('addVersion');
@@ -3167,6 +3208,7 @@ class Mdmeta extends Controller {
         $response = array(
             'Html' => $this->view->renderPrint('system/link/process/setProcessFullExpressionCriteria', self::$viewPath),
             'Title' => $title,
+            'status' => 'success', 
             'create_version_btn' => 'Хувилбар үүсгэх',
             'save_btn' => $this->lang->line('save_btn'),
             'close_btn' => $this->lang->line('close_btn')
@@ -3205,6 +3247,7 @@ class Mdmeta extends Controller {
         $response = array(
             'Html' => $this->view->renderPrint('system/link/process/setProcessFullExpressionCriteria', self::$viewPath),
             'Title' => $title,
+            'status' => 'success', 
             'create_version_btn' => 'Хувилбар үүсгэх',
             'save_btn' => $this->lang->line('save_btn'),
             'close_btn' => $this->lang->line('close_btn')
@@ -3791,11 +3834,6 @@ class Mdmeta extends Controller {
             @unlink($kpiTemplateAfterSaveFile);
         }
         
-        $indicatorParams = glob($tmp_dir."/*/kp/kpiIndicatorParams_".$templateId."_*.txt");
-        foreach ($indicatorParams as $indicatorParam) {
-            @unlink($indicatorParam);
-        } 
-        
         $indicators = glob($tmp_dir."/*/kp/kpi_".$templateId."_*.txt");
         foreach ($indicators as $indicator) {
             @unlink($indicator);
@@ -4035,7 +4073,7 @@ class Mdmeta extends Controller {
                 'isLocked' => true
             );
             
-            $response = json_encode($response);
+            $response = json_encode($response, JSON_UNESCAPED_UNICODE);
         } 
         
         echo $response; exit;
@@ -4313,17 +4351,23 @@ class Mdmeta extends Controller {
     }
     
     public function dvQueryEditor() {
-        $this->load->model('mdobject', 'middleware/models/');
         
         $this->view->metaId = Input::numeric('metaId');
+        $this->load->model('mdmetadata', 'middleware/models/');
         
+        if ($changeLogResponse = $this->model->isCheckChangeLogMetaModel($this->view->metaId)) {
+            echo json_encode($changeLogResponse, JSON_UNESCAPED_UNICODE); exit;
+        }
+        
+        $this->load->model('mdobject', 'middleware/models/');
         $queryRow = $this->model->getDVMainQueriesModel($this->view->metaId);
         
         $this->view->query = Mdmetadata::objectDeCompress($queryRow['TABLE_NAME']);
         $this->view->postgreSql = Mdmetadata::objectDeCompress($queryRow['POSTGRE_SQL']);
         $this->view->msSql = Mdmetadata::objectDeCompress($queryRow['MS_SQL']);
         
-        $this->view->render('system/link/group/dataViewSqlViewEditor', self::$viewPath);
+        $html = $this->view->renderPrint('system/link/group/dataViewSqlViewEditor', self::$viewPath);
+        echo json_encode(array('html' => $html, 'status' => 'success'), JSON_UNESCAPED_UNICODE); exit;
     }
     
     public function dvQuerySave() {

@@ -1,6 +1,6 @@
 <div class="sidebar-sticky sidebar sidebar-light sidebar-secondary sidebar-component sidebar-expand-md sidebar-calendar <?php echo 'dv-searchcolor-'.issetParam($this->row['COLOR_SCHEMA']).(($this->callerType == 'package') ? ' d-none' : ''); ?>">
     <form method="post" id="calendar-searchform-<?php echo $this->metaDataId; ?>">
-        <div class="dvecommerce bg-white pr15">
+        <div class="dvecommerce pr15">
             <?php
             if ($this->dataViewMandatoryHeaderData) {
                 $this->dataViewHeaderData['data'] = array_merge($this->dataViewMandatoryHeaderData, $this->dataViewHeaderData['data']);
