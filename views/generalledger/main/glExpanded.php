@@ -132,8 +132,30 @@
 
                                 if ($this->selectedRow['isdebit'] == 1) {
                                     $data = $this->cashFlowDebitData;
+                                    /**
+                                     * Default value der is_credit uzuulelt songoson tul eniig nemj push hiiw
+                                     * @date 2024-02-08 12:27
+                                     * @author Ulaankhuu
+                                     */
+                                    if ($valueArray) {
+                                        $dataPush = (new Mdgl)->getCashMetaValuesToGridById($valueArray['value'], 1);
+                                        if ($dataPush) {
+                                            array_push($data, $dataPush);
+                                        }                                    
+                                    }                                    
                                 } else {
                                     $data = $this->cashFlowCreditData;
+                                    /**
+                                     * Default value der is_debit uzuulelt songoson tul eniig nemj push hiiw
+                                     * @date 2024-02-08 12:27
+                                     * @author Ulaankhuu
+                                     */                                    
+                                    if ($valueArray) {
+                                        $dataPush = (new Mdgl)->getCashMetaValuesToGridById($valueArray['value'], 0);
+                                        if ($dataPush) {
+                                            array_push($data, $dataPush);
+                                        }
+                                    }
                                 }
 
                                 if ($value['isRequired'] == '1') {

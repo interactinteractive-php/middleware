@@ -107,7 +107,7 @@ if ($jsonConfig) {
 <script type="text/javascript">
     var _parentId = '<?php echo Str::lower($jsonConfig['parentid']) ?>';
     var editJsonSavedData = <?php echo isset($groupedData) ? json_encode($groupedData) : json_encode([]) ?>;
-    var editJsonData = resolveParentChild_detail_frame_paper_001(editJsonSavedData, '');
+    var editJsonData = resolveParentChild_detail_frame_paper_001(editJsonSavedData, '');    
     
     initJstree_widget_detail_frame_paper_001(editJsonData);    
 

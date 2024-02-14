@@ -1619,6 +1619,12 @@ class Mdgl extends Controller {
         return $data;
     }
     
+    public function getCashMetaValuesToGridById($id, $type) {
+        $this->load->model('mdgl', 'middleware/models/');
+        $data = $this->model->getCashMetaValuesByIdModel($id, $type);
+        return $data;
+    }
+    
     public function getCashMetaValuesToGrid($type) {
         $this->load->model('mdgl', 'middleware/models/');
         $data = $this->model->getCashMetaValuesModel($type);

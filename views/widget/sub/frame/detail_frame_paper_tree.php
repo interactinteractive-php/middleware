@@ -28,11 +28,20 @@ $jsonConfig = issetParamArray($this->paramConfig['jsonConfig']);
     <div class="bpdtl-widget-detail_frame_paper_tree-body" style="width: 100%;">
         {content}
     </div>
+    <div class="dataviewtreeview_processdetail_filter_wrapper d-none" style="margin-right: 0px;margin-left: 20px;">
+        <div style="float: right;">
+            <a href="javascript:;" onClick="closeCommentSide()" title="Хаах"><i class="icon-cross3" style="color: #333;"></i></a>
+        </div>
+        <div class="row-comment mt-3"></div>
+    </div>    
 </div>
 
 <style type="text/css">
+.dataviewtreeview_processdetail_filter_wrapper .common-comment-action-btn {
+    right: 58px !important;
+}
 .dataviewtreeview_processdetail_filter_wrapper {
-    flex: 0 0 400px;
+    flex: 0 0 350px;
     margin-right: 20px;    
     background: #fff;
     box-shadow: 0 0.5mm 2mm rgb(0 0 0 / 30%);
@@ -121,6 +130,7 @@ if ($jsonConfig) {
     $parentId = issetParam($jsonConfig['parentid']);
     $treeParentId = issetParam($jsonConfig['treeparentid']);
     $treeId = issetParam($jsonConfig['treeid']);
+    $isComment = issetParam($jsonConfig['iscomment']);
 ?>
 <script type="text/javascript">
     var _parentId = '<?php echo Str::lower($jsonConfig['parentid']) ?>';
@@ -175,7 +185,68 @@ if ($jsonConfig) {
             $currElem.closest('.tbody').find('> .bp-detail-row:not(.hidden)').find('input[data-field-name="<?php echo $numberingColumn; ?>"]').val('');
             widget_detail_frame_paper_tree_numbering_fromexp_add(nval, pval);
         }
-    });      
+    });     
+    
+    $('#bp-window-<?php echo $this->methodId; ?>').on('click', '.bp-detail-row .texteditor_clicktoedit_tinymceInit[contenteditable="true"]', function(e) {
+        $('#bp-window-<?php echo $this->methodId; ?>').find('.temp_add_style_btn_html').remove();
+        var $this = $(this);
+        $this.parent().prepend('<div style="position: absolute;margin-top: -30px;background-color: #333;padding: 3px;border-radius: 5px;" class="temp_add_style_btn_html">'+
+            '<button type="button" title="Bold" class="ml2 btn btn-xs green-meadow bpPaper001AddBoldRow_<?php echo $this->methodId; ?>" style="padding: 0px 3px !important;background-color:#333333" onclick="javascript:;"><i class="fa fa-bold iconplus3-paper001" style="font-size:10px"></i></button>'+
+            '<button type="button" title="Italic" class="ml2 btn btn-xs green-meadow bpPaper001AddItalicRow_<?php echo $this->methodId; ?>" style="padding: 0px 3px !important;background-color:#333333" onclick="javascript:;"><i class="fa fa-italic iconplus3-paper001" style="font-size:10px"></i></button>'+
+            '<button type="button" title="Underline" class="ml2 mr2 btn btn-xs green-meadow bpPaper001AddUnderlineRow_<?php echo $this->methodId; ?>" style="padding: 0px 3px !important;background-color:#333333" onclick="javascript:;"><i class="fa fa-underline iconplus3-paper001" style="font-size:10px"></i></button>'+
+            '<button type="button" data-refstructureid="<?php echo issetParam($jsonConfig['refstructureid']) ?>" title="Сэтгэгдэл" class="d-none mr2 ml2 btn btn-xs green-meadow bpPaper001AddCommentRow_<?php echo $this->methodId; ?>" style="padding: 0px 3px !important;background-color:#333333" onclick="javascript:;"><i class="fa fa-comment iconplus3-paper001" style="font-size:10px"></i></button>'+
+        '</div>');
+
+        <?php if ($isComment) { ?>
+            var $parent = $this.closest('.bp-detail-row');
+            var sourceId = $parent.find('> div > input[data-field-name="id"]').val();        
+            var refId = "<?php echo issetParam($jsonConfig['refstructureid']) ?>";
+
+            $.ajax({
+                    type: 'post',
+                    url: 'mdwebservice/renderEditModeBpCommentTab',
+                    data: {uniqId: getUniqueId(''), refStructureId: refId, sourceId: sourceId},
+                    beforeSend: function() {
+                        Core.blockUI({
+                          message: "Loading...",
+                          boxed: true
+                        });
+                    },
+                    success: function(data) {
+                        Core.unblockUI();
+                        $('.dataviewtreeview_processdetail_filter_wrapper:last-child').removeClass('d-none');
+                        $('#bp-window-<?php echo $this->methodId; ?>').find('.row-comment').empty().append(data);
+                    },
+                    error: function() {
+                        alert('Error');
+                    }
+                });            
+        <?php } ?>   
+    });
+    
+    $('#bp-window-<?php echo $this->methodId; ?>').on('click', '.bpPaper001AddBoldRow_<?php echo $this->methodId; ?>', function(e) {
+        var $this = $(this);
+        var $parent = $this.closest('.input-group')
+        var selectionTxt = getSelectionText();
+        pasteHtmlAtCaret('<strong>'+selectionTxt+'</strong>');        
+        $parent.find('textarea').val($parent.find('.texteditor_clicktoedit_tinymceInit').html());
+    });
+    
+    $('#bp-window-<?php echo $this->methodId; ?>').on('click', '.bpPaper001AddItalicRow_<?php echo $this->methodId; ?>', function(e) {
+        var $this = $(this);
+        var $parent = $this.closest('.input-group')        
+        var selectionTxt = getSelectionText();
+        pasteHtmlAtCaret('<i>'+selectionTxt+'</i>');
+        $parent.find('textarea').val($parent.find('.texteditor_clicktoedit_tinymceInit').html());        
+    });
+    
+    $('#bp-window-<?php echo $this->methodId; ?>').on('click', '.bpPaper001AddUnderlineRow_<?php echo $this->methodId; ?>', function(e) {
+        var $this = $(this);
+        var $parent = $this.closest('.input-group')        
+        var selectionTxt = getSelectionText();
+        pasteHtmlAtCaret('<u>'+selectionTxt+'</u>');
+        $parent.find('textarea').val($parent.find('.texteditor_clicktoedit_tinymceInit').html());                    
+    });
 
     $('#bp-window-<?php echo $this->methodId; ?>').on('click', '.bp-detail-row', function(e) {
         var $this = $(this);
@@ -987,7 +1058,52 @@ if ($jsonConfig) {
         } else {
             widget_detail_frame_paper_tree_previtem($prevElem, number, callback);
         }
-    }     
+    }    
+    function getSelectionText() {
+        var text = "";
+        if (window.getSelection) {
+            text = window.getSelection().toString();
+        } else if (document.selection && document.selection.type != "Control") {
+            text = document.selection.createRange().text;
+        }
+        return text;
+    }   
+    function pasteHtmlAtCaret(html) {
+        var sel, range;
+        if (window.getSelection) {
+            // IE9 and non-IE
+            sel = window.getSelection();
+            if (sel.getRangeAt && sel.rangeCount) {
+                range = sel.getRangeAt(0);
+                range.deleteContents();
+
+                // Range.createContextualFragment() would be useful here but is
+                // non-standard and not supported in all browsers (IE9, for one)
+                var el = document.createElement("div");
+                el.innerHTML = html;
+                var frag = document.createDocumentFragment(), node, lastNode;
+                while ( (node = el.firstChild) ) {
+                    lastNode = frag.appendChild(node);
+                }
+                range.insertNode(frag);
+
+                // Preserve the selection
+                if (lastNode) {
+                    range = range.cloneRange();
+                    range.setStartAfter(lastNode);
+                    range.collapse(true);
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                }
+            }
+        } else if (document.selection && document.selection.type != "Control") {
+            // IE < 9
+            document.selection.createRange().pasteHTML(html);
+        }
+    }
+    function closeCommentSide() {
+        $('.dataviewtreeview_processdetail_filter_wrapper:last-child').addClass('d-none');
+    }
 </script>
 <?php
 }

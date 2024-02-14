@@ -1333,11 +1333,7 @@ class Mdform extends Controller {
                             }
                         }
                     }
-                } /*else {
-                    $this->view->additionalInfo = $this->model->getIndicatorAdditionalInfoModel($this->view->kpiTypeId, $this->view->indicatorId);
-                    $this->view->headerLogo = issetParam($this->view->additionalInfo['FORMHEADERLOGO']); // logo
-                    $this->view->headerTitle = issetParam($this->view->additionalInfo['FORMHEADERTEXT']); //title
-                }*/
+                }
                 
                 if ($this->view->kpiTypeId == '2009') {
                     $this->view->isKpiIndicatorRender = '1';
@@ -6315,7 +6311,7 @@ class Mdform extends Controller {
         $this->view->selectedRowEncode = Arr::encode($this->view->selectedRow);
         
         $this->view->methodRow = $this->model->getKpiIndicatorRowModel($this->view->methodIndicatorId);
-        $this->view->relationList = $this->model->getChildRenderStructureModel($this->view->structureIndicatorId, array(Mdform::$semanticTypes['normal'], Mdform::$semanticTypes['config']));
+        $this->view->relationList = $this->model->getChildRenderStructureModel($this->view->structureIndicatorId, [Mdform::$semanticTypes['normal'], Mdform::$semanticTypes['config']]);
         $this->view->methodTypeCode = $this->view->methodRow['TYPE_CODE'];
         
         $widgetCode = $this->view->methodRow['RELATION_WIDGET_CODE'];        
@@ -6344,6 +6340,7 @@ class Mdform extends Controller {
             $this->view->rowData = Mdform::$kpiDmMart;
         } 
         
+        $this->view->windowWidth = $indicatorContent['windowWidth'];
         $this->view->headerProcess = $indicatorContent['html'];
         $this->view->checkListRender = $this->view->renderPrint('kpi/indicator/widget/checklist/'.$widgetCode, self::$viewPath);
         

@@ -143,7 +143,6 @@ class Mddoc_Model extends Model {
                     
                     $_POST['newWfmStatusid'] = $dataRow['wfmstatusid'];
                     $_POST['metaDataId'] = $dataRow['metaDataId'];
-                    
                     $_POST['dataRow'] = Input::post('selectedRow');
 
                     $this->model->setRowWfmStatusModel();

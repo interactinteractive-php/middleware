@@ -496,10 +496,8 @@ if ($this->isDialog == false) {
                                     </div>';
                                 } else {
                                     $grouptHtmlWithoutTab .= '<div data-section-path="' . $row['code'] . '" '.($row['columnWidth'] ? 'class="float-left" style="width:'.$row['columnWidth'].'"' : '').' data-isclear="' . $row['isRefresh'] . '">
-                                        <fieldset class="collapsible">
-                                            <legend>' . $this->lang->line($row['name']) . '</legend>
-                                            ' . $content . ' 
-                                        </fieldset>
+                                        <div class="bp-detail-title">' . $this->lang->line($row['name']) . '</div>
+                                        <div class="bp-detail-body">' . $content . '</div> 
                                     </div>';
                                 }
                             }

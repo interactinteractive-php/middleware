@@ -783,22 +783,22 @@ class Mdgl_Model extends Model {
                     MFP.PATTERN_NAME, 
                     MFP.GLOBE_MESSAGE,
                     MFP.IS_MASK, 
-                    CONF.IS_REQUIRED, 
+                    MAX(CONF.IS_REQUIRED) AS IS_REQUIRED, 
                     CONF.LOOKUP_CRITERIA, 
                     CONF.VALUE_CRITERIA, 
-                    CONFL.IS_USE_OPP_ACCOUNT, 
+                    MAX(CONFL.IS_USE_OPP_ACCOUNT) AS IS_USE_OPP_ACCOUNT,
                     CONF.ACCOUNT_FILTER, 
                     SC.ID AS SEGMENT_ID, 
                     SC.SEPRATOR_CHAR, 
                     SC.REPLACE_VALUE, 
                     ".$this->db->IfNull('MGC.PLACEHOLDER_NAME', 'MGC.LABEL_NAME')." AS PLACEHOLDER_NAME,
-                    COALESCE(CONF.DEBIT_DEFAULT_VALUE, CONF.DEFAULT_VALUE) AS DEBIT_DEFAULT_VALUE,
-                    COALESCE(CONF.CREDIT_DEFAULT_VALUE, CONF.DEFAULT_VALUE) AS CREDIT_DEFAULT_VALUE 
+                    MAX(COALESCE(CONF.DEBIT_DEFAULT_VALUE, CONF.DEFAULT_VALUE)) AS DEBIT_DEFAULT_VALUE,
+                    MAX(COALESCE(CONF.CREDIT_DEFAULT_VALUE, CONF.DEFAULT_VALUE)) AS CREDIT_DEFAULT_VALUE 
                 FROM META_GROUP_CONFIG MGC 
                     INNER JOIN FIN_ACCOUNT_GL_CONFIG CONF ON LOWER(CONF.FIELD_PATH) = LOWER(MGC.FIELD_PATH) 
                         $join 
                     LEFT JOIN META_FIELD_PATTERN MFP ON MFP.PATTERN_ID = MGC.PATTERN_ID       
-                    LEFT JOIN FIN_ACCOUNT_GL_CONFIG_DTL CONFL ON LOWER(CONFL.FIELD_PATH) = LOWER(CONF.FIELD_PATH)  
+                    LEFT JOIN FIN_ACCOUNT_GL_CONFIG_DTL CONFL ON LOWER(CONFL.FIELD_PATH) = LOWER(CONF.FIELD_PATH) AND ".$this->db->IfNull('CONF.IS_CHOOSE_OPP', '0')." = 0
                     LEFT JOIN FIN_ACCOUNT_SEGMENT_CONFIG SC ON LOWER(SC.FIELD_PATH) = LOWER(CONF.FIELD_PATH) 
                         $segmentJoin 
                 WHERE MGC.MAIN_META_DATA_ID = ".Mdgl::$glBookDtlGroupMetaDataId." 
@@ -830,19 +830,15 @@ class Mdgl_Model extends Model {
                     MFP.PATTERN_NAME, 
                     MFP.GLOBE_MESSAGE,
                     MFP.IS_MASK, 
-                    CONF.IS_REQUIRED, 
                     CONF.LOOKUP_CRITERIA, 
                     CONF.VALUE_CRITERIA, 
                     CONF.ACCOUNT_FILTER, 
-                    CONFL.IS_USE_OPP_ACCOUNT, 
                     MGC.DISPLAY_ORDER, 
                     SC.ID, 
                     CONF.ORDER_NUMBER, 
                     SC.SEPRATOR_CHAR, 
                     SC.REPLACE_VALUE, 
-                    MGC.PLACEHOLDER_NAME,
-                    CONF.DEBIT_DEFAULT_VALUE,
-                    CONF.CREDIT_DEFAULT_VALUE ';
+                    MGC.PLACEHOLDER_NAME';
             
             if ($isOpMeta && strtolower($isOpMeta) !== 'cashflowsubcategoryid') {
 
@@ -862,7 +858,7 @@ class Mdgl_Model extends Model {
                         OR $accountAlias.ACCOUNT_ID = $accountId 
                         OR $accountAlias.ACCOUNT_TYPE_ID = $accountId 
                     ) $groupBy 
-                    ORDER BY CONFL.IS_USE_OPP_ACCOUNT, MGC.DISPLAY_ORDER ASC");
+                    ORDER BY MGC.DISPLAY_ORDER ASC");
 
                 if ($result) {
                     
@@ -1769,7 +1765,7 @@ class Mdgl_Model extends Model {
                 COUNT(CONF.CREDIT_DEFAULT_VALUE) AS CREDIT_DEFAULT_VALUE       
             FROM FIN_ACCOUNT_GL_CONFIG CONF 
                 $join 
-                LEFT JOIN FIN_ACCOUNT_GL_CONFIG_DTL DTL ON LOWER(DTL.FIELD_PATH) = LOWER(CONF.FIELD_PATH) AND DTL.IS_USE_OPP_ACCOUNT = 1 
+                LEFT JOIN FIN_ACCOUNT_GL_CONFIG_DTL DTL ON LOWER(DTL.FIELD_PATH) = LOWER(CONF.FIELD_PATH) AND DTL.IS_USE_OPP_ACCOUNT = 1 AND ".$this->db->IfNull('CONF.IS_CHOOSE_OPP', '0')." = 0
             WHERE $where AND (CONF.CONFIG_TYPE IS NULL OR CONF.CONFIG_TYPE <> 2)");
 
         if ($row) {
@@ -3371,5 +3367,22 @@ class Mdgl_Model extends Model {
         
         return $arr;
     }
+    
+    public function getCashMetaValuesByIdModel($id, $type) {
+        
+        $row = $this->db->GetRow("
+            SELECT 
+                CASH_FLOW_CATEGORY_ID,
+                CASH_FLOW_SUB_CATEGORY_ID,
+                CODE,
+                NAME,
+                IS_DEBIT
+            FROM FIN_CASH_FLOW_SUB_CATEGORY 
+            WHERE IS_DEBIT != ".$this->db->Param(1)." AND CASH_FLOW_SUB_CATEGORY_ID = ".$this->db->Param(0), 
+            array($id, $type)
+        );        
+        
+        return $row;
+    }    
 
 }

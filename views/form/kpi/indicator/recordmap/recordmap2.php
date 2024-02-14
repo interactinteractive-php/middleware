@@ -366,8 +366,45 @@ function runKpiRelatonBp(elem, metaDataId, isEdit) {
 
       var processForm = $("#wsForm", "#" + $dialogName);
       var processUniqId = processForm.parent().attr("data-bp-uniq-id");
+      var runModeButton = '';
+        if (data.run_mode === '') {
+            runModeButton = ' hide';
+        }      
 
-      var buttons = [
+      var buttons = [{
+            text: data.run_mode,
+            class: 'btn green-meadow btn-sm bp-run-btn bp-btn-saveadd ' + runModeButton,
+            click: function(e) {
+
+                var processForm = $dialog.find('form');
+
+                if (window['processBeforeSave_' + processUniqId]($(e.target))) {
+
+                    if (bpFormValidate(processForm)) {
+
+                        callWebServiceByMetaRunMode(processForm, $dialogName, processUniqId, e.target, function(){
+                            $.ajax({
+                              type: "post",
+                              url: "mdform/renderRelationKpiReload",
+                              data: {indicatorId: '<?php echo $this->indicatorId; ?>'},
+                              dataType: "json",                 
+                              success: function (data) {
+                                $("#kpi-component-<?php echo $this->componentUniqId; ?> .recordmap2content-container").append(data.html)
+                                $("#kpi-component-<?php echo $this->componentUniqId; ?> .relation-list-view-type").val('LIST').trigger('change');
+                                Core.unblockUI();
+                              }
+                            });                            
+                        });
+
+                    } else {
+                        bpIgnoreGroupRemove(processForm);
+                    }
+
+                } else {
+                    bpIgnoreGroupRemove(processForm);
+                }
+            }
+        },
         {
           text: data.run_btn,
           class: "btn green-meadow btn-sm bp-btn-save",

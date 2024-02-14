@@ -5368,8 +5368,6 @@ class Mdform_Model extends Model {
     public function getPushMetaVerseDetailParams($indicatorId, $parentShowType, $parentColumnNamePath, $rowData, $depth = 0, $rowIndex = null) {
         
         $data = [];
-        //$postData = Input::postData();
-        //$inputId = Mdform::$inputId ? Mdform::$inputId : 'ID';
         
         if (isset(Mdform::$mvParamsConfig['detail'][$parentColumnNamePath])) {
             
@@ -5682,7 +5680,7 @@ class Mdform_Model extends Model {
 
                     $this->getKpiIndicatorDetailHeaderDataModel($indicatorId, $configData, $arrRow['ID'], $arrRow);
 
-                } elseif ($arrRow['SHOW_TYPE'] == 'rows') {
+                } elseif ($arrRow['SHOW_TYPE'] == 'row' || $arrRow['SHOW_TYPE'] == 'rows') {
                     
                     if ($arrRow['FILTER_INDICATOR_ID'] && $arrRow['SEMANTIC_TYPE_NAME'] == 'Sub хүснэгт') {
 
@@ -7743,10 +7741,10 @@ class Mdform_Model extends Model {
                     T2.STRUCTURE_INDICATOR_ID 
                 FROM KPI_INDICATOR_INDICATOR_MAP T0 
                     INNER JOIN KPI_INDICATOR T1 ON T1.ID = T0.TRG_INDICATOR_ID 
-                    INNER JOIN KPI_INDICATOR T2 ON T2.ID = T0.MAIN_INDICATOR_ID  
+                    INNER JOIN KPI_INDICATOR T2 ON T2.ID = T0.MAIN_INDICATOR_ID 
                 WHERE T0.MAIN_INDICATOR_ID = ".$this->db->Param(0)." 
                     AND T0.PARENT_ID IS NULL 
-                    AND T0.SHOW_TYPE = 'rows' 
+                    AND (T0.SHOW_TYPE = 'row' OR T0.SHOW_TYPE = 'rows') 
                     AND T0.COLUMN_NAME = ".$this->db->Param(1), 
                 array($mainIndicatorId, $columnName)
             );
@@ -8659,6 +8657,10 @@ class Mdform_Model extends Model {
         if ($arr) {
             
             $rowColumnNamePath = $row['COLUMN_NAME_PATH'];
+            
+            if (isset($rowDatas[0])) {
+                $rowDatas = $rowDatas[0];
+            }
             
             $hiddenControl = [];
             $hiddenControl[] = '<input type="hidden" name="mvParam'.Mdform::$addonPathPrefix.'['.$rowColumnNamePath.'.rowState]'.Mdform::$pathSuffix.'" data-path="'.$rowColumnNamePath.'.rowState" value="add">';
@@ -10575,20 +10577,26 @@ class Mdform_Model extends Model {
         
         $parentColumnNamePath = $configRow['COLUMN_NAME_PATH'];
         
-        if ($isIgnoreAlter == false) {
-                    
-            $pkColumnName = 'ID';
+        if ($configRow['TABLE_NAME']) {
+            
+            if ($isIgnoreAlter == false) {
 
-            if (!isset(Mdform::$mvParamsConfig['detail'][$parentColumnNamePath.'_pfpk'])) {
-                throw new Exception('Primary key баганын тохиргоо олдсонгүй!'); 
+                $pkColumnName = 'ID';
+
+                if (!isset(Mdform::$mvParamsConfig['detail'][$parentColumnNamePath.'_pfpk'])) {
+                    throw new Exception('Primary key баганын тохиргоо олдсонгүй!'); 
+                }
+
+            } else {
+                $pkColumnName = issetParam(Mdform::$mvParamsConfig['detail'][$parentColumnNamePath.'_pfpk']);
+
+                if (!$pkColumnName) {
+                    throw new Exception('Primary key баганын тохиргоо олдсонгүй!'); 
+                }
             }
-
+            
         } else {
             $pkColumnName = issetParam(Mdform::$mvParamsConfig['detail'][$parentColumnNamePath.'_pfpk']);
-
-            if (!$pkColumnName) {
-                throw new Exception('Primary key баганын тохиргоо олдсонгүй!'); 
-            }
         }
         
         $parentTableName = $configRow['TABLE_NAME'];        
@@ -10620,6 +10628,7 @@ class Mdform_Model extends Model {
                         }
                         
                         $mvSaveParams[$columnName] = $newId;
+                        $mvSaveParams['pfIsUpdate'] = $isUpdate;
 
                     } else {
                         
@@ -10639,7 +10648,7 @@ class Mdform_Model extends Model {
                                 $saveData[$columnName] = $getValue;
                             }
 
-                        } elseif ($isIgnoreAlter == false && ($showType == 'combo' || $showType == 'multicombo')) {
+                        } elseif ($isIgnoreAlter == false && ($showType == 'combo' || $showType == 'multicombo' || $showType == 'popup')) {
 
                             $saveData[$columnName] = ($getValue == '' ? null : $getValue);
                             $saveData[$columnName.'_DESC'] = issetVar($row[$columnName.'_DESC']);
@@ -10699,35 +10708,47 @@ class Mdform_Model extends Model {
             }
         }
         
-        if (issetParam($row['rowState']) != 'removed') {
+        if ($configRow['TABLE_NAME']) {
             
-            Mdform::$mvDbParams['detail'][] = [
-                'tableName'    => $parentTableName, 
-                'isUpdate'     => $isUpdate, 
-                'pkColumnName' => $pkColumnName, 
-                'pkId'         => $newId,
-                'data'         => $saveData
-            ];
+            if (issetParam($row['rowState']) != 'removed') {
 
-            if ($clobField) {
-                
-                Mdform::$mvDbParams['detailClob'][] = [
+                Mdform::$mvDbParams['detail'][] = [
                     'tableName'    => $parentTableName, 
                     'isUpdate'     => $isUpdate, 
                     'pkColumnName' => $pkColumnName, 
                     'pkId'         => $newId,
-                    'data'         => $clobField
+                    'data'         => $saveData
+                ];
+
+                if ($clobField) {
+
+                    Mdform::$mvDbParams['detailClob'][] = [
+                        'tableName'    => $parentTableName, 
+                        'isUpdate'     => $isUpdate, 
+                        'pkColumnName' => $pkColumnName, 
+                        'pkId'         => $newId,
+                        'data'         => $clobField
+                    ];
+                }
+
+            } elseif (($depth == 0 || ($depth > 0 && $configRow['IS_CASCADE_DELETE'] == '1')) && $isUpdate) {
+
+                Mdform::$mvDbParams['detailRemove'][] = [
+                    'tableName'    => $parentTableName, 
+                    'isUpdate'     => $isUpdate, 
+                    'pkColumnName' => $pkColumnName, 
+                    'pkId'         => $newId
                 ];
             }
-            
-        } elseif (($depth == 0 || ($depth > 0 && $configRow['IS_CASCADE_DELETE'] == '1')) && $isUpdate) {
-                        
-            Mdform::$mvDbParams['detailRemove'][] = [
-                'tableName'    => $parentTableName, 
-                'isUpdate'     => $isUpdate, 
-                'pkColumnName' => $pkColumnName, 
-                'pkId'         => $newId
-            ];
+        }
+        
+        if ($depth == 0 && !$configRow['TABLE_NAME']) {
+                
+            if ($configRow['SEMANTIC_TYPE_ID'] == 10000002 && $configRow['FILTER_INDICATOR_ID']) {
+                Mdform::$mvDbParams['detailSubTables'][] = $parentColumnNamePath;
+            } else { 
+                Mdform::$mvDbParams['detailJson'][] = $parentColumnNamePath;
+            }
         }
     }
     
@@ -10788,6 +10809,7 @@ class Mdform_Model extends Model {
                             }
                             
                             $mvSaveParams[$k][$columnName] = $newId;
+                            $mvSaveParams[$k]['pfIsUpdate'] = $isUpdate;
 
                         } else {
                             
@@ -11126,8 +11148,14 @@ class Mdform_Model extends Model {
                             if ($isPkColumnName) {
                                 
                                 if (is_numeric($getValue)) {
+                                    
                                     $newId = $getValue;
-                                    $isUpdate = true;
+                                    
+                                    if (!isset(Mdform::$mvSaveParams['pfIsUpdate']) || (isset(Mdform::$mvSaveParams['pfIsUpdate']) && Mdform::$mvSaveParams['pfIsUpdate'])) {
+                                        $isUpdate = true;
+                                    } else {
+                                        $saveData[$columnName] = $newId;
+                                    }
                                 } else {
                                     $saveData[$columnName] = $newId;
                                 }
@@ -11776,38 +11804,7 @@ class Mdform_Model extends Model {
                         }
                     }
                     
-                } elseif (Input::numeric('isIgnoreRemoveRecordMap') != 1 && !isset($isSetRowIdByExpression)) {
-                
-                    $recordMapDatas = $this->db->GetAll("
-                        SELECT 
-                            T1.TABLE_NAME, 
-                            T0.TRG_RECORD_ID
-                        FROM META_DM_RECORD_MAP T0 
-                            INNER JOIN KPI_INDICATOR T1 ON T1.ID = T0.TRG_REF_STRUCTURE_ID 
-                        WHERE T0.SRC_REF_STRUCTURE_ID = ".$this->db->Param(0)." 
-                            AND T0.SRC_RECORD_ID = ".$this->db->Param(1)." 
-                            AND T0.SRC_NAME IS NOT NULL", 
-                        array($kpiMainIndicatorId, $rowId));
-
-                    if ($recordMapDatas) {
-
-                        $this->db->Execute("
-                            DELETE 
-                            FROM META_DM_RECORD_MAP 
-                            WHERE SRC_REF_STRUCTURE_ID = ".$this->db->Param(0)." 
-                                AND SRC_RECORD_ID = ".$this->db->Param(1)." 
-                                AND SRC_NAME IS NOT NULL", 
-                            array($kpiMainIndicatorId, $rowId)
-                        ); 
-
-                        foreach ($recordMapDatas as $recordMapData) {
-
-                            if ($recordMapData['TABLE_NAME'] && $recordMapData['TRG_RECORD_ID']) {
-                                $this->db->Execute("DELETE FROM ".$recordMapData['TABLE_NAME']." WHERE ID = ".$this->db->Param(0), array($recordMapData['TRG_RECORD_ID'])); 
-                            }
-                        }
-                    }
-                }
+                } 
             }
             
             if (isset(Mdform::$mvDbParams['detailSubTables'])) {
@@ -11834,7 +11831,7 @@ class Mdform_Model extends Model {
                         WHERE T0.MAIN_INDICATOR_ID = ".$this->db->Param(0)." 
                             AND T0.PARENT_ID IS NULL 
                             AND T0.SEMANTIC_TYPE_ID = 10000002 
-                            AND T0.SHOW_TYPE = 'rows' 
+                            AND (T0.SHOW_TYPE = 'row' OR T0.SHOW_TYPE = 'rows') 
                             AND T0.COLUMN_NAME = ".$this->db->Param(1), 
                         array($kpiMainIndicatorId, $subPath)
                     );
@@ -11852,6 +11849,10 @@ class Mdform_Model extends Model {
                         $_POST['recordMap']['srcRecordId']    = $rowId;
                         
                         $subRows = $mvSaveParams[$subPath];
+                        
+                        if (!isset($subRows[0])) {
+                            $subRows = [$subRows];
+                        }
                         
                         foreach ($subRows as $s => $subRow) {
                             
@@ -19130,25 +19131,29 @@ class Mdform_Model extends Model {
             $valueArr        = explode(',', $value);
             
             $configRow       = self::getKpiIndicatorRowModel($indicatorId);
-            $columns         = self::getKpiIndicatorColumnsModel($indicatorId, array('isIgnoreStandardFields' => true)); 
+            $columns         = self::getKpiIndicatorColumnsModel($indicatorId, ['isIgnoreStandardFields' => true]); 
             
             $permissionCriteria = self::getUmPermissionKeyModel($indicatorId);
             
             $tableName      = $configRow['TABLE_NAME'];
             $queryString    = self::parseQueryString($configRow['QUERY_STRING']);
             $isQueryString  = $queryString ? true : false;
+            $isSystemTable  = $tableName ? self::isCheckSystemTable($tableName) : false;
             
             $valueSelectCol = '';
             $orderBy        = '';
-            $subCondition   = 'AND DELETED_USER_ID IS NULL';
-            $columnsConfig  = $defaultValueFilterData = array();
+            $subCondition   = '';
+            $columnsConfig  = $defaultValueFilterData = [];
             
             $isCategoryCombo = $isCategoryGroupCombo = false;
             $isFirstLoad = Input::numeric('isFirstLoad');
             
+            if ($isSystemTable == false) {
+                $subCondition = 'AND DELETED_USER_ID IS NULL';
+            }
+            
             if ($isQueryString) {
                 $tableName = "($queryString)";
-                $subCondition = '';
             } 
             
             if ($permissionCriteria) {
@@ -24343,21 +24348,34 @@ class Mdform_Model extends Model {
                                             
                                             $trg = strtolower($inputConfig['trg']);
                                             $defaultVal = $inputConfig['defaultVal'];
-
-                                            $setInputVal = $trg ? issetParam($headerData[$trg]) : Mdmetadata::setDefaultValue($defaultVal);
                                             
-                                            if ($defaultVal != '' && strpos($defaultVal, 'calExp[') !== false) {
+                                            if ($defaultVal == 'prevMonths') {
                                                 
-                                                if ($headerData && is_array($headerData)) {
-                                                    foreach ($headerData as $headerKey => $headerVal) {
-                                                        $headerVal = ($headerVal != '' ? $headerVal : 'null');
-                                                        $defaultVal = str_ireplace('['.$headerKey.']', $headerVal, $defaultVal);
-                                                    }
+                                                $trgVal = issetParam($headerData[$trg]);
+                                                
+                                                if ($trgVal) {
+                                                    $setInputVal = range(1, (int) $trgVal);
+                                                } else {
+                                                    $setInputVal = '';
                                                 }
                                                 
-                                                $setInputVal = Mdstatement::calculateExpression($defaultVal);
-                                                $setInputVal = str_replace(',', '', $setInputVal);
-                                                $setInputVal = str_replace('.00', '', $setInputVal);
+                                            } else {
+
+                                                $setInputVal = $trg ? issetParam($headerData[$trg]) : Mdmetadata::setDefaultValue($defaultVal);
+
+                                                if ($defaultVal != '' && strpos($defaultVal, 'calExp[') !== false) {
+
+                                                    if ($headerData && is_array($headerData)) {
+                                                        foreach ($headerData as $headerKey => $headerVal) {
+                                                            $headerVal = ($headerVal != '' ? $headerVal : 'null');
+                                                            $defaultVal = str_ireplace('['.$headerKey.']', $headerVal, $defaultVal);
+                                                        }
+                                                    }
+
+                                                    $setInputVal = Mdstatement::calculateExpression($defaultVal);
+                                                    $setInputVal = str_replace(',', '', $setInputVal);
+                                                    $setInputVal = str_replace('.00', '', $setInputVal);
+                                                }
                                             }
                                             
                                             if (stripos($queryStr, ':'.$inputPath) !== false) {
@@ -24380,15 +24398,22 @@ class Mdform_Model extends Model {
                                             foreach ($whereClause as $whereField => $whereVal) {
                                                 
                                                 $whereFieldUpper = strtoupper($whereField);
-                                                $whereVal = Str::lower($whereVal);
                                                 
-                                                if (!$isCheckSystemTable 
-                                                    && isset($headerParams[$whereFieldUpper]) 
-                                                    && ($headerParams[$whereFieldUpper]['SHOW_TYPE'] == 'combo' || $headerParams[$whereFieldUpper]['SHOW_TYPE'] == 'popup')) {
+                                                if (is_array($whereVal)) {
                                                     
-                                                    $where .= " AND (TO_CHAR(T.$whereField) = '$whereVal' OR LOWER(T.".$whereField."_DESC) = '$whereVal')"; 
+                                                    $where .= " AND LOWER(T.$whereField) IN ('".Arr::implode_r("','", $whereVal, true)."')"; 
+                                                    
                                                 } else {
-                                                    $where .= " AND LOWER(T.$whereField) = '$whereVal'"; 
+                                                    $whereVal = Str::lower($whereVal);
+                                                
+                                                    if (!$isCheckSystemTable 
+                                                        && isset($headerParams[$whereFieldUpper]) 
+                                                        && ($headerParams[$whereFieldUpper]['SHOW_TYPE'] == 'combo' || $headerParams[$whereFieldUpper]['SHOW_TYPE'] == 'popup')) {
+
+                                                        $where .= " AND (TO_CHAR(T.$whereField) = '$whereVal' OR LOWER(T.".$whereField."_DESC) = '$whereVal')"; 
+                                                    } else {
+                                                        $where .= " AND LOWER(T.$whereField) = '$whereVal'"; 
+                                                    }
                                                 }
                                             }
                                         }
@@ -24447,7 +24472,7 @@ class Mdform_Model extends Model {
             }
             
         } catch (Exception $ex) {
-            $result = array('status' => 'error', 'message' => $ex->msg);
+            $result = array('status' => 'error', 'message' => $ex->getMessage());
         }
         
         return $result;
@@ -25679,6 +25704,7 @@ class Mdform_Model extends Model {
                     T0.CRITERIA, 
                     T0.TAB_NAME, 
                     T0.GROUP_NAME, 
+                    T0.LABEL_NAME AS MAP_LABEL_NAME, 
                     T0.IS_COMMENT, 
                     T0.META_DATA_ID, 
                     T0.META_DATA_NAME, 
@@ -25690,11 +25716,13 @@ class Mdform_Model extends Model {
                         COALESCE(T2.LABEL_NAME, T2.NAME) AS NAME,
                         T2.KPI_TYPE_ID, 
                         COALESCE(T2.PARENT_ID, T1.SRC_INDICATOR_ID) AS STRUCTURE_INDICATOR_ID, 
+                        T1.SRC_INDICATOR_ID, 
                         T1.ORDER_NUMBER, 
                         T1.ID AS MAP_ID, 
                         T1.CRITERIA, 
                         T1.TAB_NAME, 
                         T1.GROUP_NAME, 
+                        T1.LABEL_NAME, 
                         T1.IS_COMMENT, 
                         T3.META_DATA_ID, 
                         ".$this->db->IfNull('T4.LIST_NAME', $this->db->IfNull('T5.PROCESS_NAME', 'T3.META_DATA_NAME'))." AS META_DATA_NAME, 
@@ -25729,6 +25757,7 @@ class Mdform_Model extends Model {
                         T1.CRITERIA, 
                         T1.TAB_NAME, 
                         T1.GROUP_NAME, 
+                        T1.LABEL_NAME, 
                         T1.IS_COMMENT, 
                         T3.META_DATA_ID, 
                         T3.META_DATA_NAME, 
@@ -25737,7 +25766,13 @@ class Mdform_Model extends Model {
                         T3.META_TYPE_ID 
                     ) T0 
                     LEFT JOIN KPI_INDICATOR T3 ON T3.ID = T0.STRUCTURE_INDICATOR_ID 
-                ORDER BY T0.ORDER_NUMBER ASC", array($mainIndicatorId, $typeId));
+                    LEFT JOIN KPI_INDICATOR_REF_VALUE T4 ON T4.INDICATOR_ID = T0.SRC_INDICATOR_ID 
+                        AND T4.VALUE_TYPE = 'Tab name' 
+                        AND LOWER(T4.VALUE_NAME) = LOWER(T0.TAB_NAME) 
+                    LEFT JOIN KPI_INDICATOR_REF_VALUE T5 ON T5.INDICATOR_ID = T0.SRC_INDICATOR_ID 
+                        AND T5.VALUE_TYPE = 'Group name' 
+                        AND LOWER(T5.VALUE_NAME) = LOWER(T0.GROUP_NAME) 
+                ORDER BY T4.ORDER_NUMBER ASC, T5.ORDER_NUMBER ASC, T0.ORDER_NUMBER ASC", array($mainIndicatorId, $typeId));
             
             if ($data && $selectedRow) {
                 $arr = array();

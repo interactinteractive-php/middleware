@@ -461,9 +461,28 @@ class Restapi extends Controller {
                     }
                     break;
                     
+                    case 'removeFile':
+                    {
+                        if (isset($parameters['path']) && isset($parameters['path'][0])) {
+                            
+                            $paths = Input::param($parameters['path']);
+                            
+                            foreach ($paths as $path) {
+                                if ($path && file_exists($path)) {
+                                    @unlink($path);
+                                }
+                            }
+                            
+                            $response = ['status' => 'success', 'text' => 'success'];
+                        } else {
+                            $response = ['status' => 'error', 'text' => 'Invalid path!'];
+                        }
+                    }
+                    break;
+                    
                     default: 
                     {
-                        $response = array('status' => 'error', 'text' => 'Wrong command!');
+                        $response = ['status' => 'error', 'text' => 'Wrong command!'];
                     }
                     break;
                 }
@@ -478,7 +497,7 @@ class Restapi extends Controller {
             }
         
         } else {
-            $response = array('status' => 'error', 'text' => 'Invalid command!');
+            $response = ['status' => 'error', 'text' => 'Invalid command!'];
         }
         
         $isMobile = true;

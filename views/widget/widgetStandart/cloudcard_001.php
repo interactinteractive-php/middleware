@@ -39,7 +39,7 @@
         margin-top: 20px;
     } */
     .slick-carousel2<?php echo $uid; ?> .slick-list {
-        margin-left: 60px;
+        margin-left: 20px;
         margin-right: 20px;
     }
 </style>
@@ -56,7 +56,7 @@
         nextArrow:'<div style="flex-shrink: 0;width: 40px;height: 40px;background: #fff;border-radius: 40px;text-align: center;box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.12); cursor:pointer" class=""><i class="far fa-angle-right" style="font-size:22px;margin: 9px;"></i></div>'       
     });    
     setTimeout(function() {
-        $(".slick-carousel2<?php echo $uid; ?>").css("width", $(window).width() -460);
+        $(".slick-carousel2<?php echo $uid; ?>").css("width", $(".slick-carousel2<?php echo $uid; ?>").parent().parent().width() - 40);
     }, 10);
     $(".cloud-call-process").click(function(){
         Core.blockUI({

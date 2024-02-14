@@ -1908,7 +1908,8 @@ class Mdupgrade_Model extends Model {
         
         $arr = array(
             'KPI_INDICATOR' => array(
-                'PROFILE_PICTURE' => 'imageFile'
+                'PROFILE_PICTURE' => 'imageFile', 
+                'ICON' => 'imageFile'
             ), 
             'KPI_INDICATOR_INDICATOR_MAP' => array(
                 'DEFAULT_FILE' => 'contentFile'
@@ -3054,7 +3055,7 @@ class Mdupgrade_Model extends Model {
                 
                 if (self::$isInsertData && $row['mainTableName'] == 'KPI_INDICATOR' && $row['columnName'] == 'TABLE_NAME' && $row['recordId']) {
                     
-                   $isDefaultDataset = $this->db->GetOne("SELECT IS_DEFAULT_DATASET FROM V_DATA_SET WHERE SRC_RECORD_ID = $srcRecordIdPh", array($row['recordId']));
+                    $isDefaultDataset = $this->db->GetOne("SELECT IS_DEFAULT_DATASET FROM V_DATA_SET WHERE SRC_RECORD_ID = $srcRecordIdPh", array($row['recordId']));
                    
                     if (!$isDefaultDataset) {
                         continue;
@@ -4845,7 +4846,7 @@ class Mdupgrade_Model extends Model {
                     
                     ++$metaCount;
 
-                    if (!$isIgnoreCheckLock) {
+                    if (!$isIgnoreCheckLock && is_numeric($metaTypeId)) {
 
                         $response = $this->ws->getJsonByCurl(Mdmeta::getLockServerAddr().'checkLock/'.$metaDataId.'/'.$sessionUserId);
 

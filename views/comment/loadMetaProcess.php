@@ -23,7 +23,7 @@
                 ?>
             </div>
             <div class="pl8 pt15">
-                <div style="position: absolute;display: flex;right: 46px;">
+                <div style="position: absolute;display: flex;right: 46px;" class="common-comment-action-btn">
                     <a href="javascript:;" class="fileinput-button" style="width: 25px;color:#2196f3" title="Зураг нэмэх">
                         <i class="icon-file-picture font-size-15"></i>
                         <input type="file" name="file" onchange="onChangeAttachFIleAddMode_<?php echo $this->uniqId; ?>(this);"/>

@@ -64,6 +64,7 @@ $(function() {
                     success: function(data) {
                         viewProcess_<?php echo $this->uniqId; ?>.empty().append(data.Html).promise().done(function () {
                             viewProcess_<?php echo $this->uniqId; ?>.find('.bp-btn-back, .bpTestCaseSaveButton').remove();
+                            viewProcess_<?php echo $this->uniqId; ?>.find('.meta-toolbar').addClass('not-sticky');
                             Core.initBPAjax(viewProcess_<?php echo $this->uniqId; ?>);
                             Core.unblockUI();
                         });
@@ -75,15 +76,56 @@ $(function() {
         
                 $.ajax({
                     type: 'post',
-                    dataType: 'json',
                     url: 'mdobject/dataview/' + metaDataId + '/0/json',
                     data: {kpiIndicatorMapConfig: jsonObj},
+                    dataType: 'json',
+                    beforeSend: function() {
+                        Core.blockUI({message: 'Loading...', boxed: true});
+                    },
+                    success: function (data) {
+                        if (data.hasOwnProperty('Html')) {
+                            viewProcess_<?php echo $this->uniqId; ?>.empty().append(data.Html).promise().done(function () {
+                                viewProcess_<?php echo $this->uniqId; ?>.find('> .row > .col-md-12:eq(0)').remove();
+                                Core.unblockUI();
+                            });
+                        } else {
+                            viewProcess_<?php echo $this->uniqId; ?>.removeClass('pl-3 pr-3').addClass('pl5 pr5');
+                            viewProcess_<?php echo $this->uniqId; ?>.empty().append(data.html).promise().done(function () {
+                                Core.unblockUI();
+                            });
+                        }
+                    },
+                    error: function(){ alert('Error'); Core.unblockUI(); }
+                });
+                
+            } else if (metaTypeId == '200101010000032') { //Chart
+            
+                $.ajax({
+                    type: 'post',
+                    url: 'mddashboard/diagramRenderByPost',
+                    data: {metaDataId: metaDataId},
+                    dataType: 'json',
                     beforeSend: function() {
                         Core.blockUI({message: 'Loading...', boxed: true});
                     },
                     success: function (data) {
                         viewProcess_<?php echo $this->uniqId; ?>.empty().append(data.Html).promise().done(function () {
-                            viewProcess_<?php echo $this->uniqId; ?>.find('> .row > .col-md-12:eq(0)').remove();
+                            Core.unblockUI();
+                        });
+                    },
+                    error: function(){ alert('Error'); Core.unblockUI(); }
+                });
+            } else if (metaTypeId == '200101010000035') { //Statement
+            
+                $.ajax({
+                    type: 'post',
+                    url: 'mdstatement/index/' + metaDataId,
+                    data: {kpiIndicatorMapConfig: jsonObj},
+                    beforeSend: function() {
+                        Core.blockUI({message: 'Loading...', boxed: true});
+                    },
+                    success: function (dataHtml) {
+                        viewProcess_<?php echo $this->uniqId; ?>.empty().append(dataHtml).promise().done(function () {
                             Core.unblockUI();
                         });
                     },

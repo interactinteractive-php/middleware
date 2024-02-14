@@ -29,7 +29,7 @@
             <div class="bp-tabs tabbable-line mv-main-tabs mv-checklist-tab w-100">
                 <ul class="nav nav-tabs">            
                     <li class="nav-item">
-                        <a href="#structabcustom_1703241175512581" class="nav-link active" data-toggle="tab" aria-expanded="false">
+                        <a href="#structabcustom_<?php echo $this->uniqId; ?>" class="nav-link active" data-toggle="tab" aria-expanded="false">
                             <?php echo checkDefaultVal($this->shortDescription, 'Хүсэлт') ?>                
                         </a>
                     </li>                        
@@ -38,7 +38,7 @@
                         foreach ($relationTabList as $groupName => $groupRow) {
                             if ($groupName != 'яяяrow') {
                                 echo '<li class="nav-item">';
-                                    echo '<a href="#maintabcustom_1703241175512581_'.($tabId++).'" class="nav-link mv-checklist-tab-link" data-toggle="tab" aria-expanded="false">';
+                                    echo '<a href="#maintabcustom_'.$this->uniqId.'_'.($tabId++).'" class="nav-link mv-checklist-tab-link" data-toggle="tab" aria-expanded="false">';
                                         echo $groupName;
                                     echo '</a>';
                                 echo '</li>';                                
@@ -47,7 +47,7 @@
                     ?>
                 </ul>        
                 <div class="tab-content" style="padding-top: 0px;padding-bottom: 0px;"> 
-                    <div class="tab-pane active" id="structabcustom_1703241175512581">
+                    <div class="tab-pane active" id="structabcustom_<?php echo $this->uniqId; ?>">
                         <div class="mv-checklist-main-render" style="width: 100%; padding: 10px 50px;">
                             <form method="post" enctype="multipart/form-data">
                                 <div class="meta-toolbar is-bp-open-">
@@ -71,7 +71,7 @@
                         $tabId = 1;
                         foreach ($relationTabList as $tabName => $tabRow) {
                             if ($tabName != 'яяяrow') { ?>                    
-                                <div class="tab-pane p-1" id="maintabcustom_1703241175512581_<?php echo $tabId++ ?>" style="padding-bottom: 0 !important;padding-top: 0 !important;padding-right: 0 !important;">
+                                <div class="tab-pane p-1" id="maintabcustom_<?php echo $this->uniqId; ?>_<?php echo $tabId++ ?>" style="padding-bottom: 0 !important;padding-top: 0 !important;padding-right: 0 !important;">
                                     <div class="d-flex">
                                         <div class="sidebar sidebar-light sidebar-secondary sidebar-expand-md pr-2" style="width:280px">
                                             <div class="sidebar-content">
@@ -92,14 +92,19 @@
                                                                 foreach ($rows as $row) {
 
                                                                     $kpiTypeId = $row['KPI_TYPE_ID'];
+                                                                    $mapLabelName = $row['MAP_LABEL_NAME'];
                                                                     $class = $itemClass = '';
-
-                                                                    if ($kpiTypeId == 2008) {
-                                                                        $name = $row['STRUCTURE_NAME'];
-                                                                    } elseif ($row['META_DATA_ID']) {
-                                                                        $name = $this->lang->line($row['META_DATA_NAME']);
+                                                                    
+                                                                    if ($mapLabelName != '') {
+                                                                        $name = $this->lang->line($mapLabelName);
                                                                     } else {
-                                                                        $name = $row['NAME'];
+                                                                        if ($kpiTypeId == 2008) {
+                                                                            $name = $row['STRUCTURE_NAME'];
+                                                                        } elseif ($row['META_DATA_ID']) {
+                                                                            $name = $this->lang->line($row['META_DATA_NAME']);
+                                                                        } else {
+                                                                            $name = $row['NAME'];
+                                                                        }
                                                                     }
 
                                                                     if ($n == 0) {
@@ -194,9 +199,9 @@
 ?>
 
 <style type="text/css">
-.mv-checklist2-render-parent .mv-checklist-render {
+/*.mv-checklist2-render-parent .mv-checklist-render {
     max-width: 900px;
-}    
+}*/    
 .mv-checklist2-render-parent .mv-checklist-render-comment .media-body .p-2.pb3 {
     background-color: #eee !important;
 }   
@@ -229,10 +234,10 @@
 .mv-checklist2-render-parent .jeasyuiTheme3 {
     padding-bottom: 15px;
 }
-.mv-checklist2-render-parent .mv-checklist-render .input-group-btn>.btn {
+/*.mv-checklist2-render-parent .mv-checklist-render .input-group-btn>.btn {
     height: 20px;
     min-height: 20px;
-}
+}*/
 /*.mv-checklist2-render-parent .mv-checklist-render .quick-item-process.bp-add-ac-row {
     position: absolute;
     margin-top: -36px;
@@ -453,7 +458,7 @@
 }
 .kpi-form-paper-portrait .kpi-form-paper-portrait-child {
     position: relative;
-    width: 1200px;
+    width: <?php echo $this->windowWidth ? $this->windowWidth: '1200px'; ?>;
     min-height: calc(100vh - 126px);
     margin-top: 10px;
     margin-left: auto;
@@ -547,18 +552,7 @@
     color: #1B84FF;
 }
 .kpi-form-paper-portrait .bp-tabs .tab-pane .tabbable-line>.nav-tabs>li a.nav-link {
-    background-color: #f5f5f5;
-    border-top: 1px #ddd solid;
-    border-left: 1px #ddd solid;
-    border-bottom: 1px #ddd solid;
-}
-.kpi-form-paper-portrait .bp-tabs .tab-pane .tabbable-line>.nav-tabs>li:last-child a.nav-link {
-    border-right: 1px #ddd solid;
-}
-.kpi-form-paper-portrait .bp-tabs .tab-pane .tabbable-line>.nav-tabs>li a.nav-link.active {
-    background-color: #fff;
-    border-top: 1px transparent solid;
-    border-bottom: 1px solid transparent!important;
+    background-color: transparent;
 }
 .kpi-form-paper-portrait .bp-tabs .tab-pane .tabbable-line>.nav-tabs>li a.nav-link:before {
     height: 2px;
@@ -567,9 +561,6 @@
     right: -1px;
     content: '';
     position: absolute;
-}
-.kpi-form-paper-portrait .bp-tabs .tab-pane .tabbable-line>.nav-tabs>li a.nav-link.active:before {
-    background-color: #e9a22f;
 }
 .kpi-notfocus-readonly-input {
     cursor: text!important;
@@ -675,15 +666,31 @@ input.kpi-notfocus-readonly-input::placeholder {
 .mv-checklist2-render-parent .mv-hdr-label-control-input .select2-container .select2-choice .select2-arrow {
     /*background-color: #fafafa;*/
 }
+.mv-checklist2-render-parent .mv-checklist-render div[data-meta-type="process"] .table-scrollable>.table, 
+.mv-checklist2-render-parent .mv-checklist-render div[data-meta-type="process"] .tabbable-line>.tab-content {
+    background-color: transparent;
+}
+.mv-checklist2-render-parent .mv-checklist-render div[data-meta-type="process"] .tabbable-line>.nav-tabs {
+    border: none;
+    margin: 0px;
+    background: transparent;
+}
 </style>
 
 <script type="text/javascript">
 $('.mv-checklist-tab-link').on('shown.bs.tab', function() {    
     var $tabPane = $($(this).attr('href')), 
-        $selTb = $tabPane.find('li.nav-item:not(.d-none) > .mv_checklist_02_sub.nav-link').first();
+        $selTb = $tabPane.find('li.nav-item:not(.d-none) > .mv_checklist_02_sub.nav-link'), 
+        $selTbLength = $selTb.length;
     
-    if ($selTb.length) {
-        $selTb.trigger('click');
+    if ($selTbLength) {
+        if ($selTbLength == 1) {
+            $tabPane.find('> .d-flex > .sidebar').hide();
+        } else {
+            $tabPane.find('> .d-flex > .sidebar').show();
+        }
+        
+        $selTb.first().trigger('click');
     }
 });
 </script>
