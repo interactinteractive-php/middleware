@@ -81,9 +81,12 @@ class Mdwidget_Model extends Model {
             'systemMetaGroupId' => $systemMetaGroupId, 
             'showQuery' => $isShowQuery, 
             'ignorePermission' => 1, 
-            'criteria' => $criteria,
-            'paging' => $paging
+            'criteria' => $criteria
         );
+        
+        if ($paging) {
+            $param['paging'] = $paging;
+        }
         
         // $dataResult = $this->ws->runSerializeResponse(GF_SERVICE_ADDRESS, self::$getDataViewCommand, $param);
         // pa(Mddatamodel::$getRowDataViewCommand);

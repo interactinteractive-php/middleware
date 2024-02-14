@@ -6191,6 +6191,10 @@ class Mdform_Model extends Model {
                     }   
                 }
                 
+                if (isset($cellJson['getValFromMart']) && $cellJson['getValFromMart']) {
+                    $addAttrs['readonly'] = 'readonly';
+                }
+                
                 if (!$value && $cellDefaultValue) {
                     $value = self::parseExpressionFunctionNames($cellDefaultValue);
                     $addAttrs['data-auto-change'] = '1';
@@ -17668,7 +17672,7 @@ class Mdform_Model extends Model {
                 $rowGroup      = Arr::sortBy('ROW_GROUP_ORDER', $jsonData['ROW_GROUP'], 'asc');
                 $columnGroup   = Arr::sortBy('COLUMN_GROUP_ORDER', $jsonData['COLUMN_GROUP'], 'asc');
                 $dataGroup     = Arr::sortBy('DATA_GROUP_ORDER', $jsonData['DATA_GROUP'], 'asc');
-                
+                                
                 $allRowAggregate = issetParam($jsonData['ROW_AGGREGATE']);
                 $allColAggregate = issetParam($jsonData['COLUMN_AGGREGATE']);
                 $filterGroup     = issetParam($jsonData['FILTER_GROUP']);
@@ -17679,7 +17683,7 @@ class Mdform_Model extends Model {
                 
                 $sessionUserId = Ue::sessionUserKeyId();
                 $currentDate   = Date::currentDate();
-                $columnAggr    = array();
+                $columnAggr    = [];
                 
                 $columnGroupFields = $columnGroupGroupBy = $columnGroupOrderBy = $dataFilterWhere = '';
                 
@@ -17724,11 +17728,11 @@ class Mdform_Model extends Model {
                     
                     if ($columnGroupAggr && !$columnAggr) {
                         
-                        $columnAggr = array(
+                        $columnAggr = [
                             'field'     => $columnGroupField, 
                             'aggregate' => $columnGroupAggr, 
                             'mask'      => issetParam($columnRow['COLUMN_GROUP_AGGREGATE_MASK'])
-                        );
+                        ];
                     }
                 }
                 
@@ -17761,8 +17765,8 @@ class Mdform_Model extends Model {
                     $c = $n = 1;
                     $columnGroupCount = count($columnGroupData);
                     
-                    $map = $mapField = $checkAddAggrCol = $tempDataGroup = array();
-                    $aggregateNames = array('sum' => 'нийт', 'avg' => 'дундаж');
+                    $map = $mapField = $checkAddAggrCol = $tempDataGroup = [];
+                    $aggregateNames = ['sum' => 'нийт', 'avg' => 'дундаж'];
                     
                     foreach ($dataGroup as $dataGroupRow) {
                         
@@ -17794,7 +17798,7 @@ class Mdform_Model extends Model {
                         $columnWidth = issetDefaultVal($fieldConfigs[$colName]['columnWidth'], null);
                         $bodyAlign   = issetDefaultVal($fieldConfigs[$colName]['bodyAlign'], null);
                         
-                        $map[] = array(
+                        $map[] = [
                             'ID'                => getUIDAdd($n), 
                             'COLUMN_NAME'       => $colName, 
                             'COLUMN_NAME_PATH'  => $colName, 
@@ -17812,12 +17816,12 @@ class Mdform_Model extends Model {
                             'ORDER_NUMBER'      => $n, 
                             'CREATED_DATE'      => $currentDate, 
                             'CREATED_USER_ID'   => $sessionUserId
-                        );
+                        ];
 
-                        $mapField[] = array(
+                        $mapField[] = [
                             'name' => $colName, 
                             'type' => $showType
-                        );
+                        ];
                         
                         $n ++;
                     }
@@ -17841,7 +17845,7 @@ class Mdform_Model extends Model {
                                 $rowLabelName = $mergeTitle . '|' . $labelName;
                             }
                             
-                            $map[] = array(
+                            $map[] = [
                                 'ID'                 => getUIDAdd($n), 
                                 'COLUMN_NAME'        => $colName, 
                                 'COLUMN_NAME_PATH'   => $colName, 
@@ -17858,12 +17862,12 @@ class Mdform_Model extends Model {
                                 'ORDER_NUMBER'       => $n, 
                                 'CREATED_DATE'       => $currentDate, 
                                 'CREATED_USER_ID'    => $sessionUserId
-                            );
+                            ];
                             
-                            $mapField[] = array(
+                            $mapField[] = [
                                 'name' => $colName, 
                                 'type' => $showType
-                            );
+                            ];
                             
                             $c ++;
                             $n ++;
@@ -17921,10 +17925,10 @@ class Mdform_Model extends Model {
                                         'CREATED_USER_ID'    => $sessionUserId
                                     );
 
-                                    $mapField[] = array(
+                                    $mapField[] = [
                                         'name' => $colName, 
                                         'type' => $showType
-                                    );
+                                    ];
 
                                     $c ++;
                                     $n ++;
@@ -17962,7 +17966,7 @@ class Mdform_Model extends Model {
                                 $rowLabelName = $allRowAggregateMaskLabel . '|' . $labelName;
                             }
 
-                            $map[] = array(
+                            $map[] = [
                                 'ID'                 => getUIDAdd($n), 
                                 'COLUMN_NAME'        => $colName, 
                                 'COLUMN_NAME_PATH'   => $colName, 
@@ -17979,12 +17983,12 @@ class Mdform_Model extends Model {
                                 'ORDER_NUMBER'       => $n, 
                                 'CREATED_DATE'       => $currentDate, 
                                 'CREATED_USER_ID'    => $sessionUserId
-                            );
+                            ];
 
-                            $mapField[] = array(
+                            $mapField[] = [
                                 'name' => $colName, 
                                 'type' => $showType
-                            );
+                            ];
 
                             $c ++;
                             $n ++;
@@ -17992,7 +17996,7 @@ class Mdform_Model extends Model {
                     }
                     
                     $rowGroupFields = $rowGroupGroupBy = $rowGroupOrderBy = $deleteJoin = $mergeMatch = '';
-                
+                    
                     foreach ($rowGroup as $rowRow) {
 
                         $rowGroupField = $rowRow['ROW_GROUP_FIELD'];
@@ -18025,7 +18029,7 @@ class Mdform_Model extends Model {
                     $rowGroupGroupBy = rtrim(trim($rowGroupGroupBy), ',');
                     $rowGroupOrderBy = rtrim(trim($rowGroupOrderBy), ',');
                     
-                    $sortColumns = array();
+                    $sortColumns = [];
                     
                     foreach ($fieldConfigs as $c => $column) {
                         
@@ -18078,7 +18082,7 @@ class Mdform_Model extends Model {
                             $createTblStatus = self::dbCreatedTblKpiDataMart($pivotTableName, $mapField);
 
                             if ($createTblStatus['status'] == 'error') {
-                                return array('status' => 'error', 'message' => 'Create table: ' . $createTblStatus['message']);
+                                return ['status' => 'error', 'message' => 'Create table: ' . $createTblStatus['message']];
                             } else {
                                 self::updateKpiIndicatorTblName($pivotIndicatorId, $pivotTableName); 
                             }
@@ -18090,7 +18094,7 @@ class Mdform_Model extends Model {
                             self::dbCreatedTblKpiDataMart($pivotTableName, $mapField);
                         }
                         
-                        $this->db->Execute("DELETE FROM KPI_INDICATOR_INDICATOR_MAP WHERE MAIN_INDICATOR_ID = ".$this->db->Param(0), array($pivotIndicatorId));
+                        $this->db->Execute("DELETE FROM KPI_INDICATOR_INDICATOR_MAP WHERE MAIN_INDICATOR_ID = ".$this->db->Param(0), [$pivotIndicatorId]);
                         
                         foreach ($map as $insertMap) {
                             $this->db->AutoExecute('KPI_INDICATOR_INDICATOR_MAP', $insertMap);
@@ -18116,7 +18120,13 @@ class Mdform_Model extends Model {
                         foreach ($dataGroup as $dataGroupRow) {
                             
                             $dataField = strtoupper($dataGroupRow['DATA_GROUP_FIELD']);
-                            $rowMergeFields .= ", SUM(NVL($dataField, 0)) AS $dataField";
+                            
+                            if (isset($fieldConfigs[$dataField]['showType']) && $fieldConfigs[$dataField]['showType'] == 'date') {
+                                $rowMergeFields .= ", $dataField";
+                                $rowGroupGroupBy .= ", $dataField";
+                            } else {
+                                $rowMergeFields .= ", SUM(NVL($dataField, 0)) AS $dataField";
+                            }
                         }
                         
                         $columnMergeFields = '';
@@ -18137,7 +18147,7 @@ class Mdform_Model extends Model {
                         $criteriaAggregate = issetParam($jsonData['CRITERIA_AGGREGATE']);
                         
                         $criteriaAggregateTmp = $criteriaAggregateAllRowTmp = 
-                        $criteriaAggregateLoop = $criteriaAggregateAllRowLoop = array();
+                        $criteriaAggregateLoop = $criteriaAggregateAllRowLoop = [];
                         
                         if ($criteriaAggregate) {
                             
@@ -18151,10 +18161,10 @@ class Mdform_Model extends Model {
                                     $aggregateColumnFieldUpper = strtoupper($criteriaAggregateRow['AGGREGATE_COLUMN_FIELD']);
                                     $aggregateDataFieldUpper   = strtoupper($criteriaAggregateRow['AGGREGATE_DATA_FIELD']);
                                     
-                                    $criteriaAggregateTmp[$aggregateColumnFieldUpper][$aggregateDataFieldUpper] = array(
+                                    $criteriaAggregateTmp[$aggregateColumnFieldUpper][$aggregateDataFieldUpper] = [
                                         'function' => $criteriaAggregateRow['AGGREGATE_FUNCTION'], 
                                         'criteria' => html_entity_decode($criteriaAggregateRow['AGGREGATE_CRITERIA'], ENT_QUOTES, 'UTF-8')
-                                    );
+                                    ];
                                     
                                 } elseif ($criteriaAggregateRow['AGGREGATE_DATA_FIELD'] 
                                     && $criteriaAggregateRow['AGGREGATE_FUNCTION'] 
@@ -18162,10 +18172,10 @@ class Mdform_Model extends Model {
                                     
                                     $aggregateDataFieldUpper = strtoupper($criteriaAggregateRow['AGGREGATE_DATA_FIELD']);
                                     
-                                    $criteriaAggregateAllRowTmp[$aggregateDataFieldUpper] = array(
+                                    $criteriaAggregateAllRowTmp[$aggregateDataFieldUpper] = [
                                         'function' => $criteriaAggregateRow['AGGREGATE_FUNCTION'], 
                                         'criteria' => html_entity_decode($criteriaAggregateRow['AGGREGATE_CRITERIA'], ENT_QUOTES, 'UTF-8')
-                                    );
+                                    ];
                                 }
                             }
                         }
@@ -18205,12 +18215,12 @@ class Mdform_Model extends Model {
                                                 $criteriaAggregateStr = rtrim(trim($criteriaAggregateStr), 'AND');
                                                 $criteriaAggregateStr = ltrim(trim($criteriaAggregateStr), 'AND');
                                                 
-                                                $criteriaAggregateLoop[] = array(
+                                                $criteriaAggregateLoop[] = [
                                                     'pivotColumn'  => $pivotColumn, 
                                                     'trgAliasName' => $trgAliasName, 
                                                     'function'     => $criteriaAggregateTmp[$srcColName][$trgAliasName]['function'], 
                                                     'criteria'     => $columnMergeFieldsLoop . ' AND '.$criteriaAggregateStr
-                                                );
+                                                ];
                                             }
                                         }
                                         
@@ -18224,12 +18234,12 @@ class Mdform_Model extends Model {
                                             $criteriaAggregateStr = rtrim(trim($criteriaAggregateStr), 'AND');
                                             $criteriaAggregateStr = ltrim(trim($criteriaAggregateStr), 'AND');
                                                 
-                                            $criteriaAggregateAllRowLoop[] = array(
+                                            $criteriaAggregateAllRowLoop[] = [
                                                 'pivotColumn'  => $pivotColumn, 
                                                 'trgAliasName' => $trgAliasName, 
                                                 'function'     => $criteriaAggregateAllRowTmp[$trgAliasName]['function'], 
                                                 'criteria'     => $criteriaAggregateStr
-                                            );
+                                            ];
                                         }
                                     }
                                     
@@ -18359,7 +18369,7 @@ class Mdform_Model extends Model {
                         }
                     }
                     
-                    $response = array('status' => 'success', 'message' => 'Successfuly');
+                    $response = ['status' => 'success', 'message' => 'Successfuly'];
                 }
                 
             } else {
@@ -18368,7 +18378,7 @@ class Mdform_Model extends Model {
             
         } catch (Exception $ex) {
             file_put_contents('log/pivot-mart.log', $ex->getMessage() . "\n");
-            $response = array('status' => 'error', 'message' => $ex->getMessage());
+            $response = ['status' => 'error', 'message' => $ex->getMessage()];
         }
         
         return $response;
@@ -25683,12 +25693,14 @@ class Mdform_Model extends Model {
         try {
             
             $where = '';
+            $bindParams = [$mainIndicatorId];
             
             if ($typeId) {
                 if (is_array($typeId)) {
                     $where = 'AND T1.SEMANTIC_TYPE_ID IN ('.Arr::implode_r(',', $typeId, true).')';
                 } else {
                     $where = 'AND T1.SEMANTIC_TYPE_ID = '.$this->db->Param(1);
+                    $bindParams[] = $typeId;
                 }
             }
 
@@ -25772,7 +25784,7 @@ class Mdform_Model extends Model {
                     LEFT JOIN KPI_INDICATOR_REF_VALUE T5 ON T5.INDICATOR_ID = T0.SRC_INDICATOR_ID 
                         AND T5.VALUE_TYPE = 'Group name' 
                         AND LOWER(T5.VALUE_NAME) = LOWER(T0.GROUP_NAME) 
-                ORDER BY T4.ORDER_NUMBER ASC, T5.ORDER_NUMBER ASC, T0.ORDER_NUMBER ASC", array($mainIndicatorId, $typeId));
+                ORDER BY T4.ORDER_NUMBER ASC, T5.ORDER_NUMBER ASC, T0.ORDER_NUMBER ASC", $bindParams);
             
             if ($data && $selectedRow) {
                 $arr = array();
@@ -25812,7 +25824,7 @@ class Mdform_Model extends Model {
             return $data;
             
         } catch (Exception $ex) {
-            return array();
+            return [];
         }
     }
     

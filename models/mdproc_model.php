@@ -471,9 +471,7 @@ class Mdproc_Model extends Model {
             'wfmWorkflowId' => '1529289320914138',
             'bookTypeId' => '40000018'
         );
-        if ($orderTypeId) {
-            $param['orderTypeId'] = $orderTypeId;
-        }
+        $param = array_merge($param, $orderTypeId);
 
         $result = $this->ws->runSerializeResponse(GF_SERVICE_ADDRESS, 'GET_WORKFLOW', $param);
 

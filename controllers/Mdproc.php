@@ -31,8 +31,7 @@ class Mdproc extends Controller {
             $this->view->wfmStatusId = $this->model->getProcWfmIdModel($this->view->rfId);
         } elseif (is_array($this->view->getProcCustomerItemList['fromdepartmentdtl']) && count($this->view->getProcCustomerItemList['fromdepartmentdtl']) === 1) {
             $fromDepId = $this->view->getProcCustomerItemList['fromdepartmentdtl'][0]['departmentid'];
-            $orderTypeId = $this->view->getProcCustomerItemList ? issetParam($this->view->getProcCustomerItemList['ordertypeid']) : '';
-            $this->view->wfmStatusId = $this->model->getProcWfmStatusIdModel($fromDepId, $orderTypeId);
+            $this->view->wfmStatusId = $this->model->getProcWfmStatusIdModel($fromDepId, $this->view->getProcCustomerItemList);
         }
         
         if (!is_ajax_request()) {
