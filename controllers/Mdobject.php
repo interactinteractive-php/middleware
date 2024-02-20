@@ -1648,17 +1648,6 @@ class Mdobject extends Controller {
         } 
         
         $this->renderDataValueViewer();
-
-        if (Config::getFromCache('passwordSuggest') == '1') {
-            $appMenu = &getInstance();
-            $appMenu->load->model('appmenu', 'models/');            
-            $this->view->getStartupMeta = $appMenu->model->startupMeta();
-            $this->view->getStartupMeta2 = $appMenu->model->startupMeta2();          
-
-            if ($this->view->getStartupMeta || $this->view->getStartupMeta2) {
-                Session::set(SESSION_PREFIX.'startupMeta', '1');
-            }              
-        }
         
         if ($dataType == 'json') {
             

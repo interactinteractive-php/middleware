@@ -3511,6 +3511,27 @@ class Mdexpression extends Controller {
                 }
             }
         }
+        
+        if (strpos($fullExpression, 'changeWfmStatusByRowDataQryStr(') !== false) {
+            preg_match_all('/changeWfmStatusByRowDataQryStr\((.*?)\)/i', $fullExpression, $getDataViewColumnVal);
+
+            if (count($getDataViewColumnVal[0]) > 0) {
+                foreach ($getDataViewColumnVal[1] as $ek => $ev) {
+
+                    $evArr = explode(',', $ev);
+                    $dvCode = strtolower(trim(str_replace("'", '', $evArr[0])));
+                    $dvIdBySelect = $this->model->getMetaGroupIdByCodeModel($dvCode);
+                    $rowDataQryStr = trim($evArr[1]);
+                    $thirdArgument = '';
+                    
+                    if (isset($evArr[2])) {
+                        $thirdArgument = ', '.$evArr[2];
+                    }
+
+                    $fullExpression = str_replace($getDataViewColumnVal[0][$ek], 'bpChangeWfmStatusByRowDataQryStr(' . $mainSelector . ', checkElement, \'' . $dvIdBySelect . '\', ' . $rowDataQryStr . $thirdArgument . ')', $fullExpression);
+                }
+            }
+        }
 
         if (strpos($fullExpression, 'dataViewExpandAll(') !== false) {
             preg_match_all('/dataViewExpandAll\((.*?)\)/i', $fullExpression, $dataViewRefresh);

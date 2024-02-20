@@ -57,7 +57,7 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                                                     <input type="text" readonly class="form-control" value="<?php echo is_array(issetParam($this->rowData[$headerArray['position-'. $i]['src_indicator_path']])) ? '' : issetParam($this->rowData[$headerArray['position-'. $i]['src_indicator_path']]); ?>">
                                                 </div>
                                             </div>
-                                        <?php } 
+                                        <?php }
                                     }
                                 }
                                 ?>
@@ -832,6 +832,7 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                 } else {
                     $this.parent().addClass('nav-group-sub-mv-opened');
                 }
+
                 return;
             }
             
@@ -922,7 +923,7 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
         });
 
         $(confirmDialog).dialog('open');
-    } 
+    }
 
     $('a[href="#tab-question-section<?php echo $this->uniqId ?>"]').on('shown.bs.tab', function(e) {
         $checkList_<?php echo $this->uniqId; ?>.find('.mv_checklist_02_sub').first().trigger('click');

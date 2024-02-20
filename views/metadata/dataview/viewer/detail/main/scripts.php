@@ -801,10 +801,6 @@
                         var addSortHtml = '<a class="btn btn-default btn-sm dvColumnSort-<?php echo $this->metaDataId; ?>" title="'+ sortTitle +'" onclick="dvClearColumnSort(this, \'<?php echo $this->metaDataId; ?>\', \'<?php echo $this->dataGridOptionData['GROUPFIELD'] ?>\');" href="javascript:;" style="background: none; border: 1px solid #CCC; margin: 0;"><i class="fa fa-times"></i> '+ sortTitle +'</a>'
                         $(".div-objectdatagrid-<?php echo $this->metaDataId; ?>").closest('div.p-2').find('a.dvColumnSort-<?php echo $this->metaDataId; ?>').remove();
                         $(".div-objectdatagrid-<?php echo $this->metaDataId; ?>").closest('div.p-2').prepend(addSortHtml);
-                        
-                        /*if (!datagridGroupHide_<?php echo $this->metaDataId; ?>) {
-                            datagridGroupHide_<?php echo $this->metaDataId; ?> = true;
-                        }*/
                     },
                 <?php 
                 }
@@ -1353,9 +1349,6 @@
         
         $('div.div-objectdatagrid-<?php echo $this->metaDataId; ?>').on('keyup', 'input.datagrid-filter', function(e){
             var keyCode = (e.keyCode ? e.keyCode : e.which);
-            /*if (!$(this).val()) {
-                objectdatagrid_<?php echo $this->metaDataId; ?>.datagrid('reload');
-            }*/
             
             if (keyCode != 13 && keyCode != 16 && keyCode != 17 && keyCode != 18) {
                 var $this = $(this), colName = $this.attr('name'), rows = [], q = $this.val(),  
@@ -1375,7 +1368,6 @@
                     }
                     objectdatagrid_<?php echo $this->metaDataId; ?>.datagrid('loadData', rows);
                 }
-
             }
         });
         <?php
@@ -2179,7 +2171,6 @@
                 bounds.extend(gotoLocation);                
                 map.fitBounds(bounds);
             }*/
-            
         });
         
         $("button.dataview-default-filter-reset-btn", "#object-value-list-<?php echo $this->metaDataId; ?>").on("click", function() {
@@ -2409,8 +2400,7 @@
                     subQueryId: $('#subQueryId-<?php echo $this->metaDataId; ?>').val()
                 };
                 
-                if($('.div-ganttLayout-<?php echo $this->metaDataId; ?>').is(":visible")){
-                    // dataId = e.currentTarget.getAttribute('data-id');
+                if ($('.div-ganttLayout-<?php echo $this->metaDataId; ?>').is(":visible")) {
                     gantt.clearAll();
                     gantt.ajax.post({ 
                         url:"Mdwidget/getEvents?metaDataId=<?php echo $this->metaDataId; ?>",
@@ -2419,7 +2409,7 @@
                     }).then(function(response){
                         gantt.parse(response.responseText)
                     });
-                }else{
+                } else {
                 
                     if ($('#dataViewStructureTreeView_<?php echo $this->metaDataId; ?>', windowId_<?php echo $this->metaDataId; ?>).length) {
                         var chosenCategory = $('#treeCategory', windowId_<?php echo $this->metaDataId; ?>).val();
@@ -2509,7 +2499,6 @@
             };
                 
             if ($('.div-ganttLayout-<?php echo $this->metaDataId; ?>').is(":visible")) {
-                // dataId = e.currentTarget.getAttribute('data-id');
                 gantt.clearAll();
                 gantt.ajax.post({ 
                     url:"Mdwidget/getEvents?metaDataId=<?php echo $this->metaDataId; ?>",
@@ -2568,7 +2557,6 @@
             };
                 
             if ($('.div-ganttLayout-<?php echo $this->metaDataId; ?>').is(":visible")) {
-                // dataId = e.currentTarget.getAttribute('data-id');
                 gantt.clearAll();
                 gantt.ajax.post({ 
                     url:"Mdwidget/getEvents?metaDataId=<?php echo $this->metaDataId; ?>",

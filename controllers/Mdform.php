@@ -62,20 +62,21 @@ class Mdform extends Controller {
     public static $isControlViewLabel = false;
     public static $isRawDataMart = false;
     public static $isRowsReplacePath = false;
-    public static $processParamData = array();
-    public static $kpiDmDtlData = array();
-    public static $kpiDmMart = array();
-    public static $kpiTempCriteria = array();
-    public static $kpiDefaultValues = array();
-    public static $resultIndicator = array();
-    public static $resultFacts = array();
-    public static $pfTranslationValue = array();
-    public static $kpiIndicatorRowData = array();
-    public static $indicatorCellExpression = array();
-    public static $indicatorColExpression = array();
-    public static $indicatorHdrExpression = array();
-    public static $indicatorTemplateRow = array();
-    public static $indicatorConfigValues = array();
+    public static $isTrgAliasName = false;
+    public static $processParamData = [];
+    public static $kpiDmDtlData = [];
+    public static $kpiDmMart = [];
+    public static $kpiTempCriteria = [];
+    public static $kpiDefaultValues = [];
+    public static $resultIndicator = [];
+    public static $resultFacts = [];
+    public static $pfTranslationValue = [];
+    public static $kpiIndicatorRowData = [];
+    public static $indicatorCellExpression = [];
+    public static $indicatorColExpression = [];
+    public static $indicatorHdrExpression = [];
+    public static $indicatorTemplateRow = [];
+    public static $indicatorConfigValues = [];
     public static $tabRender = [];
     public static $topTabRender = [];
     public static $topTabRenderShow = [];
@@ -1217,9 +1218,7 @@ class Mdform extends Controller {
                 
                 $dataFirstRow = $data[0];
                  
-                $this->view->structureIndicatorId = issetParam($paramData['structureIndicatorId']); 
-                $this->view->uxFlowActionIndicatorId = issetParam($paramData['uxFlowActionIndicatorId']); 
-                $this->view->uxFlowIndicatorId = issetParam($paramData['uxFlowIndicatorId']); 
+                $this->view->structureIndicatorId = issetParam($paramData['structureIndicatorId']);  
                 $this->view->isKpiIndicatorRender = issetParam($paramData['isKpiIndicatorRender']); 
                 $this->view->actionType = issetParam($paramData['actionType']); 
                 $this->view->recordMapRender = '';
@@ -1709,6 +1708,7 @@ class Mdform extends Controller {
         
         $this->view->title = $this->lang->line($this->view->row['NAME']);
         $this->view->indicatorCode = $this->view->row['CODE'];
+        $this->view->viewType = Input::post('viewType');
         
         if ($this->view->row['KPI_TYPE_ID'] == '2007') { /*map*/
             
@@ -1764,13 +1764,10 @@ class Mdform extends Controller {
         }
         
         $this->view->process = $this->model->getKpiIndicatorProcessModel($this->view->indicatorId);
-        $this->view->relationComponents = $this->model->getKpiIndicatorMapWithoutTypeModel($this->view->indicatorId, 10000009);
+        $this->view->relationComponents = $this->model->getKpiIndicatorMapWithoutTypeModel($this->view->indicatorId, '10000000,10000001,10000009');
+        $this->view->relationComponents = Arr::groupByArrayOnlyRow($this->view->relationComponents, 'NAME', false);
 
-        if (Mdwidget::mvDataSetAvailableWidgets($this->view->row['WIDGET_ID'])) {
-            
-            $this->view->renderGrid = self::renderWidgetDataSet($this->view->row);
-            
-        } elseif ($this->view->row['KPI_TYPE_ID'] == '2016') {
+        if ($this->view->row['KPI_TYPE_ID'] == '2016') {
             
             $this->view->renderGrid = self::renderCustomView($this->view->row['KPI_TYPE_ID']);
             
@@ -1781,9 +1778,11 @@ class Mdform extends Controller {
             if ($filter = Input::get('filter')) {
                 $this->view->filter = $this->model->validateFilters($this->view->indicatorId, $filter);
             }            
-            
-            $this->view->relationComponents = Arr::groupByArrayOnlyRow($this->view->relationComponents, 'NAME', false);
+                        
             $this->view->relationComponentsOther = issetParamArray($this->view->relationComponents['mv_calendar']) ? '1' : '0';
+            if (Mdwidget::mvDataSetAvailableWidgets($this->view->relationComponents)) {
+                $this->view->relationComponentsWidget = true;
+            }
             
             $this->view->columns = $this->model->renderKpiIndicatorColumnsModel($this->view->indicatorId, $this->view->row['isCheckSystemTable'], array('columnsData' => $this->view->columnsData));
             
@@ -1795,7 +1794,7 @@ class Mdform extends Controller {
                 $this->view->renderGrid = $this->view->renderPrint('kpi/indicator/renderGrid', self::$viewPath);
             }
 
-            if (issetParamArray($this->view->relationComponents['mv_calendar']) && Input::post('viewType') !== 'list') {
+            if (issetParamArray($this->view->relationComponents['mv_calendar']) && $this->view->viewType !== 'list') {
                 if ($this->view->relationComponents) {
                     $this->load->model('mdform', 'middleware/models/');
                     $this->view->relationComponentsConfigData = $this->model->getRelationComponentsConfigModel($this->view->relationComponents['mv_calendar']['MAP_ID']);
@@ -1808,6 +1807,27 @@ class Mdform extends Controller {
                 }
                 $this->view->renderGrid = $this->view->renderPrint('kpi/indicator/widget/grid/calendar', self::$viewPath);
             }
+            
+            if (Mdwidget::mvDataSetAvailableWidgets($this->view->row['WIDGET_ID']) || $widgetInfo = Mdwidget::mvDataSetAvailableWidgets($this->view->relationComponents)) {                            
+                if ($this->view->viewType !== 'list') {
+                    $this->load->model('mdform', 'middleware/models/');
+                    
+                    $this->view->relationComponentsConfigData = $this->model->getRelationComponentsConfigModel($this->view->relationComponents[$widgetInfo['name']]['MAP_ID']);
+                    $this->view->relationColumnData = Arr::groupByArrayOnlyRow($this->view->columnsData, 'COLUMN_NAME', false);
+
+                    foreach ($this->view->relationComponentsConfigData as $rk => $rrow) {
+                        $this->view->relationViewConfig[$rk] = checkDefaultVal($this->view->relationColumnData[$rrow]['COLUMN_NAME'], $rrow);
+                    }
+
+                    $this->view->row['gridOption']['theme'] = 'no-border';
+                    $this->view->columns = $this->model->renderKpiIndicatorColumnsModel($this->view->indicatorId, $this->view->row['isCheckSystemTable'], array('columnsData' => $this->view->columnsData));
+                    $this->load->model('mdform', 'middleware/models/');
+
+                    $this->view->renderGridList = $this->view->renderPrint('kpi/indicator/renderGrid', self::$viewPath);
+                    
+                    $this->view->renderGrid = self::renderWidgetDataSet($this->view->row, $widgetInfo);
+                }
+            }            
         }
         
         if ($this->view->isAjax == false) {
@@ -1891,14 +1911,9 @@ class Mdform extends Controller {
             $this->view = new View();
         } 
         
-        $get = $this->model->getIndicatorModel($indicatorId);
         $this->view->isCheckActionPermission = true;
         
-        if ($get && $get['TYPE_CODE'] == '10005') {
-            $this->uxFlowIndicatorList($indicatorId);
-        } else {
-            $this->indicatorList($indicatorId);
-        }
+        $this->indicatorList($indicatorId);
     }
     
     public function indicatorDataGrid() {
@@ -1910,113 +1925,6 @@ class Mdform extends Controller {
         $response = $this->model->indicatorDataGridModel();
         
         echo json_encode($response, JSON_UNESCAPED_UNICODE);
-    }
-    
-    public function uxFlowIndicatorList($indicatorId = '', $isReturnArray = false) {
-        
-        if (!isset($this->view)) {
-            $this->view = new View();
-        } 
-        
-        $this->view->uxFlowIndicatorId = $indicatorId;
-        $expression = (new Mdexpression())->uxFlowExpression($indicatorId);
-        $indicatorId = $expression['id'];
-        $this->load->model('mdform', 'middleware/models/');
-        
-        $this->view->indicatorId = '';
-        
-        if (strpos($indicatorId, 'workSpaceParam') !== false) {
-
-            parse_str($indicatorId, $workSpaceParamArray);
-
-            if (isset($workSpaceParamArray['workSpaceParam']['id'])) {
-                $this->view->indicatorId = Input::param($workSpaceParamArray['workSpaceParam']['id']);
-                $isReturnArray = true;
-            }
-
-        } else {
-            if (Input::numeric('isWorkFlow') == 1) {
-                parse_str(Input::post('workSpaceParams'), $workSpaceParamArray);
-                if (isset($workSpaceParamArray['workSpaceParam']['id'])) {
-                    $this->view->indicatorId = $workSpaceParamArray['workSpaceParam']['id'];
-                }
-            } else {
-                $this->view->indicatorId = Input::param($indicatorId);
-            }
-        }
-        
-        if ($this->view->indicatorId == '') {
-            echo 'Invalid indicatorId!'; exit;
-        }
-        
-        $this->view->row = $this->model->getKpiIndicatorRowModel($this->view->indicatorId);
-        
-        if (!isset($this->view->row['NAME'])) {
-            Message::add('e', '', 'back');
-        }
-        
-        $this->view->isAjax = is_ajax_request();
-        
-        $this->view->title = $this->lang->line($this->view->row['NAME']);
-        $this->view->indicatorCode = $this->view->row['CODE'];
-        
-        if ($this->view->row['KPI_TYPE_ID'] == '2007') { /*map*/
-            
-            if (isset($isReturnArray) && $isReturnArray) {
-                return $this->indicatorMapRender(true);
-            } else {
-                $this->indicatorMapRender();
-            }
-        
-            exit;
-        }
-        
-        $this->view->columnsData = $this->model->getKpiIndicatorColumnsModel($this->view->indicatorId, $this->view->row);
-        $fieldConfig = $this->model->getKpiIndicatorIdFieldModel($this->view->indicatorId, $this->view->columnsData);
-        
-        $this->view->idField = $fieldConfig['idField'];
-        $this->view->nameField = $fieldConfig['nameField'];
-        $this->view->parentField = $fieldConfig['parentField'];
-        $this->view->coordinateField = $fieldConfig['coordinateField'];
-        
-        $this->view->isGridType = 'datagrid';
-        $this->view->isTreeGridData = '';
-        $this->view->isDataMart = $this->view->row['KPI_TYPE_ID'] == '1040' ? true : false; 
-        $this->view->isUseWorkflow = $this->view->row['IS_USE_WORKFLOW'];
-        $this->view->isCallWebService = ($this->view->row['KPI_TYPE_ID'] == '1080' || $this->view->row['KPI_TYPE_ID'] == '1160' || $this->view->row['KPI_TYPE_ID'] == '1161');
-        $this->view->isFilterShowData = $this->view->row['IS_FILTER_SHOW_DATA'];
-        $this->view->hiddenParams = '';
-        $this->view->postHiddenParams = '';
-        $this->view->filter = '';
-        
-        if ($this->view->idField && $this->view->nameField && $this->view->parentField) {
-            $this->view->isGridType = 'treegrid';
-            $this->view->isTreeGridData = 'id='.$this->view->idField.'&name='.$this->view->nameField.'&parent='.$this->view->parentField;
-        }
-        
-        $this->view->process = $expression['buttons'];
-        $this->view->columns = $this->model->renderKpiIndicatorColumnsModel($this->view->indicatorId, $this->view->row['isCheckSystemTable'], array('columnsData' => $this->view->columnsData));
-
-        $this->view->renderGrid = $this->view->renderPrint('kpi/indicator/renderGrid', self::$viewPath);
-        
-        if ($this->view->isAjax == false) {
-            
-            $this->view->css = AssetNew::metaCss();
-            $this->view->js = AssetNew::metaOtherJs();
-            $this->view->fullUrlJs = AssetNew::amChartJs();
-        
-            $this->view->render('header');
-        } 
-        
-        if (isset($isReturnArray) && $isReturnArray) {
-            return array('html' => $this->view->renderPrint('kpi/indicator/list', self::$viewPath));
-        } else {
-            $this->view->render('kpi/indicator/list', self::$viewPath);
-        }
-
-        if ($this->view->isAjax == false) {
-            $this->view->render('footer');
-        }
     }
     
     public function addRowKpiIndicatorTemplate() {
@@ -5619,7 +5527,7 @@ class Mdform extends Controller {
     public function renderRelationKpi() {
         $selectedRow = Arr::decode(Input::post('selectedRow'));
         $this->view->indicatorId = $selectedRow['dataRow']['id'];
-        $components = $this->model->getKpiIndicatorMapWithoutTypeModel($this->view->indicatorId, 10000009);                    
+        $components = $this->model->getKpiIndicatorMapWithoutTypeModel($this->view->indicatorId, '10000000,10000001,10000009');
                     
         $this->view->savedComponentRows = $this->model->getSavedRecordMapKpiModel($this->view->indicatorId, $this->view->indicatorId, $components);
 
@@ -5637,7 +5545,7 @@ class Mdform extends Controller {
 
     public function renderRelationKpiReload() {
         $this->view->indicatorId = Input::post('indicatorId');
-        $components = $this->model->getKpiIndicatorMapWithoutTypeModel($this->view->indicatorId, 10000009);            
+        $components = $this->model->getKpiIndicatorMapWithoutTypeModel($this->view->indicatorId, '10000000,10000001,10000009');            
         $this->view->savedComponentRows = $this->model->getSavedRecordMapKpiModel($this->view->indicatorId, $this->view->indicatorId, $components);
         
         $this->view->fromWebLink = true;
@@ -5654,7 +5562,7 @@ class Mdform extends Controller {
     public function renderRelationKpiViewType() {
         $this->view->indicatorId = Input::post('indicatorId');
         $this->view->viewType = Input::post('viewType');
-        $components = $this->model->getKpiIndicatorMapWithoutTypeModel($this->view->indicatorId, 10000009);            
+        $components = $this->model->getKpiIndicatorMapWithoutTypeModel($this->view->indicatorId, '10000000,10000001,10000009');            
         $this->view->savedComponentRows = $this->model->getSavedRecordMapKpiModel($this->view->indicatorId, $this->view->indicatorId, $components);
         
         $this->view->fromWebLink = true;
@@ -6055,7 +5963,7 @@ class Mdform extends Controller {
     }
     
     public function runPivotDataMartTest() {
-        $rs = $this->model->runPivotDataMartModel('1356118279');
+        $rs = $this->model->runPivotDataMartModel('17050342899696');
         var_dump($rs);
     }
     
@@ -6500,11 +6408,16 @@ class Mdform extends Controller {
         $this->view->row = $args['row'];
         $this->view->response = $args['fillParamData'];
         
-        $widgetCode = Mdwidget::mvDataSetAvailableWidgets($args['row']['WIDGET_ID']);
+        $widgetCode = Mdwidget::mvDataSetAvailableWidgets($args['row']['WIDGET_ID'] ? $args['row']['WIDGET_ID'] : $args['widgetInfo']['name']);
+        
+        if ($widgetCode['name'] == 'mv_card_with_list_widget') {
+            $this->view->segmentData = $this->model->getSegmentDataModel($this->view->indicatorId);
+        }
+        
         return $this->view->renderPrint('kpi/indicator/widget/grid/' . $widgetCode['name'], self::$viewPath);
     }    
     
-    public function renderWidgetDataSet($row) {
+    public function renderWidgetDataSet($row, $widgetInfo) {
         $_POST['indicatorId'] = $this->view->indicatorId;
         $dataList = $this->model->indicatorDataGridModel();
         
@@ -6512,9 +6425,12 @@ class Mdform extends Controller {
             array(
                 'uniqId'        => getUID(), 
                 'row'           => $row, 
+                'widgetInfo'    => $widgetInfo, 
                 'fillParamData' => $dataList
             )
-        );        
+        );
+        
+        $this->view->isIgnoreFilter = 1;
         
         $renderGrid = $this->view->renderPrint('kpi/indicator/renderCustomGrid', self::$viewPath);
         
@@ -6535,7 +6451,7 @@ class Mdform extends Controller {
         $showBanner = $cache->get('kpi_' . $indicatorId . '_formbanner');
 
         if ($showBanner == null) {
-            $relationComponents = $this->model->getKpiIndicatorMapWithoutTypeModel($indicatorId, 10000009);
+            $relationComponents = $this->model->getKpiIndicatorMapWithoutTypeModel($indicatorId, '10000000,10000001,10000009');
             $relationComponents = Arr::groupByArrayOnlyRow($relationComponents, 'SEMANTIC_TYPE_NAME', false);
     
             if (issetParamArray($relationComponents['Banner'])) {

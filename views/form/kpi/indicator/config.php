@@ -439,11 +439,18 @@ function expressionToggleGetValueFromDataMart($cell) {
 }
 
 function inputGetValueFromDataMart(elem, columnName, config) {
-    var htmlTbl = [], indicatorId = config.indicatorId, inputs = config.input;
-    var inputSaved = config.hasOwnProperty('inputSaved') ? config.inputSaved : {};
+    var htmlTbl = [], indicatorId = config.indicatorId, inputs = config.input, inputSaved = {};
+    var buttonAttr = '', iconName = 'fa-minus-square', tableStyle = '';
     
-    htmlTbl.push('<a href="javascript:;" class="d-block mt-2 mb-1 font-size-16" onclick="nextTblToggleGetValueFromDataMart(this);">Оролт <i class="far fa-minus-square"></i></a>');
-    htmlTbl.push('<table class="table table-bordered table-hover mb-2">');
+    if (config.hasOwnProperty('inputSaved')) {
+        inputSaved = config.inputSaved;
+        buttonAttr = ' data-expand="1"'; 
+        iconName = 'fa-plus-square'; 
+        tableStyle = ' style="display: none;"';
+    }
+    
+    htmlTbl.push('<a href="javascript:;" class="d-block mt-2 mb-1 font-size-16" onclick="nextTblToggleGetValueFromDataMart(this);"'+buttonAttr+'>Оролт <i class="far '+iconName+'"></i></a>');
+    htmlTbl.push('<table class="table table-bordered table-hover mb-2"'+tableStyle+'>');
         htmlTbl.push('<thead>');
             htmlTbl.push('<tr>');
                 htmlTbl.push('<th class="font-weight-bold" style="width: 28px">№</th>');
@@ -484,10 +491,18 @@ function inputGetValueFromDataMart(elem, columnName, config) {
 }
 function outputGetValueFromDataMart(elem, columnName, config) {
     var htmlTbl = [], indicatorId = config.indicatorId, outputs = config.output;
-    var outputSaved = (config.hasOwnProperty('outputSaved') && config.outputSaved) ? config.outputSaved : {};
+    var outputSaved = {};
+    var buttonAttr = '', iconName = 'fa-minus-square', tableStyle = '';
     
-    htmlTbl.push('<a href="javascript:;" class="d-block mt-2 mb-1 font-size-16" onclick="nextTblToggleGetValueFromDataMart(this);">Гаралт <i class="far fa-minus-square"></i></a>');
-    htmlTbl.push('<table class="table table-bordered table-hover">');
+    if (config.hasOwnProperty('outputSaved')) {
+        outputSaved = config.outputSaved;
+        buttonAttr = ' data-expand="1"'; 
+        iconName = 'fa-plus-square'; 
+        tableStyle = ' style="display: none;"';
+    }
+    
+    htmlTbl.push('<a href="javascript:;" class="d-block mt-2 mb-1 font-size-16" onclick="nextTblToggleGetValueFromDataMart(this);"'+buttonAttr+'>Гаралт <i class="far '+iconName+'"></i></a>');
+    htmlTbl.push('<table class="table table-bordered table-hover"'+tableStyle+'>');
         htmlTbl.push('<thead>');
             htmlTbl.push('<tr>');
                 htmlTbl.push('<th class="font-weight-bold" style="width: 28px">№</th>');

@@ -13,7 +13,7 @@
         
         <div class="col right-sidebar-content-for-resize content-wrapper pl-0 pr-0 overflow-hidden">
             <div class="row">
-                <div class="col-md-12" id="objectdatagrid-<?php echo $this->indicatorId; ?>">
+                <div class="col-md-12 objectdatacustomgrid" id="objectdatacustomgrid-<?php echo $this->indicatorId; ?>">
                     <?php echo $this->renderGrid; ?>
                 </div>
             </div>
@@ -44,6 +44,8 @@
 <script type="text/javascript">
 var dynamicHeight = 0;
 var objectdatagrid_<?php echo $this->indicatorId; ?> = $('#objectdatagrid-<?php echo $this->indicatorId; ?>');
+var idField_<?php echo $this->indicatorId; ?> = '<?php echo $this->idField; ?>';
+var _selectedRows_<?php echo $this->indicatorId; ?> = [];
 
 if (typeof isKpiIndicatorScript === 'undefined') {
     $.cachedScript('<?php echo autoVersion('middleware/assets/js/addon/indicator.js'); ?>');
@@ -71,6 +73,9 @@ setTimeout(function() {
     
 }, 200);
 
+<?php
+if (!isset($this->isIgnoreFilter)) {
+?>
 function filterKpiIndicatorValueForm(indicatorId) {
     $.ajax({
         type: 'post',
@@ -120,4 +125,7 @@ function filterKpiIndicatorValueGrid(elem) {
         }
     });
 }
+<?php
+}
+?>
 </script>

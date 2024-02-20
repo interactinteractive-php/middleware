@@ -131,6 +131,87 @@ $(function() {
                     },
                     error: function(){ alert('Error'); Core.unblockUI(); }
                 });
+            } else if (metaDataId == '1522652361821242') { //Pos menu meta id
+            
+                $.ajax({
+                    type: 'post',
+                    url: 'mdpos',
+                    dataType: 'json',
+                    beforeSend: function() {
+                        Core.blockUI({message: 'Loading...', boxed: true});
+                    },
+                    success: function (data) {
+                        $.ajax({
+                            url: "assets/custom/addon/plugins/jquery-fixedheadertable/jquery.fixedheadertable.min.js",
+                            dataType: "script",
+                            cache: true,
+                            async: false,
+                            beforeSend: function() {
+                                $("head").append('<link rel="stylesheet" type="text/css" href="assets/custom/css/pos/style.css?v=1"/>');
+                            }
+                        }).done(function() {
+                            $.ajax({
+                                url: "assets/custom/addon/plugins/scannerdetection/jquery.scannerdetection.js",
+                                dataType: "script",
+                                cache: true,
+                                async: false
+                            });
+                            viewProcess_<?php echo $this->uniqId; ?>.empty().append(data.html).promise().done(function () {
+                                Core.unblockUI();                        
+                                if (typeof data.chooseCashier === 'undefined') {
+                                    viewProcess_<?php echo $this->uniqId; ?>.find('.pos-wrap').css({"margin-left":"-15px", "margin-right":"-16px", "margin-top":"-9px"});
+                                    viewProcess_<?php echo $this->uniqId; ?>.find('.pos-left').css({"position":"inherit","overflow-y":"auto","overflow-x":"hidden","height":viewProcess_<?php echo $this->uniqId; ?>.find('.pos-center-inside-height').height()+130+'px'});
+                                    viewProcess_<?php echo $this->uniqId; ?>.find('.pos-left-inside-help').css("position","inherit");
+                                    if (typeof checkInitPosJS === 'undefined') {
+                                        $.ajax({
+                                            url: "middleware/assets/js/pos/pos.js",
+                                            dataType: "script",
+                                            cache: false,
+                                            async: false
+                                        });
+                                    } else {
+                                        setTimeout(function() {
+                                            Core.initDecimalPlacesInput();
+                                            posConfigVisibler($('body'));
+                                            posPageLoadEndVisibler();
+                                            posItemCombogridList('');
+                                            $('.pos-item-combogrid-cell').find('input.textbox-text').val('').focus();
+
+                                            var $tbody = $('#posTable').find('> tbody');                
+
+                                            if ($tbody.find('> tr').length) {
+
+                                                Core.initLongInput($tbody);
+                                                Core.initUniform($tbody);
+
+                                                posGiftRowsSetDelivery($tbody);
+
+                                                var $firstRow = $tbody.find('tr[data-item-id]:eq(0)');
+                                                $firstRow.click();
+
+                                                posCalcTotal();
+                                            }                  
+
+                                            /*if (posUseIpTerminal === '1') {
+                                                posConnectBankTerminal();
+                                            }*/
+
+                                            if (isConfirmSaleDate === '1' && !isBasketOnly) {
+                                                askDateTransaction();
+                                            }                    
+
+                                        }, 300);
+                                    }
+                                    setTimeout(function() {
+                                        posTableSetHeight();
+                                        posFixedHeaderTable();
+                                    }, 300);
+                                }                    
+                            });
+                        });                        
+                    },
+                    error: function(){ alert('Error'); Core.unblockUI(); }
+                });
             }
             
         } else {
@@ -252,7 +333,7 @@ $(function() {
                     mapSrcMapId: mapId, 
                     mapSelectedRow: $headerParams.val(), 
                     srcMapId: mapId, 
-                    isIgnoreFilter: 1, 
+                    /*isIgnoreFilter: 1,*/
                     isHideCheckBox: 0, 
                     isIgnoreTitle: 1
                 };
@@ -571,6 +652,25 @@ function checkListParentMenuShowHide(uniqId, $parent) {
                     $this.removeClass('d-none');
                 }
             });
+            
+            if (uniqId) {
+                
+                var $tabPanes = window['$checkList_' + uniqId].find('div.tab-pane');
+                
+                $tabPanes.each(function() {
+                    
+                    var $tabPane = $(this);
+                    var $subMenuAll = $tabPane.find('li.nav-item-submenu');
+                    var $subMenuHide = $tabPane.find('li.nav-item-submenu.d-none');
+
+                    if ($subMenuAll.length == $subMenuHide.length) {
+                        var $tabPane = $subMenuAll.closest('.tab-pane');
+                        var tabId = $tabPane.attr('id');
+                        $('a[href="#'+tabId+'"]').hide();
+                        $tabPane.hide();
+                    }
+                });
+            } 
         }
     }, 1);
 }

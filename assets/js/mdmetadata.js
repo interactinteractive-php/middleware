@@ -17179,6 +17179,10 @@ function changeWfmStatusAjaxSubmit($wfmParams, dataGrid, newWfmStatusName, isMan
                     data.message = '<strong>' + newWfmStatusName + '</strong> төлөвт шилжлээ.';
                 }
                 
+                if ($wfmParams.hasOwnProperty('callbackFnc') && $wfmParams.callbackFnc && typeof (window[$wfmParams.callbackFnc]) === 'function') {
+                    window[$wfmParams.callbackFnc]();
+                }
+                
                 if ($wfmParams.hasOwnProperty('basketDvId') && $wfmParams.basketDvId) {
                     bpClearBasketByDvId($wfmParams.metaDataId);
                 }
@@ -17268,35 +17272,42 @@ function changeWfmStatusId(element, wfmStatusId, metaDataId, refStructureId, new
     setTimeout(function() {
         
         var $dialogName = 'dialog-changeWfmStatus-' + metaDataId, basketDvId = null;
-            
-        if ($element.hasAttr('data-basketdvid') && $element.attr('data-basketdvid')) {
-            basketDvId = $element.attr('data-basketdvid');
-            var rows = getRowsDataView(basketDvId);  
+        
+        if (isObject(refStructureId)) {
+            var rows = {};
+            rows[0] = refStructureId;
+            refStructureId = '';
         } else {
-            if ($element.hasAttr('data-row-element-id')) {
-                var rows = {};
-                rows[0] = {
-                    id: $element.attr('data-row-element-id'), 
-                    wfmstatusid: $element.attr('data-current-status-id')
-                };
+            if ($element.hasAttr('data-basketdvid') && $element.attr('data-basketdvid')) {
+                basketDvId = $element.attr('data-basketdvid');
+                var rows = getRowsDataView(basketDvId);  
             } else {
-                var rows = getDataViewSelectedRows(metaDataId);  
+                if ($element.hasAttr('data-row-element-id')) {
+                    var rows = {};
+                    rows[0] = {
+                        id: $element.attr('data-row-element-id'), 
+                        wfmstatusid: $element.attr('data-current-status-id')
+                    };
+                } else {
+                    var rows = getDataViewSelectedRows(metaDataId);  
+                }
+            }
+
+            if (!rows.hasOwnProperty(0)) {
+                var rows = getDataViewSelectedRowsByRow(element);
+                if (!rows.hasOwnProperty(0)) {
+                    if ($(element).attr('data-rowdata') !== 'undefined' && $(element).attr('data-rowdata')) {
+                        rows[0] = JSON.parse(decodeURIComponent($(element).attr('data-rowdata')));
+                    } else {
+                        rows[0] = JSON.parse(decodeURIComponent($(element).closest('tr').attr('data-rowdata')));
+                    }
+                } else {
+                    var rowIndex = $(element).closest('tr').attr('datagrid-row-index');
+                    rows[0] = rows[rowIndex];
+                }
             }
         }
         
-        if (!rows.hasOwnProperty(0)) {
-            var rows = getDataViewSelectedRowsByRow(element);
-            if (!rows.hasOwnProperty(0)) {
-                if ($(element).attr('data-rowdata') !== 'undefined' && $(element).attr('data-rowdata')) {
-                    rows[0] = JSON.parse(decodeURIComponent($(element).attr('data-rowdata')));
-                } else {
-                    rows[0] = JSON.parse(decodeURIComponent($(element).closest('tr').attr('data-rowdata')));
-                }
-            } else {
-                var rowIndex = $(element).closest('tr').attr('datagrid-row-index');
-                rows[0] = rows[rowIndex];
-            }
-        }
         var row = rows[0];
 
         if (row && row.hasOwnProperty('pfnextstatuscolumnjson')) {
@@ -17691,6 +17702,10 @@ function changeWfmStatusId(element, wfmStatusId, metaDataId, refStructureId, new
                                         if ($element.hasAttr('data-isindicator')) {
                                             $wfmParams.isIndicator = 1;
                                         }
+                                        
+                                        if (row.hasOwnProperty('callbackFnc')) {
+                                            $wfmParams.callbackFnc = row.callbackFnc;
+                                        }
 
                                         if (typeof isMany !== 'undefined' && isMany !== '') {
                                             changeWfmStatusAjax($wfmParams, window['objectdatagrid_' + metaDataId], newWfmStatusName, isMany, element, closeTab, isCallNextFunction);
@@ -17866,7 +17881,6 @@ function beforeHardSignProcess(mainMetaDataId, processMetaDataId, metaTypeId, wh
                         } else {
                             callSign(responseData.hash, responseData.guid, elem, 'privateTransferProcessAction', funcArguments);
                         }
-                        
 
                     } else {
                         new PNotify({
@@ -17924,13 +17938,17 @@ function beforeHardSignProcess(mainMetaDataId, processMetaDataId, metaTypeId, wh
 
     $("#callIframeCanvasHardSign").dialog('open');
     return false;
-
 }
 
 function beforeSignChangeWfmStatusId(elem, wfmStatusId, metaDataId, refStructureId, newWfmStatusColor, newWfmStatusName) {
-    var rows = getDataViewSelectedRows(metaDataId),
-        row = rows[0];
-
+    
+    if (isObject(refStructureId)) {
+        var rows = {}; rows[0] = refStructureId;
+    } else {
+        var rows = getDataViewSelectedRows(metaDataId);
+    }
+    row = rows[0];
+    
     $.ajax({
         type: 'post',
         url: 'mdpki/generateHashFromFileByDataView',
@@ -17987,9 +18005,13 @@ var signPdfWithCoordinate = function (a) { console.log(a); };
 function beforeHardSignChangeWfmStatusId(elem, wfmStatusId, metaDataId, refStructureId, newWfmStatusColor, newWfmStatusName) {
     signPdfWithCoordinate = function signPdfWithCoordinate(coordinate){
         $('#callIframeCanvasHardSign').empty().dialog('destroy').remove();
-
-        var rows = getDataViewSelectedRows(metaDataId);
-        var row = rows[0];
+        
+        if (isObject(refStructureId)) {
+            var row = refStructureId;
+        } else {
+            var rows = getDataViewSelectedRows(metaDataId);
+            var row = rows[0];
+        }
         $.ajax({
             type: 'post',
             url: 'mdpki/generateHashFromFileByDataView',
@@ -18002,55 +18024,53 @@ function beforeHardSignChangeWfmStatusId(elem, wfmStatusId, metaDataId, refStruc
                 PNotify.removeAll();
 
                 if (responseData.guid !== 'null' && responseData.guid !== null) {
-                    // if (responseData.status === 'success') {
-                        if (responseData.status === 'success') {
-                            var funcArguments = [elem, wfmStatusId, metaDataId, refStructureId, newWfmStatusColor, newWfmStatusName];
-                            
-                            if (typeof row.physicalpath !== 'undefined') {
-                                var physicalpath = row.physicalpath;
-                                if (physicalpath.split('.').pop().toLowerCase() === 'pdf') {
-                                    var contentId = null;
-                                    if (row.hasOwnProperty('contentid')) {
-                                        contentId = row.contentid;
-                                    }
-                                    
-                                    var fileName = URL_APP + row.physicalpath;
-                                    var server = URL_APP + 'mddoceditor/fileUpload';
-                                    var funcName = 'changeWfmStatusId';
-                                    var pdfPath = fileName.replace(URL_APP, '');
+                    if (responseData.status === 'success') {
+                        var funcArguments = [elem, wfmStatusId, metaDataId, refStructureId, newWfmStatusColor, newWfmStatusName];
 
-                                    $.ajax({
-                                        type: 'post',
-                                        url: 'mdpki/getInformationForDocumentSign',
-                                        data: {filePath: pdfPath},
-                                        dataType: 'json',
-                                        success: function (data) {
-                                            signPdfAndTextRun(data, pdfPath, contentId, function (t) {
-                                                if (t.status === 'success') {
-                                                    setTimeout(function(){ window[funcName].apply(null, funcArguments); }, 2000);
-                                                }   
-                                            }, Math.floor(1.33333333* coordinate.x), Math.floor(1.33333333 * (573-coordinate.y)), coordinate.pageNum, responseData.signatureImage);
-                                        }
-                                    });
-                                    
-                                    Core.unblockUI();
-                                } else {
-                                    callSign(responseData.hash, responseData.guid, elem, 'changeWfmStatusId', funcArguments);
+                        if (typeof row.physicalpath !== 'undefined') {
+                            var physicalpath = row.physicalpath;
+                            if (physicalpath.split('.').pop().toLowerCase() === 'pdf') {
+                                var contentId = null;
+                                if (row.hasOwnProperty('contentid')) {
+                                    contentId = row.contentid;
                                 }
+
+                                var fileName = URL_APP + row.physicalpath;
+                                var server = URL_APP + 'mddoceditor/fileUpload';
+                                var funcName = 'changeWfmStatusId';
+                                var pdfPath = fileName.replace(URL_APP, '');
+
+                                $.ajax({
+                                    type: 'post',
+                                    url: 'mdpki/getInformationForDocumentSign',
+                                    data: {filePath: pdfPath},
+                                    dataType: 'json',
+                                    success: function (data) {
+                                        signPdfAndTextRun(data, pdfPath, contentId, function (t) {
+                                            if (t.status === 'success') {
+                                                setTimeout(function(){ window[funcName].apply(null, funcArguments); }, 2000);
+                                            }   
+                                        }, Math.floor(1.33333333* coordinate.x), Math.floor(1.33333333 * (573-coordinate.y)), coordinate.pageNum, responseData.signatureImage);
+                                    }
+                                });
+
+                                Core.unblockUI();
                             } else {
                                 callSign(responseData.hash, responseData.guid, elem, 'changeWfmStatusId', funcArguments);
                             }
-
                         } else {
-                            new PNotify({
-                                title: 'Error',
-                                text: responseData.message,
-                                type: 'error',
-                                sticker: false
-                            });
+                            callSign(responseData.hash, responseData.guid, elem, 'changeWfmStatusId', funcArguments);
                         }
-                        Core.unblockUI();
-                    // }
+
+                    } else {
+                        new PNotify({
+                            title: 'Error',
+                            text: responseData.message,
+                            type: 'error',
+                            sticker: false
+                        });
+                    }
+                    Core.unblockUI();
                 } else {
                     new PNotify({
                         title: 'Error',
@@ -18062,15 +18082,19 @@ function beforeHardSignChangeWfmStatusId(elem, wfmStatusId, metaDataId, refStruc
             }
         });
     };
-
-    var rows = getDataViewSelectedRows(metaDataId);
-    var row = rows[0];
+    
+    if (isObject(refStructureId)) {
+        var row = refStructureId;
+    } else {
+        var rows = getDataViewSelectedRows(metaDataId);
+        var row = rows[0];
+    }
     var pdfPath = row.physicalpath;
 
     var filename = pdfPath.replace(/^.*[\\\/]/, '');
-    iframe = '<iframe id="frameStampPos" src="mddoc/canvasStampPos?uniqid=HardSignWindow&pdfPath='+ pdfPath +'" height="100%" width="100%" frameBorder="0" ></iframe>';
+    iframe = '<iframe id="frameStampPos" src="mddoc/canvasStampPos?uniqid=HardSignWindow&pdfPath='+pdfPath+'" height="100%" width="100%" frameBorder="0"></iframe>';
 
-    if (! $('#callIframeCanvasHardSign').length ){
+    if (!$('#callIframeCanvasHardSign').length) {
         var div = document.createElement("div");
         div.id = 'callIframeCanvasHardSign';
         div.style = 'display: none';

@@ -181,7 +181,7 @@ class Mdpki extends Controller {
             'guid'      => Session::get(SESSION_PREFIX.'monpassGUID')
         );
         
-        echo json_encode($response); exit;
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
     public function getCertificateSerialNumberByGUID($guid) {

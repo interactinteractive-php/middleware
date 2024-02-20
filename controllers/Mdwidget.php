@@ -130,13 +130,32 @@ class Mdwidget extends Controller {
     }
     
     public static function mvDataSetAvailableWidgets($widgetCode) {
+        if (is_array($widgetCode)) {            
+            if (isset($widgetCode['mv_card_with_list_widget'])) {
+                $widgetCode = 'mv_card_with_list_widget';
+            } elseif (isset($widgetCode['mv_card_with_employeelist_widget'])) {
+                $widgetCode = 'mv_card_with_employeelist_widget';                
+            } else {
+                $widgetCode = '';
+            }
+        }
         
         $availableWidgets = array(
             '16176940056521' => array(
                 'topAddRow' => true, 
                 'topAddOneRow' => true,
                 'name' => 'fileView'
-            )            
+            ),            
+            'mv_card_with_list_widget' => array(
+                'topAddRow' => true, 
+                'topAddOneRow' => true,
+                'name' => 'mv_card_with_list_widget'
+            ),
+            'mv_card_with_employeelist_widget' => array(
+                'topAddRow' => true, 
+                'topAddOneRow' => true,
+                'name' => 'mv_card_with_employeelist_widget'
+            )
         );
         
         if (isset($availableWidgets[$widgetCode])) {
@@ -4181,6 +4200,26 @@ class Mdwidget extends Controller {
 
         return array('html' => $pageHtml, 'css' => $pageCss);
 
+    }
+    
+    public function mvWidgetCardListData($indicatorId, $params) {
+        $paramFilter = array();
+        $this->load->model('mdform', 'middleware/models/');
+        
+        $row = $this->model->getKpiIndicatorRowModel($indicatorId);
+        $columnsData = $this->model->getKpiIndicatorColumnsModel($indicatorId, $row);
+        $fieldConfig = $this->model->getKpiIndicatorIdFieldModel($indicatorId, $columnsData);
+
+        $idField = $fieldConfig['idField'];        
+        
+        $_POST['indicatorId'] = $indicatorId;
+        $paramFilter[$idField][] = array(
+            'operator' => 'IN',
+            'operand' => Arr::implode_r(',', $params, true)
+        );
+        $_POST['criteria'] = $paramFilter;    
+        
+        return $this->model->indicatorDataGridModel();
     }
     
     public function mvWidgetRelationRender () {

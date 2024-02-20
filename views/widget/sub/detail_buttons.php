@@ -77,7 +77,7 @@ foreach ($this->fillParamData as $rk => $rowData) {
         }
     }
     
-    $style = $icon = '';
+    $style = $icon = $rightIcon = '';
     
     if (isset($position[2])) {
         $color = $position[2];
@@ -88,7 +88,11 @@ foreach ($this->fillParamData as $rk => $rowData) {
         $icon = '<i class="far '.$position[3].'"></i> ';
     }
     
-    $controls[] = '<button type="button" class="btn btn-warning btn-circle btn-sm" data-path="' . $buttonPath . '"'.$style.'>'.$icon.issetDefaultVal($position[1], 'Position 1').'</button>';
+    if (isset($position[4]) && $position[4] != '' && $position[4] != '0') {
+        $rightIcon = ' <i class="far fa-key"></i> ';
+    }
+    
+    $controls[] = '<button type="button" class="btn btn-warning btn-circle btn-sm" data-path="' . $buttonPath . '"'.$style.'>'.$icon.issetDefaultVal($position[1], 'Position 1').$rightIcon.'</button>';
     
     echo implode('', $controls);
     ?>

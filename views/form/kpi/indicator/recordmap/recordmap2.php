@@ -534,7 +534,7 @@ function deleteKpiRelatonBp(elem, metaDataId) {
         return;
     }
     
-    if (userId != '<?php echo Ue::sessionUserKeyId() ?>') {
+    if (userId != '' && userId != '<?php echo Ue::sessionUserKeyId() ?>') {
         PNotify.removeAll();
         new PNotify({
           title: "Warning",

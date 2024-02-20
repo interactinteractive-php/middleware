@@ -88,13 +88,12 @@
 
                                         } else {
                                             
-                                            $contextMenu = array();
+                                            $contextMenu = [];
                                             
                                             foreach ($this->process as $process) {
                                                 
                                                 $srcIndicatorId = $process['structure_indicator_id'];
                                                 $crudIndicatorId = issetParam($process['crud_indicator_id']);
-                                                $uxFlowActionIndicatorId = issetParam($process['id']);
                                                 $isFillRelation = issetParam($process['is_fill_relation']);
                                                 $isNormalRelation = issetParam($process['is_normal_relation']);
                                                 $typeCode = $process['type_code'];
@@ -147,8 +146,6 @@
                                                             'data-main-indicatorid' => $this->indicatorId, 
                                                             'data-structure-indicatorid' => $this->indicatorId, 
                                                             'data-crud-indicatorid' => $crudIndicatorId,
-                                                            'data-uxflow-indicatorid' => issetParam($this->uxFlowIndicatorId),
-                                                            'data-uxflow-action-indicatorid' => $uxFlowActionIndicatorId, 
                                                             'data-mapid' => issetParam($process['map_id'])
                                                         );
                                                         
@@ -174,8 +171,6 @@
                                                             'data-main-indicatorid' => $this->indicatorId, 
                                                             'data-structure-indicatorid' => $this->indicatorId, 
                                                             'data-crud-indicatorid' => $crudIndicatorId,
-                                                            'data-uxflow-indicatorid' => issetParam($this->uxFlowIndicatorId),
-                                                            'data-uxflow-action-indicatorid' => $uxFlowActionIndicatorId, 
                                                             'data-mapid' => issetParam($process['map_id'])
                                                         );
                                                         
@@ -196,8 +191,6 @@
                                                             'data-main-indicatorid' => $this->indicatorId, 
                                                             'data-structure-indicatorid' => $this->indicatorId, 
                                                             'data-crud-indicatorid' => $crudIndicatorId,
-                                                            'data-uxflow-indicatorid' => issetParam($this->uxFlowIndicatorId),
-                                                            'data-uxflow-action-indicatorid' => $uxFlowActionIndicatorId, 
                                                             'data-mapid' => issetParam($process['map_id'])
                                                         );
                                                         
@@ -218,8 +211,6 @@
                                                             'data-main-indicatorid' => $this->indicatorId, 
                                                             'data-structure-indicatorid' => $this->indicatorId, 
                                                             'data-crud-indicatorid' => $crudIndicatorId,
-                                                            'data-uxflow-indicatorid' => issetParam($this->uxFlowIndicatorId),
-                                                            'data-uxflow-action-indicatorid' => $uxFlowActionIndicatorId, 
                                                             'data-mapid' => issetParam($process['map_id'])
                                                         );
                                                         
@@ -240,8 +231,6 @@
                                                             'data-main-indicatorid' => $this->indicatorId, 
                                                             'data-structure-indicatorid' => $this->indicatorId, 
                                                             'data-crud-indicatorid' => $crudIndicatorId,
-                                                            'data-uxflow-indicatorid' => issetParam($this->uxFlowIndicatorId),
-                                                            'data-uxflow-action-indicatorid' => $uxFlowActionIndicatorId, 
                                                             'data-mapid' => issetParam($process['map_id'])
                                                         );
                                                         
@@ -284,15 +273,7 @@
                                                     $isDfillRelation = issetParam($process['is_dfill_relation']);
                                                     $isCfillRelation = issetParam($process['is_cfill_relation']);
                                                     
-                                                    if ($uxFlowActionIndicatorId) { 
-                                                        
-                                                        $processName = $process['buttonname'];
-                                                        $buttonColor = $process['buttoncolor'];
-                                                        $className = 'btn '.$buttonColor.' btn-circle btn-sm';
-                                                        $buttonName = '<i class="far '.$process['buttonicon'].'"></i> '.$processName;
-                                                        $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '$srcIndicatorId', ".($typeCode == 'update' ? 'true' : 'false').");";                                                        
-                                                        
-                                                    } elseif ($typeCode == 'create') {
+                                                    if ($typeCode == 'create') {
                                                         
                                                         $className = 'btn btn-success btn-circle btn-sm';
                                                         $buttonName = '<i class="far fa-plus"></i> '.$processName;
@@ -366,6 +347,12 @@
                                                         $className = 'btn green btn-circle btn-sm';
                                                         $buttonName = '<i class="far fa-file-excel"></i> '.$processName;
                                                         $onClick = "excelImportKpiIndicatorValue(this, '$srcIndicatorId');";
+                                                        
+                                                    } elseif ($process['code'] == 'sendmail') {
+                                                        
+                                                        $className = 'btn green btn-circle btn-sm';
+                                                        $buttonName = $processName;
+                                                        $onClick = "mvDataViewSendMailBySelectionRowsInit(this, '$crudIndicatorId', '$this->indicatorId', '');";
                                                     }
                                                 }
                                                 
@@ -380,8 +367,6 @@
                                                         'data-main-indicatorid' => $this->indicatorId, 
                                                         'data-structure-indicatorid' => $this->indicatorId, 
                                                         'data-crud-indicatorid' => $crudIndicatorId,
-                                                        'data-uxflow-indicatorid' => issetParam($this->uxFlowIndicatorId),
-                                                        'data-uxflow-action-indicatorid' => $uxFlowActionIndicatorId, 
                                                         'data-mapid' => issetParam($process['map_id'])
                                                     ), 
                                                     $buttonName, true
@@ -431,7 +416,7 @@
                                         
                                         echo html_tag('button', array(
                                             'type' => 'button', 
-                                            'class' => 'btn btn-sm btn-circle btn-secondary', 
+                                            'class' => 'btn btn-sm btn-circle btn-secondary d-none', 
                                             'onclick' => 'dataListToBasket_'.$this->indicatorId.'(this);'
                                         ), '<i class="far fa-shopping-cart"></i> Сагсанд нэмэх');                                        
                                         
@@ -498,7 +483,31 @@
                                                 );  ?>
                                             </div>
                                         </div>
-                                    <?php }
+                                    <?php } elseif (isset($this->relationComponentsWidget)) { ?>
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-outline-success dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><i class="icon-stack2"></i></button>
+                                            <div class="dropdown-menu dropdown-menu-right" x-placement="bottom-end" style="position: absolute; transform: translate3d(-75px, 36px, 0px); top: 0px; left: 0px; will-change: transform;">
+                                                <?php 
+                                                if ($this->viewType !== 'list') {
+                                                    echo Html::anchor(
+                                                            'javascript:;', 'Жагсаалт', array(
+                                                            'class' => 'dropdown-item',
+                                                            'onclick' => 'kpiIndicatorViewList_'.$this->indicatorId.'(this, \''.$this->indicatorId.'\');'
+                                                        ), true  
+                                                    );  
+                                                } else {
+                                                    echo Html::anchor(
+                                                            'javascript:;', 'Card', array(
+                                                            'class' => 'dropdown-item',
+                                                            'onclick' => 'kpiIndicatorViewCalendar_'.$this->indicatorId.'(this, \''.$this->indicatorId.'\');'
+                                                        ), true  
+                                                    );                                                     
+                                                }
+                                                ?>
+                                            </div>
+                                        </div>                                    
+                                    <?php
+                                    }
                                     echo Html::anchor(
                                             'javascript:;', '<i class="far fa-file-excel"></i>', array(
                                             'class' => 'btn btn-secondary btn-circle btn-sm default',
@@ -644,9 +653,6 @@
 .kpidv-data-filter-col .jstree-default .jstree-custom-folder-icon.green.jstree-open>.jstree-ocl {
     color: #41c7ae;
 }
-/*.kpidv-data-filter-col .jstree-node.jstree-custom-folder-icon .nameField {
-    margin-left: 18px;
-}*/
 .kpidv-data-filter-col .jstree-default .jstree-node, 
 .kpidv-data-filter-col .jstree-default .jstree-icon {
     background-image: none !important;
@@ -916,8 +922,6 @@ $(function() {
                         $menuCallBack .= '.attr(\'data-main-indicatorid\', \''.$menu['data-main-indicatorid'].'\')';
                         $menuCallBack .= '.attr(\'data-structure-indicatorid\', \''.$menu['data-structure-indicatorid'].'\')';
                         $menuCallBack .= '.attr(\'data-crud-indicatorid\', \''.$menu['data-crud-indicatorid'].'\')';
-                        $menuCallBack .= '.attr(\'data-uxflow-indicatorid\', \''.$menu['data-uxflow-indicatorid'].'\')';
-                        $menuCallBack .= '.attr(\'data-uxflow-action-indicatorid\', \''.$menu['data-uxflow-action-indicatorid'].'\')';
                         $menuCallBack .= '.attr(\'data-mapid\', \''.$menu['data-mapid'].'\'); ';
                         
                         $menuCallBack .= $menu['onClick'];
@@ -1318,10 +1322,6 @@ function wfmstatusRender_<?php echo $this->indicatorId ?>(e, type, isIgnoreAlert
                     return;
                 } 
 
-                /*if (response.hasOwnProperty('getUseAssignRuleId')) {
-                    $workflowDropdown.append('<li><a href="javascript:;" onclick="userDefAssignWfmStatus(this, \''+response.getUseAssignRuleId+'\', \'<?php echo $this->indicatorId ?>\');">'+plang.get('MET_99990846')+'</a></li>');
-                }*/
-
                 if (!isIgnoreWfmHistory_<?php echo $this->indicatorId; ?>) {
                     wfmIcon = '';
                     if (typeof type !== 'undefined') {
@@ -1356,8 +1356,7 @@ function dataListToBasket_<?php echo $this->indicatorId ?>(elem) {
         return;
     }
 
-    var isAdded = false,
-        isGlConnected = false; 
+    var isAdded = false, isGlConnected = false; 
 
     for (var key in rows) {
         var row = rows[key]

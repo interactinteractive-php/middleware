@@ -28,6 +28,9 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt, call
     if ($this.hasClass('no-dataview') && $this.attr('data-rowdata')) {
         isNoDataview = true;
         fcSelectedRow = [JSON.parse($this.attr('data-rowdata'))];
+    } else if ($this.closest('.objectdatacustomgrid').length && $this.closest('.objectdatacustomgrid').find('.no-dataview').length) {
+        isNoDataview = true;
+        fcSelectedRow = $this.closest('.objectdatacustomgrid').find('.no-dataview.active').length ? [JSON.parse($this.closest('.objectdatacustomgrid').find('.no-dataview.active').attr('data-rowdata'))] : [];      
     }                
 
     if (typeof opt == 'undefined' || (typeof opt != 'undefined' && isObject(opt) && Object.keys(opt).length == 0)) {
@@ -141,12 +144,6 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt, call
     
     if ($this.hasAttr('data-crud-indicatorid')) {
         postData.param.crudIndicatorId = $this.attr('data-crud-indicatorid');
-    }
-    
-    if ($this.hasAttr('data-uxflow-indicatorid') && $this.attr('data-uxflow-indicatorid')) {
-        postData.param.uxFlowIndicatorId = $this.attr('data-uxflow-indicatorid');
-        postData.param.structureIndicatorId = $this.attr('data-structure-indicatorid');
-        postData.param.uxFlowActionIndicatorId = $this.attr('data-uxflow-action-indicatorid');
     }
     
     var isMapId = false, isMapHidden = false, isSrcMap = false, isListRelation = false;
@@ -459,6 +456,7 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt, call
     });
 }
 function mvNormalRelationRender(elem, kpiTypeId, mainIndicatorId, opt) {
+    var $this = $(elem);
     var postData = {
         mainIndicatorId: mainIndicatorId, 
         methodIndicatorId: opt.methodIndicatorId, 
@@ -484,6 +482,15 @@ function mvNormalRelationRender(elem, kpiTypeId, mainIndicatorId, opt) {
                 return;
             }
         }
+    }
+    
+    if ($this.hasAttr('data-actiontype') && $this.attr('data-actiontype') == 'create' && $this.closest('.mv-checklist-render-parent').length) {
+        var $checkListParent = $this.closest('.mv-checklist-render-parent');
+        var $checkListActive = $checkListParent.find('ul.nav-sidebar a.nav-link.active[data-json]');
+        var checkListRowJson = JSON.parse(html_entity_decode($checkListActive.attr('data-json'), 'ENT_QUOTES'));
+        
+        postData.mapSrcMapId = checkListRowJson.mapId;
+        postData.mapSelectedRow = $checkListParent.find('input[data-path="headerParams"]').val();
     }
     
     $.ajax({
@@ -866,8 +873,11 @@ function removeKpiIndicatorValue(elem, indicatorId, successCallback) {
 
     if ($this.hasClass('no-dataview') && $this.attr('data-rowdata')) {
         isNoDataview = true;
-        var fcSelectedRow =  [JSON.parse($this.attr('data-rowdata'))];
-    }
+        fcSelectedRow =  [JSON.parse($this.attr('data-rowdata'))];
+    } else if ($this.closest('.objectdatacustomgrid').length && $this.closest('.objectdatacustomgrid').find('.no-dataview').length) {
+        isNoDataview = true;
+        fcSelectedRow = $this.closest('.objectdatacustomgrid').find('.no-dataview.active').length ? [JSON.parse($this.closest('.objectdatacustomgrid').find('.no-dataview.active').attr('data-rowdata'))] : [];      
+    }       
 
     var selectedRows = isNoDataview ? fcSelectedRow : getDataViewSelectedRows(mainIndicatorId);
         
@@ -7137,6 +7147,16 @@ function mvWidgetRelationRender(elem, kpiTypeId, mainIndicatorId, opt) {
     });
 }
 
+function mvDataViewSendMailBySelectionRowsInit(elem, processMetaDataId, dataViewId, postParams, getParams) {
+    if (typeof isMailSelectionRowsAddonScript === 'undefined') {
+        $.getScript('middleware/assets/js/dataview/mail/selectionRows.js').done(function() {
+            mvDataViewSendMailBySelectionRows(elem, processMetaDataId, dataViewId, postParams, getParams);
+        });
+    } else {
+        mvDataViewSendMailBySelectionRows(elem, processMetaDataId, dataViewId, postParams, getParams);
+    }
+}
+
 $(function() {
     
     $(document.body).on('click', '.kpi-indicator-filter-collapse-btn', function() {
@@ -7291,6 +7311,25 @@ $(function() {
                 }
             }
         }, 205);
+    });
+    
+    $(document.body).on('keyup', '.mv-filter-name-search', function(e) {
+        var code = e.keyCode || e.which;
+        if (code == '9') return;
+        
+        var $this = $(this);
+        var inputVal = $this.val().toLowerCase(), 
+            $body = $this.closest('.list-group-body'), 
+            $rows = $body.find('a.list-group-item');
+            
+        var $filteredRows = $rows.filter(function() {
+            var $rowElem = $(this);
+            var value = $rowElem.find('span[data-value-mode]').text().toLowerCase();
+            return value.indexOf(inputVal) === -1;
+        });
+        
+        $rows.css({display: ''});
+        $filteredRows.css({display: 'none'});
     });
     
 });

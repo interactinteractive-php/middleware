@@ -1415,4 +1415,14 @@ class Mduser_Model extends Model {
         }
     }
     
+    public function startupMetaModel() {
+        $get = $this->db->GetRow("SELECT * FROM UM_META_BLOCK WHERE USER_ID = ".$this->db->Param(0), array(Ue::sessionUserKeyId()));
+        return $get;
+    }    
+    
+    public function startupMetaAllUserModel() {
+        $get = $this->db->GetRow("SELECT * FROM UM_META_BLOCK WHERE IS_ALL_USER = ".$this->db->Param(0), array(1));
+        return $get;
+    }
+    
 }

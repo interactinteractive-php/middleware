@@ -199,6 +199,7 @@ class Restapi extends Controller {
                         $_POST['indicatorId'] = Input::paramNum($parameters['indicatorId']);
                         $_POST['page']        = issetParam($parameters['paging']['offset']);
                         $_POST['rows']        = issetParam($parameters['paging']['pageSize']);
+                        $_POST['isGoogleMap'] = issetParam($parameters['isGoogleMap']);
                         
                         if ($sortColumnNames = issetVar($parameters['sortColumnNames'])) {
                             if (is_array($sortColumnNames)) {
@@ -243,6 +244,24 @@ class Restapi extends Controller {
                         $postParameters = ['kpiMainIndicatorId' => $kpiMainIndicatorId, 'kpiCrudIndicatorId' => $kpiCrudIndicatorId];
                         
                         $_POST = $postParameters;
+                        Mdform::$mvSaveParams = Arr::changeKeyUpper($parameters);
+
+                        $this->load->model('mdform', 'middleware/models/');
+                        $response = $this->model->saveMetaVerseDataModel();
+                        $response = Arr::changeKeyName($response, 'message', 'text');
+                    }
+                    break;
+                
+                    case 'kpiIndicatorDataSaveByAliasName':
+                    {
+                        $kpiMainIndicatorId = Input::param($parameters['indicatorId']);
+                        $kpiCrudIndicatorId = issetVar($parameters['crudIndicatorId']);
+                        
+                        $postParameters = ['kpiMainIndicatorId' => $kpiMainIndicatorId, 'kpiCrudIndicatorId' => $kpiCrudIndicatorId];
+                        
+                        $_POST = $postParameters;
+                        
+                        Mdform::$isTrgAliasName = true;
                         Mdform::$mvSaveParams = Arr::changeKeyUpper($parameters);
 
                         $this->load->model('mdform', 'middleware/models/');

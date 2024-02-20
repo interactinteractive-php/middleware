@@ -542,7 +542,7 @@
     background-color: #eee !important;
     color: #99A1B7;
 }
-.kpi-form-paper-portrait .tabbable-line>.nav-tabs>li a.active {
+.kpi-form-paper-portrait .tabbable-line>.nav-tabs>li a.active:not(.nav-tabs-btn-filter, .nav-tabs-btn-search) {
     border-bottom: 3px solid #1B84FF !important;
     color: #1B84FF;
 }

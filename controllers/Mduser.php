@@ -833,4 +833,28 @@ class Mduser extends Controller {
         echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
+    public function startupMetaScriptFooter() {
+        
+        if (!isset($this->view)) {
+            $this->view = new View();
+        }        
+        $this->load->model('mduser', 'middleware/models/');
+        
+        $this->view->getStartupMeta = $this->model->startupMetaModel();
+        $this->view->getStartupMetaAllUser = $this->model->startupMetaAllUserModel();
+        
+        if ($this->view->getStartupMeta || $this->view->getStartupMetaAllUser) {
+            
+            $script = $this->view->renderPrint('startup/scriptFooter', self::$viewPath);
+            
+            if (issetParam($this->view->getStartupMeta['IS_ALWAYS_ACTIVE']) != '1') {
+                Session::set(SESSION_PREFIX.'startupMeta', '1');
+            }
+            
+            return $script;
+        } 
+        
+        return null;
+    }
+    
 }

@@ -9354,6 +9354,7 @@ class Mdtimestable_Model extends Model {
             $employeeIds = $_POST['employeeId'];
             $datesArr = array();
             $tmsCalcIdCode = false;
+            $keySplit = Config::getFromCache('TMS_PLAN_IS_KEY_SPLIT');
             
             if (Config::getFromCache('tmsCalcIdCode') == '1') {
                 $tmsCalcIdCode = true;
@@ -9390,6 +9391,7 @@ class Mdtimestable_Model extends Model {
             $idPh1 = $this->db->Param(0);
             $idPh2 = $this->db->Param(1);
             $idPh3 = $this->db->Param(2);
+            $idPh4 = $this->db->Param(3);
             
             foreach ($employeeIds as $k => $row) {
                 foreach ($datesArr as $dateVal) {
@@ -9430,23 +9432,36 @@ class Mdtimestable_Model extends Model {
                     
                     if (!$employeeTimePlanId) {
                         
-                        $employeeTimePlanId = $this->db->GetOne("
-                            SELECT 
-                                ID 
-                            FROM TMS_EMPLOYEE_TIME_PLAN_HDR 
-                            WHERE YEAR_ID = $idPh1 
-                                AND MONTH_ID = $idPh2 
-                                AND EMPLOYEE_ID = $idPh3", 
-                            array($paramData['YEAR_ID'], $paramData['MONTH_ID'], $paramData['EMPLOYEE_ID'])
-                        );
+                        if ($keySplit) {
+                            $employeeTimePlanId = $this->db->GetOne("
+                                SELECT 
+                                    ID 
+                                FROM TMS_EMPLOYEE_TIME_PLAN_HDR 
+                                WHERE YEAR_ID = $idPh1 
+                                    AND MONTH_ID = $idPh2 
+                                    AND EMPLOYEE_KEY_ID = $idPh4 
+                                    AND EMPLOYEE_ID = $idPh3", 
+                                array($paramData['YEAR_ID'], $paramData['MONTH_ID'], $paramData['EMPLOYEE_ID'], $paramData['EMPLOYEE_KEY_ID'])
+                            );                            
+                        } else {
+                            $employeeTimePlanId = $this->db->GetOne("
+                                SELECT 
+                                    ID 
+                                FROM TMS_EMPLOYEE_TIME_PLAN_HDR 
+                                WHERE YEAR_ID = $idPh1 
+                                    AND MONTH_ID = $idPh2 
+                                    AND EMPLOYEE_ID = $idPh3", 
+                                array($paramData['YEAR_ID'], $paramData['MONTH_ID'], $paramData['EMPLOYEE_ID'])
+                            );
+                        }
                     }
                     
                     if ($employeeTimePlanId) {
                         
                         unset($paramData['ID']);
                         unset($paramData['MONTH_ID']);
-                        unset($paramData['EMPLOYEE_ID']);
-                        unset($paramData['EMPLOYEE_KEY_ID']);
+                        //unset($paramData['EMPLOYEE_ID']);
+                        //unset($paramData['EMPLOYEE_KEY_ID']);
                         
                         $this->db->AutoExecute('TMS_EMPLOYEE_TIME_PLAN_HDR', $paramData, 'UPDATE', "ID = $employeeTimePlanId");                
                         /*$this->db->Execute("DELETE FROM TMS_EMPLOYEE_TIME_PLAN_DTL WHERE TIME_PLAN_ID = $employeeTimePlanId AND TO_CHAR(PLAN_DATE, 'YYYY-MM-DD') IN (".rtrim($dateJoin, ',').")");

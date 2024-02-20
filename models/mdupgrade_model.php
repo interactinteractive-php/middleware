@@ -3629,7 +3629,7 @@ class Mdupgrade_Model extends Model {
                 
                 if ($row['TYPNAME'] == 'numeric') {
                     $typeName = 'NUMBER';
-                } elseif ($row['TYPNAME'] == 'text') {
+                } elseif ($row['TYPNAME'] == 'text' || $row['TYPNAME'] == 'clob') {
                     $typeName = 'CLOB';
                 } elseif ($row['TYPNAME'] == 'timestamp') {
                     $typeName = 'DATE'; 
@@ -3659,7 +3659,7 @@ class Mdupgrade_Model extends Model {
 
             if ($row->type == 'numeric') {
                 $typeName = 'NUMBER';
-            } elseif ($row->type == 'text') {
+            } elseif ($row->type == 'text' || $row->type == 'clob') {
                 $typeName = 'CLOB';
             } elseif ($row->type == 'timestamp') {
                 $typeName = 'DATE'; 
@@ -4883,6 +4883,8 @@ class Mdupgrade_Model extends Model {
                                     $script = 'DO $$ BEGIN '.$script.'; EXCEPTION WHEN others THEN END; $$;';
                                 }
                             }
+                            
+                            $script = str_replace('TO_CHAR(', 'TO_DATE(', $script);
 
                             try {
                                 

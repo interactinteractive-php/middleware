@@ -14652,6 +14652,25 @@ function bpGetWfmNextStatusByRowDataQryStr(dvId, rowDataQryStr) {
     
     return statusList;
 }
+function bpChangeWfmStatusByRowDataQryStr(mainSelector, elem, dvId, rowDataQryStr, callbackFnc) {
+    var row = qryStrToObj(rowDataQryStr);
+    if (row) {
+        var bpUniqId = mainSelector.attr('data-bp-uniq-id');
+        row.callbackFnc = callbackFnc + '_' + bpUniqId;
+        if (row.wfmisneedsign == '1') {
+            beforeSignChangeWfmStatusId(elem, row.newwfmstatusid, dvId, row, row.wfmstatuscolor, row.wfmstatusname);
+        } else if (row.wfmisneedsign == '2') {
+            beforeHardSignChangeWfmStatusId(elem, row.newwfmstatusid, dvId, row, row.wfmstatuscolor, row.wfmstatusname);
+        } /*else if (v.wfmisneedsign == '3') {
+            $workflowDropdown.append('<li><a href="javascript:;" ' + advancedCriteria + ' onclick="cloudSignChangeWfmStatusId(this, \''+v.wfmstatusid+'\', \'<?php echo $this->indicatorId; ?>\', \'<?php echo $this->indicatorId; ?>\', \''+$.trim(v.wfmstatuscolor)+'\', \''+v.wfmstatusname+'\');" id="'+ v.wfmstatusid +'" data-isindicator="1">'+wfmIcon + v.wfmstatusname +' <i class="fa fa-key"></i></a></li>'); 
+        } else if (v.wfmisneedsign == '4') {
+            $workflowDropdown.append('<li><a href="javascript:;" ' + advancedCriteria + ' onclick="pinCodeChangeWfmStatusId(this, undefined, \''+v.wfmstatusid+'\', \'<?php echo $this->indicatorId; ?>\', \'<?php echo $this->indicatorId; ?>\', \''+$.trim(v.wfmstatuscolor)+'\', \''+v.wfmstatusname+'\');" id="'+ v.wfmstatusid +'" data-isindicator="1">'+wfmIcon + v.wfmstatusname +' <i class="fa fa-key"></i></a></li>'); 
+        } else if (v.wfmisneedsign == '6') {
+            $workflowDropdown.append('<li><a href="javascript:;" ' + advancedCriteria + ' onclick="otpChangeWfmStatusId(this, undefined, \''+v.wfmstatusid+'\', \'<?php echo $this->indicatorId; ?>\', \'<?php echo $this->indicatorId; ?>\', \''+$.trim(v.wfmstatuscolor)+'\', \''+v.wfmstatusname+'\');" id="'+ v.wfmstatusid +'" data-isindicator="1">'+wfmIcon + v.wfmstatusname +' <i class="fa fa-key"></i></a></li>'); 
+        }*/
+    }
+    return;
+}
 function bpComboFillData(mainSelector, elem, comboPath, comboData, optionId, optionText) {
     
     if (comboData) {

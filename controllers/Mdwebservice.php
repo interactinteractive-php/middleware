@@ -13485,6 +13485,44 @@ class Mdwebservice extends Controller {
         return true;
     }
     
+    public function saveMetaVerseRecordSegmentMap($processId, $refStructureId, $sourceId) {
+        
+        if ($refStructureId != '' && $sourceId != '' && Input::postCheck('mvDmRecordMaps')) {
+            
+            try {
+                
+                $mvDmRecordMaps = Input::post('mvDmRecordMaps');
+                
+                if ($trgIndicatorIds = issetParam($mvDmRecordMaps['indicatorId'])) {
+                    
+                    $sessionUserKeyId = Ue::sessionUserKeyId();
+                    
+                    foreach ($trgIndicatorIds as $k => $trgIndicatorId) {
+
+                        $trgRecordId = $mvDmRecordMaps['recordId'][$k];
+
+                        $insertMapRow = array(
+                            'ID'                   => getUIDAdd($k), 
+                            'SRC_REF_STRUCTURE_ID' => $refStructureId, 
+                            'TRG_REF_STRUCTURE_ID' => $trgIndicatorId, 
+                            'SRC_RECORD_ID'        => $trgRecordId, 
+                            'TRG_RECORD_ID'        => $sourceId, 
+                            'CREATED_DATE'         => Date::currentDate(), 
+                            'CREATED_USER_ID'      => $sessionUserKeyId
+                        );
+
+                        $this->db->AutoExecute('META_DM_RECORD_MAP', $insertMapRow);
+                    }
+                }
+                
+            } catch (Exception $ex) {
+                return false;
+            }
+        }
+        
+        echo json_encode(array('status' => 'info', 'message' => ''));
+    }
+    
     public function fillBpRowsMetaVerseRecordMaps($refStructureId) {
         
         $mvDmRecordMaps = Input::post('mvDmRecordMaps');

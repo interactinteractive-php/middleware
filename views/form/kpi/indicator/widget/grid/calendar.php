@@ -1,5 +1,6 @@
 <?php 
     $eventClickProcess = array();
+    $eventSelectableProcessId = '0'; //checkDefaultVal($this->relationViewConfig['eventselectableprocessid'], '0');
 ?>
 <div class="center-sidebar overflow-hidden content ">
     <div class="row">
@@ -92,13 +93,11 @@
                                             
                                             $contextMenu = array();
                                             $createFcProcessEvent = $createFcProcessEventBtnName = "";
-                                            /* var_dump($this->process);
-                                            die; */
+                                            
                                             foreach ($this->process as $process) {
                                                 
                                                 $srcIndicatorId = $process['structure_indicator_id'];
                                                 $crudIndicatorId = issetParam($process['crud_indicator_id']);
-                                                $uxFlowActionIndicatorId = issetParam($process['id']);
                                                 $isFillRelation = issetParam($process['is_fill_relation']);
                                                 $isNormalRelation = issetParam($process['is_normal_relation']);
                                                 $typeCode = $process['type_code'];
@@ -148,8 +147,6 @@
                                                             'data-main-indicatorid' => $this->indicatorId, 
                                                             'data-structure-indicatorid' => $this->indicatorId, 
                                                             'data-crud-indicatorid' => $crudIndicatorId,
-                                                            'data-uxflow-indicatorid' => issetParam($this->uxFlowIndicatorId),
-                                                            'data-uxflow-action-indicatorid' => $uxFlowActionIndicatorId, 
                                                             'data-mapid' => issetParam($process['map_id'])
                                                         );
                                                         
@@ -170,8 +167,6 @@
                                                             'data-main-indicatorid' => $this->indicatorId, 
                                                             'data-structure-indicatorid' => $this->indicatorId, 
                                                             'data-crud-indicatorid' => $crudIndicatorId,
-                                                            'data-uxflow-indicatorid' => issetParam($this->uxFlowIndicatorId),
-                                                            'data-uxflow-action-indicatorid' => $uxFlowActionIndicatorId, 
                                                             'data-mapid' => issetParam($process['map_id'])
                                                         );
                                                         
@@ -192,8 +187,6 @@
                                                             'data-main-indicatorid' => $this->indicatorId, 
                                                             'data-structure-indicatorid' => $this->indicatorId, 
                                                             'data-crud-indicatorid' => $crudIndicatorId,
-                                                            'data-uxflow-indicatorid' => issetParam($this->uxFlowIndicatorId),
-                                                            'data-uxflow-action-indicatorid' => $uxFlowActionIndicatorId, 
                                                             'data-mapid' => issetParam($process['map_id'])
                                                         );
                                                         
@@ -214,8 +207,6 @@
                                                             'data-main-indicatorid' => $this->indicatorId, 
                                                             'data-structure-indicatorid' => $this->indicatorId, 
                                                             'data-crud-indicatorid' => $crudIndicatorId,
-                                                            'data-uxflow-indicatorid' => issetParam($this->uxFlowIndicatorId),
-                                                            'data-uxflow-action-indicatorid' => $uxFlowActionIndicatorId, 
                                                             'data-mapid' => issetParam($process['map_id'])
                                                         );
                                                         
@@ -236,8 +227,6 @@
                                                             'data-main-indicatorid' => $this->indicatorId, 
                                                             'data-structure-indicatorid' => $this->indicatorId, 
                                                             'data-crud-indicatorid' => $crudIndicatorId,
-                                                            'data-uxflow-indicatorid' => issetParam($this->uxFlowIndicatorId),
-                                                            'data-uxflow-action-indicatorid' => $uxFlowActionIndicatorId, 
                                                             'data-mapid' => issetParam($process['map_id'])
                                                         );
                                                         
@@ -279,21 +268,12 @@
                                                     $processName = $this->lang->line(issetParam($process['label_name']));
                                                     $isDfillRelation = issetParam($process['is_dfill_relation']);
                                                     
-
                                                     if (issetParam($this->relationViewConfig['eventclick']) === $srcIndicatorId) {
                                                         $eventClickProcess['kpiTypeId'] =  $kpiTypeId;
                                                         $eventClickProcess['srcIndicatorId'] =  $srcIndicatorId;
                                                     }
 
-                                                    if ($uxFlowActionIndicatorId) { 
-                                                        
-                                                        $processName = $process['buttonname'];
-                                                        $buttonColor = $process['buttoncolor'];
-                                                        $className = 'btn '.$buttonColor.' btn-circle btn-sm';
-                                                        $buttonName = '<i class="far '.$process['buttonicon'].'"></i> '.$processName;
-                                                        $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '$srcIndicatorId', ".($typeCode == 'update' ? 'true' : 'false').", undefined, undefined, 'refetchEvents_". $this->indicatorId ."');";                                                        
-                                                        
-                                                    } elseif ($typeCode == 'create') {
+                                                    if ($typeCode == 'create') {
                                                         
                                                         $className = 'btn btn-success btn-circle btn-sm';
                                                         $buttonName = '<i class="far fa-plus"></i> '.$processName;
@@ -342,8 +322,6 @@
                                                             'data-main-indicatorid' => $this->indicatorId, 
                                                             'data-structure-indicatorid' => $this->indicatorId, 
                                                             'data-crud-indicatorid' => $crudIndicatorId,
-                                                            'data-uxflow-indicatorid' => issetParam($this->uxFlowIndicatorId),
-                                                            'data-uxflow-action-indicatorid' => $uxFlowActionIndicatorId, 
                                                             'data-mapid' => issetParam($process['map_id'])
                                                         );
 
@@ -397,8 +375,6 @@
                                                         'data-main-indicatorid' => $this->indicatorId, 
                                                         'data-structure-indicatorid' => $this->indicatorId, 
                                                         'data-crud-indicatorid' => $crudIndicatorId,
-                                                        'data-uxflow-indicatorid' => issetParam($this->uxFlowIndicatorId),
-                                                        'data-uxflow-action-indicatorid' => $uxFlowActionIndicatorId, 
                                                         'data-mapid' => issetParam($process['map_id'])
                                                     ), 
                                                     $buttonName, true
@@ -873,8 +849,6 @@ if (issetParam($this->relationViewConfig['tooltip-1']) || issetParam($this->rela
                 $menuCallBack .= '.attr(\'data-main-indicatorid\', \''.$menu['data-main-indicatorid'].'\')';
                 $menuCallBack .= '.attr(\'data-structure-indicatorid\', \''.$menu['data-structure-indicatorid'].'\')';
                 $menuCallBack .= '.attr(\'data-crud-indicatorid\', \''.$menu['data-crud-indicatorid'].'\')';
-                $menuCallBack .= '.attr(\'data-uxflow-indicatorid\', \''.$menu['data-uxflow-indicatorid'].'\')';
-                $menuCallBack .= '.attr(\'data-uxflow-action-indicatorid\', \''.$menu['data-uxflow-action-indicatorid'].'\')';
                 $menuCallBack .= '.attr(\'data-mapid\', \''.$menu['data-mapid'].'\') ';
                 $menuCallBack .= '.attr(\'data-rowdata\', $(opt.$trigger).attr(\'data-rowdata\')) ';
                 $menuCallBack .= '.addClass(\'no-dataview\'); ';
@@ -898,6 +872,8 @@ if (issetParam($this->relationViewConfig['tooltip-1']) || issetParam($this->rela
 <?php }  ?>
 var dynamicHeight = 0;
 var calendar<?php echo $this->indicatorId; ?>;
+var filterStart<?php echo $this->indicatorId; ?>, filterEnd<?php echo $this->indicatorId; ?>;
+var mainSelector_<?php echo $this->indicatorId; ?> = $('#object-value-list-<?php echo $this->indicatorId; ?>');
 var mvCalendar_<?php echo $this->indicatorId; ?> = $('.mv-calendar-<?php echo $this->indicatorId; ?>');
 var idField_<?php echo $this->indicatorId; ?> = '<?php echo $this->idField; ?>';
 
@@ -1056,9 +1032,9 @@ function initFullCalendar_<?php echo $this->indicatorId; ?>() {
             var start = fetchInfo['start'];
             var startStr = fetchInfo['startStr'];
             var end = fetchInfo['end'];
-            var startStr = fetchInfo['startStr'];
+            var endStr = fetchInfo['endStr'];
             var timeZone = fetchInfo['timeZone'];
-            
+
             var defaultCriteriaData = '';
             var $packageTab = $();
             var $filterStartDate = $('#object-value-list-<?php echo $this->indicatorId; ?> .kpidv-data-filter-col').find('[data-path="filterStartDate"]');
@@ -1066,10 +1042,10 @@ function initFullCalendar_<?php echo $this->indicatorId; ?>() {
             if ($filterStartDate.length == 0) {
                 var filterStartDate = moment(start).format('YYYY-MM-DD');
                 var filterEndDate = moment(end).format('YYYY-MM-DD');
-
-                /* filterData["c3"] = [filterStartDate];
-                filterData["c4"] = [filterEndDate]; */
             }
+
+            filterStart<?php echo $this->indicatorId; ?> = moment(start).format('YYYY-MM-DD');
+            filterEnd<?php echo $this->indicatorId; ?> = moment(end).format('YYYY-MM-DD');
 
             var postParams = {
                 indicatorId: '<?php echo $this->indicatorId; ?>',  
@@ -1086,6 +1062,7 @@ function initFullCalendar_<?php echo $this->indicatorId; ?>() {
                     var response = JSON.parse(responseData);
                     if (response.status == 'success') {
                         successCallback(response.rows.map(function(event) {
+                            
                             return {
                                 id: event['ID'], 
                                 title: event['<?php echo issetParam($this->relationViewConfig['position-3']) ?>'], 
@@ -1104,6 +1081,7 @@ function initFullCalendar_<?php echo $this->indicatorId; ?>() {
                             sticker: false
                         });
                     }
+
                 },
                 error: function(response) {
                     console.log(response);
@@ -1148,12 +1126,14 @@ function initFullCalendar_<?php echo $this->indicatorId; ?>() {
             return { html: eventHtml };
         }, 
         eventDidMount: function(arg) {
+        
             var event = arg.event;
             var startDate = moment(event.start).format('YYYY-MM-DD');
             var element = $(arg.el);
             var eventHtml = '';
             var rData = arg.event.extendedProps.rowdata;  
             if (!event.id) return false;
+            
             element.attr({'data-rid': event.id, 'data-rowdata': JSON.stringify(rData)});
             element.closest('.fc-daygrid-event-harness').show();
             var prependHtml = '';
@@ -1307,6 +1287,9 @@ function initFullCalendar_<?php echo $this->indicatorId; ?>() {
         },
         loading: function (isLoading) {
             /* console.log('isLoading : ' + isLoading); */
+            
+            mainSelector_<?php echo $this->indicatorId; ?>.find('.kpidv-data-filter-col input[data-path="filterStartDate"]').val(filterStart<?php echo $this->indicatorId; ?>);
+            mainSelector_<?php echo $this->indicatorId; ?>.find('.kpidv-data-filter-col input[data-path="filterEndDate"]').val(filterEnd<?php echo $this->indicatorId; ?>);
         },
         eventClick: function(arg) {
             if (!$(arg.el).hasClass('no-dataview')) $(arg.el).addClass('no-dataview');
@@ -1317,14 +1300,24 @@ function initFullCalendar_<?php echo $this->indicatorId; ?>() {
                 manageKpiIndicatorValue(arg.el, '<?php echo $eventClickProcess['kpiTypeId']; ?>', '<?php echo $eventClickProcess['srcIndicatorId']; ?>', true, <?php echo $eventClickProcess['mode']; ?>, undefined, 'refetchEvents_<?php echo $this->indicatorId ?>', '<?php echo $this->indicatorId ?>');
             <?php } ?>
         },
-        dateClick: function(arg) {
+        /* dateClick: function(arg) {
             var date = arg.date;
             var jsEvent = arg.jsEvent;
             var view = arg.view;
-            
+            console.log(view);
+        },  */
+        <?php if ($eventSelectableProcessId) { ?>
+            select: function(arg) {
+                var dateStartGet = moment(arg.start);
+                var dateEndGet = moment(arg.end);
+                var dateEndDay = arg.end.getDate()-1;
+                
+                var filterStartDate = dateStartGet.format('YYYY-MM-DD'); // HH:mm:ss
+                var filterEndDate = dateEndGet.format('YYYY-MM-') + (dateEndDay < 10 ? '0' + dateEndDay : dateEndDay); // HH:mm:ss
 
-        }, 
-        select: function(info) {},
+                manageKpiIndicatorValue(arg.el, '<?php echo $eventClickProcess['kpiTypeId']; ?>', '<?php echo $eventClickProcess['srcIndicatorId']; ?>', true, <?php echo $eventClickProcess['mode']; ?>, undefined, 'refetchEvents_<?php echo $this->indicatorId ?>', '<?php echo $this->indicatorId ?>');
+            },
+        <?php } ?>
         progressiveEventRendering: function(event, element, view) {}
     });
     

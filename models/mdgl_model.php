@@ -783,6 +783,206 @@ class Mdgl_Model extends Model {
                     MFP.PATTERN_NAME, 
                     MFP.GLOBE_MESSAGE,
                     MFP.IS_MASK, 
+                    CONF.IS_REQUIRED, 
+                    CONF.LOOKUP_CRITERIA, 
+                    CONF.VALUE_CRITERIA, 
+                    CONFL.IS_USE_OPP_ACCOUNT, 
+                    CONF.ACCOUNT_FILTER, 
+                    SC.ID AS SEGMENT_ID, 
+                    SC.SEPRATOR_CHAR, 
+                    SC.REPLACE_VALUE, 
+                    ".$this->db->IfNull('MGC.PLACEHOLDER_NAME', 'MGC.LABEL_NAME')." AS PLACEHOLDER_NAME,
+                    COALESCE(CONF.DEBIT_DEFAULT_VALUE, CONF.DEFAULT_VALUE) AS DEBIT_DEFAULT_VALUE,
+                    COALESCE(CONF.CREDIT_DEFAULT_VALUE, CONF.DEFAULT_VALUE) AS CREDIT_DEFAULT_VALUE 
+                FROM META_GROUP_CONFIG MGC 
+                    INNER JOIN FIN_ACCOUNT_GL_CONFIG CONF ON LOWER(CONF.FIELD_PATH) = LOWER(MGC.FIELD_PATH) 
+                        $join 
+                    LEFT JOIN META_FIELD_PATTERN MFP ON MFP.PATTERN_ID = MGC.PATTERN_ID       
+                    LEFT JOIN FIN_ACCOUNT_GL_CONFIG_DTL CONFL ON LOWER(CONFL.FIELD_PATH) = LOWER(CONF.FIELD_PATH) AND ".$this->db->IfNull('CONF.IS_CHOOSE_OPP', '0')." = 0
+                    LEFT JOIN FIN_ACCOUNT_SEGMENT_CONFIG SC ON LOWER(SC.FIELD_PATH) = LOWER(CONF.FIELD_PATH) 
+                        $segmentJoin 
+                WHERE MGC.MAIN_META_DATA_ID = ".Mdgl::$glBookDtlGroupMetaDataId." 
+                    AND MGC.PARENT_ID IS NULL 
+                    AND MGC.DATA_TYPE <> 'group' 
+                    AND (CONF.CONFIG_TYPE IS NULL OR CONF.CONFIG_TYPE <> 2)";
+            
+            $groupBy = ' GROUP BY 
+                    MGC.FIELD_PATH, 
+                    MGC.VISIBLE_CRITERIA,
+                    CONF.DEFAULT_VALUE,
+                    MGC.LOOKUP_TYPE,
+                    MGC.LABEL_NAME,
+                    MGC.CHOOSE_TYPE,
+                    MGC.RECORD_TYPE,
+                    MGC.VALUE_FIELD,
+                    MGC.DISPLAY_FIELD,
+                    MGC.IS_SHOW,
+                    MGC.PARENT_ID, 
+                    MGC.LOOKUP_META_DATA_ID, 
+                    MGC.PARAM_NAME, 
+                    MGC.LABEL_NAME, 
+                    MGC.DATA_TYPE, 
+                    MGC.FILE_EXTENSION, 
+                    MGC.FRACTION_RANGE, 
+                    MGC.MIN_VALUE, 
+                    MGC.MAX_VALUE, 
+                    MFP.PATTERN_TEXT,
+                    MFP.PATTERN_NAME, 
+                    MFP.GLOBE_MESSAGE,
+                    MFP.IS_MASK, 
+                    CONF.IS_REQUIRED, 
+                    CONF.LOOKUP_CRITERIA, 
+                    CONF.VALUE_CRITERIA, 
+                    CONF.ACCOUNT_FILTER, 
+                    CONFL.IS_USE_OPP_ACCOUNT, 
+                    MGC.DISPLAY_ORDER, 
+                    SC.ID, 
+                    CONF.ORDER_NUMBER, 
+                    SC.SEPRATOR_CHAR, 
+                    SC.REPLACE_VALUE, 
+                    MGC.PLACEHOLDER_NAME,
+                    CONF.DEBIT_DEFAULT_VALUE,
+                    CONF.CREDIT_DEFAULT_VALUE ';
+            
+            if ($isOpMeta && strtolower($isOpMeta) !== 'cashflowsubcategoryid') {
+
+                $isOpMetaArr = explode('|', $isOpMeta);
+                $opAccountId = $isOpMetaArr[0];
+                $opCashFlowSubCategoryId = $isOpMetaArr[1];
+                
+                $result = $this->db->GetAll($sql." AND ((LOWER(MGC.FIELD_PATH) = LOWER('$opCashFlowSubCategoryId') 
+                    AND ( 
+                            $accountAlias.ACCOUNT_ID = $opAccountId 
+                            OR $accountAlias.ACCOUNT_TYPE_ID = (SELECT ACCOUNT_TYPE_ID FROM FIN_ACCOUNT WHERE ACCOUNT_ID = $opAccountId) 
+                            OR CONF.CO_A_GROUP_ID IN (SELECT CO_A_GROUP_ID FROM FIN_ACCOUNT_CO_A_GROUP_MAP WHERE ACCOUNT_ID = $opAccountId)     
+                        )) 
+                        OR CONF.ACCOUNT_ID = $accountId 
+                        OR CONF.ACCOUNT_TYPE_ID = $accountTypeId 
+                        OR CONF.CO_A_GROUP_ID IN (SELECT CO_A_GROUP_ID FROM FIN_ACCOUNT_CO_A_GROUP_MAP WHERE ACCOUNT_ID = $accountId)     
+                        OR $accountAlias.ACCOUNT_ID = $accountId 
+                        OR $accountAlias.ACCOUNT_TYPE_ID = $accountId 
+                    ) $groupBy 
+                    ORDER BY CONFL.IS_USE_OPP_ACCOUNT, MGC.DISPLAY_ORDER ASC");
+
+                if ($result) {
+                    
+                    $result[0]['IS_USE_OPP_ACCOUNT'] = '0';
+
+                    return $result;
+                    
+                } else {
+                    
+                    $opAccountTypeId = $this->db->GetOne("SELECT ACCOUNT_TYPE_ID FROM FIN_ACCOUNT WHERE ACCOUNT_ID = $opAccountId");
+                    $result = $this->db->GetAll($sql." AND ((LOWER(MGC.FIELD_PATH) = LOWER('$opCashFlowSubCategoryId') AND CONF.ACCOUNT_TYPE_ID = $opAccountTypeId) OR CONF.ACCOUNT_TYPE_ID = $accountTypeId) $groupBy ORDER BY CONFL.IS_USE_OPP_ACCOUNT, MGC.DISPLAY_ORDER ASC");
+                    
+                    if ($result) {
+                        $result[0]['IS_USE_OPP_ACCOUNT'] = '0';
+                        return $result;
+                    }
+                }
+            }
+            
+            if ($accountTypeId != '') {
+                $result = $this->db->GetAll($sql." AND ($accountAlias.ACCOUNT_ID = $accountId OR CONF.ACCOUNT_TYPE_ID = $accountTypeId) $groupBy ORDER BY CONF.ORDER_NUMBER ASC, MGC.DISPLAY_ORDER ASC");
+            } else {
+                $result = $this->db->GetAll($sql." AND $accountAlias.ACCOUNT_ID = $accountId $groupBy ORDER BY CONF.ORDER_NUMBER ASC, MGC.DISPLAY_ORDER ASC");
+            }
+
+            if ($result) {
+
+                return $result;
+
+            } elseif ($accountTypeId != '') {
+
+                $result = $this->db->GetAll($sql." AND CONF.ACCOUNT_TYPE_ID = $accountTypeId $groupBy ORDER BY CONF.ORDER_NUMBER ASC, MGC.DISPLAY_ORDER ASC");
+
+                if ($result) {
+                    return $result;
+                }
+            }
+
+            $result = $this->db->GetAll($sql." AND CONF.CO_A_GROUP_ID IN (SELECT CO_A_GROUP_ID FROM FIN_ACCOUNT_CO_A_GROUP_MAP WHERE ACCOUNT_ID = $accountId) ORDER BY CONF.ORDER_NUMBER ASC, MGC.DISPLAY_ORDER ASC");
+
+            if ($result) {
+                return $result;
+            }
+            
+        } catch(Exception $ex){      
+            return array();
+        }
+
+        return array();
+    }    
+    
+    public function getMetaByAccountTypeModelNew($selectedRow, $isOpMeta){
+        
+        try {
+            
+            if (Config::getFromCache('CONFIG_GL_ACCOUNT_PARENT_ID')) {
+                
+                /*$join = 'INNER JOIN FIN_ACCOUNT T2 ON (
+                        CONF.ACCOUNT_ID = COALESCE(T2.PARENT_ID, T2.ACCOUNT_ID) 
+                        OR CONF.ACCOUNT_TYPE_ID = T2.ACCOUNT_TYPE_ID 
+                    ) '; */
+                
+                $join = 'INNER JOIN FIN_ACCOUNT T2 ON ((T2.PARENT_ID IS NOT NULL AND T2.PARENT_ID = CONF.ACCOUNT_ID) OR (T2.PARENT_ID IS NULL AND T2.ACCOUNT_ID = CONF.ACCOUNT_ID) OR T2.ACCOUNT_TYPE_ID = CONF.ACCOUNT_TYPE_ID) '; 
+                
+                $accountAlias = 'T2';
+                
+            } else {
+                $join = '';
+                $accountAlias = 'CONF';
+            }
+            
+            $accountId = $selectedRow['accountid'];
+            $accountTypeId = $selectedRow['accounttypeid'];
+            $segmentJoin = '';
+            
+            if (Config::getFromCache('IS_CLOUD') == '1') {
+                
+                $sessionValues = Session::get(SESSION_PREFIX.'sessionValues');
+            
+                if ($sessionCompanyDepartmentId = issetParam($sessionValues['sessioncompanydepartmentid'])) {
+                    $segmentJoin = " AND SC.COMPANY_DEPARTMENT_ID = $sessionCompanyDepartmentId "; 
+                }
+            }
+            
+            $sql = "
+                SELECT 
+                    0 AS GROUP_PARAM_CONFIG_TOTAL,
+                    '' AS GROUP_CONFIG_PARAM_PATH,
+                    '' AS GROUP_CONFIG_LOOKUP_PATH, 
+                    '' AS GROUP_CONFIG_FIELD_PATH, 
+                    '' AS GROUP_CONFIG_GROUP_PATH, 
+                    null AS ATTRIBUTE_ID_COLUMN, 
+                    null AS ATTRIBUTE_CODE_COLUMN, 
+                    null AS ATTRIBUTE_NAME_COLUMN, 
+                    MGC.FIELD_PATH AS PARAM_REAL_PATH, 
+                    MGC.VISIBLE_CRITERIA,
+                    '' AS IS_REFRESH,
+                    CONF.DEFAULT_VALUE,
+                    MGC.LOOKUP_TYPE,
+                    MGC.LABEL_NAME,
+                    MGC.CHOOSE_TYPE,
+                    MGC.RECORD_TYPE,
+                    MGC.VALUE_FIELD,
+                    MGC.DISPLAY_FIELD,
+                    MGC.IS_SHOW,
+                    MGC.PARENT_ID, 
+                    MGC.LOOKUP_META_DATA_ID, 
+                    MGC.PARAM_NAME AS META_DATA_CODE, 
+                    MGC.LABEL_NAME AS META_DATA_NAME, 
+                    MGC.DATA_TYPE AS META_TYPE_CODE, 
+                    MGC.FILE_EXTENSION, 
+                    MGC.FRACTION_RANGE, 
+                    MGC.MIN_VALUE, 
+                    MGC.MAX_VALUE, 
+                    LOWER(MGC.PARAM_NAME) AS LOWER_PARAM_NAME, 
+                    REPLACE(MGC.FIELD_PATH, '.', '') AS NODOT_PARAM_REAL_PATH, 
+                    MFP.PATTERN_TEXT,
+                    MFP.PATTERN_NAME, 
+                    MFP.GLOBE_MESSAGE,
+                    MFP.IS_MASK, 
                     MAX(CONF.IS_REQUIRED) AS IS_REQUIRED, 
                     CONF.LOOKUP_CRITERIA, 
                     CONF.VALUE_CRITERIA, 
@@ -1735,8 +1935,47 @@ class Mdgl_Model extends Model {
 
         return $row;
     }
-        
+    
     public function isUseMeta($accountId, $accountTypeId) {
+        
+        if (Config::getFromCache('CONFIG_GL_ACCOUNT_PARENT_ID')) {
+            
+            $join = 'INNER JOIN FIN_ACCOUNT T2 ON (
+                    CONF.ACCOUNT_ID = COALESCE(T2.PARENT_ID, T2.ACCOUNT_ID) 
+                    OR CONF.ACCOUNT_TYPE_ID = T2.ACCOUNT_TYPE_ID 
+                ) '; 
+            $accountAlias = 'T2';
+            
+        } else {
+            $join = '';
+            $accountAlias = 'CONF';
+        }
+        
+        if ($accountTypeId) {
+            $where = "($accountAlias.ACCOUNT_ID = $accountId OR CONF.ACCOUNT_TYPE_ID = $accountTypeId)";
+        } else {
+            $where = "$accountAlias.ACCOUNT_ID = $accountId";
+        }
+        
+        $row = $this->db->GetRow("
+            SELECT 
+                COUNT(CONF.ID) AS CONF_COUNT, 
+                COUNT(DTL.ID) AS DTL_COUNT,
+                COUNT(CONF.DEBIT_DEFAULT_VALUE) AS DEBIT_DEFAULT_VALUE,
+                COUNT(CONF.CREDIT_DEFAULT_VALUE) AS CREDIT_DEFAULT_VALUE       
+            FROM FIN_ACCOUNT_GL_CONFIG CONF 
+                $join 
+                LEFT JOIN FIN_ACCOUNT_GL_CONFIG_DTL DTL ON LOWER(DTL.FIELD_PATH) = LOWER(CONF.FIELD_PATH) AND DTL.IS_USE_OPP_ACCOUNT = 1 
+            WHERE $where AND (CONF.CONFIG_TYPE IS NULL OR CONF.CONFIG_TYPE <> 2)");
+
+        if ($row) {
+            return $row;
+        } 
+
+        return false;
+    }    
+        
+    public function isUseMetaNew($accountId, $accountTypeId) {
         
         if (Config::getFromCache('CONFIG_GL_ACCOUNT_PARENT_ID')) {
             

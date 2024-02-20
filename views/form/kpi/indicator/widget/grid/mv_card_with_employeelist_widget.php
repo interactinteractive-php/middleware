@@ -1,5 +1,5 @@
 <style type="text/css">
-.mv-cardview {
+.mv_card_with_employeelist_widget {
     display: inline-block;
     width: 90px;
     -webkit-border-radius: 4px;
@@ -8,33 +8,45 @@
     -o-border-radius: 4px;
     border-radius: 4px;
 }
-.mv-cardview:hover {
+.mv_card_with_employeelist_widget:hover {
     box-shadow: none;
 }
-.mv-cardview:hover .no-dataview {
+.mv_card_with_employeelist_widget:hover .no-dataview {
     display: block !important;
 }
-.mv-cardview .card {
+.mv_card_with_employeelist_widget .card {
     margin-bottom: 0;
 }
-.mv-cardview .card-body .card-img {
+.mv_card_with_employeelist_widget .card-body .card-img {
     border-radius: 0;
     border-bottom: 1px #eee solid;
 }
-.mv-cardview h5 {
+.mv_card_with_employeelist_widget h5 {
     display: block;
     padding: 0 10px;
-    font-size: 13px;
-    height: 35px;
-    color: #333;
-    line-height: 18px;
+    font-size: 17px;
+    color: #fff;
+    line-height: 20px;
     text-align: center;
-    height: 36px;
     overflow: hidden;
+}
+#objectdatacustomgrid-<?php echo $this->indicatorId ?> {
+    background-image: linear-gradient(#714497, #702fa6);
+    border-bottom: 5px solid;
+    border-image: linear-gradient(to right, #519157 25%, #de6e0a 25%, #de6e0a 50%,#33a9ca 50%, #33a9ca 75%, #189e6b 75%) 5;
+}
+.mv_card_with_employeelist_widget_main {
+    background-image: url('middleware/assets/img/layout-themes/image/card/mv_card_with_employeelist_widget_group_21984.png');
+    background-size: 230px 180px;
+    background-repeat: no-repeat;
+    background-position: right bottom;    
+}
+.mv_card_with_employeelist_widget_main .mv_card_with_employeelist_widget.active img {
+    border-color: #ca3361 !important;
 }
 </style>
 
-<div class="dv-process-buttons mb-2 d-none">
+<div class="dv-process-buttons mt-2 ml-2">
     <div class="btn-group btn-group-devided">
     <?php 
     $contextMenu = array();
@@ -67,7 +79,7 @@
                 if ($isNormalRelation) {
                     $onClick = "mvNormalRelationRender(this, '$kpiTypeId', '".$this->indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId});";
                 } else {
-                    $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '".$this->indicatorId."', true, undefined, undefined, 'mvWidgetFileViewCreateCallback');";
+                    $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '".$this->indicatorId."', false, undefined, undefined, 'mvWidgetFileViewCreateCallback');";
                     $createClickAction = $onClick;
                 }
 
@@ -86,7 +98,7 @@
                 if ($isNormalRelation) {
                     $onClick = "mvNormalRelationRender(this, '$kpiTypeId', '".$this->indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'update'});";
                 } else {
-                    $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '".$this->indicatorId."', true$opt);";
+                    $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '".$this->indicatorId."', true, undefined, undefined, 'mvWidgetFileViewCreateCallback');";
                 }
 
                 $contextMenu[] = array(
@@ -238,7 +250,7 @@
                 if ($isNormalRelation) {
                     $onClick = "mvNormalRelationRender(this, '$kpiTypeId', '".$this->indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId});";
                 } else {
-                    $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '".$srcIndicatorId."', true, undefined, undefined, 'mvWidgetFileViewCreateCallback');";
+                    $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '".$srcIndicatorId."', false, undefined, undefined, 'mvWidgetFileViewCreateCallback');";
                     $createClickAction = $onClick;
                 }
 
@@ -256,7 +268,7 @@
                 if ($isNormalRelation) {
                     $onClick = "mvNormalRelationRender(this, '$kpiTypeId', '".$this->indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'update'});";
                 } else {
-                    $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '$srcIndicatorId', true$opt);";
+                    $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '$srcIndicatorId', true, undefined, undefined, 'mvWidgetFileViewCreateCallback');";
                 }
 
             } elseif ($typeCode == 'read') {
@@ -310,74 +322,49 @@
     </div>        
 </div>        
         
-<?php                                            
-$dataResult = $this->response['rows'];
-if (!isset($dataResult[0]['C9_DESC'])) {
-    die();
-}
-$dataResult = Arr::groupByArrayByNullKey($dataResult, 'C9_DESC'); 
-
-foreach ($dataResult as $groupName => $groupRow) {
-    if ($groupName != 'яяяrow') {
-?>
-    <div class="mb-2" style="font-weight: bold;">        
-        <?php 
-            echo $groupName . ($groupRow['row']['C7'] ? '<div style="font-weight: normal;color: #a9a9a9;font-size: 11px;">'.$groupRow['row']['C7'].'</div>' : ''); 
-        ?>            
-    </div>
-    <div class="d-flex flex-wrap">
-    <?php
-    foreach ($groupRow['rows'] as $row) {
-        $rowJson = htmlentities(json_encode($row), ENT_QUOTES, 'UTF-8');
-        if (issetParam($row['PHYSICAL_PATH'])) {
+<div class="mv_card_with_employeelist_widget_main">
+    <?php                                            
+    $dataResult = $this->response['rows'];
     ?>
-    <a href="javascript:;" class="mv-cardview" title="<?php echo $row['FILE_NAME']; ?>">
-        <div class="no-dataview" data-crud-indicatorid="<?php echo $deleteCrudId ?>" data-rowdata="<?php echo $rowJson; ?>" style="position: absolute;z-index: 10;margin-left: 80px;display: none" onclick="<?php echo $deleteClickAction ?>">
-            <i class="far fa-times" style="font-size: 13px;color: red;"></i>
-        </div>
-        <div class="card" style="border: none;box-shadow: none;">
-            <div class="card-body">
-                <div class="card-img-actions mb-2 mt-2" onclick="bpFilePreview(this);" data-fileurl="<?php echo $row['PHYSICAL_PATH'] ?>" data-filename="<?php echo $row['FILE_NAME'] ?>" data-extension="<?php echo $row['FILE_EXTENSION'] ?>">
-                    <img class="directory-img ml20" style="height: 70px;" src="assets/core/global/img/document/big/pdf2.png"/>
-                </div>
-                <h5>
-                    <?php echo $row['FILE_NAME']; ?>
-                </h5>
-            </div>
-        </div>
-    </a>
     <?php
-        }
+    foreach ($dataResult as $row) {
+        $rowJson = htmlentities(json_encode($row), ENT_QUOTES, 'UTF-8');
+    ?>
+        <a href="javascript:;" style="width: 170px;margin: 15px;" class="mv_card_with_employeelist_widget no-dataview" data-rowdata="<?php echo $rowJson; ?>">
+            <div class="card" style="border: none;box-shadow: none;padding: 0;background: transparent;">
+                <div class="card-body">
+                    <div class="card-img-actions mb-2 mt-2">
+                        <img class="directory-img" style="height: 150px;width: 150px;border-radius: 150px;border: 5px solid #33a9ca;" src="<?php echo issetParam($row[$this->relationViewConfig['position-1']]) ?>"/>
+                    </div>
+                    <h5>
+                        <?php echo issetParam($row[$this->relationViewConfig['position-2']]) ?>
+                    </h5>
+                    <h5 style="color:#01a8ff">
+                        <?php echo issetParam($row[$this->relationViewConfig['position-3']]) ?>
+                    </h5>
+                </div>
+            </div>
+        </a>
+    <?php
     } 
     ?>
-    <a href="javascript:;" onclick="<?php echo $createClickAction ?>" data-list-relation="1" data-rowdata="<?php echo htmlentities(json_encode($groupRow['row'], JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8') ?>" data-mapid="<?php echo $mapId ?>" data-main-indicatorid="<?php echo $this->indicatorId; ?>" data-crud-indicatorid="<?php echo $createCrudId ?>" class="mv-cardview no-dataview" style="margin-bottom: 30px;background-color: #eaeaea;height: 70px;width: 60px;margin-top: 10px;margin-left: 20px;">
-        <div class="card" style="border: none;box-shadow: none;">
-            <div class="card-body">
-                <i style="font-size: 26px;position: absolute;margin-top: 20px;margin-left: 18px;color:#ccc" class="fa fa-plus"></i>
-            </div>
-        </div>
-    </a>    
-    <?php 
-    }
-    echo '</div>';
-}
-?>
+</div>
 
 <script type="text/javascript">
-function mvCustomCardMoreView(elem, indicatorId, rowId, title) {
-    $.ajax({
-        type: 'post',
-        url: 'mdform/renderCustomMoreView',
-        data: {indicatorId: indicatorId, rowId: rowId},
-        success: function(content) {
-            appMultiTabByContent({ metaDataId: indicatorId+'_'+rowId, title: title, type: 'newprocess', content: content });
-        }
-    });
+$('.mv_card_with_employeelist_widget').click(function() {
+    var $this = $(this);
+    if ($this.hasClass('active')) {
+        $this.removeClass('active');
+        return;
+    }
+    $this.closest('.mv_card_with_employeelist_widget_main').find('.active').removeClass('active');
+    $this.addClass('active');
+}); 
+function mvWidgetFileViewCreateCallback() {
+    $('div[data-menu-id="164723019841110"]').remove();
+    $('a[data-menu-id="164723019841110"]').trigger('click');
 }    
 function mvWidgetFileViewDeleteCallback(elem) {
-    elem.parent().remove();
-}
-function mvWidgetFileViewCreateCallback() {
-    $('.mv_checklist_02_sub.active').trigger('click');
+    mvWidgetFileViewCreateCallback();
 }
 </script>

@@ -342,6 +342,261 @@ class Mddatamodel extends Controller {
             jsonResponse($response);
         }
     }
+        
+    public function sendMailBySelectionRowsMVForm($dataViewId = null, $processMetaDataId = null, $selectedRows = array(), $emailTo = '', $return = false) {                        
+        
+        if ($dataViewId && $processMetaDataId && $selectedRows) {
+            
+            $dataViewId        = $dataViewId;
+            $processMetaDataId = $processMetaDataId;
+            $selectedRows      = $selectedRows;
+            
+        } else {
+            
+            $dataViewId        = Input::post('dataViewId');
+            $processMetaDataId = Input::post('processMetaDataId');
+            $selectedRows      = Input::post('selectedRows');
+        }
+        
+        $this->load->model('mdform', 'middleware/models/');
+        $getMapConfig = $this->model->getKpiIndicatorIndicatorMapByJsonConfig($dataViewId, $processMetaDataId);      
+        $getMapConfig = json_decode($getMapConfig['JSON_CONFIG'], true);
+        
+        $this->load->model('mdwebservice', 'middleware/models/');
+        
+        $selectedRowsCount = is_countable($selectedRows) ? count($selectedRows) : 0;
+        $fillData = array();
+        
+//        if ($selectedRowsCount == 1) {
+//            
+//            $selectedRowData = $selectedRows[0];
+//            $fillData = $this->model->getRunDataProcessModel($dataViewId, $processMetaDataId, $selectedRowData);
+//            
+//        } elseif ($selectedRowsCount > 1) {
+//            
+//            $fillData = $this->model->getConsolidateDataProcessModel($dataViewId, $processMetaDataId, $selectedRows);
+//        }
+        
+        $this->view->emailTo        = '';
+        $this->view->emailToControl = '';
+        $this->view->emailSubject   = '';
+        $this->view->emailBody      = '';
+        
+        $this->view->ignoreList        = Input::postCheck('ignoreList') ? 'true' : 'false';
+        $this->view->ignoreFromOwnMail = Input::post('ignoreFromOwnMail');
+        $this->view->ignoreCheckBox    = Input::post('ignoreCheckBox');
+        $this->view->ignoreChooseFile  = Input::post('ignoreChooseFile');
+        $this->view->isRowsAttachType  = Input::post('isRowsAttachType');
+        $this->view->isSetFromCombo    = Input::post('isSetFromCombo');
+        $this->view->drillDownField    = Input::post('drillDownField');
+        $this->view->sendModeChecked   = Input::post('sendModeChecked');
+        $this->view->emailHide         = Input::post('emailHide');
+        $this->view->footerSumCount    = Input::post('footerSumCount');
+        $this->view->refStructureId    = Input::post('ref_structure_id');
+        $this->view->rtMetaDataId      = Input::numeric('rtMetaDataId');
+        $this->view->fileAttachDrillField = Input::post('fileAttachDrillField');
+        $isEcmContentAttach = Input::post('isEcmContentAttach');
+        $isEcmContentAttach = ($isEcmContentAttach == '1' || $isEcmContentAttach == 'true') ? true : false;
+        
+        if ($emailTo) {
+            $this->view->emailTo = $emailTo;
+        } 
+        
+        if ($fillData) {
+            
+            if (isset($fillData['subjecttxt'])) {
+                $this->view->emailSubject = $fillData['subjecttxt'];
+            }
+            
+            if (isset($fillData['messagetxt'])) {
+                $this->view->emailBody = $fillData['messagetxt'];
+            }
+            
+            if (isset($fillData['maillist'])) {
+                $this->view->emailTo = $fillData['maillist'];
+            }
+            
+            if (isset($fillData['lookupmetadataid']) && $fillData['lookupmetadataid'] != '') {
+                
+                $control = array('GROUP_PARAM_CONFIG_TOTAL' => '0', 'GROUP_CONFIG_PARAM_PATH' => NULL, 'GROUP_CONFIG_LOOKUP_PATH' => NULL, 'GROUP_CONFIG_PARAM_PATH_GROUP' => NULL, 'GROUP_CONFIG_FIELD_PATH_GROUP' => NULL, 'GROUP_CONFIG_FIELD_PATH' => NULL, 'GROUP_CONFIG_GROUP_PATH' => NULL, 'IS_MULTI_ADD_ROW' => '0', 'IS_MULTI_ADD_ROW_KEY' => '0', 'META_DATA_CODE' => 'mailList', 'LOWER_PARAM_NAME' => 'maillist', 'META_DATA_NAME' => 'Илгээх', 'DESCRIPTION' => NULL, 'ATTRIBUTE_ID_COLUMN' => NULL, 'ATTRIBUTE_CODE_COLUMN' => NULL, 'ATTRIBUTE_NAME_COLUMN' => NULL, 'IS_SHOW' => '1', 'IS_REQUIRED' => '1', 'DEFAULT_VALUE' => NULL, 'RECORD_TYPE' => NULL, 'LOOKUP_META_DATA_ID' => $fillData['lookupmetadataid'], 'LOOKUP_TYPE' => 'combo', 'CHOOSE_TYPE' => 'multi', 'DISPLAY_FIELD' => 'username', 'VALUE_FIELD' => 'email', 'PARAM_REAL_PATH' => 'mailList', 'NODOT_PARAM_REAL_PATH' => 'mailList', 'META_TYPE_CODE' => 'string', 'TAB_NAME' => NULL, 'SIDEBAR_NAME' => NULL, 'FEATURE_NUM' => NULL, 'IS_SAVE' => NULL, 'FILE_EXTENSION' => NULL, 'PATTERN_TEXT' => NULL, 'PATTERN_NAME' => NULL, 'GLOBE_MESSAGE' => NULL, 'IS_MASK' => NULL, 'COLUMN_WIDTH' => NULL, 'COLUMN_AGGREGATE' => NULL, 'SEPARATOR_TYPE' => NULL, 'GROUP_LOOKUP_META_DATA_ID' => NULL, 'IS_BUTTON' => '1', 'COLUMN_COUNT' => NULL, 'MAX_VALUE' => NULL, 'MIN_VALUE' => NULL, 'IS_SHOW_ADD' => NULL, 'IS_SHOW_DELETE' => NULL, 'IS_SHOW_MULTIPLE' => NULL, 'LOOKUP_KEY_META_DATA_ID' => NULL, 'IS_REFRESH' => '0', 'FRACTION_RANGE' => NULL, 'GROUPING_NAME' => NULL, 'PARENT_ID' => null);
+                $mailData = array();
+                
+                if ($this->view->emailTo) {
+                    $mailData = array('maillist' => array_map('trim', explode(';', rtrim($this->view->emailTo, ';'))));
+                }
+                
+                $this->view->emailToControl = Mdwebservice::renderParamControl($processMetaDataId, $control, 'emailTo', $control['META_DATA_CODE'], $mailData);
+                
+            } else {
+                $this->view->emailToControl = Form::text(array('name' => 'emailTo', 'value' => $this->view->emailTo, 'id' => 'emailTo', 'class'=>'form-control form-control-sm', 'required'=>'required'));
+            }
+            
+        } else {
+            
+            if (empty($this->view->emailTo) && isset($selectedRows[0]['EMAIL'])) {
+                
+                foreach ($selectedRows as $email) {
+                    if (!empty($email['EMAIL'])) {
+                        $this->view->emailTo .= $email['EMAIL'].';';
+                    }
+                }
+                
+                $this->view->emailTo = rtrim($this->view->emailTo, ';');
+            }
+            
+            $this->view->emailToControl = Form::text(array('name' => 'emailTo', 'value' => $this->view->emailTo, 'id' => 'emailTo', 'class'=>'form-control form-control-sm', 'required'=>'required'));
+            
+            if (Input::isEmpty('emailTemplateCode') == false) {
+                
+                $this->load->model('mddatamodel', 'middleware/models/');
+                
+                $emailTplCode = Input::post('emailTemplateCode');
+                $emlTempRow   = $this->model->getEmlTemplateByCodeModel($emailTplCode);
+
+                if ($emlTempRow) {
+                    
+                    if (isset($emlTempRow[1])) {
+                        $this->view->emailTplCombo = $emlTempRow;
+                    } 
+                    
+                    $emlTempRow = $emlTempRow[0];
+                    $emailTplCode = $emlTempRow['CODE'];
+                    
+                    $this->view->emailSubject = $emlTempRow['SUBJECT'];
+                    $this->view->emailBody    = html_entity_decode($emlTempRow['MESSAGE']);
+                    $this->view->emailBody    = str_replace('[URL]', URL, $this->view->emailBody);                                     
+                    $this->view->emailTplCode = $emailTplCode;
+                }
+            }
+            
+            if (Input::isEmpty('ccEmail') == false) {
+                
+                $ccPath = strtolower(Input::post('ccEmail'));
+                
+                if (isset($selectedRows[0][$ccPath])) {
+                    
+                    $this->view->emailCc = '';
+                    $emailCcAlready = array();
+                    
+                    foreach ($selectedRows as $ccField) {
+                        
+                        if (!empty($ccField[$ccPath]) && !isset($emailCcAlready[$ccField[$ccPath]])) {
+                            
+                            $this->view->emailCc .= $ccField[$ccPath].';';
+                            $emailCcAlready[$ccField[$ccPath]] = 1;
+                        }
+                    }
+
+                    $this->view->emailCc = rtrim($this->view->emailCc, ';');
+                } else {
+                    $this->view->emailCc = Input::post('ccEmail');
+                }
+            }
+            
+            if (Input::isEmpty('groupEmail') == false) {
+                $this->view->groupEmail = Input::post('groupEmail');
+            }
+            
+        }
+        
+        $this->view->selectedRows = $selectedRows;
+        
+        if (isset($selectedRows[0])) {
+
+            $firstRow = $selectedRows[0];
+
+            foreach ($firstRow as $rowKey => $rowVal) {
+                if (!is_array($rowVal)) {
+                    if ($this->view->emailSubject == '' && $getMapConfig['emailSubject'] == $rowKey) {
+                        $this->view->emailSubject = $rowVal;
+                    }                    
+//                    $this->view->emailBody    = str_ireplace('['.$rowKey.']', $rowVal, $this->view->emailBody);
+//                    $this->view->emailSubject = str_ireplace('['.$rowKey.']', $rowVal, $this->view->emailSubject);
+                }
+            }
+            
+        } elseif (isset($selectedRows[0]) && $selectedRowsCount > 1) {
+            
+            loadPhpQuery();
+            $bodyHtml = phpQuery::newDocumentHTML($this->view->emailBody);
+            $bodytrHtml = str_replace(array('%5B', '%5D'), array('[', ']'), $bodyHtml['tbody']->html());
+            $bodyHtml['tbody']->empty();
+
+            $appendTr = '';
+            
+            foreach ($selectedRows as $rowKey => $rowVal) {
+                $bodytrHtmlReplaced = $bodytrHtml;
+                foreach ($rowVal as $rwKey => $rwVal) {
+                    if (!is_array($rwVal)) {            
+                        $bodytrHtmlReplaced = str_ireplace('['.$rwKey.']', $rwVal, $bodytrHtmlReplaced);
+                    }
+                }
+                $appendTr .= $bodytrHtmlReplaced;
+            }
+
+            $bodyHtml['tbody']->append($appendTr);
+            $this->view->emailBody = $bodyHtml->html();
+        }
+        
+        if (!$this->view->sendModeChecked && $this->view->ignoreCheckBox != '1') {
+            $this->view->sendModeChecked = 'ccgroupemail';
+        }
+        
+        if ($this->view->isSetFromCombo == 'true') {
+            
+            $this->load->model('mddatamodel', 'middleware/models/');
+            
+            $this->view->setFromEmails = $this->model->getSetFromEmailsModel();
+            
+            if (!$this->view->setFromEmails) {
+                $this->view->isSetFromCombo = 'false';
+            }
+        }
+        
+        if ($this->view->rtMetaDataId) {
+            
+            $reportTemplateHtml = (new Mdtemplate())->getTemplateByArguments($this->view->rtMetaDataId, 'selfDvId', $selectedRows);
+            
+            if ($reportTemplateHtml) {
+                if (strpos($this->view->emailBody, '[reportTemplateHtml]') !== false) {
+                    $this->view->emailBody = str_replace('[reportTemplateHtml]', $reportTemplateHtml, $this->view->emailBody);
+                } else {
+                    $this->view->emailBody .= $reportTemplateHtml;
+                }
+            }
+        }
+        
+        if ($isEcmContentAttach) {
+            
+            $recordIds = array();
+            foreach ($selectedRows as $selectedRow) {
+                if (isset($selectedRow['id']) && $selectedRow['id']) {
+                    $recordIds[] = $selectedRow['id'];
+                }
+            }
+            
+            if ($recordIds) {
+                $this->load->model('mdpreview', 'middleware/models/');
+                $this->view->ecmContentAttachs = $this->model->getContentByRecordIdsModel(implode(',', $recordIds));
+            }
+        }
+        
+        $response = array(
+            'html' => $this->view->renderPrint('dataview/form/sendmailSelectionRows', self::$mainViewPath),
+            'title' => $this->lang->line('sendmail'),  
+            'selectedRows' => $selectedRows,
+            'dataViewId' => $dataViewId,
+            'processMetaDataId' => $processMetaDataId, 
+            'send_btn' => $this->lang->line('send_btn'),
+            'close_btn' => $this->lang->line('close_btn')
+        );
+        
+        if ($return) {
+            return $response;
+        } else {
+            jsonResponse($response);
+        }
+    }
     
     public function sendMailBySelectionRows() {
         $response = $this->model->sendMailBySelectionRowsModel();
