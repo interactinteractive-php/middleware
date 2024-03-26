@@ -205,7 +205,7 @@
         $layoutTypeMainGrid = $layoutType;
         $options = $frozenColumns = '';
         
-        if (($this->defaultViewer == 'datalist' || $this->defaultViewer == 'card' || $this->defaultViewer == 'card1' || $this->defaultViewer == 'card_business' || $this->defaultViewer == 'card_collaterial' || $this->defaultViewer == 'card_detail' || $this->defaultViewer == 'ecommerce' || $this->defaultViewer == 'ecommerce_nofilter' || $this->defaultViewer == 'ecommerce_basket') && $this->layoutType != '') {
+        if (($this->defaultViewer == 'datalist' || $this->defaultViewer == 'card' || $this->defaultViewer == 'card1' || $this->defaultViewer == 'card_business' || $this->defaultViewer == 'card_collaterial' || $this->defaultViewer == 'card_collaterial_w' || $this->defaultViewer == 'card_detail' || $this->defaultViewer == 'ecommerce' || $this->defaultViewer == 'ecommerce_nofilter' || $this->defaultViewer == 'ecommerce_basket') && $this->layoutType != '') {
             
             echo '$(".div-objectdatagrid-'.$this->metaDataId.'").removeClass(dv_theme_'.$this->metaDataId.');
             $(".div-objectdatagrid-'.$this->metaDataId.'").addClass(\'jeasyuiTheme'.$this->layoutType.'View\');';
@@ -364,7 +364,7 @@
         }
         ?>
                 
-        if (window.location.hash !== '') {
+        if (window.location.hash !== '' && false) {
             var parsedHash = queryString.parse(window.location.hash);
             
             if (typeof parsedHash.dvFilterValues !== 'undefined' && parsedHash.dvFilterValues !== '') {

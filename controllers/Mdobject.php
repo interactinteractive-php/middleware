@@ -817,6 +817,12 @@ class Mdobject extends Controller {
                     $this->view->layoutType = 'business_collaterial';
                     $this->view->layoutTypes = $this->view->renderPrint('viewer/detail/layout/business_collaterial', self::$dataViewPath);
                     
+                    
+                } elseif (isset($this->view->row['dataViewLayoutTypes']['card_collaterial_w'])) {
+                    
+                    $this->view->layoutType = 'business_collaterial';
+                    $this->view->layoutTypes = $this->view->renderPrint('viewer/detail/layout/business_collaterial_widget', self::$dataViewPath);
+                    
                 } elseif (isset($this->view->row['dataViewLayoutTypes']['card_detail'])) {
                     
                     $this->view->layoutType = 'detail';
@@ -1176,10 +1182,7 @@ class Mdobject extends Controller {
             $content = self::detailDataViewer($metaDataId, $workSpaceId, $workSpaceParams, $uriParams, 0, true, $permissionCriteria, $dataGridDefaultHeight, $calendarParams);
         }
 
-        echo json_encode(array(
-            'row' => array('title' => Lang::line($row['LIST_NAME'])), 
-            'html' => $content
-        )); exit;
+        convJson(['row' => ['title' => Lang::line($row['LIST_NAME'])], 'html' => $content]);
     }
     
     public function explorerViewDefaultValue() {
@@ -4714,16 +4717,27 @@ class Mdobject extends Controller {
     
     public static function dvPanelMainMenuRender($row, $idField, $nameField) {
         
-        $menu = array();
-    
-        if (isset($row['childs'])) {
+        $menu = [];
+        $isChildren = false;
+        $childPath = 'childs';
+        
+        if (!isset($row['childs']) && isset($row['children'])) {
+            $isChildren = true;
+            $childPath = 'children';
+        }
+        
+        if (isset($row[$childPath])) {
+            
+            if (!$isChildren) {
+                $menu[] = '<ul class="nav nav-group-sub" style="display: block;">';
+            } else {
+                $menu[] = '<ul class="nav nav-group-sub">';
+            }
 
-            $menu[] = '<ul class="nav nav-group-sub" style="display: block;">';
-
-            foreach ($row['childs'] as $child) {
+            foreach ($row[$childPath] as $child) {
                 
                 $childRow = $child;
-                unset($childRow['childs']);
+                unset($childRow[$childPath]);
                 
                 $rowJson = htmlentities(json_encode($childRow), ENT_QUOTES, 'UTF-8');
                 $subMenu = $icon = '';

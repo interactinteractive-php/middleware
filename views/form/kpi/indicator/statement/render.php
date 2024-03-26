@@ -102,6 +102,7 @@ $(function() {
     Core.initNumberInput($kpiDashboardFilter_<?php echo $this->uniqId; ?>);
     Core.initLongInput($kpiDashboardFilter_<?php echo $this->uniqId; ?>);
     Core.initDateInput($kpiDashboardFilter_<?php echo $this->uniqId; ?>);
+    Core.initSelect2($kpiDashboardFilter_<?php echo $this->uniqId; ?>);
                     
     $kpiDashboardFilter_<?php echo $this->uniqId; ?>.on('click', 'button.kpi-dashboard-collapse-btn', function() {
         

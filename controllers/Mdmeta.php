@@ -839,7 +839,7 @@ class Mdmeta extends Controller {
             'count' => $count,
             'close_btn' => $this->lang->line('close_btn')
         );
-        echo json_encode($response); exit;
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
 
     public function diagramRenderByPost() {

@@ -25,7 +25,8 @@
                                     </li>
                                     
                                     <?php
-                                    if (!$this->isTree && issetParamArray($this->filterParams)) {  ?>
+                                    if (!$this->isTree && issetParamArray($this->filterParams)) {  
+                                    ?>
                                     <li class="nav-item">
                                         <a href="#dv-panel-tab2-<?php echo $this->uniqId; ?>" class="nav-link text-uppercase font-weight-bold" data-toggle="tab"><?php echo $this->lang->line('filter'); ?></a>
                                     </li>

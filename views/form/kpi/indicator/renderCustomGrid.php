@@ -43,7 +43,7 @@
 </style>
 <script type="text/javascript">
 var dynamicHeight = 0;
-var objectdatagrid_<?php echo $this->indicatorId; ?> = $('#objectdatagrid-<?php echo $this->indicatorId; ?>');
+var objectdatagrid_<?php echo $this->indicatorId; ?> = $('#objectdatacustomgrid-<?php echo $this->indicatorId; ?>');
 var idField_<?php echo $this->indicatorId; ?> = '<?php echo $this->idField; ?>';
 var _selectedRows_<?php echo $this->indicatorId; ?> = [];
 
@@ -113,12 +113,13 @@ function filterKpiIndicatorValueGrid(elem) {
     
     var dvSearchParam = {
         indicatorId: indicatorId,
-        filterData: filterData
+        filterData: filterData,
+        isReloadDataWidget: 1
     };    
     
     $.ajax({
         type: 'post',
-        url: 'mdform/renderCustomGrid',
+        url: 'mdform/indicatorList/<?php echo $this->indicatorId; ?>/1',
         data: dvSearchParam,
         success: function(data) {
             objectdatagrid_<?php echo $this->indicatorId; ?>.empty().append(data);

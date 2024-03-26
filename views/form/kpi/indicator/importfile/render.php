@@ -202,7 +202,8 @@ var $formDialog = $('#dialog-mvrows-createstructure');
 var mvFileReader = new FileReader();
 var mvFileReaderExtention = '';
 var mvFileWorkbook;
-var mvFileRowsdata;
+var mvFileRowsData;
+var mvFileFirstRow;
 var mvFileIsImportManage = <?php echo $this->isImportManage; ?>;
     
 $(function() {
@@ -267,7 +268,7 @@ function mvFileToHtmlTable(isInputRead) {
             $form.find('#mv-file-import-sheetnames').hide();
             $form.find('#mv-file-import-delimiter').show();
                 
-            mvFileRowsdata = (mvFileReader.result).split("\r\n");
+            mvFileRowsData = (mvFileReader.result).split("\r\n");
             
         } else {
             
@@ -275,7 +276,7 @@ function mvFileToHtmlTable(isInputRead) {
                 
                 $.cachedScript('assets/custom/addon/plugins/sheetjs/xlsx.full.min.js?v=1', {async: false});
 
-                mvFileWorkbook = XLSX.read(mvFileReader.result, {type: 'binary', cellDates: true, cellText: false});
+                mvFileWorkbook = XLSX.read(mvFileReader.result, {type: 'binary', cellDates: true, raw: true, cellText: true, dense: true});
                 var sheetNames = mvFileWorkbook.SheetNames;
                 var $sheetCombo = $form.find('select[name="sheetNames"]');
 
@@ -296,11 +297,10 @@ function mvFileToHtmlTable(isInputRead) {
             sheetRange.s.c = skipColumns; //start column
             getSheet['!ref'] = XLSX.utils.encode_range(sheetRange);
             
-            mvFileRowsdata = XLSX.utils.sheet_to_json(getSheet, {header: 1, raw: false, defval: '', dateNF: 'YYYY-MM-DD'});
+            mvFileRowsData = XLSX.utils.sheet_to_json(getSheet, {header: 1, raw: false, blankrows: false, defval: '', dateNF: 'YYYY-MM-DD'});
         }
         
-        var rowsData = mvFileRowsdata;
-        var rowsLength = rowsData.length;
+        var rowsLength = mvFileRowsData.length;
 
         if (rowsLength > 0) {
 
@@ -315,13 +315,13 @@ function mvFileToHtmlTable(isInputRead) {
             }    
             
             if (skipRows > 0) {
-                rowsData = rowsData.slice(skipRows);
+                mvFileRowsData = mvFileRowsData.slice(skipRows);
             }
             
             if (mvFileReaderExtention == 'txt') {
-                var firstRow = (rowsData[firstKey]).split(delimiter);
+                mvFileFirstRow = (mvFileRowsData[firstKey]).split(delimiter);
             } else {
-                var firstRow = rowsData[firstKey];
+                mvFileFirstRow = mvFileRowsData[firstKey];
             }
 
             htmlTbl.push('<table class="table table-bordered table-hover">');
@@ -330,14 +330,14 @@ function mvFileToHtmlTable(isInputRead) {
                 
                     if (isHeader) {
                         
-                        for (var f in firstRow) {
-                            htmlTbl.push('<th>'+firstRow[f]+'</th>');
+                        for (var f in mvFileFirstRow) {
+                            htmlTbl.push('<th>'+mvFileFirstRow[f]+'</th>');
                         }
                         
-                        delete rowsData[firstKey];
+                        mvFileRowsData.splice(firstKey, 1);
                         
                     } else {
-                        for (var f in firstRow) {
+                        for (var f in mvFileFirstRow) {
                             htmlTbl.push('<th>Column'+(Number(f) + 1)+'</th>');
                         }
                     }
@@ -347,12 +347,12 @@ function mvFileToHtmlTable(isInputRead) {
 
                 htmlTbl.push('<tbody>');
 
-                for (var r in rowsData) {
+                for (var r in mvFileRowsData) {
                     
                     if (mvFileReaderExtention == 'txt') {
-                        rowData = (rowsData[r]).split(delimiter);
+                        rowData = (mvFileRowsData[r]).split(delimiter);
                     } else {
-                        rowData = rowsData[r];
+                        rowData = mvFileRowsData[r];
                     }
 
                     htmlTbl.push('<tr>');

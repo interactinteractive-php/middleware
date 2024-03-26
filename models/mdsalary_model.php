@@ -3792,7 +3792,7 @@ class Mdsalary_Model extends Model {
 
         $inparams = array(
             'processCacheId' => Input::post('javaCacheId'),
-            'getRunCommands' => $params2['getProccesRunCode']
+            'getRunMetaDatas' => $params2['getProccesRunCode']
         );
         
         if (Input::isEmpty('selectedEmployees') === false) {

@@ -219,19 +219,14 @@ if ($this->isDialog == false) {
             echo $mainProcessLeftBanner;
             echo $processsMainContentClassBegin; 
 
-            $isDtlTbl = false;
-            $sidebarShow = false;
-            $sidebarShowRowDtl = false;
+            $isDtlTbl = $sidebarShow = $sidebarShowRowDtl = false;
             
             if ($this->paramList) {
                 
                 echo $this->checkListStartHtml;
                 echo Mduser::processToolsButton($this->methodId, (issetParam($this->methodRow['IS_TOOLS_BTN']) ? false : $this->isEditMode), $this->runMode, $this->bpTab['tabStart']);
                 
-                $tabNameArr = array();
-                $tabHeaderArr = array();
-                $sidebarHeaderArr = array();
-                $sidebarDtlRowArr = array();
+                $tabNameArr = $tabHeaderArr = $sidebarHeaderArr = $sidebarDtlRowArr = $wizardStepDetail = [];
                 $tabHead = '';
                 $tabHeaderHead = '';
                 $tabContent = '';
@@ -392,117 +387,132 @@ if ($this->isDialog == false) {
                     } elseif ($row['type'] == 'detail' && $row['isShow'] == '1' && isset($row['data'])) {
                         
                         // start default detail
-                       
                         require BASEPATH . 'middleware/views/webservice/sub/detail/default.php'; 
-                        
                         // end default detail
+                        
+                        $wizardStep = issetParam($row['wizardStep']);
+                        
+                        if ($wizardStep) {
 
-                        if ($row['tabName'] != '') {
-
-                            if (!isset($tabNameArr[$row['tabName']])) {
-                                $tabHeaderContent = '';
-
-                                if (!empty($tabHeaderArr)) {
-                                    foreach ($tabHeaderArr as $tabKey => $tabVal) {
-
-                                        if (Str::lower($row['tabName']) === Str::lower($tabVal)) {
-
-                                            $tabUniqId = getUID();
-                                            $tabHeaderContent .= '<div class="table-scrollable table-scrollable-borderless bp-header-param">';
-
-                                            if (isset($this->methodRow['TAB_COLUMN_COUNT']) && $this->methodRow['TAB_COLUMN_COUNT'] > 1) {
-
-                                                $tabHeaderContent .= Mdwebservice::getTabSplitColumnContent($this->methodId, $this->methodRow['TAB_COLUMN_COUNT'], $tabHeaderContentArr[$tabKey], $seperatorWidth, $this->labelWidth, $this->fillParamData);
-
-                                            } else {
-
-                                                $tabHeaderContent .= '<table class="table table-sm table-no-bordered bp-header-param"><tbody>';
-                                                foreach ($tabHeaderContentArr[$tabKey] as $subrow) {
-                                                    $tabHeaderParam = '';
-                                                    if ($subrow['IS_SHOW'] != '1') {
-                                                        $tabHeaderParam = 'hide';
-                                                    }
-                                                    $tabHeaderContent .= "<tr data-cell-path='" . $subrow['META_DATA_CODE'] . "' class='" . $tabHeaderParam . "'>";
-                                                    $tabHeaderContent .= '<td class="text-right middle" style="width: ' . $this->labelWidth . '%">';
-                                                    $labelAttr = array(
-                                                        'text' => $this->lang->line($subrow['META_DATA_NAME']),
-                                                        'for' => "param[" . $subrow['META_DATA_CODE'] . "]",
-                                                        'data-label-path' => $subrow['META_DATA_CODE']
-                                                    );
-                                                    if ($subrow['IS_REQUIRED'] == '1') {
-                                                        $labelAttr = array_merge($labelAttr, array('required' => 'required'));
-                                                    }
-                                                    $tabHeaderContent .= Form::label($labelAttr);
-                                                    $tabHeaderContent .= "</td>";
-                                                    $tabHeaderContent .= '<td class="middle" style="width: '.$tabSecondWidth.'%">';
-                                                    $tabHeaderContent .= '<div data-section-path="' . $subrow['PARAM_REAL_PATH'] . '">';
-                                                    $tabHeaderContent .= Mdwebservice::renderParamControl($this->methodId, $subrow, "param[" . $subrow['META_DATA_CODE'] . "]", $subrow['META_DATA_CODE'], $this->fillParamData);
-                                                    $tabHeaderContent .= "</div>";
-                                                    $tabHeaderContent .= "</td>";
-                                                    $tabHeaderContent .= "</tr>";
-                                                }
-                                                $tabHeaderContent .= '</tbody></table>';
-                                            }
-
-                                            $tabHeaderContent .= '</div>';
-
-                                            unset($tabHeaderArr[$tabKey]);
-                                            unset($tabHeaderContentArr[$tabKey]);
-                                        }
-                                    }
-                                }
-
-                                $tabActive = '';
-                                if ($tabActiveFirst === 0) {
-                                    $tabActive = ' active';
-                                }
-                                $tabHead .= '<li class="nav-item">
-                                        <a href="#tab_' . $this->methodId . '_' . $row['id'] . '" class="nav-link ' . $tabActive . '" data-toggle="tab">' . $this->lang->line($row['tabName']) . '</a>
-                                    </li>';
-                                
-                                $tabContent .= '<div class="tab-pane' . $tabActive . '" id="tab_' . $this->methodId . '_' . $row['id'] . '">' . $tabHeaderContent . $content . '<!--' . $row['tabName'] . '--></div>';
-                                ++$tabActiveFirst;
-
-                                $tabNameArr[$row['tabName']] = '';
-                                
-                            } else {
-                                $tabContent = str_replace('<!--' . $row['tabName'] . '-->', $content . '<!--' . $row['tabName'] . '-->', $tabContent);
-                            }
-
+                            $wizardStepDetail[] = [
+                                'wizardStep' => $wizardStep, 
+                                'tabName' => $row['tabName'], 
+                                'code' => $row['code'], 
+                                'name' => $row['name'], 
+                                'columnWidth' => $row['columnWidth'], 
+                                'isRefresh' => $row['isRefresh'], 
+                                'content' => $content
+                            ];
+                            
                         } else {
 
-                            if ($row['dtlTheme'] == '16') {
+                            if ($row['tabName'] != '') {
 
-                                $grouptHtmlWithoutTab .= '
-                                    <div class="tabbable-line tabbable-tabdrop bp-tabs '.($row['dtlTheme'] == '15' ? 'w-100 ntrGridView' : '').' " '.($row['columnWidth'] ? 'style="width:'.$row['columnWidth'].'"' : '').' data-section-path="'.$row['code'].'">
-                                    <ul class="nav nav-tabs">
-                                        <li class="nav-item">
-                                            <a href="#tab_' . $this->methodId . '_' . $row['id'] . '" class="nav-link active" data-toggle="tab">' . $this->lang->line($row['name']) . '</a>
-                                        </li>
-                                    </ul>
-                                    <div class="tab-content">
-                                        <div class="tab-pane active" id="tab_' . $this->methodId . '_' . $row['id'] . '">' . $content . '<!--' . $row['tabName'] . '--></div>
-                                    </div>
-                                </div>';
+                                if (!isset($tabNameArr[$row['tabName']])) {
+                                    $tabHeaderContent = '';
 
-                            } elseif ($row['dtlTheme'] == '15') {
-                                $groupHtmlWithoutTabFirst .= '<hr><div data-section-path="' . $row['code'] . '" '.($row['columnWidth'] ? 'class="float-left" style="width:'.$row['columnWidth'].'"' : '').' data-isclear="' . $row['isRefresh'] . '">
-                                    '. $content .'
-                                </div><hr>';
-                            } else {
-                                if (issetParam($row['widgetCode']) === 'detail_calendar_sidebar') {
-                                    $grouptHtmlWithoutTab .= '<div data-section-path="' . $row['code'] . '" '.($row['columnWidth'] ? 'class="float-left" style="width:'.$row['columnWidth'].'"' : '').' data-isclear="' . $row['isRefresh'] . '">
-                                        ' . $content . ' 
-                                    </div>';
+                                    if (!empty($tabHeaderArr)) {
+                                        foreach ($tabHeaderArr as $tabKey => $tabVal) {
+
+                                            if (Str::lower($row['tabName']) === Str::lower($tabVal)) {
+
+                                                $tabUniqId = getUID();
+                                                $tabHeaderContent .= '<div class="table-scrollable table-scrollable-borderless bp-header-param">';
+
+                                                if (isset($this->methodRow['TAB_COLUMN_COUNT']) && $this->methodRow['TAB_COLUMN_COUNT'] > 1) {
+
+                                                    $tabHeaderContent .= Mdwebservice::getTabSplitColumnContent($this->methodId, $this->methodRow['TAB_COLUMN_COUNT'], $tabHeaderContentArr[$tabKey], $seperatorWidth, $this->labelWidth, $this->fillParamData);
+
+                                                } else {
+
+                                                    $tabHeaderContent .= '<table class="table table-sm table-no-bordered bp-header-param"><tbody>';
+                                                    foreach ($tabHeaderContentArr[$tabKey] as $subrow) {
+                                                        $tabHeaderParam = '';
+                                                        if ($subrow['IS_SHOW'] != '1') {
+                                                            $tabHeaderParam = 'hide';
+                                                        }
+                                                        $tabHeaderContent .= "<tr data-cell-path='" . $subrow['META_DATA_CODE'] . "' class='" . $tabHeaderParam . "'>";
+                                                        $tabHeaderContent .= '<td class="text-right middle" style="width: ' . $this->labelWidth . '%">';
+                                                        $labelAttr = array(
+                                                            'text' => $this->lang->line($subrow['META_DATA_NAME']),
+                                                            'for' => "param[" . $subrow['META_DATA_CODE'] . "]",
+                                                            'data-label-path' => $subrow['META_DATA_CODE']
+                                                        );
+                                                        if ($subrow['IS_REQUIRED'] == '1') {
+                                                            $labelAttr = array_merge($labelAttr, array('required' => 'required'));
+                                                        }
+                                                        $tabHeaderContent .= Form::label($labelAttr);
+                                                        $tabHeaderContent .= "</td>";
+                                                        $tabHeaderContent .= '<td class="middle" style="width: '.$tabSecondWidth.'%">';
+                                                        $tabHeaderContent .= '<div data-section-path="' . $subrow['PARAM_REAL_PATH'] . '">';
+                                                        $tabHeaderContent .= Mdwebservice::renderParamControl($this->methodId, $subrow, "param[" . $subrow['META_DATA_CODE'] . "]", $subrow['META_DATA_CODE'], $this->fillParamData);
+                                                        $tabHeaderContent .= "</div>";
+                                                        $tabHeaderContent .= "</td>";
+                                                        $tabHeaderContent .= "</tr>";
+                                                    }
+                                                    $tabHeaderContent .= '</tbody></table>';
+                                                }
+
+                                                $tabHeaderContent .= '</div>';
+
+                                                unset($tabHeaderArr[$tabKey]);
+                                                unset($tabHeaderContentArr[$tabKey]);
+                                            }
+                                        }
+                                    }
+
+                                    $tabActive = '';
+                                    if ($tabActiveFirst === 0) {
+                                        $tabActive = ' active';
+                                    }
+                                    $tabHead .= '<li class="nav-item">
+                                            <a href="#tab_' . $this->methodId . '_' . $row['id'] . '" class="nav-link ' . $tabActive . '" data-toggle="tab">' . $this->lang->line($row['tabName']) . '</a>
+                                        </li>';
+
+                                    $tabContent .= '<div class="tab-pane' . $tabActive . '" id="tab_' . $this->methodId . '_' . $row['id'] . '">' . $tabHeaderContent . $content . '<!--' . $row['tabName'] . '--></div>';
+                                    ++$tabActiveFirst;
+
+                                    $tabNameArr[$row['tabName']] = '';
+
                                 } else {
-                                    $grouptHtmlWithoutTab .= '<div data-section-path="' . $row['code'] . '" '.($row['columnWidth'] ? 'class="float-left" style="width:'.$row['columnWidth'].'"' : '').' data-isclear="' . $row['isRefresh'] . '">
-                                        <div class="bp-detail-title">' . $this->lang->line($row['name']) . '</div>
-                                        <div class="bp-detail-body">' . $content . '</div> 
+                                    $tabContent = str_replace('<!--' . $row['tabName'] . '-->', $content . '<!--' . $row['tabName'] . '-->', $tabContent);
+                                }
+
+                            } else {
+
+                                if ($row['dtlTheme'] == '16') {
+
+                                    $grouptHtmlWithoutTab .= '
+                                        <div class="tabbable-line tabbable-tabdrop bp-tabs '.($row['dtlTheme'] == '15' ? 'w-100 ntrGridView' : '').' " '.($row['columnWidth'] ? 'style="width:'.$row['columnWidth'].'"' : '').' data-section-path="'.$row['code'].'">
+                                        <ul class="nav nav-tabs">
+                                            <li class="nav-item">
+                                                <a href="#tab_' . $this->methodId . '_' . $row['id'] . '" class="nav-link active" data-toggle="tab">' . $this->lang->line($row['name']) . '</a>
+                                            </li>
+                                        </ul>
+                                        <div class="tab-content">
+                                            <div class="tab-pane active" id="tab_' . $this->methodId . '_' . $row['id'] . '">' . $content . '<!--' . $row['tabName'] . '--></div>
+                                        </div>
                                     </div>';
+
+                                } elseif ($row['dtlTheme'] == '15') {
+                                    $groupHtmlWithoutTabFirst .= '<hr><div data-section-path="' . $row['code'] . '" '.($row['columnWidth'] ? 'class="float-left" style="width:'.$row['columnWidth'].'"' : '').' data-isclear="' . $row['isRefresh'] . '">
+                                        '. $content .'
+                                    </div><hr>';
+                                } else {
+                                    if (issetParam($row['widgetCode']) === 'detail_calendar_sidebar') {
+                                        $grouptHtmlWithoutTab .= '<div data-section-path="' . $row['code'] . '" '.($row['columnWidth'] ? 'class="float-left" style="width:'.$row['columnWidth'].'"' : '').' data-isclear="' . $row['isRefresh'] . '">
+                                            ' . $content . ' 
+                                        </div>';
+                                    } else {
+                                        $grouptHtmlWithoutTab .= '<div data-section-path="' . $row['code'] . '" '.($row['columnWidth'] ? 'class="float-left" style="width:'.$row['columnWidth'].'"' : '').' data-isclear="' . $row['isRefresh'] . '">
+                                            <div class="bp-detail-title">' . $this->lang->line($row['name']) . '</div>
+                                            <div class="bp-detail-body">' . $content . '</div> 
+                                        </div>';
+                                    }
                                 }
                             }
+
                         }
-                        
                     }
                 }
                 
@@ -592,7 +602,212 @@ if ($this->isDialog == false) {
                 
                 echo $grouptHtmlWithoutTab;
             }
+            
+            $wizardStepHeaderParams = issetParamArray($buildData['wizardStepParam']);
+            
+            if ($wizardStepHeaderParams || $wizardStepDetail) {
+                $isWizard = true;
+                $wizardSteps = [];
+                $gridHeaderClass = '';
+                
+                foreach ($wizardStepHeaderParams as $wizardStepHeaderParam) {
+                    $wizardSteps[$wizardStepHeaderParam['WIZARD_STEP']] = ['step' => $wizardStepHeaderParam['WIZARD_STEP']];
+                }
+                
+                foreach ($wizardStepDetail as $wizardStepDetailRow) {
+                    $wizardSteps[$wizardStepDetailRow['wizardStep']] = ['step' => $wizardStepDetailRow['wizardStep']];
+                }
+                
+                $wizardSteps = Arr::sortBy('step', $wizardSteps, 'asc');
+                $wizardStepHeaderParams = Arr::groupByArray($wizardStepHeaderParams, 'WIZARD_STEP');
+                
+                if ($wizardStepDetail) {
+                    $wizardStepDetail = Arr::groupByArray($wizardStepDetail, 'wizardStep');
+                }
             ?>
+            
+            <div id="wizard-<?php echo $this->uniqId; ?>">
+                <?php
+                foreach ($wizardSteps as $wizardStep) {
+                ?>
+                <h3><?php echo $wizardStep['step']; ?></h3>
+                <section>
+                    <?php
+                    if (isset($wizardStepHeaderParams[$wizardStep['step']]['rows'])) {
+                        $headerShowParams = $wizardStepHeaderParams[$wizardStep['step']]['rows'];
+                    ?>
+                    <div class="table-scrollable table-scrollable-borderless bp-header-param">
+                        <table class="table table-sm table-no-bordered bp-header-param">
+                            <tbody>
+                                <?php
+                                $resetArrIndex = 0;
+                                $ww = 0;
+                                $_seperator = false;
+                                $rows = array_chunk($headerShowParams, $this->columnCount);
+                                $w = count($rows);
+
+                                if ($this->columnCount > 1) {
+                                    $columnDividePercent = 100 - ($this->labelWidth * $this->columnCount);
+                                    $columnDividePercent = $columnDividePercent / $this->columnCount;
+                                } else {
+                                    $columnDividePercent = 55;
+                                }
+
+                                $seperatorWidth = $this->columnCount * 2;
+
+                                while ($ww < $w) {
+                                    $columns = $rows[$ww];
+
+                                    echo '<tr' . ($this->columnCount == 1 ? " data-cell-path='" . $rows[$ww][0]['META_DATA_CODE'] . "'" : '') . '>';
+                                    $xx = count($columns);
+                                    $xxx = 0;
+                                    $hrClass = $colspan = '';
+
+                                    while ($xxx < $xx) {
+
+                                        $gridHeaderClass .= Mdwebservice::fieldHeaderStyleClass($columns[$xxx], 'bp-window-' . $this->methodId);
+
+                                        if (!empty($columns[$xxx]['SEPARATOR_TYPE'])) {
+                                            $_seperator = true;
+
+                                            if ($this->columnCount == 2 && $xxx % 2 == 0) {
+                                                $colspan = 3;
+                                            } elseif ($this->columnCount > 2 && $xxx == 0) {
+                                                $colspan = ($this->columnCount - ($xxx + 1)) * 2 + 1;
+                                            }   
+                                        }
+                                        ?>
+                                    <td class="text-right middle" data-cell-path="<?php echo $columns[$xxx]['META_DATA_CODE']; ?>" style="width: <?php echo $this->labelWidth; ?>%">
+                                        <?php
+                                        $labelText = $this->lang->line($columns[$xxx]['META_DATA_NAME']);
+
+                                        $labelAttr = array(
+                                            'for' => 'param[' . $columns[$xxx]['META_DATA_CODE'] . ']',
+                                            'data-label-path' => $columns[$xxx]['META_DATA_CODE']
+                                        );
+
+                                        if (isset($columns[$xxx]['JSON_CONFIG']['tooltip'])) {
+                                            $labelAttr['no_colon'] = 1;
+                                            $labelText .= '<span class="label-colon">:</span> <i class="fas fa-info-circle text-grey-700" data-qtip-title="'.$this->lang->line($columns[$xxx]['JSON_CONFIG']['tooltip']).'" data-qtip-pos="top"></i>';
+                                        }
+
+                                        $labelAttr['text'] = $labelText;
+
+                                        if ($columns[$xxx]['IS_REQUIRED'] == '1') {
+                                            $labelAttr['required'] = 'required';
+                                        }
+                                        echo Form::label($labelAttr);
+                                        ?>
+                                    </td>
+                                    <td class="middle" data-cell-path="<?php echo $columns[$xxx]['META_DATA_CODE']; ?>" style="width: <?php echo $columnDividePercent ?>%" colspan="<?php echo $colspan; ?>">
+                                        <div data-section-path="<?php echo $columns[$xxx]['PARAM_REAL_PATH']; ?>">
+                                            <?php
+                                            echo Mdwebservice::renderParamControl($this->methodId, $columns[$xxx], 'param[' . $columns[$xxx]['META_DATA_CODE'] . ']', $columns[$xxx]['META_DATA_CODE'], $this->fillParamData);
+                                            ?>
+                                        </div>
+                                    </td>
+                                <?php
+                                    unset($headerShowParams[$resetArrIndex++]);
+                                    if ($_seperator) {
+                                        $hrClass = $columns[$xxx]['SEPARATOR_TYPE'];
+                                        $xxx = $xx;
+                                    } else {
+                                        $xxx++;
+                                    }
+                                }
+                                ?>
+                                </tr>
+                                <?php if ($_seperator) { ?>
+                                    <tr>
+                                        <td colspan="<?php echo $seperatorWidth; ?>">
+                                            <hr class="custom <?php echo $hrClass; ?>">
+                                        </td>
+                                    </tr>
+                                <?php
+                                }
+                                if ($_seperator) {
+                                    $rows = array_chunk($headerShowParams, $this->columnCount);
+                                    $_seperator = false;
+                                    $ww = 0;
+                                    $w = count($rows);
+                                    continue;
+                                }
+                                $ww++;
+                            }
+                            ?>
+                            </tbody>
+                        </table>
+                        <style type="text/css">.bp-window-<?php echo $this->methodId; ?> table.bp-header-param{table-layout: fixed;} <?php echo $gridHeaderClass; ?></style>
+                    </div>
+                    <?php
+                    }
+                    
+                    if (isset($wizardStepDetail[$wizardStep['step']]['rows'])) {
+                        $detailShowParams = $wizardStepDetail[$wizardStep['step']]['rows'];
+                        $detailShowTabs = [];
+                                
+                        foreach ($detailShowParams as $detailShowParam) {
+                            if ($detailShowParam['tabName']) {
+                                
+                                $detailShowTabs[Str::lower($detailShowParam['tabName'])][] = [
+                                    'tabName' => $detailShowParam['tabName'], 
+                                    'code' => $detailShowParam['code'], 
+                                    'name' => $detailShowParam['name'], 
+                                    'columnWidth' => $detailShowParam['columnWidth'], 
+                                    'isRefresh' => $detailShowParam['isRefresh'], 
+                                    'content' => $detailShowParam['content']
+                                ];
+                                
+                            } else {
+                                
+                                echo '<div data-section-path="' . $detailShowParam['code'] . '" '.($detailShowParam['columnWidth'] ? 'class="float-left" style="width:'.$detailShowParam['columnWidth'].'"' : '').' data-isclear="' . $detailShowParam['isRefresh'] . '">
+                                            <div class="bp-detail-title">' . $this->lang->line($detailShowParam['name']) . '</div>
+                                            <div class="bp-detail-body">' . $detailShowParam['content'] . '</div> 
+                                        </div>';
+                            }
+                        }
+                        
+                        if ($detailShowTabs) {
+
+                            $tabIndex = 0;
+                            $tabItem = $tabContent = '';
+                            
+                            foreach ($detailShowTabs as $detailShowTab) {
+                                $detailShowTabRow = $detailShowTab[0]; 
+                                
+                                $tabItem .= '<li class="nav-item">
+                                    <a href="#tab_' . $this->methodId . '_' . $tabIndex . '_wizardstep" class="nav-link'.($tabIndex == 0 ? ' active' : '').'" data-toggle="tab">' . $this->lang->line($detailShowTabRow['tabName']) . '</a>
+                                </li>';
+                                
+                                $tabContent .= '<div class="tab-pane'.($tabIndex == 0 ? ' active' : '').'" id="tab_' . $this->methodId . '_' . $tabIndex . '_wizardstep">';
+                                foreach ($detailShowTab as $detailShowTabContent) {
+                                    $tabContent .= $detailShowTabContent['content'];
+                                }
+                                $tabContent .= '</div>';
+                                
+                                $tabIndex ++;
+                            }
+                            
+                            echo '<div class="tabbable-line tabbable-tabdrop bp-tabs">
+                                <ul class="nav nav-tabs">
+                                    '.$tabItem.'
+                                </ul>
+                                <div class="tab-content">
+                                    '.$tabContent.'
+                                </div>
+                            </div>';
+                        }
+                    }
+                    ?>
+                </section>
+                <?php
+                }
+                ?>
+            </div>
+            <?php
+            }
+            ?>
+        
             <div id="bprocessCoreParam">
                 <?php 
                 echo Form::hidden(array('name' => 'methodId', 'value' => $this->methodId)); 

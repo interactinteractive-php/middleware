@@ -2271,6 +2271,8 @@ class Mdpos extends Controller {
                             $bankTerminalId = $row['terminalid'];
                         } elseif ($row['bankcode'] === '400000' && $bankType === 'tdb') {
                             $bankTerminalId = $row['terminalid'];
+                        } elseif ($row['bankcode'] === '500000' && $bankType === 'khaan') {
+                            $bankTerminalId = $row['terminalid'];
                         }
                     }                
                 } else {
@@ -3523,6 +3525,7 @@ class Mdpos extends Controller {
         $sPrefix        = SESSION_PREFIX;
         $storeId        = Session::get($sPrefix.'storeId');
         $cashRegisterId = Session::get($sPrefix.'cashRegisterId');        
+        $cashRegisterCode = Session::get($sPrefix.'cashRegisterCode');        
         $bill_no = getUID();
         $params = [
             'clientId' => Config::getFromCache('QPAY_V2_CLIENTID'),
@@ -3531,7 +3534,7 @@ class Mdpos extends Controller {
             'invoice_code' => Config::getFromCache('QPAY_V2_INVOICECODE'),
             'sender_invoice_no' => $bill_no,
             'invoice_receiver_code' => $bill_no,
-            'invoice_description' => 'Veritech erp pos',
+            'invoice_description' => 'Veritech erp ' . $cashRegisterCode,
             'callback_url' => 'https://dev.veritech.mn/mdintegration/qpaywebhook2'
         ];        
         $response = $this->model->qPayGetInvoiceQrModel($params);

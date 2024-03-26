@@ -40,6 +40,7 @@ class Mddashboard extends Controller {
         $this->load->model('mddashboard', 'middleware/models/');
         
         $this->view->diagram = $this->model->getMetaDiagramLinkModel($this->view->metaDataId);
+        $this->view->getAddonSettings = json_decode(Arr::get($this->view->diagram, 'ADDON_SETTINGS'), true);
 
         $this->view->processMetaDataId = $this->view->diagram['PROCESS_META_DATA_ID'];
         $this->view->workSpaceParams = Input::post('workSpaceParams');

@@ -3486,6 +3486,7 @@ class Mdmetadata_Model extends Model {
                         $data['LOOKUP_KEY_META_DATA_ID'] = null;
                         $data['OFFLINE_ORDER'] = Input::param(Arr::get($row, 'offlineOrder'));
                         $data['TAB_INDEX'] = Input::param(Arr::get($row, 'tabIndex'));
+                        $data['WIZARD_STEP'] = Input::param(Arr::get($row, 'wizardStep'));
                         $data['PLACEHOLDER_NAME'] = Input::param(Arr::get($row, 'placeholderName'));
                         $data['MORE_META_DATA_ID'] = Input::param(Arr::get($row, 'moreMetaDataId'));
                         $data['DTL_BUTTON_NAME'] = Input::param(Arr::get($row, 'dtlButtonName'));
@@ -3521,6 +3522,7 @@ class Mdmetadata_Model extends Model {
                         $data['COLUMN_WIDTH'] = Arr::get($row, 'columnWidth');
                         $data['GROUPING_NAME'] = Arr::get($row, 'groupingName');
                         $data['THEME_POSITION_NO'] = Arr::get($row, 'themePosition');
+                        $data['WIZARD_STEP'] = Input::param(Arr::get($row, 'wizardStep'));
 
                         $isGroup = true;
                         $isOpenPanel = true;
@@ -7249,6 +7251,125 @@ class Mdmetadata_Model extends Model {
                     }
                 }
                 
+                if (Input::postCheck('defaultCriteriaData')) {
+                    
+                    parse_str(Input::post('defaultCriteriaData'), $defaultCriteriaData);
+
+                    if (isset($defaultCriteriaData['param'])) {
+                        
+                        $this->load->model('mdobject', 'middleware/models/');
+                        $defaultCriteriaParam = $defaultCriteriaData['param'];
+
+                        if (isset($defaultCriteriaData['criteriaCondition'])) {
+                            $defaultCriteriaCondition = $defaultCriteriaData['criteriaCondition'];
+                            $defaultCondition = '1';
+                        } else {
+                            $defaultCriteriaCondition = 'LIKE';
+                            $defaultCondition = '0';
+                        }
+
+                        $paramDefaultCriteria = array();
+
+                        foreach ($defaultCriteriaParam as $defParam => $defParamVal) {
+
+                            $fieldLower = strtolower($defParam);
+                            $operator = ($defaultCondition === '0') ? $defaultCriteriaCondition : (isset($defaultCriteriaCondition[$defParam]) ? $defaultCriteriaCondition[$defParam] : 'like');
+
+                            if (is_array($defParamVal)) {
+
+                                if ($operator == '!=' || $operator == '=') {
+
+                                    $defParamVals = Arr::implode_r(',', $defParamVal, true);
+
+                                    if ($defParamVals != '') {
+                                        $paramDefaultCriteria[$fieldLower][] = array(
+                                            'operator' => ($operator == '!=' ? 'NOT IN' : 'IN'),
+                                            'operand' => $defParamVals
+                                        );
+                                    }
+                                } else {
+                                    foreach ($defParamVal as $paramVal) {
+                                        $paramDefaultCriteria[$fieldLower][] = array(
+                                            'operator' => $operator,
+                                            'operand' => $paramVal
+                                        );
+                                    }
+                                }
+
+                            } else {
+
+                                $defParamVal = Input::param(trim($defParamVal));
+                                $defParamVal = Mdmetadata::setDefaultValue($defParamVal);
+                                $mandatoryCriteria = isset($defaultCriteriaData['mandatoryCriteria'][$defParam]) ? '1' : '0';
+
+                                if ($defParamVal != '' || $mandatoryCriteria === '1') {
+
+                                    $defParamValue = (strtolower($operator) === 'like') ? '%'.$defParamVal.'%' : $defParamVal; 
+
+                                    $getTypeCode = $this->model->getDataViewGridCriteriaRowModel($metaDataId, $defParam);
+                                    $getTypeCodeLower = strtolower($getTypeCode['META_TYPE_CODE']);
+
+                                    if ($getTypeCodeLower == 'date' || $getTypeCodeLower == 'datetime') {
+
+                                        $defParamVal = str_replace(
+                                            array('____-__-__', '___-__-__', '__-__-__', '_-__-__', '-__-__', '-__', '_', '__:__', ':__'), '', $defParamVal
+                                        );
+
+                                        $operator = ($defaultCondition === '0') ? '=' : (isset($defaultCriteriaCondition[$defParam]) ? $defaultCriteriaCondition[$defParam] : '='); 
+                                        $defParamValue = $defParamVal;
+
+                                    } elseif ($getTypeCodeLower == 'long' || $getTypeCodeLower == 'integer' || $getTypeCodeLower == 'number') {
+
+                                        $defParamVal = Number::decimal($defParamVal);
+
+                                        $operator = ($defaultCondition === '0') ? '=' : (isset($defaultCriteriaCondition[$defParam]) ? $defaultCriteriaCondition[$defParam] : '='); 
+                                        $defParamValue = $defParamVal;
+
+                                    } elseif ($getTypeCodeLower == 'bigdecimal') {
+
+                                        $defParamVal = Number::decimal($defParamVal);
+
+                                    } elseif ($getTypeCodeLower == 'boolean') {
+
+                                        $operator = '=';
+                                        $defParamValue = $defParamVal;
+                                    }
+
+                                    if ($defParam == 'booktypename') {
+                                        $operator = ($defaultCondition === '0') ? '!=' : (isset($defaultCriteriaCondition[$defParam]) ? $defaultCriteriaCondition[$defParam] : '!='); 
+                                        $defParamValue = $defParamVal;
+                                    }
+
+                                    if ($defParam == 'accountCode' || $defParam == 'filterAccountCode') {
+                                        $defParamValue = trim(str_replace('_', '', str_replace('_-_', '', $defParamValue)));
+                                    }
+
+                                    if ($operator == 'start') {
+                                        $operator = 'like';
+                                        $defParamValue = $defParamValue.'%';
+                                    } elseif ($operator == 'end') {
+                                        $operator = 'like';
+                                        $defParamValue = '%'.$defParamValue;
+                                    }
+
+                                    if ($defParamValue != 'null') {
+                                        $paramDefaultCriteria[$fieldLower][] = array(
+                                            'operator' => $operator,
+                                            'operand' => ($defParamValue) ? $defParamValue : '0'
+                                        );
+                                    }
+                                }
+                            }   
+                        }
+
+                        if (isset($param['criteria'])) {
+                            $param['criteria'] = array_merge($param['criteria'], $paramDefaultCriteria);
+                        } else {
+                            $param['criteria'] = $paramDefaultCriteria;
+                        }
+                    }
+                } 
+                
                 WebService::$isUseReport = true;
                 $data = $this->ws->runSerializeResponse(self::$gfServiceAddress, Mddatamodel::$getDataViewCommand, $param);
 
@@ -8007,7 +8128,7 @@ class Mdmetadata_Model extends Model {
                 PREVIEW_WEBIMAGE, 
                 PREVIEW_MOBILEIMAGE 
             FROM META_WIDGET 
-            WHERE (TYPE_ID = $typeId OR TYPE_ID = 5) 
+            WHERE (TYPE_ID = $typeId OR TYPE_ID = 5 OR TYPE_ID = 8) 
                 AND IS_ACTIVE = 1 
             ORDER BY ID ASC");
         
@@ -9432,7 +9553,8 @@ class Mdmetadata_Model extends Model {
                     PAL.PLACEHOLDER_NAME, 
                     PAL.DTL_BUTTON_NAME, 
                     PAL.IS_THUMBNAIL, 
-                    PAL.JSON_CONFIG 
+                    PAL.JSON_CONFIG, 
+                    PAL.WIZARD_STEP 
                 FROM META_PROCESS_PARAM_ATTR_LINK PAL 
                     LEFT JOIN META_DATA MK ON MK.META_DATA_ID = PAL.LOOKUP_KEY_META_DATA_ID 
                     LEFT JOIN META_DATA MM ON MM.META_DATA_ID = PAL.MORE_META_DATA_ID 
@@ -9491,7 +9613,8 @@ class Mdmetadata_Model extends Model {
                 'MORE_META_DATA_NAME' => '', 
                 'DTL_BUTTON_NAME' => '', 
                 'IS_THUMBNAIL' => '', 
-                'JSON_CONFIG' => ''
+                'JSON_CONFIG' => '', 
+                'WIZARD_STEP' => ''
             );
         }
 
@@ -10694,6 +10817,7 @@ class Mdmetadata_Model extends Model {
             'labelmarkerwidth' => Str::lower(Input::post('labelmarkerwidth')),
             'labelmarkerheight' => Str::lower(Input::post('labelmarkerheight')),
             'criteriaPosition' => Input::post('chartCriteriaPostion'),
+            'criteriaSplitColumnCount' => Input::post('chartCriteriaSplitColumnCount'),
         );
         $this->db->UpdateClob('META_DASHBOARD_LINK', 'ADDON_SETTINGS', json_encode($addonSettings), 'META_DATA_ID = '.$metaDataId);
     }

@@ -135,6 +135,10 @@ class Mdwidget extends Controller {
                 $widgetCode = 'mv_card_with_list_widget';
             } elseif (isset($widgetCode['mv_card_with_employeelist_widget'])) {
                 $widgetCode = 'mv_card_with_employeelist_widget';                
+            }  elseif (isset($widgetCode['mv_card_status_widget'])) {
+                $widgetCode = 'mv_card_status_widget';                
+            } elseif (isset($widgetCode['mv_tiny_card_with_list_widget'])) {
+                $widgetCode = 'mv_tiny_card_with_list_widget';                
             } else {
                 $widgetCode = '';
             }
@@ -155,6 +159,16 @@ class Mdwidget extends Controller {
                 'topAddRow' => true, 
                 'topAddOneRow' => true,
                 'name' => 'mv_card_with_employeelist_widget'
+            ),
+            'mv_card_status_widget' => array(
+                'topAddRow' => true, 
+                'topAddOneRow' => true,
+                'name' => 'mv_card_status_widget'
+            ),
+            'mv_tiny_card_with_list_widget' => array(
+                'topAddRow' => true, 
+                'topAddOneRow' => true,
+                'name' => 'mv_tiny_card_with_list_widget'
             )
         );
         
@@ -3692,13 +3706,10 @@ class Mdwidget extends Controller {
         echo json_encode(array('data' => $cdata)); exit;
     }
 
-    public function widgetStandart($listConfig, $jsonAttr) {
+    public function widgetStandart($listConfig, $jsonAttr, $criteria = array(), $paging = array('offset' => 1, 'pageSize' => 100)) {
         try {
-            $criteria = array();
-            $paging = array(
-                'offset' => 1,
-                'pageSize' => 100
-            );
+            
+
             // $criteria = array(
             //     'itemcategoryid' => array(
             //         array(
@@ -3706,11 +3717,13 @@ class Mdwidget extends Controller {
             //             'operand' => 1515665343763
             //         )
             //     )
-            // );       
+            // );   
+
             $this->view->uniqId = getUID();            
             $this->view->datasrc = [];
             $this->load->model('mdmetadata', 'middleware/models/');
-            $metaRow = $this->model->getMetaDataModel($listConfig["metadataid"]);
+            $this->view->listConfig = $listConfig;
+            $this->view->metaRow = $metaRow = $this->model->getMetaDataModel($listConfig["metadataid"]);
             $this->load->model('mdwidget', 'middleware/models/'); 
 
             $widgetCode = Str::lower($listConfig["widgetcode"]);
@@ -3772,6 +3785,8 @@ class Mdwidget extends Controller {
                 $diagramHtml .= '</div>';
                 return $diagramHtml;
             } elseif (file_exists(self::$viewPath.'widgetStandart/'.$widgetCode.'.php')) {
+                $this->view->filterDate = issetParam($criteria['filterDate'][0]['operand']);
+                $this->view->filterPage = $paging['offset'];
                 return $this->view->renderPrint('widgetStandart/'.$widgetCode, self::$viewPath);
             } else {
                 return "Widget code: ".$widgetCode;
@@ -4060,6 +4075,7 @@ class Mdwidget extends Controller {
                         if (issetParam($row['itemStyle']['padding']) === '') {
                             $pageCss .= "padding: 0;";
                         }
+                        
                         $pageCss .= " display: flex; flex-wrap: wrap; flex-direction: row; -ms-flex-direction: row; row-gap: 1rem;";
                         foreach ($row['showFields'] as $fields) {
                             $pageCss .= " .position_". $fields['position'] ." { ";
@@ -4275,7 +4291,7 @@ class Mdwidget extends Controller {
             }
 
         }
-        
+
         $this->view->title = $this->lang->line($dataFirstRow['NAME']);
         $this->view->logoImage = issetParam($dataFirstRow['ICON']);
         $this->view->bgImage = $dataFirstRow['PROFILE_PICTURE'];
@@ -4303,26 +4319,87 @@ class Mdwidget extends Controller {
             'fillSelectedRow' => Input::post('selectedRow'),
         );
 
+        $this->view->uniqCss = '';
+        $this->view->uniqJs = '';
+        $width = '1000';
+        $title = '';
+        $maximize = true;
         switch ($this->view->widgetCode) {
             case 'exam_checklist':
                 $htmlPath = 'relation/checklist';
                 break;
+            case 'exam_resultlist':
+                $htmlPath = 'relation/result';
+                break;
             default:
-                $htmlPath = 'relation/check_preview';
+                $htmlPath = 'relation/preview';
+                $title = $this->view->title;
+                $width = 'auto';
+                $maximize = false;
+                $this->view->uniqCss = $this->view->renderPrint('relation/uniqCss', self::$viewPath);
+                $this->view->uniqJs = $this->view->renderPrint('relation/uniqJs', self::$viewPath);
                 break;
         }
         
         $this->view->rowData = $mdf->model->getDefaultFillDataModel($this->view->mainIndicatorId);
+        $this->view->fullExp = (new Mdform())->indicatorFullExpression($this->view->uniqId, $this->view->mainIndicatorId, $this->view->kpiTypeId);
+        
         $response = array(
             'uniqId' => $this->view->uniqId, 
-            /* 'dataFirstRow' => $dataFirstRow,  */
-            /* 'data' => $this->view->rowData,  */
+            'widgetCode' => $this->view->widgetCode, 
             'status' => 'success', 
+            'Title' => $title, 
+            'Width' => $width, 
+            'Maximize' => $maximize, 
             'html' => $this->view->renderPrint($htmlPath, self::$viewPath)
         );
+        
+        if (Config::getFromCache('is_dev')) {
+            $response['dataFirstRow'] = $dataFirstRow;
+            $response['data'] = $this->view->rowData;
+            $response['relationComponentsConfigData'] = $this->view->relationComponentsConfigData;
+        }
 
         echo json_encode($response, JSON_UNESCAPED_UNICODE);
         
+    }
+
+    public function deleteIndicatorMapData () {
+        $postData = Input::postData();
+
+        unset($_POST);
+        $_POST = array (
+            'isOwnBpValueTemplate' => '1',
+            'bpValueTemplateName' => '',
+            'param' =>  array (
+              'id' => $postData['id'],
+            ),
+            'methodId' => Config::getFromCacheDefault('pageIndicatorDelete_005', null, '17107577587779'),
+            'processSubType' => 'internal',
+            'create' => '0',
+            'responseType' => 'outputArray',
+            'wfmStatusParams' => '',
+            'wfmStringRowParams' => '',
+            'openParams' => '',
+            'isSystemProcess' => 'true',
+            'dmMetaDataId' => '',
+            'cyphertext' => '',
+            'plainText' => '',
+            'cacheId' => '',
+        );
+        $result = (new Mdwebservice())->runProcess();
+        
+        if ($result['status'] == 'success') {
+            $layoutHtml = $this->db->GetRow("SELECT LAYOUT_HTML FROM KPI_INDICATOR WHERE ID = " . $this->db->Param(0), array($postData['indicatorId']));
+    
+            $html = html_entity_decode(issetParam($layoutHtml['LAYOUT_HTML']), ENT_QUOTES, 'UTF-8');
+            $layoutHtml = str_replace('{'. $postData['widgetId'] . '}', '', $html);
+            
+            $this->db->UpdateClob('KPI_INDICATOR', 'LAYOUT_HTML', $layoutHtml, 'ID = '. $postData['indicatorId']);
+        }
+
+        convJson($result);
+        exit();
     }
     
 }

@@ -6,7 +6,7 @@
     <div class="form-group">
         <label><?php echo $this->lang->line($param['META_DATA_NAME']); ?></label>
         <?php
-        echo Mdwebservice::renderParamControl($this->metaDataId, $param,  'param['.$param['META_DATA_CODE'].']', $param['META_DATA_CODE'], null , '', true);
+        echo Mdwebservice::renderParamControl($this->metaDataId, $param, 'param['.$param['META_DATA_CODE'].']', $param['META_DATA_CODE'], null , '', true);
         echo Form::select(
             array(
                 'name' => 'criteriaCondition['. $param['META_DATA_CODE'] .']',

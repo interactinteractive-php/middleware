@@ -527,6 +527,120 @@ function posPrintSetlement(elem, processMetaDataId, dataViewId, selectedRow, par
 
 }
 
+function printsettlementkhaan(elem, processMetaDataId, dataViewId, selectedRow, paramData) {
+
+    if ("WebSocket" in window) {
+        $.ajax({
+            type: 'post',
+            data: {bankType:'khaan'},
+            url: 'mdpos/getPosTerminalId',
+            success: function(data) {
+                
+                if (data === 'empty') {
+                    PNotify.removeAll();
+                    new PNotify({
+                        title: 'Bank terminal error',
+                        text: 'Terminal ID хоосон байна!',
+                        type: 'error', 
+                        sticker: false, 
+                        addclass: 'pnotify-center'
+                    });     
+                    return;
+                }
+                                
+                console.log("WebSocket is supported by your Browser!");
+                // Let us open a web socket
+                var ws = new WebSocket("ws://localhost:58324/socket");
+
+                ws.onopen = function() {
+                    var currentDateTime = GetCurrentDateTime();
+                    ws.send('{"command":"bank_terminal_pos_settlement", "dateTime":"' + currentDateTime + '", details: [{"key": "devicetype", "value": "databank"},{"key": "terminalid", "value": "' + data + '"}]}');
+                };
+
+                ws.onmessage = function(evt) {
+                    var received_msg = evt.data;
+                    var jsonData = JSON.parse(received_msg);
+
+                    if (jsonData.status == 'success') {
+                        var getParse = JSON.parse(jsonData.details[0].value);
+                        var $dialogName = 'pos-preview-print-setlement';
+                        
+                        if (getParse.response.response_code == '330') {
+                            PNotify.removeAll();
+                            new PNotify({
+                                title: 'Warning',
+                                text: 'Нэгтгэл хийх гүйлгээ байхгүй',
+                                type: 'warning', 
+                                sticker: false, 
+                                addclass: 'pnotify-center'
+                            });       
+                            return;
+                        }
+                        
+                        var setHtml = '<div>ОГНОО: '+getParse.response.date+' '+getParse.response.time+'</div>';
+                            setHtml += '<h3 style="margin-top:15px"><center>Khanbank setlement report</center></h3>';
+                        setHtml += '<table border="1" style="width: 100%;margin-top:15px;border-collapse: collapse">';
+                        setHtml += '<tr style="background:#E5E5E5"><td style="width:40%;padding:8px">ГҮЙЛГЭЭНИЙ ТӨРӨЛ</td>';
+                        setHtml += '<td style="width:30%;text-align: right;padding:8px">ТОО</td>';
+                        setHtml += '<td style="width:30%;text-align: right;padding:8px">ДҮН</td></tr>';                        
+                        setHtml += '<tr><td style="width:40%;padding:8px">ХУДАЛДАН АВАЛТ</td>';
+                        setHtml += '<td style="width:30%;text-align: right;padding:8px">'+pureNumberFormat(getParse.response.sale_count)+'</td>';
+                        setHtml += '<td style="width:30%;text-align: right;padding:8px">'+pureNumberFormat(getParse.response.sale_total.substr(0,10))+'</td></tr>';
+                        setHtml += '<tr><td style="width:40%;padding:8px">БУЦААЛТ</td>';
+                        setHtml += '<td style="width:30%;text-align: right;padding:8px">'+pureNumberFormat(getParse.response.void_count)+'</td>';
+                        setHtml += '<td style="width:30%;text-align: right;padding:8px">'+pureNumberFormat(getParse.response.void_total.substr(0,10))+'</td></tr>';                        
+                        setHtml += '</table>';                        
+                        
+                        if (!$("#" + $dialogName).length) {
+                            $('<div id="' + $dialogName + '" class="hidden"></div>').appendTo('body');
+                        }
+                        var $dialog = $('#' + $dialogName);
+                        $dialog.html(setHtml).promise().done(function() {
+
+                            $dialog.printThis({
+                                debug: false,
+                                importCSS: false,
+                                printContainer: false,
+                                dataCSS: "@page{margin-top: 0.5cm;margin-right: 0.5cm;margin-bottom: 0.5cm;margin-left: 0.5cm;size: A4 portrait;width: 100%;orientation: portrait}*{-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box}*:before,*:after{-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box}body{margin: 0;padding: 0;line-height: 1.4em;font-size: 12px;font-family: \"Times Roman\", sans-serif;color: #000;width: 100%;-webkit-print-color-adjust: exact}table{border-collapse: collapse !important;font-size: 12px;border-color: grey;line-height: 1em}tr{page-break-inside:avoid;page-break-after:auto}td{page-break-inside:avoid;page-break-after:auto}thead{display: table-header-group}tbody{display: table-row-group}tfoot{display: table-footer-group}table thead th, table thead td, table tbody td, table tfoot td{padding: 2px 3px}table tbody td.bold{font-weight: bold}",
+                                removeInline: false
+                            });
+                        });
+                    } else {
+                        PNotify.removeAll();
+                        new PNotify({
+                            title: 'Bank terminal error',
+                            text: jsonData.description,
+                            type: 'error', 
+                            sticker: false, 
+                            addclass: 'pnotify-center'
+                        });                        
+                    }
+                };
+
+                ws.onerror = function(event) {
+                    var resultJson = {
+                        Status: 'Error',
+                        Error: event.code
+                    }
+                    console.log(JSON.stringify(resultJson));
+                };
+
+                ws.onclose = function() {
+                    console.log("Connection is closed...");
+                };
+            }
+        });           
+    } else {
+        var resultJson = {
+            Status: 'Error',
+            Error: "WebSocket NOT supported by your Browser!"
+        }
+
+        console.log(JSON.stringify(resultJson));
+    }
+
+}
+
 function posPrintSetlementXac(elem, processMetaDataId, dataViewId, selectedRow, paramData) {
 
     if ("WebSocket" in window) {    
@@ -587,7 +701,7 @@ function posPrintSetlementXac(elem, processMetaDataId, dataViewId, selectedRow, 
                         debug: false,
                         importCSS: false,
                         printContainer: false,
-                        dataCSS: "@page{margin-top: 0.5cm;margin-right: 0;margin-bottom: 0.5cm;margin-left: 0;size: A4 portrait;width: 100%;orientation: portrait}*{-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box}*:before,*:after{-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box}body{margin: 0;padding: 0;line-height: 1.4em;font-size: 12px;font-family: \"Times Roman\", sans-serif;color: #000;width: 100%;-webkit-print-color-adjust: exact}table{border-collapse: collapse !important;font-size: 12px;border-color: grey;line-height: 1em}tr{page-break-inside:avoid;page-break-after:auto}td{page-break-inside:avoid;page-break-after:auto}thead{display: table-header-group}tbody{display: table-row-group}tfoot{display: table-footer-group}table thead th, table thead td, table tbody td, table tfoot td{padding: 2px 3px}table tbody td.bold{font-weight: bold}",
+                        dataCSS: "@page{margin-top: 0.5cm;margin-right: 0.5cm;margin-bottom: 0.5cm;margin-left: 0.5cm;size: A4 portrait;width: 100%;orientation: portrait}*{-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box}*:before,*:after{-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box}body{margin: 0;padding: 0;line-height: 1.4em;font-size: 12px;font-family: \"Times Roman\", sans-serif;color: #000;width: 100%;-webkit-print-color-adjust: exact}table{border-collapse: collapse !important;font-size: 12px;border-color: grey;line-height: 1em}tr{page-break-inside:avoid;page-break-after:auto}td{page-break-inside:avoid;page-break-after:auto}thead{display: table-header-group}tbody{display: table-row-group}tfoot{display: table-footer-group}table thead th, table thead td, table tbody td, table tfoot td{padding: 2px 3px}table tbody td.bold{font-weight: bold}",
                         removeInline: false
                     });
                 });
@@ -730,7 +844,7 @@ function posPrintSetlementTDB(elem, processMetaDataId, dataViewId, selectedRow, 
                         debug: false,
                         importCSS: false,
                         printContainer: false,
-                        dataCSS: "@page{margin-top: 0.5cm;margin-right: 0;margin-bottom: 0.5cm;margin-left: 0;size: A4 portrait;width: 100%;orientation: portrait}*{-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box}*:before,*:after{-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box}body{margin: 0;padding: 0;line-height: 1.4em;font-size: 12px;font-family: \"Times Roman\", sans-serif;color: #000;width: 100%;-webkit-print-color-adjust: exact}table{border-collapse: collapse !important;font-size: 12px;border-color: grey;line-height: 1em}tr{page-break-inside:avoid;page-break-after:auto}td{page-break-inside:avoid;page-break-after:auto}thead{display: table-header-group}tbody{display: table-row-group}tfoot{display: table-footer-group}table thead th, table thead td, table tbody td, table tfoot td{padding: 2px 3px}table tbody td.bold{font-weight: bold}",
+                        dataCSS: "@page{margin-top: 0.5cm;margin-right: 0.5cm;margin-bottom: 0.5cm;margin-left: 0.5cm;size: A4 portrait;width: 100%;orientation: portrait}*{-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box}*:before,*:after{-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box}body{margin: 0;padding: 0;line-height: 1.4em;font-size: 12px;font-family: \"Times Roman\", sans-serif;color: #000;width: 100%;-webkit-print-color-adjust: exact}table{border-collapse: collapse !important;font-size: 12px;border-color: grey;line-height: 1em}tr{page-break-inside:avoid;page-break-after:auto}td{page-break-inside:avoid;page-break-after:auto}thead{display: table-header-group}tbody{display: table-row-group}tfoot{display: table-footer-group}table thead th, table thead td, table tbody td, table tfoot td{padding: 2px 3px}table tbody td.bold{font-weight: bold}",
                         removeInline: false
                     });
                 });

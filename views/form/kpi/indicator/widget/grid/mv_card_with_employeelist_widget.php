@@ -24,22 +24,22 @@
 .mv_card_with_employeelist_widget h5 {
     display: block;
     padding: 0 10px;
-    font-size: 17px;
-    color: #fff;
+    font-size: 12px;
+    color: #333;
     line-height: 20px;
     text-align: center;
     overflow: hidden;
 }
 #objectdatacustomgrid-<?php echo $this->indicatorId ?> {
-    background-image: linear-gradient(#714497, #702fa6);
-    border-bottom: 5px solid;
-    border-image: linear-gradient(to right, #519157 25%, #de6e0a 25%, #de6e0a 50%,#33a9ca 50%, #33a9ca 75%, #189e6b 75%) 5;
+/*    background-color: transparent;
+    border-bottom: 5px solid;*/
+    /*border-image: linear-gradient(to right, #519157 25%, #de6e0a 25%, #de6e0a 50%,#33a9ca 50%, #33a9ca 75%, #189e6b 75%) 5;*/
 }
 .mv_card_with_employeelist_widget_main {
-    background-image: url('middleware/assets/img/layout-themes/image/card/mv_card_with_employeelist_widget_group_21984.png');
+/*    background-image: url('middleware/assets/img/layout-themes/image/card/mv_card_with_employeelist_widget_group_21984.png');
     background-size: 230px 180px;
     background-repeat: no-repeat;
-    background-position: right bottom;    
+    background-position: right bottom;    */
 }
 .mv_card_with_employeelist_widget_main .mv_card_with_employeelist_widget.active img {
     border-color: #ca3361 !important;
@@ -50,10 +50,8 @@
     <div class="btn-group btn-group-devided">
     <?php 
     $contextMenu = array();
-    $createClickAction = '';
     $deleteClickAction = '';
     $deleteCrudId = '';
-    $createCrudId = '';
     $mapId = '';
     
     foreach ($this->process as $process) {
@@ -64,23 +62,28 @@
         $isNormalRelation = issetParam($process['is_normal_relation']);
         $typeCode = $process['type_code'];
         $kpiTypeId = $process['kpi_type_id'];
-        $buttonName = $className = $onClick = $description = $opt = '';
+        $buttonName = $className = $onClick = $description = '';
+        $opt = ', undefined';
 
         if ($srcIndicatorId == $this->indicatorId) {
 
             if ($typeCode == 'create') {
 
-                $createCrudId = $process['crud_indicator_id'];
                 $mapId = issetParam($process['map_id']);
                 $labelName = $process['label_name'] == 'Нэмэх' ? $this->lang->line('add_btn') : $this->lang->line($process['label_name']);
                 $className = 'btn btn-success btn-circle btn-sm';
                 $buttonName = '<i class="far fa-plus"></i> '.$labelName;
-
+                
+                if ($isFillRelation) {
+                    $opt = ', {fillSelectedRow: true, mode: \'create\'}';
+                } elseif ($isDfillRelation) {
+                    $opt = ', {fillDynamicSelectedRow: true, mode: \'create\'}';
+                }
+                
                 if ($isNormalRelation) {
                     $onClick = "mvNormalRelationRender(this, '$kpiTypeId', '".$this->indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId});";
                 } else {
-                    $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '".$this->indicatorId."', false, undefined, undefined, 'mvWidgetFileViewCreateCallback');";
-                    $createClickAction = $onClick;
+                    $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '".$this->indicatorId."', false$opt, undefined, 'mvWidgetFileViewCreateCallback');";
                 }
 
             } elseif ($typeCode == 'update') {
@@ -98,7 +101,11 @@
                 if ($isNormalRelation) {
                     $onClick = "mvNormalRelationRender(this, '$kpiTypeId', '".$this->indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'update'});";
                 } else {
-                    $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '".$this->indicatorId."', true, undefined, undefined, 'mvWidgetFileViewCreateCallback');";
+                    if (issetParam($process['widget_code']) !== '') {
+                        $onClick = "mvWidgetRelationRender(this, '$kpiTypeId', '".$this->indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'update', widgetCode: '". $process['widget_code'] ."'});";
+                    } else {
+                        $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '".$this->indicatorId."', true$opt);";
+                    }
                 }
 
                 $contextMenu[] = array(
@@ -238,7 +245,6 @@
 
                 $className = 'btn btn-success btn-circle btn-sm';
                 $buttonName = '<i class="far fa-plus"></i> '.$processName;
-                $createCrudId = $process['crud_indicator_id'];
                 $mapId = issetParam($process['map_id']);
 
                 if ($isFillRelation) {
@@ -250,8 +256,7 @@
                 if ($isNormalRelation) {
                     $onClick = "mvNormalRelationRender(this, '$kpiTypeId', '".$this->indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId});";
                 } else {
-                    $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '".$srcIndicatorId."', false, undefined, undefined, 'mvWidgetFileViewCreateCallback');";
-                    $createClickAction = $onClick;
+                    $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '".$srcIndicatorId."', false$opt, undefined, 'mvWidgetFileViewCreateCallback');";
                 }
 
             } elseif ($typeCode == 'update') {
@@ -268,7 +273,11 @@
                 if ($isNormalRelation) {
                     $onClick = "mvNormalRelationRender(this, '$kpiTypeId', '".$this->indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'update'});";
                 } else {
-                    $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '$srcIndicatorId', true, undefined, undefined, 'mvWidgetFileViewCreateCallback');";
+                    if (issetParam($process['widget_code']) !== '') {
+                        $onClick = "mvWidgetRelationRender(this, '$kpiTypeId', '".$this->indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'update', widgetCode: '". $process['widget_code'] ."'});";
+                    } else {
+                        $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '$srcIndicatorId', true$opt);";
+                    }
                 }
 
             } elseif ($typeCode == 'read') {
@@ -333,8 +342,12 @@
         <a href="javascript:;" style="width: 170px;margin: 15px;" class="mv_card_with_employeelist_widget no-dataview" data-rowdata="<?php echo $rowJson; ?>">
             <div class="card" style="border: none;box-shadow: none;padding: 0;background: transparent;">
                 <div class="card-body">
-                    <div class="card-img-actions mb-2 mt-2">
-                        <img class="directory-img" style="height: 150px;width: 150px;border-radius: 150px;border: 5px solid #33a9ca;" src="<?php echo issetParam($row[$this->relationViewConfig['position-1']]) ?>"/>
+                    <div class="card-img-actions mb-2 mt-2 pl-2">
+                        <?php if (file_exists(issetParam($row[$this->relationViewConfig['position-1']]))) { ?>
+                            <img class="directory-img" style="height: 150px;width: 150px;border-radius: 150px;border: 3px solid #33a9ca;background: #fff;" src="<?php echo issetParam($row[$this->relationViewConfig['position-1']]) ?>"/>
+                        <?php } else { ?>
+                            <img class="directory-img" style="height: 150px;width: 150px;border-radius: 150px;border: 3px solid #33a9ca;background: #fff;" src="assets/core/global/img/noimage.png"/>
+                        <?php } ?>
                     </div>
                     <h5>
                         <?php echo issetParam($row[$this->relationViewConfig['position-2']]) ?>

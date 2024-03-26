@@ -65,6 +65,9 @@ if (issetParam($this->renderComponentsBanner) === '1') {
         echo issetParam($this->showBanner);
     echo '<div class="processs-main-content">';
 } 
+if (Input::postCheck('endSessionLogStatusCombo')) {
+    echo '<div class="my-2">'. html_entity_decode(Input::post('endSessionLogStatusCombo'), ENT_QUOTES).'</div>';
+}
 ?>
 <div class="kpi-ind-tmplt-section" id="kpi-<?php echo $this->uniqId; ?>" data-process-id="<?php echo $this->indicatorId; ?>" data-bp-uniq-id="<?php echo $this->uniqId; ?>">
     <?php

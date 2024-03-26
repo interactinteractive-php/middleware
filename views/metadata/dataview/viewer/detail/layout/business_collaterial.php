@@ -36,7 +36,7 @@ var business_collaterialview_<?php echo $this->metaDataId; ?> = $.extend({}, $.f
         cc.push('<div class="card-collaterial-wrapper-eui business-collaterial-card-collaterial-wrapper-eui"><div class="">');  
             cc.push('<div class="image-wrapper-eui business-image-wrapper-eui" style="height:<?php echo isset($typeRow['fields']['code']) || isset($typeRow['fields']['name1']) ? '130px' : '280px'; ?>">');  
             <?php if (!empty($photoPath)) { ?>
-                var lowerExtension = rowData.<?php echo $photoPath; ?>.split('.').pop().toLowerCase();
+                var lowerExtension = rowData.<?php echo $photoPath; ?> ? rowData.<?php echo $photoPath; ?>.split('.').pop().toLowerCase() : '';
                 if (['pdf', 'doc', 'docx', 'xls', 'xlsx'].indexOf(lowerExtension) !== -1) {
                     var iconClass = '';
                     if (lowerExtension == 'pdf') {
@@ -56,7 +56,7 @@ var business_collaterialview_<?php echo $this->metaDataId; ?> = $.extend({}, $.f
                 cc.push('<a href="<?php echo $photoField; ?>" class="fancybox-button" data-rel="fancybox-button"><img src="<?php echo $photoField; ?>" data-default-image="<?php echo $defaultImage; ?>" width="210px" height="<?php echo isset($typeRow['fields']['code']) || isset($typeRow['fields']['name1']) ? '130px' : '280px'; ?>" onerror="onDataViewImgError(this);"/></a>');
             <?php } ?>
             cc.push('</div>');  
-            <?php if (isset($typeRow['fields']['code']) || isset($typeRow['fields']['name1'])) { ?>
+            <?php if (isset($typeRow['fields']['code']) || isset($typeRow['fields']['name1']) || isset($typeRow['fields']['name5'])) { ?>
             cc.push('<div class="content-actions-wrapper-eui business-content-actions-wrapper-eui">');  
                 cc.push('<div class="content-eui">');
                     <?php

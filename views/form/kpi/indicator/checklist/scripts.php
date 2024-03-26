@@ -8,7 +8,7 @@ $(function() {
     
     $checkListMenu_<?php echo $this->uniqId; ?>.height($(window).height() - $checkListMenu_<?php echo $this->uniqId; ?>.offset().top - 51);
     
-    $checkListMenu_<?php echo $this->uniqId; ?>.on('click', 'a.nav-link:not(.disabled)', function() {
+    $checkListMenu_<?php echo $this->uniqId; ?>.on('click', 'a.nav-link:not(.disabled), .add-mv-relation-btn', function() {
         var $this = $(this);
         
         $checkListMenu_<?php echo $this->uniqId; ?>.find('a.nav-link.active').removeClass('active');
@@ -39,6 +39,104 @@ $(function() {
         
         var metaDataId = jsonObj.metaDataId, metaTypeId = jsonObj.metaTypeId, 
             indicatorId = jsonObj.indicatorId, kpiTypeId = jsonObj.kpiTypeId;
+    
+        if (false && (metaDataId == null || metaDataId == '')) {
+              $.ajax({
+                type: "post",
+                url: "api/callDataview",
+                data: {
+                  dataviewId: "17085010097299",
+                  criteriaData: {
+                    id: [{
+                        operator: "=",
+                        operand: indicatorId,
+                    }]
+                  }
+                },
+                dataType: "json",
+                success: function (data) {            
+                    if (data.status === "success" && data.result[0]) {
+                        $.ajax({
+                            type: 'post',
+                            url: 'mdworkspace/renderWorkSpace',
+                            data: {metaDataId: "17085010237759", dmMetaDataId: "16424766176721", selectedRow: data.result[0]},
+                            beforeSend: function() {
+                                Core.blockUI({message: 'Loading...', boxed: true});
+                            },                
+                            dataType: 'json',
+                            success: function(data) {
+
+                                if ($("link[href='middleware/assets/theme/" + data.theme + "/css/main.css']").length == 0) {
+                                    $("head").append('<link rel="stylesheet" type="text/css" href="middleware/assets/theme/' + data.theme + '/css/main.css"/>');
+                                }
+
+                                if (data.theme == 'theme10') {
+                                    $.getScript("assets/custom/addon/plugins/jquery-easypiechart/jquery.easypiechart.min.js");
+                                    $.getScript("assets/custom/addon/plugins/jquery.sparkline.min.js");
+                                }
+                                
+//                                var $dialogName = "dialog-script-mv-config-show";
+//                                if (!$("#" + $dialogName).length) {
+//                                  $('<div id="' + $dialogName + '"></div>').appendTo("body");
+//                                }
+//                                var $dialog = $("#" + $dialogName);
+//
+//                                $dialog.empty().append(data.html);
+//                                
+//                                $dialog.dialog({
+//                                  cache: false,
+//                                  resizable: true,
+//                                  bgiframe: true,
+//                                  autoOpen: false,
+//                                  title: "Тохиргоо",
+//                                  width: 400,
+//                                  height: "auto",
+//                                  modal: true,
+//                                  open: function () {
+//                                  },
+//                                  close: function () {
+//                                    $dialog.empty().dialog("destroy").remove();
+//                                  },
+//                                  buttons: [{
+//                                      text: plang.get("close_btn"),
+//                                      class: "btn btn-sm blue-madison",
+//                                      click: function () {
+//                                        $dialog.dialog("close");
+//                                      }
+//                                    }
+//                                  ]
+//                                }).dialogExtend({
+//                                closable: true,
+//                                maximizable: true,
+//                                minimizable: true,
+//                                collapsable: true,
+//                                dblclick: "maximize",
+//                                minimizeLocation: "left",
+//                                icons: {
+//                                  close: "ui-icon-circle-close",
+//                                  maximize: "ui-icon-extlink",
+//                                  minimize: "ui-icon-minus",
+//                                  collapse: "ui-icon-triangle-1-s",
+//                                  restore: "ui-icon-newwin",
+//                                };
+//                                });
+//                                $dialog.dialog("open");                 
+//                                $dialog.dialogExtend("maximize");
+//
+//                                return;
+                                viewProcess_<?php echo $this->uniqId; ?>.empty().append(data.html).promise().done(function () {
+                                    Core.unblockUI();
+                                    viewProcess_<?php echo $this->uniqId; ?>.find('.close-btn').remove();
+                                    viewProcess_<?php echo $this->uniqId; ?>.find('ul.workspace-menu > li > a').css({"color":"#737373", "font-weight":"normal"});
+                                    Core.initAjax(viewProcess_<?php echo $this->uniqId; ?>);                        
+                                });
+                            }
+                        });  
+                    }
+                },
+              });                    
+            return;
+        }
         
         if (metaDataId != '' && metaDataId != null) {
             
@@ -65,6 +163,13 @@ $(function() {
                         viewProcess_<?php echo $this->uniqId; ?>.empty().append(data.Html).promise().done(function () {
                             viewProcess_<?php echo $this->uniqId; ?>.find('.bp-btn-back, .bpTestCaseSaveButton').remove();
                             viewProcess_<?php echo $this->uniqId; ?>.find('.meta-toolbar').addClass('not-sticky');
+                            
+                            var $saveAddBtn = viewProcess_<?php echo $this->uniqId; ?>.find('.bp-btn-saveadd:visible');
+                            if ($saveAddBtn.length) {
+                                $saveAddBtn.text(plang.get('save_btn'));
+                                viewProcess_<?php echo $this->uniqId; ?>.find('.bp-btn-save').remove();
+                            }
+                            
                             Core.initBPAjax(viewProcess_<?php echo $this->uniqId; ?>);
                             Core.unblockUI();
                         });
@@ -211,6 +316,142 @@ $(function() {
                         });                        
                     },
                     error: function(){ alert('Error'); Core.unblockUI(); }
+                });
+                
+            } else if (metaDataId == '1710231625314794') { //FA_DEPRECTION_WEBLINK
+            
+                $.ajax({
+                    type: 'post',
+                    url: 'mdasset/deprecation',
+                    dataType: 'html',
+                    beforeSend: function() {
+                        Core.blockUI({message: 'Loading...', boxed: true});
+                    },
+                    success: function (dataHtml) {
+                        var getRenderWidth = viewProcess_<?php echo $this->uniqId; ?>.width();
+                        viewProcess_<?php echo $this->uniqId; ?>.empty().append(dataHtml).promise().done(function () {
+                            viewProcess_<?php echo $this->uniqId; ?>.find('.pf-custom-pager > .freeze-overflow-xy-auto').css('width', getRenderWidth);
+                            Core.initAjax(viewProcess_<?php echo $this->uniqId; ?>);
+                            Core.unblockUI();
+                        });
+                    }
+                });
+                
+            } else if (metaDataId == '1710746826924995') { //Create GL
+            
+                $.ajax({
+                    type: 'post',
+                    url: 'mdgl/entry',
+                    dataType: 'html',
+                    beforeSend: function() {
+                        Core.blockUI({message: 'Loading...', boxed: true});
+                    },
+                    success: function (dataHtml) {
+                        var getRenderWidth = viewProcess_<?php echo $this->uniqId; ?>.width();
+                        viewProcess_<?php echo $this->uniqId; ?>.empty().append(dataHtml).promise().done(function () {
+                            viewProcess_<?php echo $this->uniqId; ?>.find('.freeze-overflow-xy-auto').removeClass('w-100').css('width', '1160px');
+                            Core.initAjax(viewProcess_<?php echo $this->uniqId; ?>);
+                            Core.unblockUI();
+                        });
+                    }
+                });
+                
+            } else if (metaDataId == '1710748364382042') { //Create Cashrate
+                
+                $.ajax({
+                    url: "assets/custom/addon/plugins/datatables/media/js/jquery.dataTables.min.js",
+                    dataType: "script",
+                    cache: true,
+                    async: false,
+                    beforeSend: function() {
+                        $("head").append('<link rel="stylesheet" type="text/css" href="assets/custom/addon/plugins/datatables/plugins/bootstrap/dataTables.bootstrap.css"/>');
+                        $("head").append('<link rel="stylesheet" type="text/css" href="assets/custom/addon/plugins/datatables/extensions/FixedColumns/css/dataTables.fixedColumns.min.css"/>');
+                    }
+                }).done(function() {
+                    $.ajax({
+                        url: "assets/custom/addon/plugins/datatables/extensions/FixedColumns/js/dataTables.fixedColumns.min.js",
+                        dataType: "script",
+                        cache: true,
+                        async: false
+                    });
+                    $.ajax({
+                        url: "assets/custom/addon/plugins/datatables/plugins/bootstrap/dataTables.bootstrap.js",
+                        dataType: "script",
+                        cache: true,
+                        async: false
+                    });
+                    $.ajax({
+                        url: "middleware/assets/js/mdgl.js",
+                        dataType: "script",
+                        cache: true,
+                        async: false
+                    });
+                });
+                
+                $.ajax({
+                    type: 'post',
+                    url: 'mdgl/cashrate',
+                    dataType: 'html',
+                    beforeSend: function() {
+                        Core.blockUI({message: 'Loading...', boxed: true});
+                    },
+                    success: function (dataHtml) {
+                        var getRenderWidth = viewProcess_<?php echo $this->uniqId; ?>.width();
+                        viewProcess_<?php echo $this->uniqId; ?>.empty().append(dataHtml).promise().done(function () {
+                            viewProcess_<?php echo $this->uniqId; ?>.find('.freeze-overflow-xy-auto').removeClass('w-100').css('width', getRenderWidth);
+                            Core.initAjax(viewProcess_<?php echo $this->uniqId; ?>);
+                            Core.unblockUI();
+                        });
+                    }
+                });
+                
+            } else if (metaDataId == '1710748420762728') { //Create Clearingtrans
+                
+                $.ajax({
+                    url: "assets/custom/addon/plugins/datatables/media/js/jquery.dataTables.min.js",
+                    dataType: "script",
+                    cache: true,
+                    async: false,
+                    beforeSend: function() {
+                        $("head").append('<link rel="stylesheet" type="text/css" href="assets/custom/addon/plugins/datatables/plugins/bootstrap/dataTables.bootstrap.css"/>');
+                        $("head").append('<link rel="stylesheet" type="text/css" href="assets/custom/addon/plugins/datatables/extensions/FixedColumns/css/dataTables.fixedColumns.min.css"/>');
+                    }
+                }).done(function() {
+                    $.ajax({
+                        url: "assets/custom/addon/plugins/datatables/extensions/FixedColumns/js/dataTables.fixedColumns.min.js",
+                        dataType: "script",
+                        cache: true,
+                        async: false
+                    });
+                    $.ajax({
+                        url: "assets/custom/addon/plugins/datatables/plugins/bootstrap/dataTables.bootstrap.js",
+                        dataType: "script",
+                        cache: true,
+                        async: false
+                    });
+                    $.ajax({
+                        url: "middleware/assets/js/mdgl.js",
+                        dataType: "script",
+                        cache: true,
+                        async: false
+                    });
+                });
+                
+                $.ajax({
+                    type: 'post',
+                    url: 'mdgl/clearingtrans',
+                    dataType: 'html',
+                    beforeSend: function() {
+                        Core.blockUI({message: 'Loading...', boxed: true});
+                    },
+                    success: function (dataHtml) {
+                        var getRenderWidth = viewProcess_<?php echo $this->uniqId; ?>.width();
+                        viewProcess_<?php echo $this->uniqId; ?>.empty().append(dataHtml).promise().done(function () {
+                            viewProcess_<?php echo $this->uniqId; ?>.find('.freeze-overflow-xy-auto').removeClass('w-100').css('width', getRenderWidth);
+                            Core.initAjax(viewProcess_<?php echo $this->uniqId; ?>);
+                            Core.unblockUI();
+                        });
+                    }
                 });
             }
             
@@ -450,16 +691,20 @@ function saveKpiIndicatorHeaderForm(elem) {
 
                 if (data.status == 'success') {
                     
+                    var idField = data.hasOwnProperty('idField') ? data.idField : 'ID';
+                    
+                    $form.find('input[name="mvParam['+idField+']"]').val(data.rowId);
                     $form.find('input[name="sf[ID]"]').val(data.rowId);
                     
                     var $headerParams = $parent.find('input[data-path="headerParams"]');
                     
                     if ($headerParams.length) {
                         var dataResult = data.result;
+                        
                         $parent.find('input[data-path="headerRecordId"]').val(data.rowId);
                         
-                        if (!dataResult.hasOwnProperty('ID')) {
-                            dataResult.ID = data.rowId;
+                        if (!dataResult.hasOwnProperty(idField)) {
+                            dataResult[idField] = data.rowId;
                         }
                         
                         $headerParams.val(htmlentities(JSON.stringify(dataResult), 'ENT_QUOTES', 'UTF-8'));

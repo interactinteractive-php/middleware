@@ -185,21 +185,23 @@ class Mdstatement_model extends Model {
             $schemaName = Config::getFromCache('kpiDbSchemaName');
             $schemaName = $schemaName ? rtrim($schemaName, '.').'.' : '';
             
-            $jsonStr = $this->db->GetRow("
-                SELECT  
-                    DATA 
-                FROM ".$schemaName."V_16705727959689 
-                WHERE SRC_RECORD_ID = ".$this->db->Param(0), 
-                array($indicatorId)
-            );
+            $jsonRow = $this->db->GetRow("SELECT * FROM ".$schemaName."V_16705727959689 WHERE SRC_RECORD_ID = ".$this->db->Param(0), [$indicatorId]);
+            $jsonData = $jsonRow;
+            $jsonObj = @json_decode($jsonRow['DATA'], true);
+            
+            if ($jsonObj) {
+                $jsonData = array_merge($jsonData, $jsonObj);
+                unset($jsonData['DATA']);
+            }
             
             $orderBy          = 'KIIM.ORDER_NUMBER ASC, KIIM.COLUMN_NAME ASC';
-            $jsonData         = json_decode($jsonStr['DATA'], true);
+            
             $allColAggregate  = strtolower(issetParam($jsonData['COLUMN_AGGREGATE']));
             $columnExpression = issetParamArray($jsonData['COLUMN_EXPRESSION']);
-            $rowGroup         = issetParamArray($jsonData['ROW_GROUP']);
+            $rowGroup         = Arr::sortBy('ROW_GROUP_ORDER', $jsonData['ROW_GROUP'], 'asc');
             $columnGroup      = issetParamArray($jsonData['COLUMN_GROUP']);
             $dataGroup        = issetParamArray($jsonData['DATA_GROUP']);
+            $rowGroupMerge    = [];
             
             if ($rowGroupAggregate = issetParam($rowGroup[0]['ROW_GROUP_AGGREGATE'])) {
                 
@@ -207,9 +209,22 @@ class Mdstatement_model extends Model {
                 $rowGroupField     = strtolower($rowGroup[0]['ROW_GROUP_FIELD']);
             }
             
+            foreach ($rowGroup as $rowGroupRow) {
+                
+                $rowGroupFieldLower = strtolower($rowGroupRow['ROW_GROUP_FIELD']);
+                
+                if ($rowGroupFieldLower) {
+                    if (array_key_exists('ROW_GROUP_IS_MERGE', $rowGroupRow)) {
+                        $rowGroupMerge[$rowGroupFieldLower] = $rowGroupRow['ROW_GROUP_IS_MERGE'];
+                    } else {
+                        $rowGroupMerge[$rowGroupFieldLower] = 1;
+                    }
+                }
+            }
+            
             if ($columnExpression) {
                 
-                $tempColumnExpression = $tempDataGroup = array();
+                $tempColumnExpression = $tempDataGroup = [];
                 
                 foreach ($columnExpression as $columnExpressionRow) {
                     
@@ -273,11 +288,11 @@ class Mdstatement_model extends Model {
                 AND KIIM.COLUMN_NAME IS NOT NULL 
                 AND KIIM.COLUMN_NAME <> 'ID' 
             ORDER BY $orderBy", 
-            array($indicatorId)
+            [$indicatorId]
         );
         
         $tbl = $tblBody = $tblFoot = $reportFooterTbl = $mergeHead = 
-        $checkMerge = $pivotColumns = $groupingField = $allColAggregateField = array();
+        $checkMerge = $pivotColumns = $groupingField = $allColAggregateField = [];
         
         $isRowStyle = false;
         $rowGroupCount = $pivotColumnCheckLoop = 0;
@@ -339,6 +354,7 @@ class Mdstatement_model extends Model {
                             
                             $typeId = $row['SEMANTIC_TYPE_ID'];
                             $rowColumnVal = '#'.$columnName.'#';
+                            $isMerge = issetParam($rowGroupMerge[$columnName]);
                             
                             $rowSpan = '';
                             
@@ -351,9 +367,12 @@ class Mdstatement_model extends Model {
                                     continue;
                                 }
                                 
-                                $attr .= ' data-merge-cell="true"';
-                                
-                                $rowSpan = '[rowspan2] data-merge-cell="true"';
+                                if ($isMerge) {
+                                    $attr .= ' data-merge-cell="true"';
+                                    $rowSpan = '[rowspan2] data-merge-cell="true"';
+                                } else {
+                                    $rowSpan = '[rowspan2]';
+                                }
                                 
                                 if (!$columnWidth) {
                                     $hdrStyle .= 'width: 150px;';
@@ -401,10 +420,10 @@ class Mdstatement_model extends Model {
 
                                     foreach ($labelNameArr as $l => $lName) {
                                         
-                                        $pivotColumns[$l][] = array(
+                                        $pivotColumns[$l][] = [
                                             'labelName' => $lName, 
                                             'style'     => $hdrStyle
-                                        );
+                                        ];
                                     }
                                 }
                                 
@@ -415,13 +434,13 @@ class Mdstatement_model extends Model {
                                         $expressionString = $columnExpression[$trgAliasName]['EXPRESSION_STRING'];
                                         
                                         $columnVal = self::pivotColumnExpression(
-                                            array(
+                                            [
                                                 'data' => $data, 
                                                 'sidebarName' => $sidebarName, 
                                                 'expressionString' => $expressionString, 
                                                 'aggregateFnc' => $rowGroupAggregate, 
                                                 'columnName' => $columnName
-                                            )
+                                            ]
                                         );
                                         
                                     } else {
@@ -438,13 +457,13 @@ class Mdstatement_model extends Model {
                                         $expressionString = $columnExpression[$trgAliasName]['EXPRESSION_STRING'];
                                         
                                         $columnVal = self::pivotColumnExpression(
-                                            array(
+                                            [
                                                 'data' => $data, 
                                                 'sidebarName' => $sidebarName, 
                                                 'expressionString' => $expressionString, 
                                                 'aggregateFnc' => $allColAggregate, 
                                                 'columnName' => $columnName
-                                            )
+                                            ]
                                         );
                                         
                                     } else {
@@ -459,13 +478,13 @@ class Mdstatement_model extends Model {
                                     $expressionString = $columnExpression[$trgAliasName]['EXPRESSION_STRING'];
                                         
                                     $rowColumnVal = self::pivotColumnExpression(
-                                        array(
+                                        [
                                             'data' => $data, 
                                             'sidebarName' => $sidebarName, 
                                             'expressionString' => $expressionString, 
                                             'aggregateFnc' => '', 
                                             'columnName' => $columnName
-                                        )
+                                        ]
                                     );
                                 }
                                 
@@ -607,26 +626,26 @@ class Mdstatement_model extends Model {
             
             if ($groupingField) {
                 
-                $pivotViewGroupingFooter = array();
+                $pivotViewGroupingFooter = [];
                 
                 $pivotViewGroupingFooter[] = '<tr style="background-color: #c6e0b3">';
                     $pivotViewGroupingFooter[] = '<td style="text-align: right;font-weight:bold;" colspan="'.Mdstatement::$freezeLeftColumnCount.'">Нийт:</td>';
                     $pivotViewGroupingFooter[] = implode('', $groupingField);
                 $pivotViewGroupingFooter[] = '</tr>';
                 
-                Mdstatement::$pivotGrouping[] = array(
+                Mdstatement::$pivotGrouping[] = [
                     'GROUP_FIELD_PATH' => $rowGroupField,
                     'GROUP_HEADER' => null,
                     'GROUP_FOOTER' => implode('', $pivotViewGroupingFooter), 
                     'HEADER_BG_COLOR' => null,
                     'FOOTER_BG_COLOR' => null,
-                );
+                ];
             }
             
             if ($allColAggregate) {
                 
                 $allColAggregateMask = issetDefaultVal($jsonData['COLUMN_AGGREGATE_MASK'], 'Нийт');
-                $reportFooterTbl     = array();
+                $reportFooterTbl     = [];
                 
                 $reportFooterTbl[] = '<tr>';
                     $reportFooterTbl[] = '<td style="background-color: #f4b084;text-align:right;font-weight:bold;" colspan="'.Mdstatement::$freezeLeftColumnCount.'">'.$allColAggregateMask.':</td>';
@@ -635,7 +654,7 @@ class Mdstatement_model extends Model {
                 
                 Mdstatement::$tmpReportFooter = implode('', $reportFooterTbl);
                 
-                $reportFooterTbl = array();
+                $reportFooterTbl = [];
             }
             
         } else {
@@ -644,7 +663,7 @@ class Mdstatement_model extends Model {
             $reportDetail = str_replace('[tableAttr]', '', $reportDetail);
         }
         
-        return array('reportDetail' => $reportDetail, 'reportFooter' => implode('', $reportFooterTbl));
+        return ['reportDetail' => $reportDetail, 'reportFooter' => implode('', $reportFooterTbl)];
     }
     
     public function pivotColumnExpression($arr) {
@@ -2831,6 +2850,7 @@ class Mdstatement_model extends Model {
         $dataViewColumnsType = self::getTypeCodeDataViewParamsModel($dataViewId);    
         $params              = self::setParamsValueModel($dataViewColumnsType, $params);
         $constantKeys        = Mdstatement::constantKeys();
+        $reportConn          = self::getReportDatabaseConnection();
         
         $defaultParams = $this->db->GetAll("
             SELECT
@@ -2849,7 +2869,7 @@ class Mdstatement_model extends Model {
                 DISPLAY_ORDER 
             FROM VW_RP_KEYS 
             ORDER BY DISPLAY_ORDER ASC", 
-            array($dataViewId)
+            [$dataViewId]
         );
         
         $departmentId = null;
@@ -2874,6 +2894,32 @@ class Mdstatement_model extends Model {
         }
         
         $currentDate = Date::currentDate();
+        $dbConn = $this->db;
+        $isReportServerDb = false;
+        
+        if ($reportConn) {
+                        
+            $reportDbDriver = $reportConn['DB_TYPE'] == 'oracle' ? 'oci8' : $reportConn['DB_TYPE'];
+            $reportDbSid = $reportConn['SID'];
+            $reportDbName = $reportDbSid ? $reportDbSid : $reportConn['SERVICE_NAME']; 
+            $reportDbHost = $reportConn['HOST_NAME']; 
+            $reportDbUserName = $reportConn['USER_NAME']; 
+            $reportDbUserPass = $reportConn['USER_PASSWORD']; 
+
+            $rdb = ADONewConnection($reportDbDriver);
+            $rdb->debug = DB_DEBUG;
+            $rdb->connectSID = $reportDbSid ? true : false;
+            $rdb->autoRollback = true;
+            $rdb->datetime = true;
+            
+            try {
+                $rdb->Connect($reportDbHost, $reportDbUserName, $reportDbUserPass, $reportDbName);
+                $dbConn = $rdb;
+                $isReportServerDb = true;
+            } catch (Exception $e) { } 
+
+            $rdb->SetCharSet(DB_CHATSET);
+        }
         
         foreach ($defaultParams as $k => $defaultParam) {
             
@@ -2888,8 +2934,8 @@ class Mdstatement_model extends Model {
                     'PARAM_NAME'   => $defaultParam['FIELD_PATH'],  
                     'CREATED_DATE' => $currentDate
                 );
-                $this->db->AutoExecute('RP_REPORT_PARAMS', $insertData);
-                $this->db->UpdateClob('RP_REPORT_PARAMS', 'PARAM_VALUE', $params[$defaultParam['FIELD_PATH']], 'ID = '.$rparamId);
+                $dbConn->AutoExecute('RP_REPORT_PARAMS', $insertData);
+                $dbConn->UpdateClob('RP_REPORT_PARAMS', 'PARAM_VALUE', $params[$defaultParam['FIELD_PATH']], 'ID = '.$rparamId);
                 
             } elseif ($fieldType == 'Тогтмол' && isset($constantKeys['#'.$defaultParam['FIELD_PATH'].'#'])) {
 
@@ -2899,8 +2945,8 @@ class Mdstatement_model extends Model {
                     'PARAM_NAME'   => $defaultParam['FIELD_PATH'],
                     'CREATED_DATE' => $currentDate
                 );
-                $this->db->AutoExecute('RP_REPORT_PARAMS', $insertData);        
-                $this->db->UpdateClob('RP_REPORT_PARAMS', 'PARAM_VALUE', $constantKeys['#'.$defaultParam['FIELD_PATH'].'#'], " ID = ".$rparamId);
+                $dbConn->AutoExecute('RP_REPORT_PARAMS', $insertData);        
+                $dbConn->UpdateClob('RP_REPORT_PARAMS', 'PARAM_VALUE', $constantKeys['#'.$defaultParam['FIELD_PATH'].'#'], " ID = ".$rparamId);
                 
             } elseif ($fieldType == 'Тохиргооны утгууд') {
                 
@@ -2917,56 +2963,32 @@ class Mdstatement_model extends Model {
                     'PARAM_NAME'   => $defaultParam['FIELD_PATH'],
                     'CREATED_DATE' => $currentDate
                 );
-                $this->db->AutoExecute('RP_REPORT_PARAMS', $insertData); 
-                $this->db->UpdateClob('RP_REPORT_PARAMS', 'PARAM_VALUE', $paramValue, " ID = ".$rparamId);
+                $dbConn->AutoExecute('RP_REPORT_PARAMS', $insertData); 
+                $dbConn->UpdateClob('RP_REPORT_PARAMS', 'PARAM_VALUE', $paramValue, " ID = ".$rparamId);
             }
         }
         
         $date = Date::currentDate('Y-m-d');
         
-        $this->db->Execute("DELETE FROM RP_REPORT_PARAMS WHERE CREATED_DATE < ".$this->db->ToDate("'$date'", 'YYYY-MM-DD'));
+        $dbConn->Execute("DELETE FROM RP_REPORT_PARAMS WHERE CREATED_DATE < ".$this->db->ToDate("'$date'", 'YYYY-MM-DD'));
+
+        if ($isReportServerDb) {
             
-        $reportConn = self::getReportDatabaseConnection();
-
-        if ($reportConn) {
-            
-            try {
-                
-                $reportDbDriver = $reportConn['DB_TYPE'] == 'oracle' ? 'oci8' : $reportConn['DB_TYPE'];
-                $reportDbSid = $reportConn['SID'];
-                $reportDbName = $reportDbSid ? $reportDbSid : $reportConn['SERVICE_NAME']; 
-                $reportDbHost = $reportConn['HOST_NAME']; 
-                $reportDbUserName = $reportConn['USER_NAME']; 
-                $reportDbUserPass = $reportConn['USER_PASSWORD']; 
-
-                $rdb = ADONewConnection($reportDbDriver);
-                $rdb->debug = DB_DEBUG;
-                $rdb->connectSID = $reportDbSid ? true : false;
-                $rdb->autoRollback = true;
-                $rdb->datetime = true;
-
-                $rdb->Connect($reportDbHost, $reportDbUserName, $reportDbUserPass, $reportDbName);
-                $rdb->SetCharSet(DB_CHATSET);
-                
-                for ($c = 1; $c <= 10; $c++) {
+            for ($c = 1; $c <= 10; $c++) {
                     
-                    if ($c > 1) {
-                        sleep(1);
-                    }
-                    
-                    $checkCount = $rdb->GetOne("SELECT COUNT(1) FROM RP_DESIGN_HEADER WHERE ID = ".$rdb->Param(0), array($reportId));
-                    
-                    if ($checkCount) {
-                        Mdstatement::$isReportServer = true;
-                        break;
-                    }
+                if ($c > 1) {
+                    sleep(1);
                 }
-                
-                $rdb->Close();
-            
-            } catch (Exception $ex) {
-                Mdstatement::$isReportServer = false;
+
+                $checkCount = $dbConn->GetOne("SELECT COUNT(1) FROM RP_DESIGN_HEADER WHERE ID = ".$dbConn->Param(0), [$reportId]);
+
+                if ($checkCount) {
+                    Mdstatement::$isReportServer = true;
+                    break;
+                }
             }
+            
+            $rdb->Close();
         }
         
         return true; 

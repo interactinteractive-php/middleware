@@ -5430,6 +5430,7 @@ class Mdmeta_Model extends Model {
             
             $appmenuIcon = Config::getFromCache('appmenu-ico');
             $appMarket = Config::getFromCache('isShowAppMarket');
+            $appmenuUrl = Config::getFromCacheDefault('CONFIG_START_LINK', null, 'appmenu');
             
             if ($appMarket) {
                 $item .= '<a href="javascript:;" title="" data-moduleid="" data-original-title="App market" data-weburl="appmarket" data-urltrg="" data-bookmarkurl="" data-bookmarktrg="" data-actionmetadataid="" data-actionmetatypeid="" class="nav-link d-flex flex-column pt13" data-pfgotometa="1" style="position: fixed;bottom: 0;background-color: #5A6785;width: 86px;"><i class="far fa-store"></i><span class="line-height-normal text-center text-two-line mt3">App<br>market</span></a>';
@@ -5437,7 +5438,7 @@ class Mdmeta_Model extends Model {
             
             return '<div class="iconbar">
                         <div class="'. ($appmenuIcon ? '-home-icon' : 'home-icon') .'">
-                            <a href="'. (Config::getFromCache('tmsCustomerCode') == 'gov' ? 'javascript:;' : 'appmenu') .'" class="nav-link border-right-0">
+                            <a href="'. (Config::getFromCache('tmsCustomerCode') == 'gov' ? 'javascript:;' : $appmenuUrl) .'" class="nav-link border-right-0">
                                 '. ($appmenuIcon ? '<img src="'. $appmenuIcon .'" style="height: 70px;">' : '<i class="far fa-home"></i>') .'
                             </a>
                         </div>
@@ -5484,6 +5485,7 @@ class Mdmeta_Model extends Model {
             
             $appmenuIcon = Config::getFromCache('appmenu-ico');
             $appMarket = Config::getFromCache('isShowAppMarket');
+            $appmenuUrl = Config::getFromCacheDefault('CONFIG_START_LINK', null, 'appmenu');
             
             if ($appMarket) {
                 $item .= '<a href="javascript:;" title="" data-moduleid="" data-original-title="App market" data-weburl="appmarket" data-urltrg="" data-bookmarkurl="" data-bookmarktrg="" data-actionmetadataid="" data-actionmetatypeid="" class="nav-link d-flex flex-column pt13" data-pfgotometa="1" style="position: fixed;bottom: 0;background-color: #5A6785;width: 86px;"><i class="far fa-store"></i><span class="line-height-normal text-center text-two-line mt3">App<br>market</span></a>';
@@ -5491,7 +5493,7 @@ class Mdmeta_Model extends Model {
             
             return '<div class="iconbar">
                         <div class="'. ($appmenuIcon ? '-home-icon' : 'home-icon') .'">
-                            <a href="appmenu" class="nav-link border-right-0">
+                            <a href="'.$appmenuUrl.'" class="nav-link border-right-0">
                                 '. ($appmenuIcon ? '<img src="'. $appmenuIcon .'" style="height: 70px;">' : '<i class="far fa-home"></i>') .'
                             </a>
                         </div>

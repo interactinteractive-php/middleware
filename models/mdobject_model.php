@@ -6971,7 +6971,7 @@ class Mdobject_Model extends Model {
         $mainMetaDataIdPh    = $this->db->Param(0);
         $processMetaDataIdPh = $this->db->Param(1);
 
-        $bindVars = array($this->db->addQ($mainMetaDataId), $this->db->addQ($processMetaDataId));
+        $bindVars = [$this->db->addQ($mainMetaDataId), $this->db->addQ($processMetaDataId)];
         
         $row = $this->db->GetRow("
             SELECT 
@@ -7011,12 +7011,23 @@ class Mdobject_Model extends Model {
                     }
                 }
                 
+                if (strpos($message, '.val()') !== false) {
+                    preg_match_all('/\[([^\]]*)\].val\(\)/', $message, $valPaths);
+                    
+                    if (isset($valPaths[1][0])) {
+                        foreach ($valPaths[1] as $valKey => $valPath) {
+                            $valPath = strtolower($valPath);
+                            $message = str_replace($valPaths[0][$valKey], issetParam($row[$valPath]), $message);
+                        }
+                    }
+                }
+                
             } else {
                 
                 $processName = '<strong>'.Str::upper(Lang::line($row['PROCESS_NAME'])).'</strong>';
                 $message = 'Та ('.$processName.') үйлдэлийг хийхдээ итгэлтэй байна уу?';
                 
-                $message = Lang::lineVar('dv_process_confirm_message', array('processName' => $processName), $message);
+                $message = Lang::lineVar('dv_process_confirm_message', ['processName' => $processName], $message);
             }
             
         } else {
@@ -12216,7 +12227,7 @@ class Mdobject_Model extends Model {
             }
             
             if (!$data) {
-                return array();
+                return [];
             }
             
             $dataGroupByName = Arr::groupByArray($data, 'SIDEBAR_NAME');

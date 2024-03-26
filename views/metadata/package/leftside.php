@@ -381,7 +381,11 @@ if ($this->packageChildMetas) {
         
         if (typeof $("#calendar-searchform-" + $metadataId) !== 'undefined' && $("#calendar-searchform-" + $metadataId).length > 0) {
             window['filterClick_' + $metadataId] = true;
-            $('#objectdatagrid-' + $metadataId).fullCalendar('refetchEvents');
+            if (typeof window['calendar' + $metadataId] !== 'undefined') {
+                window['calendar' + $metadataId].refetchEvents();
+            } else {
+                $('#objectdatagrid-' + $metadataId).fullCalendar('refetchEvents');
+            }
         } else {
             if (typeof window['dv_search_' + $metadataId] !== 'undefined' && window['dv_search_' + $metadataId].find('.dataview-default-filter-btn').length > 0) {
                 window['dv_search_' + $metadataId].find('.dataview-default-filter-btn').click();
@@ -417,7 +421,11 @@ if ($this->packageChildMetas) {
         
         if (typeof $("#calendar-searchform-" + $metadataId) !== 'undefined' && $("#calendar-searchform-" + $metadataId).length > 0) {
             window['filterClick_' + $metadataId] = true;
-            $('#objectdatagrid-' + $metadataId).fullCalendar('refetchEvents');
+            if (typeof window['calendar' + $metadataId] !== 'undefined') {
+                window['calendar' + $metadataId].refetchEvents();
+            } else {
+                $('#objectdatagrid-' + $metadataId).fullCalendar('refetchEvents');
+            }
         } else {
             if (typeof window['dv_search_' + $metadataId] !== 'undefined' && window['dv_search_' + $metadataId].find('.dataview-default-filter-reset-btn').length > 0) {
                 window['dv_search_' + $metadataId].find('.dataview-default-filter-reset-btn').click();
@@ -432,7 +440,11 @@ if ($this->packageChildMetas) {
             setTimeout(function () {
                 if (typeof $("#calendar-searchform-" + $metadataId) !== 'undefined' && $("#calendar-searchform-" + $metadataId).length > 0) {
                     window['filterClick_' + $metadataId] = true;
-                    $('#objectdatagrid-' + $metadataId).fullCalendar('refetchEvents');
+                    if (typeof window['calendar' + $metadataId] !== 'undefined') {
+                        window['calendar' + $metadataId].refetchEvents();
+                    } else {
+                        $('#objectdatagrid-' + $metadataId).fullCalendar('refetchEvents');
+                    }
                 } else {
                     if (typeof window['dv_search_' + $metadataId] !== 'undefined' && window['dv_search_' + $metadataId].find('.dataview-default-filter-btn').length > 0) {
                         window['dv_search_' + $metadataId].find('.dataview-default-filter-btn').click();
@@ -448,7 +460,11 @@ if ($this->packageChildMetas) {
         setTimeout(function () {
             if (typeof $("#calendar-searchform-" + $metadataId) !== 'undefined' && $("#calendar-searchform-" + $metadataId).length > 0) {
                 window['filterClick_' + $metadataId] = true;
-                $('#objectdatagrid-' + $metadataId).fullCalendar('refetchEvents');
+                if (typeof window['calendar' + $metadataId] !== 'undefined') {
+                    window['calendar' + $metadataId].refetchEvents();
+                } else {
+                    $('#objectdatagrid-' + $metadataId).fullCalendar('refetchEvents');
+                }
             } else {
                 if (typeof window['dv_search_' + $metadataId] !== 'undefined' && window['dv_search_' + $metadataId].find('.dataview-default-filter-btn').length > 0) {
                     window['dv_search_' + $metadataId].find('.dataview-default-filter-btn').click();
@@ -463,7 +479,11 @@ if ($this->packageChildMetas) {
         setTimeout(function () {
             if (typeof $("#calendar-searchform-" + $metadataId) !== 'undefined' && $("#calendar-searchform-" + $metadataId).length > 0) {
                 window['filterClick_' + $metadataId] = true;
-                $('#objectdatagrid-' + $metadataId).fullCalendar('refetchEvents');
+                if (typeof window['calendar' + $metadataId] !== 'undefined') {
+                    window['calendar' + $metadataId].refetchEvents();
+                } else {
+                    $('#objectdatagrid-' + $metadataId).fullCalendar('refetchEvents');
+                }
             } else {
                 if (typeof window['dv_search_' + $metadataId] !== 'undefined' && window['dv_search_' + $metadataId].find('.dataview-default-filter-btn').length > 0) {
                     window['dv_search_' + $metadataId].find('.dataview-default-filter-btn').click();
@@ -478,7 +498,11 @@ if ($this->packageChildMetas) {
         setTimeout(function () {
             if (typeof $("#calendar-searchform-" + $metadataId) !== 'undefined' && $("#calendar-searchform-" + $metadataId).length > 0) {
                 window['filterClick_' + $metadataId] = true;
-                $('#objectdatagrid-' + $metadataId).fullCalendar('refetchEvents');
+                if (typeof window['calendar' + $metadataId] !== 'undefined') {
+                    window['calendar' + $metadataId].refetchEvents();
+                } else {
+                    $('#objectdatagrid-' + $metadataId).fullCalendar('refetchEvents');
+                }
             } else {
                 if (typeof window['dv_search_' + $metadataId] !== 'undefined' && window['dv_search_' + $metadataId].find('.dataview-default-filter-btn').length > 0) {
                     window['dv_search_' + $metadataId].find('.dataview-default-filter-btn').click();
@@ -493,7 +517,11 @@ if ($this->packageChildMetas) {
         setTimeout(function () {
             if (typeof $("#calendar-searchform-" + $metadataId) !== 'undefined' && $("#calendar-searchform-" + $metadataId).length > 0) {
                 window['filterClick_' + $metadataId] = true;
-                $('#objectdatagrid-' + $metadataId).fullCalendar('refetchEvents');
+                if (typeof window['calendar' + $metadataId] !== 'undefined') {
+                    window['calendar' + $metadataId].refetchEvents();
+                } else {
+                    $('#objectdatagrid-' + $metadataId).fullCalendar('refetchEvents');
+                }
             } else {
                 if (typeof window['dv_search_' + $metadataId] !== 'undefined' && window['dv_search_' + $metadataId].find('.dataview-default-filter-btn').length > 0) {
                     window['dv_search_' + $metadataId].find('.dataview-default-filter-btn').click();
@@ -536,7 +564,11 @@ if ($this->packageChildMetas) {
                         Core.initDVAjax($lastCriteriaRow);
                         if (typeof $("#calendar-searchform-" + $metadataId) !== 'undefined' && $("#calendar-searchform-" + $metadataId).length > 0) {
                             window['filterClick_' + $metadataId] = true;
-                            $('#objectdatagrid-' + $metadataId).fullCalendar('refetchEvents');
+                            if (typeof window['calendar' + $metadataId] !== 'undefined') {
+                                window['calendar' + $metadataId].refetchEvents();
+                            } else {
+                                $('#objectdatagrid-' + $metadataId).fullCalendar('refetchEvents');
+                            }
                         } else {
                             if (typeof window['dv_search_' + $metadataId] !== 'undefined' && window['dv_search_' + $metadataId].find('.dataview-default-filter-btn').length > 0) {
                                 window['dv_search_' + $metadataId].find('.dataview-default-filter-btn').click();

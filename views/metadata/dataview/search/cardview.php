@@ -16,7 +16,7 @@ if ($this->getCountCardData) {
         
     if ($this->theme == 'wfmstatus' || $this->theme == 'card') {
 ?>
-<div class="wfm-status-step">
+<div class="wfm-status-step wfm-status-step<?php echo $this->metaDataId ?>">
     <ul>
         <?php
         $total = 0;
@@ -92,26 +92,110 @@ if ($this->getCountCardData) {
         
     </ul>
 </div>
+<script type="text/javascript">
+    $('.wfm-status-step<?php echo $this->metaDataId ?> > ul').slick({
+        dots: false,
+        infinite: true,
+        speed: 300,
+        slidesToShow: 4,
+        prevArrow:'<div class="slick-prevbtn"><div style="flex-shrink: 0;width: 40px;height: 40px;background: #fff;border-radius: 40px;text-align: center;box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.12); cursor:pointer" class="slick-prev"><i class="far fa-angle-left" style="font-size:22px;margin: 9px;"></i></div></div>',
+        nextArrow:'<div class="slick-nextbtn"><div style="flex-shrink: 0;width: 40px;height: 40px;background: #fff;border-radius: 40px;text-align: center;box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.12); cursor:pointer" class="slick-prev"><i class="far fa-angle-right" style="font-size:22px;margin: 9px;"></i></div></div>',
+        responsive: [
+        {
+            breakpoint: 1024,
+            settings: {
+                slidesToShow: 3,
+                slidesToScroll: 3,
+                infinite: true,
+                dots: true
+            }
+        },
+        {
+            breakpoint: 600,
+            settings: {
+                slidesToShow: 2,
+                slidesToScroll: 2
+            }
+        },
+        {
+            breakpoint: 480,
+            settings: {
+                slidesToShow: 1,
+                slidesToScroll: 1
+            }
+        }
+    ]
+    });
+</script>
+<style type="text/css">
+    .wfm-status-step<?php echo $this->metaDataId ?> {
+        .slick-prevbtn {
+            position: absolute;
+            left: 0;
+            z-index: 999;
+            height: 100%;
+            top: 0;
+            display: flex;
+            align-items: center;
+        }
+        .slick-dots {
+            display: none !important;
+        }        
+        .slick-nextbtn {
+            position: absolute;
+            right: 0;
+            z-index: 999;
+            height: 100%;
+            top: 0;
+            display: flex;
+            align-items: center;
+        }
+        .slick-list {
+            /* padding: 0 60px !important; */
+        }
+        .slick-track {
+            margin: 0 !important;
+        }
+        .slick-slide {
+            width: 320px;
+        }
+    }
+</style>
 <style type="text/css">
 .wfm-status-step {
     text-align: left;
 }
 .wfm-status-step ul {
     list-style: none;
-    display: inline-table;
+    /* display: inline-table; */
     margin-bottom: 0;
     padding: 0;
 }
 .wfm-status-step ul li {
-    display: inline;
+    /* display: inline; */
 }
-.wfm-status-step .card-section {
-    max-height: max-content;
-    box-shadow: 0px 20px 27px 0px #0000000D;
-    padding: 20px;
-    width: 320px;
-    min-height: 75px;
+
+.wfm-status-step {
+    .card-section {
+        background: #FFF !important;
+        color: #585858 !important;
+        font-weight: 500;
+        max-height: max-content;
+        box-shadow: 0px 20px 27px 0px #0000000D;
+        padding: 20px;
+        width: 285px;
+        height: 120px;
+        min-height: 75px;
+        display: inline-flex;
+        align-items: end;
+    }
+
+    .card-section:hover {
+        color: #FFF !important;
+        background: linear-gradient(90deg, #55C595 0%, #3DAC7C 100%) !important;
+    }
 }
+
 .wfm-status-step ul li a {
     display: inline-block;
     height: 26px;

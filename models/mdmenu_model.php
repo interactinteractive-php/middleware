@@ -147,7 +147,8 @@ class Mdmenu_model extends Model {
                         FNC_TRANSLATE('$langCode', TRANSLATION_VALUE, 'NAME', NAME) AS NAME,  
                         PARENT_ID, 
                         KPI_TYPE_ID, 
-                        ORDER_NUMBER 
+                        ORDER_NUMBER, 
+                        CREATED_DATE 
                     FROM KPI_INDICATOR 
                     WHERE KPI_TYPE_ID = 1120 
                         AND DELETED_USER_ID IS NULL 
@@ -198,7 +199,7 @@ class Mdmenu_model extends Model {
                     )
                     CONNECT BY NOCYCLE PRIOR PARENT_ID = ID
                 ) 
-            ORDER BY A.ORDER_NUMBER ASC", 
+            ORDER BY A.ORDER_NUMBER ASC, A.CREATED_DATE ASC", 
                 
             array($moduleId, Ue::sessionUserKeyId())
         );

@@ -66,7 +66,7 @@ $tooltipPos14 = strtolower(issetParam($this->row['dataViewLayoutTypes']['calenda
 $tooltipPos14_labelname = issetParam($this->row['dataViewLayoutTypes']['calendar']['fields']['tooltipPos14_labelname']);
 $tooltipPos14Color = issetParam($this->row['dataViewLayoutTypes']['calendar']['fields']['tooltipPos14Color']);
 
-$headerRight = issetDefaultVal($this->row['dataViewLayoutTypes']['calendar']['fields']['headerRight'], 'listViewBtn,month,basicWeek,basicDay');
+$headerRight = issetDefaultVal($this->row['dataViewLayoutTypes']['calendar']['fields']['headerRight'], 'dayGridMonth,dayGridWeek,dayGridDay,dataViewList');
 $minTime = issetDefaultVal($this->row['dataViewLayoutTypes']['calendar']['fields']['minTime'], '00:00:00');
 $maxTime = issetDefaultVal($this->row['dataViewLayoutTypes']['calendar']['fields']['maxTime'], '24:00:00');
 
@@ -117,6 +117,7 @@ if (issetParam($fcItemCount) !== 'none') { ?>
     .fcdiv_<?php echo $this->metaDataId; ?> {
         .fc-daygrid-event-harness { 
             margin-bottom: 0.25rem;
+            display: block !important;
         }
     }
   </style>  
@@ -562,7 +563,7 @@ function initFullCalendar_<?php echo $this->mid; ?>() {
             /* left: 'prev,next today',
             left: 'prevYear,prev,next,nextYear today', */
             center: 'prev title next<?php echo ($refreshBtn ? ' refreshBtn' : ''); ?>',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay,dataViewList'
+            right: '<?php echo $headerRight ?>'
         },
         height: 'auto', 
         timeZone: 'local', 
@@ -632,20 +633,23 @@ function initFullCalendar_<?php echo $this->mid; ?>() {
                     month: '2-digit'
                 }
             },
-            timeGridWeek: {
+            dayGridWeek : {
                 titleFormat: { 
                     month: 'numeric', 
                     day: '2-digit' ,
                     omitCommas: true
                 }
             },
-            timeGridDay: {
+            dayGridDay: {
                 titleFormat: { 
                     year: 'numeric', 
                     month: 'numeric', 
                     day: '2-digit' ,
                 }
             }
+        },
+        datesSet: function (dateInfo) {
+            calendar<?php echo $this->mid; ?>.refetchEvents();
         },
         events: function (fetchInfo, successCallback, failureCallback) {
             var start = fetchInfo['start'];
@@ -924,8 +928,6 @@ function initFullCalendar_<?php echo $this->mid; ?>() {
             console.log(view, element);
             console.log('============ end viewSkeletonRender ===============');
             <?php
-            
-            
             if ($todayFocus) {
             ?>           
                 if (view.name == 'month') {
@@ -956,7 +958,8 @@ function initFullCalendar_<?php echo $this->mid; ?>() {
             var event = arg.event;
             var element = $(arg.el);
             var eventHtml = '';
-            if (event.id) {
+
+            if (event.id !== 'null') {
                 var rData = arg.event.extendedProps.rowdata;
                 //  data-rid='"+ event.id +"' data-rowdata='"+ JSON.stringify(rData) +"'
                 if (arg.view.type !== "dayGridMonth" || ( '<?php echo issetParam($fcItemCount) ?>' === 'none' ||  '<?php echo issetParam($fcItemColor) ?>' === 'none')) {
@@ -987,9 +990,9 @@ function initFullCalendar_<?php echo $this->mid; ?>() {
                     <?php } ?>
                 } else {
                     if ('<?php echo $fcItemColor; ?>' !== '' && rData.hasOwnProperty('<?php echo $fcItemColor; ?>') && rData.<?php echo $fcItemColor; ?>) {
-                        eventHtml += "<div id='"+ event.id +"' class='fc-circle-event' style='display: none; background: "+ rData.<?php echo $fcItemColor ?> +"'>"; 
+                        eventHtml += "<div id='"+ event.id +"' class='fc-circle-event' style='display: block; background: "+ rData.<?php echo $fcItemColor ?> +"'>"; 
                     } else {
-                        eventHtml += "<div id='"+ event.id +"' class='fc-circle-event' style='display: none;'>"; 
+                        eventHtml += "<div id='"+ event.id +"' class='fc-circle-event' style='display: block;'>"; 
                     }
                     if ('<?php echo $fcItemCount; ?>' !== '' && rData.hasOwnProperty('<?php echo $fcItemCount; ?>') && rData.<?php echo $fcItemCount; ?>) {
                         eventHtml += rData.<?php echo $fcItemCount ?>;
@@ -998,8 +1001,8 @@ function initFullCalendar_<?php echo $this->mid; ?>() {
                 eventHtml += '</div>';
                 if (event.id === 'null')
                     eventHtml = '';
-            }
-            
+                
+            } 
             return { html: eventHtml };
         }, 
         loading: function (isLoading) {
@@ -1304,62 +1307,11 @@ function initFullCalendar_<?php echo $this->mid; ?>() {
             if ($isAddonField) {
             ?>
                                 
-            if (event.id) {
-                var rData = arg.event.extendedProps.rowdata;
-                var rowData = rData;
-                var startDate = moment(event.start).format('YYYY-MM-DD');
-                var prependHtml = '';
-                var element = fcdiv_<?php echo $this->mid; ?>.find('#' + event.id);
-                <?php
-                if ($topLeft1) {
-                ?>
-                if (rowData.<?php echo $topLeft1; ?> !== '' && rowData.<?php echo $topLeft1; ?> !== null) {
-                    prependHtml += '<span class="badge badge-primary" data-fca="1" data-one="1" title="<?php echo $this->lang->line(issetParam($this->row['dataViewLayoutTypes']['calendar']['fields']['topLeft1_labelname'])); ?>">'+rowData.<?php echo $topLeft1; ?>+'</span>';
-                }
-                <?php
-                }
-                if ($topLeft2) {
-                ?>
-
-                if (rowData.<?php echo $topLeft2; ?> !== '' && rowData.<?php echo $topLeft2; ?> !== null) {
-                    prependHtml += '<span class="badge badge-secondary" data-fca="1" data-one="1" title="<?php echo $this->lang->line(issetParam($this->row['dataViewLayoutTypes']['calendar']['fields']['topLeft2_labelname'])); ?>">'+rowData.<?php echo $topLeft2; ?>+'</span>';
-                }
+            var rData = arg.event.extendedProps.rowdata;
+            var rowData = rData;
+            var startDate = moment(event.start).format('YYYY-MM-DD');
                 
-                <?php
-                }
-                if ($topLeft3) {
-                ?>
-                if (rowData.<?php echo $topLeft3; ?> !== '' && rowData.<?php echo $topLeft3; ?> !== null) {
-                    prependHtml += '<span class="badge badge-info" data-fca="1" data-one="2" title="<?php echo $this->lang->line(issetParam($this->row['dataViewLayoutTypes']['calendar']['fields']['topLeft3_labelname'])); ?>">'+rowData.<?php echo $topLeft3; ?>+'</span>';
-                }
-                <?php
-                }
-                ?>        
-                if (arg.view.type == 'dayGridMonth') {
-                    
-                    var $dayCell = element.closest('tr[role="row"]').find('td[data-date="'+startDate+'"] .fc-daygrid-day-top');
-                    
-                    $dayCell.find('[data-one="1"]').remove();
-                    $dayCell.prepend(prependHtml);
-                        
-                } else if (arg.view.type == 'basicWeek') {
-                    
-                    var d = new Date(startDate);
-                    var n = d.getDay();
-                    var i = (n == 0) ? 6 : n - 1;
-                    var $dayCell = element.closest('.fc-content-skeleton').find('> table > tbody > tr:eq(0) > td:eq('+i+')');
-                    
-                    $dayCell.find('[data-one="1"]').remove();
-                    $dayCell.prepend(prependHtml);
-                    
-                } else if (arg.view.type == 'basicDay') {
-                    
-                    var $dayCell = element.closest('.fc-content-skeleton').find('> table > tbody > tr:eq(0) > td');
-                    
-                    $dayCell.find('[data-one="1"]').remove();
-                    $dayCell.prepend(prependHtml);
-                } 
-                
+            if (event.id !== 'null') {
                 <?php
                 if ($loopColorCircle) {
                 ?>
@@ -1427,8 +1379,54 @@ function initFullCalendar_<?php echo $this->mid; ?>() {
                 <?php
                 }
                 ?> 
+            } else {
+                var prependHtml = '';
+                var element = fcdiv_<?php echo $this->mid; ?>.find('#' + event.id);
+                <?php
+                if ($topLeft1) {
+                ?>
+                if (rowData.<?php echo $topLeft1; ?> !== '' && rowData.<?php echo $topLeft1; ?> !== null) {
+                    prependHtml += '<span class="badge badge-primary" data-fca="1" data-one="1" title="<?php echo $this->lang->line(issetParam($this->row['dataViewLayoutTypes']['calendar']['fields']['topLeft1_labelname'])); ?>">'+rowData.<?php echo $topLeft1; ?>+'</span>';
+                }
+                <?php
+                }
+                if ($topLeft2) {
+                ?>
 
+                if (rowData.<?php echo $topLeft2; ?> !== '' && rowData.<?php echo $topLeft2; ?> !== null) {
+                    prependHtml += '<span class="badge badge-secondary" data-fca="1" data-one="1" title="<?php echo $this->lang->line(issetParam($this->row['dataViewLayoutTypes']['calendar']['fields']['topLeft2_labelname'])); ?>">'+rowData.<?php echo $topLeft2; ?>+'</span>';
+                }
                 
+                <?php
+                }
+                if ($topLeft3) {
+                ?>
+                if (rowData.<?php echo $topLeft3; ?> !== '' && rowData.<?php echo $topLeft3; ?> !== null) {
+                    prependHtml += '<span class="badge badge-info" data-fca="1" data-one="2" title="<?php echo $this->lang->line(issetParam($this->row['dataViewLayoutTypes']['calendar']['fields']['topLeft3_labelname'])); ?>">'+rowData.<?php echo $topLeft3; ?>+'</span>';
+                }
+                <?php
+                }
+                ?>        
+                
+                var $dayCell = fcdiv_<?php echo $this->mid; ?>.find('tr[role="row"]').find('td[data-date="'+startDate+'"] .fc-daygrid-day-top');
+                if (arg.view.type == 'dayGridMonth') {
+                    
+                    $dayCell.find('[data-one="1"]').remove();
+                    $dayCell.prepend(prependHtml);
+                        
+                } else if (arg.view.type == 'dayGridWeek' || arg.view.type == 'dayGridDay') {
+                    var $dayCell = fcdiv_<?php echo $this->mid; ?>.find('tr[role="row"]').find('th[data-date="'+startDate+'"]');
+
+                    $dayCell.find('[data-one="1"]').remove();
+                    $dayCell.prepend('<div class="fc-daygrid-day-top" style="margin-top: 0px;">' + prependHtml + '</div>');
+                    
+                } /* else if (arg.view.type == 'dayGridDay') {
+                    
+                    var $dayCell = fcdiv_<?php echo $this->mid; ?>.find('tr[role="row"]').find('td[data-date="'+startDate+'"] .fc-daygrid-day-bottom');
+                    $dayCell.find('[data-one="1"]').remove();
+                    $dayCell.prepend(prependHtml);
+                }  */
+                event.remove();
             }
             <?php
             } 
@@ -1446,6 +1444,14 @@ function initFullCalendar_<?php echo $this->mid; ?>() {
             <?php 
             } 
             ?>
+
+            if (!event.id || event.id == 'null') {
+                
+                /* setTimeout(() => {
+                    console.log(event.id, element);
+                    element.parent().remove();
+                }, 1500); */
+            }
         },
         <?php if ($eventSelectableProcessId) { ?>
             select: function(info) {

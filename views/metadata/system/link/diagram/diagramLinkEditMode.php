@@ -957,6 +957,44 @@ $className = ($this->diagram['IS_MULTIPLE_PROCESS'] == '1') ? '' : 'hidden';
                     ?>                    
                 </td>
             </tr>            
+            <tr>
+                <?php
+                $getAddonSettings = json_decode(Arr::get($this->diagram, 'ADDON_SETTINGS'), true);
+                ?>                
+                <td style="width: 170px" class="left-padding">Шүүлтүүр багана хуваалт:</td>
+                <td colspan="2">
+                    <?php
+                    echo Form::select(
+                        array(
+                            'name' => 'chartCriteriaSplitColumnCount',
+                            'id' => 'chartCriteriaSplitColumnCount',
+                            'data' => array( 
+                                array(
+                                    'value' => '2',
+                                    'name' => '2',
+                                ),
+                                array(
+                                    'value' => '3',
+                                    'name' => '3',
+                                ),
+                                array(
+                                    'value' => '4',
+                                    'name' => '4',
+                                ),
+                                array(
+                                    'value' => '6',
+                                    'name' => '6',
+                                ),
+                            ),
+                            'op_value' => 'value',
+                            'op_text' => 'name',
+                            'class' => 'form-control',
+                            'value' => Arr::get($getAddonSettings, 'criteriaSplitColumnCount')
+                        )
+                    );
+                    ?>                    
+                </td>
+            </tr>            
         </tbody>
     </table>
 </div>

@@ -4,6 +4,10 @@
         <?php 
         $titleClass = '';
         
+        if ($this->logoImage && !issetParam($this->additionalInfo['LOGO_FILE'])) {
+            $this->additionalInfo['LOGO_FILE'] = $this->logoImage;
+        }
+        
         if (isset($this->additionalInfo) && $this->additionalInfo) {
             
             $headerTxt = issetParam($this->additionalInfo['HEADER_TEXT']);
@@ -64,8 +68,8 @@
 .kpi-form-paper-portrait .kpi-form-paper-portrait-child .kpi-form-paper-logo {
     position: absolute;
     max-width: 150px;
-    max-height: 70px;
-    top: 20px;
+    max-height: 50px;
+    top: 8px;
     left: 20px;
 }
 .kpi-form-paper-portrait .kpi-form-paper-portrait-child .kpi-form-paper-header-text {

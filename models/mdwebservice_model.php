@@ -357,7 +357,7 @@ class Mdwebservice_Model extends Model {
     public function getProcessParamsData($bpMetaDataId, $parentId = null, $where = null) {
         
         $bpMetaDataIdPh = $this->db->Param(0);
-        $bindVars = array($this->db->addQ($bpMetaDataId));
+        $bindVars = [$this->db->addQ($bpMetaDataId)];
         
         $data = $this->db->GetAll("
             SELECT 
@@ -546,7 +546,8 @@ class Mdwebservice_Model extends Model {
                     ELSE 0 END AS IS_JSON_CONFIG, 
                     BLP.WIDGET_CODE AS LAYOUT_WIDGET_CODE, 
                     GC.EXPRESSION_STRING, 
-                    PAL.IS_PATH_DISPLAY_ORDER 
+                    PAL.IS_PATH_DISPLAY_ORDER, 
+                    PAL.WIZARD_STEP 
                 FROM META_PROCESS_PARAM_ATTR_LINK PAL 
                     LEFT JOIN META_FIELD_PATTERN MFP ON MFP.PATTERN_ID = PAL.PATTERN_ID 
                     LEFT JOIN CUSTOMER_DV_FIELD CF ON CF.META_DATA_ID = PAL.PROCESS_META_DATA_ID 
@@ -612,7 +613,7 @@ class Mdwebservice_Model extends Model {
                         }
                     }
 
-                    $data[] = array(
+                    $data[] = [
                         'ID' => '',
                         'PARENT_ID' => '',
                         'LAYOUT_SECTION_CODE' => '', 
@@ -640,7 +641,7 @@ class Mdwebservice_Model extends Model {
                         'FRACTION_RANGE' => '', 
                         'LAYOUT_OTHER_ATTR' => '', 
                         'JSON_CONFIG' => ''
-                    );
+                    ];
                 }
             }
             
@@ -649,7 +650,8 @@ class Mdwebservice_Model extends Model {
             
             if ($isLayoutOtherAttr || $isJsonConfig) {
                 
-                $arr = $data; $data = array();
+                $arr = $data; 
+                $data = [];
                 
                 foreach ($arr as $row) {
                     
@@ -1700,7 +1702,7 @@ class Mdwebservice_Model extends Model {
             if ($data) {
                 
                 $isHasDtlTheme = $isLayout = $isIgnorePhotoTab = $isIgnoreFileTab = $isIgnoreCommentTab = 0;
-                $array = $arrayDtl = $treeViewGroup = $pagerConfig = array();
+                $array = $arrayDtl = $treeViewGroup = $pagerConfig = [];
 
                 $array[0]['name'] = 'general_info';
                 $array[0]['type'] = 'header';
@@ -1787,7 +1789,7 @@ class Mdwebservice_Model extends Model {
                         $array[$n]['layoutDisplayOrder'] = $child['LAYOUT_DISPLAY_ORDER'];
                         $array[$n]['layoutOtherAttr'] = $child['LAYOUT_OTHER_ATTR'];
                         $array[$n]['jsonConfig'] = $child['JSON_CONFIG'];
-                        
+                        $array[$n]['wizardStep'] = $child['WIZARD_STEP'];
                         $array[$n]['isPivotColumns'] = '';
                         
                         if (!$isHasDtlTheme) {
@@ -3285,7 +3287,7 @@ class Mdwebservice_Model extends Model {
                             
                             $explode = explode('.', $map['processPath']);
                             $processPath = array_pop($explode);
-                            $array[$k][$processPath] = $row[$map['dataviewPath']];
+                            $array[$k][$processPath] = issetParam($row[$map['dataviewPath']]);
                         
                         } else {
                             return null;
@@ -4627,13 +4629,25 @@ class Mdwebservice_Model extends Model {
             }
             
             $isEmpty = false;
-            $param = array();
+            $param = [];
 
             foreach ($postData['paramData'] as $inputField) {
                 
+                $path = $inputField['inputPath'];
+                
+                if (is_array($inputField['value'])) {
+                    
+                    if (strpos($path, '.') !== false) {
+                        Arr::set($param, $path, $inputField['value']); 
+                    } else {
+                        $param[$path] = $inputField['value'];
+                    }
+                    
+                    continue;
+                }
+                
                 if ($inputField['value'] != '') {
                     
-                    $path = $inputField['inputPath'];
                     $pathLower = strtolower($path);
                     $value = Mdmetadata::setDefaultValue($inputField['value']);
                     $dataType = issetParam($inputParam[$pathLower]['dataType']);
@@ -4702,7 +4716,7 @@ class Mdwebservice_Model extends Model {
             }
 
             if ($isEmpty) {
-                
+
                 WebService::$addonHeaderParam['windowSessionId'] = getUID();
                 $result = $this->ws->caller($process['SERVICE_LANGUAGE_CODE'], $process['WS_URL'], $process['COMMAND_NAME'], 'return', $param, 'serialize');
                 
@@ -6593,7 +6607,8 @@ class Mdwebservice_Model extends Model {
         $mvProcessIds = array(
             '16413659216321', '16413780044111', '16424366404971', 
             '16424366405551', '16424911282141', '16705727269419', 
-            '16425125580661', '16660589496259'
+            '16425125580661', '16660589496259', '17091132313599', 
+            '17091133076179'
         );
         
         if (in_array($processId, $mvProcessIds) && isset(Mdwebservice::$responseData['jsonid'])) {

@@ -1,6 +1,6 @@
 <?php
 $_POST['metaDataId'] = $this->methodId;
-$_POST['dataRow'] = array($this->paramData);
+$_POST['dataRow'] = [$this->paramData];
 $_POST['isProcess'] = 'false';
 $_POST['responseType'] = 'outputArray';
 
@@ -10,7 +10,7 @@ if ($previewReportTemplateId = issetParam($this->paramData['previewreporttemplat
     $templateMetaId = $previewReportTemplateId;
 }
 
-$_POST['print_options'] = array(
+$_POST['print_options'] = [
     'numberOfCopies' => 1, 
     'isPrintNewPage' => 1,
     'isSettingsDialog' => 0,
@@ -23,7 +23,7 @@ $_POST['print_options'] = array(
     'pageSize' => strtolower(issetDefaultVal($this->paramData['printpapersize'], 'a4')),
     'printType' => '1col', 
     'templateMetaId' => $templateMetaId
-);
+];
 
 $reportTemplate = (new Mdtemplate())->printOption();
 

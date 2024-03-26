@@ -100,6 +100,10 @@ if ($this->filterData || $this->filterTreeData) {
                     $html[] = '<div class="list-group-body">';
 
                         if ($rowConfig['namedParam']) {
+                            
+                            if ($rowConfig['row']['SHOW_TYPE'] == 'icon_picker') {
+                                $rowConfig['row']['SHOW_TYPE'] = 'icon_lookup';
+                            }
 
                             $html[] = '<div data-named-param="1" data-load-fnc="'.$clickFnc.'">';
                                 $html[] = $model->kpiIndicatorControl($rowConfig['row']);

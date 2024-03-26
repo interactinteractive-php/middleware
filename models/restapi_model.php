@@ -30,7 +30,7 @@ class Restapi_Model extends Model {
     
     public function setUserSessionModel($userRow) {
         
-        $sessionValues = array('sessioncompanydepartmentid' => $userRow['COMPANY_DEPARTMENT_ID']);
+        $sessionValues = ['sessioncompanydepartmentid' => $userRow['COMPANY_DEPARTMENT_ID']];
 
         Session::init();
 
@@ -43,6 +43,7 @@ class Restapi_Model extends Model {
         Session::set(SESSION_PREFIX . 'employeeid', $userRow['EMPLOYEE_ID']);
         Session::set(SESSION_PREFIX . 'employeekeyid', $userRow['EMPLOYEE_KEY_ID']);
         Session::set(SESSION_PREFIX . 'departmentid', $userRow['DEPARTMENT_ID']);
+        Session::set(SESSION_PREFIX . 'customerid', $userRow['CUSTOMER_ID']);
         Session::set(SESSION_PREFIX . 'sessionValues', $sessionValues);
         Session::set(SESSION_PREFIX . 'periodStartDate', Date::currentDate('Y-m') . '-01');
 
@@ -61,20 +62,20 @@ class Restapi_Model extends Model {
                     US.EMPLOYEE_KEY_ID, 
                     US.DEPARTMENT_ID, 
                     US.COMPANY_DEPARTMENT_ID, 
+                    US.CUSTOMER_ID, 
                     USU.USERNAME, 
                     BP.FIRST_NAME 
                 FROM UM_USER_SESSION US 
                     INNER JOIN UM_SYSTEM_USER USU ON USU.USER_ID = US.SYSTEM_USER_ID 
                     LEFT JOIN BASE_PERSON BP ON BP.PERSON_ID = USU.PERSON_ID 
                 WHERE US.SESSION_ID = ".$this->db->Param(0), 
-                array($sessionId)
+                [$sessionId]
             );
 
             return $row;
         
-        } catch (Exception $ex) {  
-            
-            return array();
+        } catch (Exception $ex) { 
+            return [];
         }
     }
     
@@ -98,6 +99,7 @@ class Restapi_Model extends Model {
                     VU.EMPLOYEE_KEY_ID, 
                     VU.DEPARTMENT_ID, 
                     UM.COMPANY_DEPARTMENT_ID, 
+                    NULL AS CUSTOMER_ID, 
                     USU.USERNAME, 
                     VU.FIRST_NAME 
                 FROM UM_SYSTEM_USER USU 
@@ -105,14 +107,13 @@ class Restapi_Model extends Model {
                     LEFT JOIN VW_USER VU ON VU.USER_ID = USU.USER_ID 
                 WHERE LOWER(USU.USERNAME) = $usernamePh 
                     AND (USU.PASSWORD_HASH = $oldpassPh OR USU.PASSWORD_HASH = $newpassPh)", 
-
-                array($username, $oldHash, $newHash)
+                [$username, $oldHash, $newHash]
             );
 
             return $row;
         
         } catch (Exception $ex) {
-            return array();
+            return [];
         }
     }
     
@@ -245,15 +246,25 @@ class Restapi_Model extends Model {
         
         try {
             
-            $data = array(
+            $errorMsg = $param['errorMsg'];
+            $errorMsgLength = mb_strlen($errorMsg);
+            
+            $data = [
                 'LOG_ID'       => getUID(), 
                 'INDICATOR_ID' => $param['indicatorId'], 
                 'ERROR_QTY'    => $param['affectedRows'], 
-                'LOG_MESSAGE'  => $param['errorMsg'], 
                 'CREATED_DATE' => Date::currentDate()
-            );
+            ];
+            
+            if ($errorMsgLength < 4000) {
+                $data['LOG_MESSAGE'] = $errorMsg;
+            }
             
             $rs = $this->db->AutoExecute('V_CHECK_QUERY_EXECUTED_LOG', $data);
+            
+            if ($errorMsgLength > 4000) {
+                $this->db->UpdateClob('V_CHECK_QUERY_EXECUTED_LOG', 'LOG_MESSAGE', $errorMsg, 'LOG_ID = '.$data['LOG_ID']);
+            }
             
             if ($rs) {
                 $this->db->UpdateClob('V_CHECK_QUERY_EXECUTED_LOG', 'EXECUTED_QUERY', $param['executedQuery'], 'LOG_ID = '.$data['LOG_ID']);

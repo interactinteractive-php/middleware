@@ -7,20 +7,18 @@ $minusPx = '150';
 if (issetParamArray($this->relationComponentsConfigData['header'])) {
     $headerPathArray = $this->relationComponentsConfigData['header'];
     $headerArray = Arr::groupByArrayOnlyRow($headerPathArray, 'trg_indicator_path', false);
-    $positionTimer = issetParam($this->rowData[$headerArray['position-timer']['src_indicator_path']]);
-    $positionSetTimer = issetParam($this->rowData[$headerArray['position-settimer']['src_indicator_path']]);
-    
+    $positionTimer = issetParam($headerArray['position-timer']) ? issetParam($this->rowData[$headerArray['position-timer']['src_indicator_path']]) : '';
+    $positionSetTimer = issetParam($headerArray['position-settimer']) ? issetParam($this->rowData[$headerArray['position-settimer']['src_indicator_path']]) : '';
 }
 
 if (issetParamArray($this->relationComponentsConfigData['rows'])) {
     $rowsPathArray = $this->relationComponentsConfigData['rows'];
     $rowsArray = Arr::groupByArrayOnlyRow($rowsPathArray, 'trg_indicator_path', false);
 }
-
 ?>
 <div class="wg-form-paper <?php echo $this->uniqId ?> " id="mv-checklist-render<?php echo $this->uniqId ?>">
     <div class="wg-form d-flex">
-        <div class="card card-side no-border px-0">
+        <div class="card card-side no-border px-0 w-100">
             <div class="card-body">
                 <div class="d-flex justify-content-center px-2">
                     <?php 
@@ -39,8 +37,8 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                     <?php } ?>
                 </div>
                 <ul class="nav nav-tabs nav-tabs-bottom mt-3">
-                    <li class="nav-item"><a href="#tab-info-section-<?php echo $this->uniqId ?>" class="nav-link active" data-toggle="tab"><?php echo Lang::line('LMS_EXAM_TITLE_001') ?> </a></li>
-                    <li class="nav-item"><a href="#tab-question-section<?php echo $this->uniqId ?>" class="nav-link disabled" data-toggle="tab"><?php echo Lang::line('LMS_EXAM_TITLE_002') ?></a></li>
+                    <li class="nav-item"><a href="#tab-info-section-<?php echo $this->uniqId ?>" class="nav-link active" data-toggle="tab"><?php echo Lang::line('LMS_'. $this->mainIndicatorId .'TITLE_001') ?> </a></li>
+                    <li class="nav-item"><a href="#tab-question-section<?php echo $this->uniqId ?>" class="nav-link disabled" data-toggle="tab"><?php echo Lang::line('LMS_'. $this->mainIndicatorId .'TITLE_002') ?></a></li>
                 </ul>
                 <div class="tab-content">
                     <div class="tab-pane fade active show" id="tab-info-section-<?php echo $this->uniqId ?>">
@@ -65,8 +63,11 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                             <?php if (issetParam($rowsArray)) { ?>
                                 <div class="row m-0 mt-4">
                                     <div class="col-md-12">
+                                        <button type="button" class="btn btn-sm btn-circle mr-1 btn-success bp-btn-next pull-left" onclick="closeQuestion_<?php echo $this->uniqId ?>(this)">
+                                            <?php echo Lang::line('close_btn') ?> 
+                                        </button>
                                         <button type="button" class="btn btn-sm btn-circle btn-success bp-btn-start pull-right" onclick="startExam_<?php echo $this->uniqId ?>(this)">
-                                        <?php echo Lang::line('LMS_EXAM_START') ?>
+                                            <?php echo Lang::line('LMS_'. $this->mainIndicatorId .'_START') ?>
                                         </button>
                                     </div>
                                 </div>
@@ -106,7 +107,7 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                                                     if (issetParam($rowsArray['position-1'])) {
                                                         $position1PathArr = explode('.', $rowsArray['position-1']['src_indicator_path']);
                                                         if (issetParamArray($this->rowData[$position1PathArr['0']])) {
-                                                            
+                                                            $groupIndex = 1;
                                                             $position1GroupArray = Arr::groupByArrayOnlyRows($this->rowData[$position1PathArr['0']], $position1PathArr['1']);
                                                             foreach ($position1GroupArray as $position1Key => $position1Group) {
                                                                 ?>
@@ -138,8 +139,8 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                                                                         $hideRowJson = htmlentities(json_encode($hideTmparr), ENT_QUOTES, 'UTF-8');
                                                                         ?>
                                                                         <li class="nav-item checklistmenu-item">
-                                                                            <a href="javascript:;" class="mv_checklist_02_sub nav-link" onclick="checkMenuFnc<?php echo $this->uniqId ?>(this)" data-uniqid="<?php echo $this->uniqId; ?>" data-json="<?php echo $rowJson; ?>" data-paramhidden="<?php echo $hideRowJson; ?>" data-iscomment="1" data-stepid="<?php echo $this->uniqId . '_' . $index++; ?>">
-                                                                                <i class="far fa-square"></i>
+                                                                            <a href="javascript:;" class="mv_checklist_02_sub nav-link" onclick="checkMenuFnc<?php echo $this->uniqId ?>(this)" data-uniqid="<?php echo $this->uniqId; ?>" data-json="<?php echo $rowJson; ?>" data-paramhidden="<?php echo $hideRowJson; ?>" data-iscomment="1" data-stepid="<?php echo $this->uniqId . '_' . $groupIndex . '_' . $index++; ?>">
+                                                                                <i class="far icon-checkbox-unchecked2"></i>
                                                                                 <span class="pt1"><?php echo $position2Key; ?></span>
                                                                             </a>
                                                                         </li>
@@ -149,6 +150,7 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                                                                     </ul>
                                                                 </li>
                                                                 <?php 
+                                                                $groupIndex++;
                                                             }
                                                         }
                                                     }
@@ -168,12 +170,13 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                                         if (issetParam($rowsArray['position-1'])) {
                                             $position1PathArr = explode('.', $rowsArray['position-1']['src_indicator_path']);
                                             if (issetParamArray($this->rowData[$position1PathArr['0']])) {
-                                                
+                                                $groupIndex = 1;
                                                 $position1GroupArray = Arr::groupByArrayOnlyRows($this->rowData[$position1PathArr['0']], $position1PathArr['1']);
                                                 foreach ($position1GroupArray as $position1Key => $position1Group) {
 
                                                     $position2PathArr = explode('.', $rowsArray['position-2']['src_indicator_path']);
                                                     $position2GroupArray = Arr::groupByArrayOnlyRows($position1Group, $position2PathArr['1']);
+
                                                     $index= $counter = 0;
                                                     $questionIndex = 1;
                                                     foreach ($position2GroupArray as $position2Key =>  $position2Grp) { 
@@ -181,6 +184,9 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                                                         $tmparr = $hideTmparr = array();
 
                                                         foreach ($position2Grp as $rKey => $rVal) {
+                                                            $tmp['files'] = array();
+                                                            $tmp['filePath'] = issetParam($rVal['ATTACHMENT_FILE']);
+
                                                             for ($c=3; $c<=10; $c++) {
                                                                 if (issetParam($rowsArray['position-' . $c]['src_indicator_path'])) {
                                                                     $position2PathArr = explode('.', $rowsArray['position-' . $c]['src_indicator_path']);
@@ -188,6 +194,33 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                                                                         $tmp['position' . $c] = issetParam($rVal[$position2PathArr['1']]);
                                                                 }
                                                             }
+
+                                                            if (issetParamArray($rowsArray['position-checktype'])) { 
+                                                                $positionFilesPathArr = explode('.', $rowsArray['position-checktype']['src_indicator_path']);
+                                                                $tmp['checkType'] = checkDefaultVal($rVal[$positionFilesPathArr['1']], '0');
+                                                            }
+                                                            else {
+                                                                $tmp['checkType'] = '0';
+                                                            }
+
+                                                            if (issetParamArray($rowsArray['position-usedesc'])) { 
+                                                                $positionDescPathArr = explode('.', $rowsArray['position-usedesc']['src_indicator_path']);
+                                                                $tmp['usedesc'] = checkDefaultVal($rVal[$positionDescPathArr['1']], '0');
+                                                            }
+                                                            else {
+                                                                $tmp['usedesc'] = '0';
+                                                            }
+
+                                                            if (issetParamArray($rowsArray['position-files'])) {
+                                                                $positionFilesPathArr = explode('.', $rowsArray['position-files']['src_indicator_path']);
+
+                                                                $tmp['files'] = issetParamArray($rVal[$positionFilesPathArr['1']]);
+                                                                
+                                                                if (issetParamArray($rowsArray['position-showtype'])) {
+                                                                    $tmp['fileShowType'] = issetParamArray($rowsArray['position-showtype']) ? issetParam($rowsArray['position-showtype']['src_indicator_path']) : '1';
+                                                                }
+                                                            }
+                                                            
                                                             array_push($tmparr, $tmp);
                                                             array_push($hideTmparr, $rVal);
                                                         }
@@ -195,35 +228,101 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                                                         $rowJson = htmlentities(json_encode($tmparr), ENT_QUOTES, 'UTF-8');
                                                         $hideRowJson = htmlentities(json_encode($hideTmparr), ENT_QUOTES, 'UTF-8');
                                                         ?>
-                                                        <div class="mv-checklist-render-comment p-3" data-stepkey="<?php echo $this->uniqId . '_' . $index; ?>" style="display: none">
+                                                        <div class="mv-checklist-render-comment p-3" data-stepkey="<?php echo $this->uniqId . '_' . $groupIndex . '_' . $index; ?>" style="display: none">
                                                             <p class="question-txt"><?php echo $questionIndex++ . '. ' . checkDefaultVal($tmparr[0]['position3'], '...') ?> :</p>
+                                                            <?php if (issetParamArray($tmparr[0]['files'])) {
+                                                                if (issetParam($tmparr[0]['fileShowType']) === '1') {
+                                                                    ?>
+                                                                    <div class="slick-carousel3<?php echo $this->uniqId ?>">
+                                                                    <?php foreach ($tmparr[0]['files'] as $files) { ?>
+                                                                        <a class="question-files text-center fancybox-img main" href="<?php echo $files['PHYSICAL_PATH']; ?>" data-fancybox="images" data-rel="fancybox-img">
+                                                                            <img src="<?php echo $files['PHYSICAL_PATH']; ?>" class="file-rounded" />
+                                                                        </a>
+                                                                    <?php 
+                                                                    } ?>
+                                                                    </div>
+                                                                <?php
+                                                                } else { ?>
+                                                                    <div class="row mb-2 bg-white p-2 rounded border">
+                                                                        <?php 
+                                                                        $className = sizeOf($tmparr[0]['files']) > 1 ? 'col-md-6' : 'col-md-12';
+                                                                        foreach ($tmparr[0]['files'] as $files) { ?>
+                                                                            <a class="<?php echo $className; ?> question-files text-center fancybox-img main" href="<?php echo $files['PHYSICAL_PATH']; ?>" data-fancybox="image" data-rel="fancybox-img">
+                                                                                <img src="<?php echo $files['PHYSICAL_PATH']; ?>" class="file-rounded w-100 mw-100" />
+                                                                            </a>
+                                                                        <?php 
+                                                                        } ?>
+                                                                    </div>
+                                                                <?php } ?>
+                                                                
+                                                                <script type="text/javascript">
+                                                                    $(function () {
+                                                                        Core.initFancybox($('#mv-checklist-render<?php echo $this->uniqId ?> div[data-stepkey="<?php echo $this->uniqId . '_' . $groupIndex . '_' . $index; ?>"]'));
+                                                                    });
+                                                                </script>
+                                                            <?php } ?>
                                                             <div class="row">
                                                                 <div class="col-md-12 column-grap">
                                                                     <?php foreach ($tmparr as $i => $row) {
-                                                                        ?>
-                                                                        <button type="button" class="btn text-left answer-txt">
-                                                                            <?php echo $row['position4'] ?>
+                                                                        if (issetParam($row['usedesc']) === '1') { ?>
                                                                             <div class="hide-param d-none">
                                                                                 <input type="hidden" name="mvParam[<?php echo $position2PathArr['0'] . '.rowState' ?>][<?php echo $counter; ?>]" data-path="<?php echo $position2PathArr['0'] . '.rowState' ?>" data-col-path="rowState" value="add" >
                                                                                 <input type="hidden" name="mvParam[<?php echo $position2PathArr['0'] . '.rowCount' ?>][<?php echo $counter; ?>]" data-path="<?php echo $position2PathArr['0'] . '.rowCount' ?>" data-col-path="rowCount" value="0" >
-                                                                                <?php foreach ($hideTmparr[$i] as $key => $value) { ?>
-                                                                                    <input type="hidden" name="mvParam[<?php echo $position2PathArr['0'] . '.' .$key ?>][<?php echo $counter; ?>]" data-path="<?php echo $position2PathArr['0'] . '.' .$key ?>" data-col-path="<?php echo $key ?>" value="<?php echo $value ?>" >
-                                                                                <?php } ?>
+                                                                                <?php foreach ($hideTmparr[$i] as $key => $value) { 
+                                                                                    if (!is_array($value) && (Str::lower($key) !== 'description')) {
+                                                                                        ?>
+                                                                                        <input type="hidden" name="mvParam[<?php echo $position2PathArr['0'] . '.' .$key ?>][<?php echo $counter; ?>]" data-path="<?php echo $position2PathArr['0'] . '.' .$key ?>" data-col-path="<?php echo $key ?>" value="<?php echo $value ?>" >
+                                                                                    <?php 
+                                                                                    }
+                                                                                } ?>
                                                                             </div>
-                                                                        </button>
-                                                                    <?php 
+                                                                            <textarea class="form-control form-control-sm description_autoInit" name="mvParam[<?php echo $position2PathArr['0'] . '.DESCRIPTION' ?>][<?php echo $counter; ?>]"></textarea>
+                                                                        <?php
+                                                                        } else {
+                                                                            ?>
+                                                                            <button type="button" data-checktype="<?php echo $row['checkType'] ?>" class="btn text-left answer-txt <?php echo issetParam($row['filePath']) ? 'bg-none' : ''; ?>" onclick="activeAnswer_<?php echo $this->uniqId ?>(this)">
+                                                                                <div class="hide-param d-none">
+                                                                                    <input type="hidden" name="mvParam[<?php echo $position2PathArr['0'] . '.rowState' ?>][<?php echo $counter; ?>]" data-path="<?php echo $position2PathArr['0'] . '.rowState' ?>" data-col-path="rowState" value="add" >
+                                                                                    <input type="hidden" name="mvParam[<?php echo $position2PathArr['0'] . '.rowCount' ?>][<?php echo $counter; ?>]" data-path="<?php echo $position2PathArr['0'] . '.rowCount' ?>" data-col-path="rowCount" value="0" >
+                                                                                    <?php foreach ($hideTmparr[$i] as $key => $value) { 
+                                                                                        if (!is_array($value)) {
+                                                                                            ?>
+                                                                                            <input type="hidden" name="mvParam[<?php echo $position2PathArr['0'] . '.' .$key ?>][<?php echo $counter; ?>]" data-path="<?php echo $position2PathArr['0'] . '.' .$key ?>" data-col-path="<?php echo $key ?>" value="<?php echo $value ?>" >
+                                                                                        <?php 
+                                                                                        }
+                                                                                    } ?>
+                                                                                </div>
+                                                                                <?php if (issetParam($row['filePath'])) { 
+                                                                                    $checkBoxType = ($row['checkType'] === '1') ? "checkbox" : "radio";
+                                                                                    ?>
+                                                                                    <input type="<?php echo $checkBoxType ?>" class="booleanInit" id="answer_<?php echo $this->uniqId. '_' . $index . '_' . $i ?>" name="answer_<?php echo $this->uniqId. '_' . $index ?>" />
+                                                                                    <label class="mb-2" for="answer_<?php echo $this->uniqId. '_' . $index . '_' . $i ?>"><?php echo $row['position4'] ?></label>
+                                                                                    <label class="w-100 mw-100" for="answer_<?php echo $this->uniqId. '_' . $index . '_' . $i ?>">
+                                                                                        <img src="<?php echo $row['filePath']; ?>" class="file-rounded w-100 mw-100" />
+                                                                                    </labe>
+                                                                                <?php } else { ?>
+                                                                                    <?php echo $row['position4'] ?>
+                                                                                <?php } ?>
+                                                                            </button>
+                                                                        <?php 
+                                                                        }
                                                                         $counter++;
                                                                     }
                                                                     ?>
                                                                 </div>
                                                             </div>
                                                         </div>
+                                                        <script type="text/javascript">
+                                                            $(function () {
+                                                                Core.initInputType($('#mv-checklist-render<?php echo $this->uniqId ?> div[data-stepkey="<?php echo $this->uniqId . '_' . $groupIndex . '_' . $index; ?>"]'));
+                                                            });
+                                                        </script>
                                                         <?php
                                                         $index++;
                                                     }
-
+                                                    $groupIndex++;
                                                 }
-
+                                                
                                             }
                                         }
                                     ?>
@@ -232,10 +331,13 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                         </form>
                         <?php if (issetParam($rowsArray)) { ?>
                             <div class="w-100 pull-left p-2 actions"> 
-                                <button type="button" class="btn btn-sm btn-circle mr-1 btn-success bp-btn-next pull-right" onclick="nextQuestion_<?php echo $this->uniqId ?>(this)">
+                                <button type="button" class="btn btn-sm btn-circle mr-1 btn-success bp-btn-next pull-left" onclick="closeQuestion_<?php echo $this->uniqId ?>(this)">
+                                    <?php echo Lang::line('close_btn') ?> 
+                                </button>
+                                <button type="button" class="btn btn-sm btn-circle mr-1 btn-success bp-btn-next pull-right next-question" onclick="nextQuestion_<?php echo $this->uniqId ?>(this)">
                                     <?php echo Lang::line('next_btn') ?> <i class="icon-arrow-right5"></i> 
                                 </button>
-                                <button type="button" class="btn btn-sm btn-circle mr-1 btn-success bp-btn-next pull-right" onclick="prevQuestion_<?php echo $this->uniqId ?>(this)">
+                                <button type="button" class="btn btn-sm btn-circle mr-1 btn-success bp-btn-next pull-right prev-question" style="display: none" onclick="prevQuestion_<?php echo $this->uniqId ?>(this)">
                                     <i class="icon-arrow-left5"></i>  <?php echo Lang::line('prev_btn') ?>
                                 </button>
                             </div> 
@@ -281,13 +383,47 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
             padding-top: 11px;
             background-size: cover;
             height: 100%;
+            
+            /* @media (max-width: 576px) {
+                .wg-form {
+                    max-width: 540px !important; 
+                }
+            }
+
+            @media (max-width: 768px) {
+                .wg-form {
+                    max-width: 720px !important; 
+                }
+            }
+
+            @media (max-width: 992px) {
+                .wg-form {
+                    max-width: 960px !important; 
+                }
+            }
+
+            @media (max-width: 1200px) {
+                .wg-form {
+                    max-width: 1140px !important; 
+                } 
+            }
+
+            @media (max-width: 1440px) {
+                .wg-form {
+                    max-width: 1340px !important; 
+                } 
+            } */
+
             .wg-form {
                 position: relative;
                 width: 1200px;
                 min-height: calc(100vh - 126px);
                 margin-left: auto;
                 margin-right: auto;
+
                 .card-side  {
+
+                    /* max-width: 80% !important; */
                     margin-top: 40px;
                     padding: 20px;
                     box-shadow: 0px 2px 6px 0 rgba(0,0,0,.5);
@@ -365,11 +501,14 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                         padding: 11px 20px;
                         font-size: 16px;
                         font-weight: 600;
-                        line-height: 24px;
                         letter-spacing: 0px;
+                        min-height: 46px !important;
                         text-align: left;
-                        height: 46px !important;
                         color: #585858;
+                    }
+                    .form-control:not(.description_autoInit) {
+                        line-height: 24px;
+                        height: 46px !important;
                     }
     
                     .form-label {
@@ -431,7 +570,7 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                         overflow-y: auto;
                         overflow-x: hidden;
                     }
-
+                    
                     .mv-checklist-render-comment {
 
                         .question-txt {
@@ -443,7 +582,16 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                             color: #585858;
                             margin-bottom: 20px;
                         }
-                        
+
+                        .file-rounded {
+                            border-radius: 10px;
+                            border: 1px solid #e5e5e5;
+                            max-width: max-content !important;
+                            max-width: 365px !important;
+                            max-height: 175px;
+                            height: 175px;
+                        }
+
                         .column-grap {
                             display: inline-block;
                             column-gap: 10px;
@@ -470,6 +618,40 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                         .answer-txt:hover {
                             color: #FFF !important;
                             background: linear-gradient(90deg, #468CE2 0%, rgba(70, 140, 226, 0.52) 100%);
+                        }
+                        
+                        .question-files.fancy-button {
+                            max-height: max-content !important;
+                            height: max-content !important;
+                        }
+
+                        .bg-none,
+                        .bg-none:hover,
+                        .bg-none.active{
+                            background: none !important;
+                            box-shadow: none !important;
+                            background-color: none !important;
+                            border: none !important;
+                        }
+
+                        .slick-carousel3<?php echo $this->uniqId; ?> .slick-dots{
+                            position: absolute;
+                            display: block;
+                            width: 100%;
+                            padding: 0;
+                            margin: 0;
+                            margin-top: 0px;
+                            list-style: none;
+                            list-style-type: none;
+                            text-align: center;
+                            bottom: 16px;
+                        }    
+                        .slick-carousel3<?php echo $this->uniqId; ?> .slick-dots{
+                            margin: auto;
+                            display: flex;
+                            grid-gap: 5px;
+                            text-align: center;
+                            justify-content: center;
                         }
                         
                     }
@@ -538,7 +720,38 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
     }
 
     <?php if (checkDefaultVal($positionTimer, '0') !== '0') { ?>
+        
+    /* @media (max-width: 768px) {
+        .timer-group<?php echo $this->uniqId ?> {
+            right: 5% !important;
+        }
+    }
+
+    @media (max-width: 992px) {
+        .timer-group<?php echo $this->uniqId ?> {
+            right: 5% !important;
+        }
+    }
+
+    @media (max-width: 1200px) {
+        .timer-group<?php echo $this->uniqId ?> {
+            right: 5% !important;
+        } 
+    }
+
+    @media (max-width: 1440px) {
+        .timer-group<?php echo $this->uniqId ?> {
+            right: 10% !important;
+        } 
+    }
+    @media (max-width: 1600px) {
+        .timer-group<?php echo $this->uniqId ?> {
+            right: 0% !important;
+        } 
+    } */
     .timer-group<?php echo $this->uniqId ?> {
+        /* position: fixed;
+        right: 15%; */
 
         .timer-group {
             height: <?php echo 400-$minusPx  ?>px;
@@ -753,7 +966,11 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
 </style>
 
 <script type="text/javascript">
+    
     var $checkList_<?php echo $this->uniqId; ?> = $('#mv-checklist-render<?php echo $this->uniqId ?>');
+    var $kpiTmp_<?php echo $this->uniqId; ?> = $checkList_<?php echo $this->uniqId; ?>;
+    var bp_window_<?php echo $this->uniqId; ?> = $kpiTmp_<?php echo $this->uniqId; ?>;
+
     var $checkListMenu_<?php echo $this->uniqId; ?> = $checkList_<?php echo $this->uniqId; ?>.find('.mv-checklist-menu');
     var $checkListContent_<?php echo $this->uniqId; ?> = $checkList_<?php echo $this->uniqId; ?>.find('.main-content');
 
@@ -814,6 +1031,8 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
 
     $(function() { 
 
+        Core.initInputType($checkList_<?php echo $this->uniqId; ?>);
+
         $checkListMenu_<?php echo $this->uniqId; ?>.height($(window).height() - $checkListMenu_<?php echo $this->uniqId; ?>.offset().top - 390);
         $checkListContent_<?php echo $this->uniqId; ?>.height($(window).height() - $checkListMenu_<?php echo $this->uniqId; ?>.offset().top - 390);
         
@@ -836,13 +1055,25 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                 return;
             }
             
-            if (typeof rowJson !== 'object') {
+            /* if (typeof rowJson !== 'object') {
                 var jsonObj = JSON.parse(html_entity_decode(rowJson, 'ENT_QUOTES'));
             } else {
                 var jsonObj = rowJson;
-            }
+            } */
 
         });
+
+        $('.slick-carousel3<?php echo $this->uniqId; ?>').slick({
+            infinite: true,
+            slidesToShow: 1,
+            slidesToScroll: 1,
+            arrows: false,
+            // variableWidth: true,
+            autoplay: true,
+            dots: true,
+            prevArrow:'<div style="flex-shrink: 0;width: 40px;height: 40px;background: #fff;border-radius: 40px;text-align: center;box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.12); cursor:pointer" class=""><i class="far fa-angle-left" style="font-size:22px;margin: 9px;"></i></div>',
+            nextArrow:'<div style="flex-shrink: 0;width: 40px;height: 40px;background: #fff;border-radius: 40px;text-align: center;box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.12); cursor:pointer" class=""><i class="far fa-angle-right" style="font-size:22px;margin: 9px;"></i></div>'       
+        }); 
 
     });
 
@@ -852,8 +1083,7 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
         $this.remove();
         $parent.find('a[href="#tab-question-section<?php echo $this->uniqId ?>"]').removeClass('disabled');
         $parent.find('a[href="#tab-question-section<?php echo $this->uniqId ?>"]').trigger('click');
-        $parent.find('.bp-btn-finish<?php echo $this->uniqId ?>').show();
-
+        
         <?php if (checkDefaultVal($positionTimer, '0') !== '0') { ?>
             date = new Date (),
             minutes = '<?php echo checkDefaultVal($positionTimer, '0') ?>',
@@ -867,22 +1097,68 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
 
     function nextQuestion_<?php echo $this->uniqId ?>(element) {
         var $this = $(element),
+            $parentAction = $this.closest('.actions'),
             $parent = $this.closest('.<?php echo $this->uniqId ?>');
         
+        $parentAction.find('.prev-question').show();
+        $parentAction.find('.next-question').hide();
+
+        var $parentMenu = $parent.find('.checklistmenu-item.selected').closest('.nav-item-submenu');
+        
+        $('#tab-question-section1711419823453061').find('.nav-item-submenu:eq(0)').next()
+
         if ($parent.find('.checklistmenu-item.selected').next().length > 0) {
+            if ($parent.find('.checklistmenu-item.selected').next().next().length > 0) {
+                $parentAction.find('.next-question').show();
+            } else {
+                if ($parentMenu.next().length > 0) {
+                    $parentAction.find('.next-question').show();
+                } else {
+                    $parent.find('.bp-btn-finish<?php echo $this->uniqId ?>').show();
+                }
+            }
+
             $parent.find('.checklistmenu-item.selected').next().find('a.mv_checklist_02_sub').trigger('click');
+        } else {
+            if ($parentMenu.next().length > 0) {
+                $parentAction.find('.next-question').show();
+                $parentMenu.next().find('.checklistmenu-item:eq(0)').find('a.mv_checklist_02_sub').trigger('click');
+            }
         }
-    } 
+    }
 
     function prevQuestion_<?php echo $this->uniqId ?>(element) {
         var $this = $(element),
+            $parentAction = $this.closest('.actions'),
             $parent = $this.closest('.<?php echo $this->uniqId ?>');
         
-        if ($parent.find('.checklistmenu-item.selected').prev().length > 0) {
-            $parent.find('.checklistmenu-item.selected').prev().find('a.mv_checklist_02_sub').trigger('click');
-        }
+        $parentAction.find('.next-question').show();
+        $parentAction.find('.prev-question').hide();
 
+        var $parentMenu = $parent.find('.checklistmenu-item.selected').closest('.nav-item-submenu');
+        if ($parent.find('.checklistmenu-item.selected').prev().length > 0) {
+            if ($parent.find('.checklistmenu-item.selected').prev().prev().length > 0) {
+                $parentAction.find('.prev-question').show();
+            } else {
+                if ($parentMenu.prev().length > 0) {
+                    $parentAction.find('.prev-question').show();
+                } else {
+                    $parent.find('.bp-btn-finish<?php echo $this->uniqId ?>').hide();
+                }
+            }
+
+            $parent.find('.checklistmenu-item.selected').prev().find('a.mv_checklist_02_sub').trigger('click');
+        } else {
+            if ($parentMenu.prev().length > 0) {
+                $parentAction.find('.prev-question').show();
+                $parentMenu.prev().find('.checklistmenu-item').last().find('a.mv_checklist_02_sub').trigger('click');
+            }
+        }
     } 
+
+    function closeQuestion_<?php echo $this->uniqId ?>(element) { 
+        $('.bp-btn-close<?php echo $this->uniqId ?>').trigger('click');
+    }
 
     function saveQuestion_<?php echo $this->uniqId ?>(element) {
         
@@ -934,17 +1210,35 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
         /* $('.timer-group<?php echo $this->uniqId ?>').hide(); */
     });
 
-    $('body').on('click', '#tab-question-section<?php echo $this->uniqId ?> .answer-txt', function () {
-        var _this = $(this),
-            _selector = _this.find('.hide-param');
-            _this.closest('.column-grap').find('input[data-path="C8.IS_CORRECT"]').val('0');
-            _selector.find('input[data-path="C8.IS_CORRECT"]').val('1');
-
-        _this.closest('.column-grap').find('.active').removeClass('active');
-        _this.addClass('active');
-        $('#tab-question-section<?php echo $this->uniqId ?> .checklistmenu-item.selected').find('i.fa-square').addClass('fa-check-square').removeClass('fa-square');
+    $('body').on('keydown', '#tab-question-section<?php echo $this->uniqId ?> .description_autoInit', function () {
+        $('#tab-question-section<?php echo $this->uniqId ?> .checklistmenu-item.selected').find('i.icon-checkbox-unchecked2').addClass('icon-checkbox-checked2').removeClass('icon-checkbox-unchecked2');
         $('#tab-question-section<?php echo $this->uniqId ?> .checklistmenu-item.selected').addClass('done');
     });
+
+    function activeAnswer_<?php echo $this->uniqId ?>(element) {
+        var _this = $(element),
+            _checkType = _this.attr('data-checktype'),
+            _selector = _this.find('.hide-param');
+            
+        if (_checkType === '1') {
+            if (_this.hasClass('active')) {
+                _this.removeClass('active');
+                _selector.find('input[data-path="C8.IS_CORRECT"]').val('0');
+            } else {
+                _this.addClass('active');
+                _selector.find('input[data-path="C8.IS_CORRECT"]').val('1');
+            }
+        } else {
+            _this.closest('.column-grap').find('input[data-path="C8.IS_CORRECT"]').val('0');
+            _this.closest('.column-grap').find('.active').removeClass('active');
+
+            _selector.find('input[data-path="C8.IS_CORRECT"]').val('1');
+            _this.addClass('active');
+        }
+
+        $('#tab-question-section<?php echo $this->uniqId ?> .checklistmenu-item.selected').find('i.icon-checkbox-unchecked2').addClass('icon-checkbox-checked2').removeClass('icon-checkbox-unchecked2');
+        $('#tab-question-section<?php echo $this->uniqId ?> .checklistmenu-item.selected').addClass('done');
+    };
 
     function checkMenuFnc<?php echo $this->uniqId ?>(element) {
         var _this = $(element),
@@ -955,10 +1249,25 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
         
         $parentSelector.find('.checklistmenu-item.selected').removeClass('selected');
         _this.parent().addClass('selected');
-        /* _this.find('i.fa-square').addClass('fa-check-square').removeClass('fa-square'); */
+        /* _this.find('i.icon-checkbox-unchecked2').addClass('icon-checkbox-checked2').removeClass('icon-checkbox-unchecked2'); */
 
         $parentSelector.find('.main-content > .mv-checklist-render-comment').hide();
         $parentSelector.find('.main-content > .mv-checklist-render-comment[data-stepkey="'+ stepKey +'"]').show();
     };
 
+    function kpiIndicatorBeforeSave_<?php echo $this->uniqId; ?>(thisButton) {
+        PNotify.removeAll();
+
+        <?php echo issetParam($this->fullExp['beforeSave']); ?> 
+
+        return true;
+    }
+
+    function kpiIndicatorAfterSave_<?php echo $this->uniqId; ?>(thisButton, responseStatus, responseData) {
+            
+        <?php echo issetParam($this->fullExp['afterSave']); ?> 
+
+        return true;
+    }
+    
 </script>

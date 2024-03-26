@@ -3,7 +3,8 @@
         <div class="d-flex justify-content-between">
             <div class="dv-process-buttons">
               <div class="btn-group btn-group-devided">
-                <a class="btn btn-success btn-circle btn-sm" title="Нэмэх" onclick="runKpiRelatonBp(this, '16425125580661', false);" data-actiontype="update" data-dvbtn-processcode="data_IndicatorMapDV_006" data-ismain="0" href="javascript:;"><i class="far fa-plus"></i></a>
+                <a class="btn btn-success btn-circle btn-sm" title="Нэмэх шинэ" onclick="runAddKpiRelatonBp(this);" data-actiontype="update" data-dvbtn-processcode="data_IndicatorMapDV_006" data-ismain="0" href="javascript:;"><i class="far fa-plus"></i> Нэмэх /шинэ/</a>
+                <a class="btn btn-success btn-circle btn-sm" title="Нэмэх хуучин" onclick="runKpiRelatonBp(this, '16425125580661', false);" data-actiontype="update" data-dvbtn-processcode="data_IndicatorMapDV_006" data-ismain="0" href="javascript:;"><i class="far fa-plus"></i></a>
                 <a class="btn btn-warning btn-circle btn-sm" title="Засах" onclick="runKpiRelatonBp(this, '16660589496259', true);" data-actiontype="update" data-dvbtn-processcode="data_IndicatorMapDV_006" data-ismain="0" href="javascript:;"><i class="far fa-edit"></i></a>
                 <a class="btn btn-danger btn-circle btn-sm" title="Устгах" onclick="deleteKpiRelatonBp(this);" data-actiontype="update" data-dvbtn-processcode="data_IndicatorMapDV_006" data-ismain="0" href="javascript:;"><i class="far fa-trash"></i></a>
               </div>                                    
@@ -11,6 +12,7 @@
             <div>
                 <select class="form-control relation-list-view-type">
                     <option value="LIST">Жагсаалтаар</option>
+                    <option value="VISUAL">Визуал</option>
                     <option value="SEMANTIC_TYPE_NAME">Холбоосын төрөл</option>
                     <option value="CRITERIA">Шалгуур</option>
                     <option value="TAB_NAME">Таб нэр</option>
@@ -56,6 +58,9 @@
     height: 40px;
     text-align: center;
     padding-top: 12px;
+}
+#kpi-component-<?php echo $this->componentUniqId; ?> .joint-tools {
+    display: none;
 }
 </style>
 <script type="text/javascript">
@@ -116,10 +121,21 @@ $(function() {
           });
         },          
           dataType: "json",                 
-          success: function (data) {
+          success: function (data) {              
                 $("#kpi-component-<?php echo $this->componentUniqId; ?> .back-action").hide();
-                $("#kpi-component-<?php echo $this->componentUniqId; ?> .recordmap2content-container").empty().append(data.html);            
-                Core.unblockUI();
+                $("#kpi-component-<?php echo $this->componentUniqId; ?> .recordmap2content-container").html(data.html).promise().done(function () {
+                    if ($this.val() == 'VISUAL') {
+                        var dynamicHeight = $(window).height() - $("#app").offset().top - 20;
+                        var conWidth = $("#kpi-component-<?php echo $this->componentUniqId; ?> .recordmap2content-container").width();
+                        $("#app").css({height:dynamicHeight - 20,width:conWidth});
+                        $(".canvas").css({height:dynamicHeight - 20,width:conWidth});
+
+//                        $.cachedScript('http://localhost:8080/bundle.js').done(function() {
+                        $.cachedScript('<?php echo autoVersion('assets/rappidjs/relationconfig/bundle.js'); ?>').done(function() {
+                        });            
+                    }               
+                    Core.unblockUI();
+                });                            
           }
         });  
     });
@@ -142,6 +158,13 @@ $(function() {
             "edit": {name: plang.get('edit_btn'), icon: 'edit'}
         }
     });
+    
+    $(window).resize(function () {
+        var dynamicHeight = $(window).height() - $("#app").offset().top - 20;
+        var conWidth = $("#kpi-component-<?php echo $this->componentUniqId; ?> .recordmap2content-container").width();
+        $("#app").css({height:dynamicHeight - 20,width:conWidth});
+        $(".canvas").css({height:dynamicHeight - 20,width:conWidth});
+    });    
     
 }); 
 
@@ -313,6 +336,146 @@ function kpiIndicatorMainRelationMetaFillRows(metaDataCode,
         }
       },
     });    
+}
+function runAddKpiRelatonBp(elem) {
+  var $this = $(elem);
+  var $dialogName = "dialog-kpi-add-relation-bp";
+  
+  if (!$("#" + $dialogName).length) {
+    $('<div id="' + $dialogName + '" class="display-none"></div>').appendTo(
+      "body"
+    );
+  }
+  var $dialog = $("#" + $dialogName);
+
+  $.ajax({
+    type: "post",
+    url: "mdform/addRelationHtmlForm",
+    data: {
+    },
+    dataType: "json",
+    beforeSend: function () {
+      Core.blockUI({message: "Loading...", boxed: true});
+    },
+    success: function (data) {
+      $dialog.empty().append(data.Html);
+      
+      $dialog.find('input[name="srcIndicator"]').val($('input[name="param[code]"]').val()+' - '+$('textarea[name="param[name]"]').val());
+
+      var processForm = $("#wsForm", "#" + $dialogName);
+      var processUniqId = processForm.parent().attr("data-bp-uniq-id");
+      var runModeButton = '';
+        if (data.run_mode === '') {
+            runModeButton = ' hide';
+        }      
+
+      var buttons = [{
+            text: data.save_btn,
+            class: 'btn green-meadow btn-sm bp-run-btn bp-btn-saveadd ' + runModeButton,
+            click: function(e) {
+
+                var processForm = $dialog.find('form');
+                
+                processForm.validate({ errorPlacement: function () { } });
+
+                if (processForm.valid()) {
+                    var getLastReadDateOrder = $.ajax({
+                      type: "post",
+                      url: "api/callProcess",
+                      data: {
+                        processCode: "data_IndicatorMapDV_006",
+                        paramData: { 
+                            srcIndicatorId: '<?php echo $this->indicatorId; ?>', 
+                            trgIndicatorId: processForm.find('input[name="trgIndicatorId"]').val(), 
+                            semanticTypeId: 10000010 
+                        }
+                      },
+                      dataType: "json",
+                      async: false,
+                    });
+                    getLastReadDateOrder = getLastReadDateOrder.responseJSON;
+                    if (getLastReadDateOrder.status == "success") {
+                        $dialog.dialog("close");
+                        new PNotify({
+                          title: "Success",
+                          text: plang.get('msg_save_success'),
+                          type: "success",
+                          sticker: false
+                        });   
+                        $.ajax({
+                          type: "post",
+                          url: "mdform/renderRelationKpiReload",
+                          data: {indicatorId: '<?php echo $this->indicatorId; ?>'},
+                          dataType: "json",                 
+                          success: function (data) {
+                            $("#kpi-component-<?php echo $this->componentUniqId; ?> .recordmap2content-container").append(data.html)
+                            $("#kpi-component-<?php echo $this->componentUniqId; ?> .relation-list-view-type").val('LIST').trigger('change');
+                            Core.unblockUI();
+                          }
+                        });                         
+                    } else {
+                        new PNotify({
+                          title: "Warning",
+                          text: 'Алдаа гарлаа',
+                          type: "warning",
+                          sticker: false
+                        });                        
+                    }
+                }
+            }
+        },
+        {
+          text: data.close_btn,
+          class: "btn blue-madison btn-sm",
+          click: function () {
+            $dialog.dialog("close");
+          }
+        }
+      ];
+
+      var dialogWidth = 770,
+        dialogHeight = 'auto';
+
+      $dialog
+        .dialog({
+          cache: false,
+          resizable: true,
+          bgiframe: true,
+          autoOpen: false,
+          title: data.Title,
+          width: dialogWidth,
+          height: dialogHeight,
+          modal: true,
+          position: { my: "top", at: "top+50" },
+          closeOnEscape: typeof isCloseOnEscape == "undefined" ? true : isCloseOnEscape,
+          close: function () {
+            $dialog.empty().dialog("destroy").remove();
+          },
+          buttons: buttons
+        })
+        .dialogExtend({
+          closable: true,
+          maximizable: true,
+          minimizable: true,
+          collapsable: true,
+          dblclick: "maximize",
+          minimizeLocation: "left",
+          icons: {
+            close: "ui-icon-circle-close",
+            minimize: "ui-icon-minus",
+            collapse: "ui-icon-triangle-1-s",
+            restore: "ui-icon-newwin"
+          }
+        });
+      $dialog.dialog("open");
+    },
+    error: function () {
+      alert("Error");
+    },
+  }).done(function () {
+    Core.initBPAjax($dialog);
+    Core.unblockUI();
+  });
 }
 function runKpiRelatonBp(elem, metaDataId, isEdit) {
   var $this = $(elem);

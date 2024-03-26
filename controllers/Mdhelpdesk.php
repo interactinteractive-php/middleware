@@ -57,30 +57,32 @@ class Mdhelpdesk extends Controller {
     
     public function ssoLogin() 
     {
-        $this->view->isAjax = is_ajax_request();
         Auth::handleLogin();
+        $this->view->isAjax = is_ajax_request();
         
-        $result = $this->ws->runArrayResponse(GF_SERVICE_ADDRESS, 'CHECK_UM_USER_004', array('filterUserId' => Ue::sessionUserId()));
+        $result = $this->ws->runArrayResponse(GF_SERVICE_ADDRESS, 'CHECK_UM_USER_004', ['filterUserId' => Ue::sessionUserId()]);
+        
         try {
+            
             if (issetParam($result['status']) == 'success' && isset($result['result'])) {
             
                 if (!issetParam($result['result']['email'])) {
-                    throw new Exception("И-мэйл тохируулаагүй байна!"); 
+                    throw new Exception('И-мэйл тохируулаагүй байна!'); 
                 }
     
                 $result['result']['expiredate'] = Date::currentDate('Y-m-d H:i:s');
                 
                 $hashJson = json_encode($result['result'], JSON_UNESCAPED_UNICODE);
                 $hash = Hash::encryption($hashJson);
-                $hash = str_replace(array('+', '='), array('tttnmhttt', 'ttttntsuttt'), $hash);
-                $response = array('status' => 'success', 'href' => 'https://help.veritech.mn/login/authorization?user='. $hash);
+                $hash = str_replace(['+', '='], ['tttnmhttt', 'ttttntsuttt'], $hash);
+                $response = ['status' => 'success', 'href' => 'https://help.veritech.mn/login/authorization?user='. $hash];
                 
             } else {
-                throw new Exception("No data! CHECK_UM_USER_004"); 
+                throw new Exception('No data! CHECK_UM_USER_004'); 
             }
 
         } catch (Exception $ex) {
-            $response = array('status' => 'error', 'message' => $ex->getMessage(), 'ex' => $ex);
+            $response = ['status' => 'error', 'message' => $ex->getMessage(), 'ex' => $ex];
         }
 
         if (!$this->view->isAjax) {
@@ -92,7 +94,6 @@ class Mdhelpdesk extends Controller {
         } else {
             convJson($response);
         }
-        
     }
     
     public function getCustomer()

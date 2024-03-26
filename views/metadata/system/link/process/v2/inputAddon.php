@@ -354,6 +354,18 @@
                     <input type="text" name="inputParam[<?php echo $this->paramPath; ?>][tabIndex]" value="<?php echo $this->paramRow['TAB_INDEX']; ?>" id="tabIndex_<?php echo $this->paramPath; ?>" class="form-control form-control-sm longInit" placeholder="tab Index">
                 </td>
             </tr>
+            <?php
+            if ($this->depth == 0) {
+            ?>
+            <tr>
+                <td style="height: 30px;" class="left-padding"><label for="wizardStep_<?php echo $this->paramPath; ?>">Wizard step</label></td>
+                <td>
+                    <input type="text" name="inputParam[<?php echo $this->paramPath; ?>][wizardStep]" value="<?php echo $this->paramRow['WIZARD_STEP']; ?>" id="wizardStep_<?php echo $this->paramPath; ?>" class="form-control form-control-sm longInit" placeholder="Wizard step">
+                </td>
+            </tr>
+            <?php
+            }
+            ?>
             <tr>
                 <td style="height: 30px;" class="left-padding">More meta:</td>
                 <td class="pl5">

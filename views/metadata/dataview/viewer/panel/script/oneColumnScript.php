@@ -18,10 +18,11 @@ if (typeof isDataViewPanelOneColumn === 'undefined') {
 }
 
 setTimeout(function() {
-$(function () {
     
     dvOneFixHeight_<?php echo $this->uniqId; ?> = $(window).height() - firstList_<?php echo $this->uniqId; ?>.offset().top - 40;
     dvOneFirstListHeight_<?php echo $this->uniqId; ?> = dvOneFixHeight_<?php echo $this->uniqId; ?> - subQueryHeight_<?php echo $this->uniqId; ?>;
+    
+$(function () {
     var dh = 50;
     
     if (panelDv_<?php echo $this->uniqId; ?>.find('.menucolumn').length) {
@@ -84,7 +85,7 @@ $(function () {
             if ($parent.hasClass('nav-item-open')) {
                 
                 $parent.removeClass('nav-item-open');
-                $parent.find('.nav-group-sub').hide();
+                $parent.find('> .nav-group-sub:eq(0)').hide();
                 
                 $this.removeClass('click-disabled');
                 
@@ -153,7 +154,7 @@ $(function () {
             } else {
 
                 $parent.addClass('nav-item-open');
-                $parent.find('.nav-group-sub').show();
+                $parent.find('> .nav-group-sub:eq(0)').show();
                 
                 $this.removeClass('click-disabled');
             }   
@@ -594,7 +595,7 @@ $(function () {
     ?>
                 
 });
-}, 300);
+}, 200);
 
 function explorerRefresh_<?php echo $this->metaDataId; ?>(elem, dvSearchParam, uriParams) {
     $.ajax({

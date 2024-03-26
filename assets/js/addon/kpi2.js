@@ -1,5 +1,37 @@
 var isKpiAddonScript2 = true;
 
+$(document.body).on('change', 'select[data-field-name="aliasName2"]', function() {
+  var $this = $(this);
+  var tval = $this.val().split('_');
+  var trgComboAttrs = [];
+
+  trgComboAttrs.push('<option value="">- Сонгох -</option>');  
+  $.ajax({
+    type: "post",
+    url: "mdform/getKpiIndicatorAttrs",
+    data: { indicatorId: tval[1] },
+    dataType: "json",
+    async: false,
+    success: function (data) {
+      $.each(data, function (i, value) {
+        if (data[i]["parentid"] != "" && data[i]["parentid"] != null) {
+          trgComboAttrs.push(
+            '<option value="' +
+              data[i]["id"] +
+              '">' +
+              data[i]["columnname"] +
+              " - " +
+              data[i]["labelname"] +
+              "</option>"
+          );
+        }
+      });
+    },
+  });    
+  
+  $this.closest('tr').find('select[data-field-name="trgColumnName2"]').empty().append(trgComboAttrs.join(""));  
+});
+
 function kpiDataMartRelationConfig2(elem, processMetaDataId, dataViewId, selectedRow, paramData) {
     var id = selectedRow.id;
     var $dialogName = 'dialog-dmart-relationconfig2';
@@ -15,9 +47,9 @@ function kpiDataMartRelationConfig2(elem, processMetaDataId, dataViewId, selecte
             Core.blockUI({message: 'Loading...', boxed: true});
         },
         success: function (data) {
-            
+
             if (data.status == 'success') {
-                
+
                 $dialog.dialog({
                     cache: false,
                     resizable: false,
@@ -33,12 +65,21 @@ function kpiDataMartRelationConfig2(elem, processMetaDataId, dataViewId, selecte
 
                         $dialog.empty().append(data.html).promise().done(function() {
 
-                            var setHeight = $(window).height() - 190;
-                            // var $editor = $('#datamart-editor');
-                            
-                            $('#app').css({'height': setHeight, 'max-height': setHeight});
-                            // $editor.css({'height': setHeight - 2, 'max-height': setHeight - 2});
-                            
+                            $.getScript(URL_APP + 'assets/rappidjs/database/bundle.js').done(function() {
+//                            $.getScript('http://localhost:8080/bundle.js').done(function() {
+                                var setHeight = $(window).height() - 190;
+                                // var $editor = $('#datamart-editor');
+
+                                $('#app').css({'height': setHeight, 'max-height': setHeight});
+                                // $editor.css({'height': setHeight - 2, 'max-height': setHeight - 2});
+
+                                //if (data.objects.dtls_size == 0) {
+//                                    setTimeout(function () {
+//                                        selectMainModel(data.objects.id);
+//                                    }, 300);
+                                //}
+                            });
+
                             Core.unblockUI();
                         });
                     }, 
@@ -59,12 +100,12 @@ function kpiDataMartRelationConfig2(elem, processMetaDataId, dataViewId, selecte
                                     addclass: pnotifyPosition,
                                     sticker: false
                                 });
-                                
+
                                 if (data.status == 'success') {
                                     $dialog.dialog('close');
                                 }                           
                             });
-                
+
                             Core.unblockUI();                            
                         }},
                         {text: plang.get('close_btn'), class: 'btn btn-sm blue-hoki', click: function() {
@@ -73,9 +114,9 @@ function kpiDataMartRelationConfig2(elem, processMetaDataId, dataViewId, selecte
                     ]
                 });
                 $dialog.dialog('open');
-            
+
             } else {
-                
+
                 PNotify.removeAll();
                 new PNotify({
                     title: data.status,
@@ -87,7 +128,7 @@ function kpiDataMartRelationConfig2(elem, processMetaDataId, dataViewId, selecte
                 Core.unblockUI();
             }
         }
-    });
+    });    
 }
 
 function kpiDataMartAddObject2(elem) {

@@ -137,74 +137,68 @@ function callWebServiceByMeta(metaDataId, isDialog, valuePackageId, isSystemMeta
                                 
                                 var processForm = $dialog.find('form');
                                 
-                                if (window['processBeforeSave_' + processUniqId]($(e.target))) {
+                                if (window['processBeforeSave_' + processUniqId]($(e.target)) && bpFormValidate(processForm)) {
 
-                                    if (bpFormValidate(processForm)) {
+                                    if (typeof window[processUniqId + '_dialog'] !== 'undefined' && typeof window[processUniqId + '_note'] !== 'undefined' || typeof window[processUniqId + '_title'] !== 'undefined') {
+                                        var $confirmDialog = $("#" + window[processUniqId + '_dialog']);
+                                        var yes_btn = plang.get('yes_btn');
+                                        var no_btn = plang.get('no_btn');
+                                        var yes_btn_class = '';
 
-                                        if (typeof window[processUniqId + '_dialog'] !== 'undefined' && typeof window[processUniqId + '_note'] !== 'undefined' || typeof window[processUniqId + '_title'] !== 'undefined') {
-                                            var $confirmDialog = $("#" + window[processUniqId + '_dialog']);
-                                            var yes_btn = plang.get('yes_btn');
-                                            var no_btn = plang.get('no_btn');
-                                            var yes_btn_class = '';
-                                            
-                                            if (typeof window[processUniqId + '_type'] !== 'undefined' && window[processUniqId + '_type'] == 'onlyclose') {
-                                                no_btn = plang.get('close_btn');
-                                                yes_btn_class = ' d-none';
-                                            }
-                                            
-                                            $confirmDialog.empty().append(window[processUniqId + '_note']);
-                                            $confirmDialog.dialog({
-                                                cache: false,
-                                                resizable: false,
-                                                bgiframe: true,
-                                                autoOpen: false,
-                                                title: window[processUniqId + '_title'],
-                                                width: 370,
-                                                height: "auto",
-                                                modal: true,
-                                                open: function() {
-                                                    setTimeout(function() {
-                                                        $confirmDialog.dialog("option", "position", { my: "center", at: "center", of: window });
-                                                    }, 100);
-                                                },
-                                                close: function() {
-                                                    $confirmDialog.empty().dialog('destroy').remove();
-                                                    uiDialogOverlayRemove();
-                                                },
-                                                buttons: [{
-                                                        text: yes_btn,
-                                                        class: 'btn green-meadow btn-sm'+yes_btn_class,
-                                                        click: function() {
-                                                            if (typeof window[processUniqId + '_message'] !== 'undefined' && typeof window[processUniqId + '_messageType'] !== 'undefined') {
-                                                                PNotify.removeAll();
-                                                                new PNotify({
-                                                                    title: window[processUniqId + '_messageType'],
-                                                                    text: window[processUniqId + '_message'],
-                                                                    type: window[processUniqId + '_messageType'],
-                                                                    sticker: false
-                                                                });
-                                                            }
-                                                            callWebServiceByMetaRunMode(processForm, $dialogName, processUniqId, e.target);
-
-                                                            $confirmDialog.dialog('close');
-                                                        }
-                                                    },
-                                                    {
-                                                        text: no_btn,
-                                                        class: 'btn blue-madison btn-sm',
-                                                        click: function() {
-                                                            $confirmDialog.dialog('close');
-                                                        }
-                                                    }
-                                                ]
-                                            });
-                                            $confirmDialog.dialog('open');
-                                        } else {
-                                            callWebServiceByMetaRunMode(processForm, $dialogName, processUniqId, e.target, callbackAfterSave);
+                                        if (typeof window[processUniqId + '_type'] !== 'undefined' && window[processUniqId + '_type'] == 'onlyclose') {
+                                            no_btn = plang.get('close_btn');
+                                            yes_btn_class = ' d-none';
                                         }
 
+                                        $confirmDialog.empty().append(window[processUniqId + '_note']);
+                                        $confirmDialog.dialog({
+                                            cache: false,
+                                            resizable: false,
+                                            bgiframe: true,
+                                            autoOpen: false,
+                                            title: window[processUniqId + '_title'],
+                                            width: 370,
+                                            height: "auto",
+                                            modal: true,
+                                            open: function() {
+                                                setTimeout(function() {
+                                                    $confirmDialog.dialog("option", "position", { my: "center", at: "center", of: window });
+                                                }, 100);
+                                            },
+                                            close: function() {
+                                                $confirmDialog.empty().dialog('destroy').remove();
+                                                uiDialogOverlayRemove();
+                                            },
+                                            buttons: [{
+                                                    text: yes_btn,
+                                                    class: 'btn green-meadow btn-sm'+yes_btn_class,
+                                                    click: function() {
+                                                        if (typeof window[processUniqId + '_message'] !== 'undefined' && typeof window[processUniqId + '_messageType'] !== 'undefined') {
+                                                            PNotify.removeAll();
+                                                            new PNotify({
+                                                                title: window[processUniqId + '_messageType'],
+                                                                text: window[processUniqId + '_message'],
+                                                                type: window[processUniqId + '_messageType'],
+                                                                sticker: false
+                                                            });
+                                                        }
+                                                        callWebServiceByMetaRunMode(processForm, $dialogName, processUniqId, e.target);
+
+                                                        $confirmDialog.dialog('close');
+                                                    }
+                                                },
+                                                {
+                                                    text: no_btn,
+                                                    class: 'btn blue-madison btn-sm',
+                                                    click: function() {
+                                                        $confirmDialog.dialog('close');
+                                                    }
+                                                }
+                                            ]
+                                        });
+                                        $confirmDialog.dialog('open');
                                     } else {
-                                        bpIgnoreGroupRemove(processForm);
+                                        callWebServiceByMetaRunMode(processForm, $dialogName, processUniqId, e.target, callbackAfterSave);
                                     }
                                     
                                 } else {
@@ -219,74 +213,69 @@ function callWebServiceByMeta(metaDataId, isDialog, valuePackageId, isSystemMeta
                                 
                                 var processForm = $dialog.find('form');
                                 
-                                if (window['processBeforeSave_' + processUniqId]($(e.target))) {
+                                if (window['processBeforeSave_' + processUniqId]($(e.target)) && bpFormValidate(processForm)) {
 
-                                    if (bpFormValidate(processForm)) {
+                                    if (typeof window[processUniqId + '_dialog'] !== 'undefined' && typeof window[processUniqId + '_note'] !== 'undefined' || typeof window[processUniqId + '_title'] !== 'undefined') {
+                                        var $confirmDialog = $("#" + window[processUniqId + '_dialog']);
+                                        var yes_btn = plang.get('yes_btn');
+                                        var no_btn = plang.get('no_btn');
+                                        var yes_btn_class = '';
 
-                                        if (typeof window[processUniqId + '_dialog'] !== 'undefined' && typeof window[processUniqId + '_note'] !== 'undefined' || typeof window[processUniqId + '_title'] !== 'undefined') {
-                                            var $confirmDialog = $("#" + window[processUniqId + '_dialog']);
-                                            var yes_btn = plang.get('yes_btn');
-                                            var no_btn = plang.get('no_btn');
-                                            var yes_btn_class = '';
-                                            
-                                            if (typeof window[processUniqId + '_type'] !== 'undefined' && window[processUniqId + '_type'] == 'onlyclose') {
-                                                no_btn = plang.get('close_btn');
-                                                yes_btn_class = ' d-none';
-                                            }
-        
-                                            $confirmDialog.empty().append(window[processUniqId + '_note']);
-                                            $confirmDialog.dialog({
-                                                cache: false,
-                                                resizable: false,
-                                                bgiframe: true,
-                                                autoOpen: false,
-                                                title: window[processUniqId + '_title'],
-                                                width: 370,
-                                                height: "auto",
-                                                modal: true,
-                                                open: function() {
-                                                    setTimeout(function() {
-                                                        $confirmDialog.dialog("option", "position", { my: "center", at: "center", of: window });
-                                                    }, 100);
-                                                },
-                                                close: function() {
-                                                    $confirmDialog.empty().dialog('destroy').remove();
-                                                    uiDialogOverlayRemove();
-                                                },
-                                                buttons: [{
-                                                        text: yes_btn,
-                                                        class: 'btn green-meadow btn-sm'+yes_btn_class,
-                                                        click: function() {
-                                                            if (typeof window[processUniqId + '_message'] !== 'undefined' && typeof window[processUniqId + '_messageType'] !== 'undefined') {
-                                                                PNotify.removeAll();
-                                                                new PNotify({
-                                                                    title: window[processUniqId + '_messageType'],
-                                                                    text: window[processUniqId + '_message'],
-                                                                    type: window[processUniqId + '_messageType'],
-                                                                    sticker: false
-                                                                });
-                                                            }
-                                                            callWebServiceByMetaRunAjaxSubmit(processForm, $dialogName, processUniqId, e.target, callbackAfterSave);
-
-                                                            $confirmDialog.dialog('close');
-                                                        }
-                                                    },
-                                                    {
-                                                        text: no_btn,
-                                                        class: 'btn blue-madison btn-sm',
-                                                        click: function() {
-                                                            $("#" + $dialogName).dialog('close');
-                                                            $confirmDialog.dialog('close');
-                                                        }
-                                                    }
-                                                ]
-                                            });
-                                            $confirmDialog.dialog('open');
-                                        } else {
-                                            callWebServiceByMetaRunAjaxSubmit(processForm, $dialogName, processUniqId, e.target, callbackAfterSave);
+                                        if (typeof window[processUniqId + '_type'] !== 'undefined' && window[processUniqId + '_type'] == 'onlyclose') {
+                                            no_btn = plang.get('close_btn');
+                                            yes_btn_class = ' d-none';
                                         }
+
+                                        $confirmDialog.empty().append(window[processUniqId + '_note']);
+                                        $confirmDialog.dialog({
+                                            cache: false,
+                                            resizable: false,
+                                            bgiframe: true,
+                                            autoOpen: false,
+                                            title: window[processUniqId + '_title'],
+                                            width: 370,
+                                            height: "auto",
+                                            modal: true,
+                                            open: function() {
+                                                setTimeout(function() {
+                                                    $confirmDialog.dialog("option", "position", { my: "center", at: "center", of: window });
+                                                }, 100);
+                                            },
+                                            close: function() {
+                                                $confirmDialog.empty().dialog('destroy').remove();
+                                                uiDialogOverlayRemove();
+                                            },
+                                            buttons: [{
+                                                    text: yes_btn,
+                                                    class: 'btn green-meadow btn-sm'+yes_btn_class,
+                                                    click: function() {
+                                                        if (typeof window[processUniqId + '_message'] !== 'undefined' && typeof window[processUniqId + '_messageType'] !== 'undefined') {
+                                                            PNotify.removeAll();
+                                                            new PNotify({
+                                                                title: window[processUniqId + '_messageType'],
+                                                                text: window[processUniqId + '_message'],
+                                                                type: window[processUniqId + '_messageType'],
+                                                                sticker: false
+                                                            });
+                                                        }
+                                                        callWebServiceByMetaRunAjaxSubmit(processForm, $dialogName, processUniqId, e.target, callbackAfterSave);
+
+                                                        $confirmDialog.dialog('close');
+                                                    }
+                                                },
+                                                {
+                                                    text: no_btn,
+                                                    class: 'btn blue-madison btn-sm',
+                                                    click: function() {
+                                                        $("#" + $dialogName).dialog('close');
+                                                        $confirmDialog.dialog('close');
+                                                    }
+                                                }
+                                            ]
+                                        });
+                                        $confirmDialog.dialog('open');
                                     } else {
-                                        bpIgnoreGroupRemove(processForm);
+                                        callWebServiceByMetaRunAjaxSubmit(processForm, $dialogName, processUniqId, e.target, callbackAfterSave);
                                     }
                                 } else {
                                     bpIgnoreGroupRemove(processForm);
@@ -300,74 +289,68 @@ function callWebServiceByMeta(metaDataId, isDialog, valuePackageId, isSystemMeta
                                 
                                 var processForm = $dialog.find('form');
                                 
-                                if (window['processBeforeSave_' + processUniqId]($(e.target))) {
+                                if (window['processBeforeSave_' + processUniqId]($(e.target)) && bpFormValidate(processForm)) {
 
-                                    if (bpFormValidate(processForm)) {
+                                    if (typeof window[processUniqId + '_dialog'] !== 'undefined' && typeof window[processUniqId + '_note'] !== 'undefined' || typeof window[processUniqId + '_title'] !== 'undefined') {
+                                        var $confirmDialog = $("#" + window[processUniqId + '_dialog']);
+                                        var yes_btn = plang.get('yes_btn');
+                                        var no_btn = plang.get('no_btn');
+                                        var yes_btn_class = '';
 
-                                        if (typeof window[processUniqId + '_dialog'] !== 'undefined' && typeof window[processUniqId + '_note'] !== 'undefined' || typeof window[processUniqId + '_title'] !== 'undefined') {
-                                            var $confirmDialog = $("#" + window[processUniqId + '_dialog']);
-                                            var yes_btn = plang.get('yes_btn');
-                                            var no_btn = plang.get('no_btn');
-                                            var yes_btn_class = '';
-
-                                            if (typeof window[processUniqId + '_type'] !== 'undefined' && window[processUniqId + '_type'] == 'onlyclose') {
-                                                no_btn = plang.get('close_btn');
-                                                yes_btn_class = ' d-none';
-                                            }
-        
-                                            $confirmDialog.empty().append(window[processUniqId + '_note']);
-                                            $confirmDialog.dialog({
-                                                cache: false,
-                                                resizable: false,
-                                                bgiframe: true,
-                                                autoOpen: false,
-                                                title: window[processUniqId + '_title'],
-                                                width: 370,
-                                                height: "auto",
-                                                modal: true,
-                                                open: function() {
-                                                    setTimeout(function() {
-                                                        $confirmDialog.dialog("option", "position", { my: "center", at: "center", of: window });
-                                                    }, 100);
-                                                },
-                                                close: function() {
-                                                    $confirmDialog.empty().dialog('destroy').remove();
-                                                    uiDialogOverlayRemove();
-                                                },
-                                                buttons: [{
-                                                        text: yes_btn,
-                                                        class: 'btn green-meadow btn-sm'+yes_btn_class,
-                                                        click: function() {
-                                                            if (typeof window[processUniqId + '_message'] !== 'undefined' && typeof window[processUniqId + '_messageType'] !== 'undefined') {
-                                                                PNotify.removeAll();
-                                                                new PNotify({
-                                                                    title: window[processUniqId + '_messageType'],
-                                                                    text: window[processUniqId + '_message'],
-                                                                    type: window[processUniqId + '_messageType'],
-                                                                    sticker: false
-                                                                });
-                                                            }
-                                                            callWebServiceByMetaPrintAjaxSubmit(processForm, $dialogName, processUniqId, e.target, metaDataId, data.get_process_id, dmMetaDataId);
-
-                                                            $confirmDialog.dialog('close');
-                                                        }
-                                                    },
-                                                    {
-                                                        text: no_btn,
-                                                        class: 'btn blue-madison btn-sm',
-                                                        click: function() {
-                                                            $confirmDialog.dialog('close');
-                                                        }
-                                                    }
-                                                ]
-                                            });
-                                            $confirmDialog.dialog('open');
-                                        } else {
-                                            callWebServiceByMetaPrintAjaxSubmit(processForm, $dialogName, processUniqId, e.target, metaDataId, data.get_process_id, dmMetaDataId);
+                                        if (typeof window[processUniqId + '_type'] !== 'undefined' && window[processUniqId + '_type'] == 'onlyclose') {
+                                            no_btn = plang.get('close_btn');
+                                            yes_btn_class = ' d-none';
                                         }
 
+                                        $confirmDialog.empty().append(window[processUniqId + '_note']);
+                                        $confirmDialog.dialog({
+                                            cache: false,
+                                            resizable: false,
+                                            bgiframe: true,
+                                            autoOpen: false,
+                                            title: window[processUniqId + '_title'],
+                                            width: 370,
+                                            height: "auto",
+                                            modal: true,
+                                            open: function() {
+                                                setTimeout(function() {
+                                                    $confirmDialog.dialog("option", "position", { my: "center", at: "center", of: window });
+                                                }, 100);
+                                            },
+                                            close: function() {
+                                                $confirmDialog.empty().dialog('destroy').remove();
+                                                uiDialogOverlayRemove();
+                                            },
+                                            buttons: [{
+                                                    text: yes_btn,
+                                                    class: 'btn green-meadow btn-sm'+yes_btn_class,
+                                                    click: function() {
+                                                        if (typeof window[processUniqId + '_message'] !== 'undefined' && typeof window[processUniqId + '_messageType'] !== 'undefined') {
+                                                            PNotify.removeAll();
+                                                            new PNotify({
+                                                                title: window[processUniqId + '_messageType'],
+                                                                text: window[processUniqId + '_message'],
+                                                                type: window[processUniqId + '_messageType'],
+                                                                sticker: false
+                                                            });
+                                                        }
+                                                        callWebServiceByMetaPrintAjaxSubmit(processForm, $dialogName, processUniqId, e.target, metaDataId, data.get_process_id, dmMetaDataId);
+
+                                                        $confirmDialog.dialog('close');
+                                                    }
+                                                },
+                                                {
+                                                    text: no_btn,
+                                                    class: 'btn blue-madison btn-sm',
+                                                    click: function() {
+                                                        $confirmDialog.dialog('close');
+                                                    }
+                                                }
+                                            ]
+                                        });
+                                        $confirmDialog.dialog('open');
                                     } else {
-                                        bpIgnoreGroupRemove(processForm);
+                                        callWebServiceByMetaPrintAjaxSubmit(processForm, $dialogName, processUniqId, e.target, metaDataId, data.get_process_id, dmMetaDataId);
                                     }
 
                                 } else {
@@ -2847,6 +2830,15 @@ function urlRedirectByDataView(elem, processMetaDataId, url, target, dataViewId,
                 });
             } else {
                 posPrintSetlement(elem, processMetaDataId, dataViewId, selectedRow, paramData);
+            }      
+            return;
+        } else if (urlLower == 'printsettlementkhaan') {            
+            if (typeof isPosAddonScript === 'undefined') {
+                $.getScript(URL_APP + 'middleware/assets/js/pos/addon.js').done(function() {
+                    printsettlementkhaan(elem, processMetaDataId, dataViewId, selectedRow, paramData);
+                });
+            } else {
+                printsettlementkhaan(elem, processMetaDataId, dataViewId, selectedRow, paramData);
             }      
             return;
         } else if (urlLower == 'printsettlementxac') {            
@@ -17777,9 +17769,14 @@ function changeWfmStatusId(element, wfmStatusId, metaDataId, refStructureId, new
 }
 
 function beforeSignProcess(mainMetaDataId, processMetaDataId, metaTypeId, whereFrom, elem, params, dataGrid, wfmStatusParams, drillDownType) {
-
-    var rows = getDataViewSelectedRows(mainMetaDataId);
+    
+    if (isObject(params) && params.hasOwnProperty('selectedRow')) {
+        var rows = {}; rows[0] = params.selectedRow;
+    } else {
+        var rows = getDataViewSelectedRows(mainMetaDataId);
+    }
     var row = rows[0];
+    
     $.ajax({
         type: 'post',
         url: 'mdpki/generateHashFromFileByDataView',
@@ -17827,7 +17824,13 @@ function beforeSignProcess(mainMetaDataId, processMetaDataId, metaTypeId, whereF
 }
 
 function beforeHardSignProcess(mainMetaDataId, processMetaDataId, metaTypeId, whereFrom, elem, params, dataGrid, wfmStatusParams, drillDownType) {
-    var rows = getDataViewSelectedRows(mainMetaDataId);
+    
+    if (isObject(params) && params.hasOwnProperty('selectedRow')) {
+        var rows = {}; rows[0] = params.selectedRow;
+    } else {
+        var rows = getDataViewSelectedRows(mainMetaDataId);
+    }
+    
     var row = rows[0];
 
     signPdfWithCoordinate = function signPdfWithCoordinate(coordinate) {
@@ -17856,6 +17859,10 @@ function beforeHardSignProcess(mainMetaDataId, processMetaDataId, metaTypeId, wh
                                     contentId = row.contentid;
                                 }
 
+                                var paperSize = 573;
+                                if (row.hasOwnProperty('printpapersize') && (row.printpapersize).toLowerCase() === 'a5') {
+                                    paperSize = 470;
+                                }
                                 var fileName = URL_APP + row.physicalpath;
                                 var server = URL_APP + 'mddoceditor/fileUpload';
                                 var funcName = 'privateTransferProcessAction';
@@ -17872,7 +17879,7 @@ function beforeHardSignProcess(mainMetaDataId, processMetaDataId, metaTypeId, wh
                                             if (t.status === 'success') {
                                                 setTimeout(function(){ window[funcName].apply(null, funcArguments); }, 2000);
                                             }   
-                                        }, Math.floor(1.33333333* coordinate.x), Math.floor(1.33333333 * (573-coordinate.y)), coordinate.pageNum, responseData.signatureImage);
+                                        }, Math.floor(1.33333333* coordinate.x), Math.floor(1.33333333 * (paperSize-coordinate.y)), coordinate.pageNum, responseData.signatureImage);
                                     }
                                 });
                             } else {
@@ -17920,8 +17927,8 @@ function beforeHardSignProcess(mainMetaDataId, processMetaDataId, metaTypeId, wh
         bgiframe: true,
         autoOpen: false,
         title: 'Тамганы байршил',
-        width: 550,
-        height: 750,
+        width: 491,
+        height: 720,
         modal: false,
         open: function (event, ui) {
             $('#callIframeCanvasHardSign').css('overflow', 'hidden'); 
@@ -18034,7 +18041,10 @@ function beforeHardSignChangeWfmStatusId(elem, wfmStatusId, metaDataId, refStruc
                                 if (row.hasOwnProperty('contentid')) {
                                     contentId = row.contentid;
                                 }
-
+                                var paperSize = 573;
+                                if (row.hasOwnProperty('printpapersize') && (row.printpapersize).toLowerCase() === 'a5') {
+                                    paperSize = 470;
+                                }
                                 var fileName = URL_APP + row.physicalpath;
                                 var server = URL_APP + 'mddoceditor/fileUpload';
                                 var funcName = 'changeWfmStatusId';
@@ -18050,7 +18060,7 @@ function beforeHardSignChangeWfmStatusId(elem, wfmStatusId, metaDataId, refStruc
                                             if (t.status === 'success') {
                                                 setTimeout(function(){ window[funcName].apply(null, funcArguments); }, 2000);
                                             }   
-                                        }, Math.floor(1.33333333* coordinate.x), Math.floor(1.33333333 * (573-coordinate.y)), coordinate.pageNum, responseData.signatureImage);
+                                        }, Math.floor(1.33333333* coordinate.x), Math.floor(1.33333333 * (paperSize-coordinate.y)), coordinate.pageNum, responseData.signatureImage);
                                     }
                                 });
 
@@ -18108,8 +18118,8 @@ function beforeHardSignChangeWfmStatusId(elem, wfmStatusId, metaDataId, refStruc
         bgiframe: true,
         autoOpen: false,
         title: 'Тамганы байршил',
-        width: 500-9,
-        height: 750-40,
+        width: 491,
+        height: 720,
         modal: false,
         open: function (event, ui) {
             $('#callIframeCanvasHardSign').css('overflow', 'hidden'); 
@@ -18122,7 +18132,6 @@ function beforeHardSignChangeWfmStatusId(elem, wfmStatusId, metaDataId, refStruc
             frame.contentWindow.postMessage({call:'canvasClickSendValue_HardSignWindow', value: {'pdfPath': pdfPath}})}
         }]
     });
-
     $("#callIframeCanvasHardSign").dialog('open');
 }
 

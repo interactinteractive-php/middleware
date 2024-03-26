@@ -29,7 +29,7 @@ if ($this->getIsCountCardData) {
     <ul class="nav nav-tabs">
         <?php echo $tabeHead; ?>
     </ul>
-    <div class="tab-content">
+    <div class="tab-content bg-transparent">
         <?php echo $tabeContent; ?>
     </div>
 </div>

@@ -75,6 +75,31 @@ function filterKpiIndicatorValueChart(uniqId, indicatorId) {
                     Core.initNumberInput($filterCol);
                     Core.initLongInput($filterCol);
                     Core.initDateInput($filterCol);
+                    
+                    <?php
+                    if (isset($this->graphJsonConfig['chartFilterCriteria']) && $this->graphJsonConfig['chartFilterCriteria']) {
+                    ?>
+                    var chartFilterCriteria = <?php echo html_entity_decode($this->graphJsonConfig['chartFilterCriteria'], ENT_QUOTES, 'UTF-8'); ?>;
+                    if (chartFilterCriteria) {
+                        for (var f in chartFilterCriteria) {
+                            var $prevFilteredElem = $filterCol.find('[data-filter-type="checkbox"][data-filter-column="'+f+'"]');
+                            if ($prevFilteredElem.length) {
+                                var filterValues = chartFilterCriteria[f];
+                                for (var v in filterValues) {
+                                    var $detectText = $prevFilteredElem.find('span[data-value-mode]').filter(function(){ return ($(this).text() == filterValues[v]); });
+                                    if ($detectText.length) {
+                                        var $activeItem = $detectText.closest('.list-group-item');
+
+                                        $activeItem.addClass('active');
+                                        $activeItem.find('i').removeClass('far fa-square').addClass('fas fa-check-square');
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    <?php
+                    }
+                    ?>
                 });
             } else {
                 $filterCol.closest('.col-md-auto').remove();
@@ -102,10 +127,10 @@ function filterKpiIndicatorValueChartLoad(elem) {
     
     mvFilterRelationLoadData(elem, indicatorId, filterData);
     
-    window['kpiDataMartLoadChart_' + uniqId]();
+    window['kpiDataMartLoadChart_' + uniqId](true);
 }
 
-function kpiDataMartLoadChart_<?php echo $this->uniqId; ?>() {
+function kpiDataMartLoadChart_<?php echo $this->uniqId; ?>(isClick) {
     
     var _chartType = kpiDMChart_<?php echo $this->uniqId; ?>.find('select[name="kpiDMChartType"]');
         kpiDMChart_<?php echo $this->uniqId; ?>.find('input[name="kpiDMChartType"]').val(_chartType.find('option[value="'+ _chartType.val() +'"]').attr('data-value'));
@@ -207,7 +232,23 @@ function kpiDataMartLoadChart_<?php echo $this->uniqId; ?>() {
             }
         }
         
-        var filterData = getChartFilterData_<?php echo $this->uniqId; ?>();   
+        if (typeof isClick !== 'undefined' && isClick) {
+            var filterData = getChartFilterData_<?php echo $this->uniqId; ?>();   
+        } else {
+            var filterData = {};
+            <?php
+            if (isset($this->graphJsonConfig['chartFilterCriteria']) && $this->graphJsonConfig['chartFilterCriteria']) {
+            ?>
+            var chartFilterCriteria = <?php echo html_entity_decode($this->graphJsonConfig['chartFilterCriteria'], ENT_QUOTES, 'UTF-8'); ?>;
+            if (chartFilterCriteria) {
+                for (var f in chartFilterCriteria) {
+                    filterData[f] = chartFilterCriteria[f];
+                }
+            }
+            <?php
+            }
+            ?>
+        }
         
         $.ajax({
             type: 'post',
@@ -363,6 +404,7 @@ $(function() {
                 case 'line_race':
                 case 'bar_label_rotation':
                 case 'line_stacked':
+                case 'line_bar':
 
                     $kpiDMChartCategoryGroupRow.removeClass('d-none');
                 
@@ -620,6 +662,7 @@ $(function() {
     <?php if (issetParam($this->graphJsonConfig)) { ?>
         kpiDMChart_<?php echo $this->uniqId; ?>.find('select[name="kpiDMChartType"]').trigger('change');
     <?php } ?>
+        // Core.initAjax($('#kpi-datamart-chart-<?php echo $this->uniqId; ?> > .booleanInit'));
 
 });
     

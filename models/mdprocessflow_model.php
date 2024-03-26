@@ -107,6 +107,7 @@ class Mdprocessflow_model extends Model {
             $array[$key]['META_DATA_NAME'] = $name[count($name) - 1];
             $array[$key]['META_DATA_CODE'] = $parameter['META_DATA_CODE'];
             $array[$key]['DATA_TYPE'] = $parameter['DATA_TYPE'];
+            $array[$key]['RECORD_TYPE'] = $parameter['RECORD_TYPE'];
             $array[$key]['IS_SHOW'] = $parameter['IS_SHOW'];
             $array[$key]['PARENT_META_DATA_CODE'] = $parameter['PARENT_META_DATA_CODE'];
             $array[$key]['META_PROCESS_PARAM_LINK_ID'] = '';
@@ -224,6 +225,7 @@ class Mdprocessflow_model extends Model {
                         T0.PARAM_NAME AS META_DATA_CODE,  
                         T0.LABEL_NAME AS META_DATA_NAME, 
                         T0.DATA_TYPE,
+                        T0.RECORD_TYPE,
                         T0.IS_SHOW,
                         T0.PARAM_PATH, 
                         
@@ -327,6 +329,7 @@ class Mdprocessflow_model extends Model {
 
                 $metaDatas[$t]['META_DATA_NAME'] = str_repeat('-', substr_count($row['PARAM_PATH'], '.')) . Lang::line($row['META_DATA_NAME']);
                 $metaDatas[$t]['DATA_TYPE'] = $row['DATA_TYPE'];
+                $metaDatas[$t]['RECORD_TYPE'] = $row['RECORD_TYPE'];
                 $metaDatas[$t]['IS_SHOW'] = ($row['IS_SHOW'] == 1 ? $row['IS_SHOW'] : 0);
                 $metaDatas[$t]['META_DATA_CODE'] = $row['PARAM_PATH'];
                 $metaDatas[$t]['PARENT_META_DATA_CODE'] = $parentPath;
@@ -600,6 +603,7 @@ class Mdprocessflow_model extends Model {
             $html[] = '<td class="middle">';
             $html[] = $row['META_DATA_NAME'];
             $html[] = Form::hidden(array('name' => $doBpId . 'dataType[]', 'id' => $doBpId . 'dataType', 'value' => $row['DATA_TYPE']));
+            $html[] = Form::hidden(array('name' => $doBpId . 'recordType[]', 'id' => $doBpId . 'recordType', 'value' => $row['RECORD_TYPE']));
             $html[] = Form::hidden(array('name' => $doBpId . 'inputMetaDataName[]', 'id' => $doBpId . 'inputMetaDataName', 'value' => $row['META_DATA_NAME']));
             $html[] = Form::hidden(array('name' => $doBpId . 'id[]', 'class' => 'id', 'value' => $metaProcessParamLinkId));
             $html[] = '</td>';
@@ -735,6 +739,7 @@ class Mdprocessflow_model extends Model {
                 'doBpParamPath' => (empty($_POST[$doBpId . 'inputDoBpParamPath'][$k]) ? '' : Input::param($_POST[$doBpId . 'inputDoBpParamPath'][$k])),
                 'doBpParamIsInput' => $doBpParamIsInput,
                 'doneBpId' => (empty($_POST[$doBpId . 'inputDoneBpId'][$k]) ? '' : Input::param($_POST[$doBpId . 'inputDoneBpId'][$k])),
+                'recordType' => (empty($_POST[$doBpId . 'recordType'][$k]) ? '' : Input::param($_POST[$doBpId . 'recordType'][$k])),
                 'doneBpParamPath' => (empty($_POST[$doBpId . 'inputDoneBpParamPath'][$k]) ? '' : Input::param($_POST[$doBpId . 'inputDoneBpParamPath'][$k])),
                 'doneBpParamIsInput' => (($_POST[$doBpId . 'inputDoneBpParamIsInputHidden'][$k] == '1') ? 1 : 0),
                 'defaultValue' => $_POST[$doBpId . 'defaultValue'][$k]

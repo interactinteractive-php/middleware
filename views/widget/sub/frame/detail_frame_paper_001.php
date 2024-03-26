@@ -120,14 +120,16 @@ if ($jsonConfig) {
         }
 
         $this.closest('.tbody').find('.temp_add_btn_html').remove();
-        var paragraphNumberArr = $this.find('input[data-path="conContractTemplate.paragraphNumber"]').val().split('.');
-        if (paragraphNumberArr.length == 1) {
-            return;
+        if ($this.find('input[data-path="conContractTemplate.paragraphNumber"]').length) {
+            var paragraphNumberArr = $this.find('input[data-path="conContractTemplate.paragraphNumber"]').val().split('.');
+            if (paragraphNumberArr.length == 1) {
+                return;
+            }
+            $this.find('td[data-cell-path="conContractTemplate.paragraphNumber"]').append('<div style="float:left;" class="temp_add_btn_html">'+
+                '<button type="button" class="btn btn-xs green-meadow bpPaper001AddMainRow_<?php echo $this->methodId; ?>" style="padding: 0px 3px !important" onclick="javascript:;"><i class="icon-plus3 icon-plus3-paper001" style="font-size:9px"></i></button>'+
+                '<button type="button" class="ml2 btn btn-xs green-meadow bpPaper001AddMainSubRow bpPaper001AddMainRow_<?php echo $this->methodId; ?>" style="padding: 0px 3px !important;background-color:#89d7c7" onclick="javascript:;"><i class="icon-plus3 icon-plus3-paper001" style="font-size:9px"></i></button>'+
+            '</div>');
         }
-        $this.find('td[data-cell-path="conContractTemplate.paragraphNumber"]').append('<div style="float:left;" class="temp_add_btn_html">'+
-            '<button type="button" class="btn btn-xs green-meadow bpPaper001AddMainRow_<?php echo $this->methodId; ?>" style="padding: 0px 3px !important" onclick="javascript:;"><i class="icon-plus3 icon-plus3-paper001" style="font-size:9px"></i></button>'+
-            '<button type="button" class="ml2 btn btn-xs green-meadow bpPaper001AddMainSubRow bpPaper001AddMainRow_<?php echo $this->methodId; ?>" style="padding: 0px 3px !important;background-color:#89d7c7" onclick="javascript:;"><i class="icon-plus3 icon-plus3-paper001" style="font-size:9px"></i></button>'+
-        '</div>');
     });       
 
     $('#bp-window-<?php echo $this->methodId; ?>').on('click', '.bpPaper001AddMainRow_<?php echo $this->methodId; ?>', function(e) {

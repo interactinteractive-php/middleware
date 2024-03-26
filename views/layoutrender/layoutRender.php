@@ -435,9 +435,13 @@ echo isset($this->defaultJs) ? $this->defaultJs : '';
         $.ajax({
             type: 'post',
             url: 'mdmeta/cardRenderByPost',
-            data: {metaDataId: metaDataId, workSpaceId: workSpaceId, workSpaceParams: workSpaceParams},
+            data: {
+                metaDataId: metaDataId, 
+                workSpaceId: workSpaceId, 
+                workSpaceParams: workSpaceParams, 
+                defaultCriteriaData: $("div#layout-id-<?php echo $this->layoutLinkId; ?>").find('form#default-criteria-form:eq(0),form#default-mandatory-criteria-form:eq(0)').serialize()
+            },
             dataType: 'json',
-            //async: isChartAsync, 
             success: function (data) {
                 $layout.empty().append(data.Html);
             },

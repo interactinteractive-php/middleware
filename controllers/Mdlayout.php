@@ -1705,8 +1705,11 @@ class Mdlayout extends Controller {
     }
 
     public function v2($layoutId) {
+
         $layoutConfig = $this->prepareLayoutData($layoutId);
-        $sectionHtml = '<main class="h-full w-full" style="background-color:#F3F4F6">';
+        $style = ''; //($layoutId === '17091131987379') ? 'width: 80%; margin: 0 auto;' : '';
+        $sectionHtml = '<main class="h-full w-full page-main-layout-'.$layoutId.'" style="background-color:#F3F4F6; '. $style .'">';
+
         $sectionHtml .= $this->layoutSection($layoutConfig["layout"], issetParam($layoutConfig["className"]), $layoutConfig);
         $sectionHtml .= '</main>';
         
@@ -1751,18 +1754,21 @@ class Mdlayout extends Controller {
 
     public function layoutSection($section, $customClassName = "", $layoutConfig, $rowConfig = []) {
         $sectionHtml = "<section style='".issetParam($rowConfig["style"])."' class='".($customClassName?$customClassName:"grid grid-cols-12 w-full h-full gap-x-6")."'>";
+        
         foreach ($section as $row) {
             if (issetParam($row["children"])) {
                 $sectionHtml .= $this->layoutSection($row["children"], issetParam($row["className"]), $layoutConfig, $row);
             } else {
                 preg_match('/section(.*)/', $row["sectionCode"], $sectionCode);
                 $sectionList = Arr::groupByArray($layoutConfig["meta_bp_layout_section"], "code");
+                
                 if (isset($sectionList[$sectionCode[1]])) {
                     $sectionCount = count($sectionList[$sectionCode[1]]["rows"]);
                     $secRowClass = json_decode($sectionList[$sectionCode[1]]["row"]["otherattr"], true);
-
+                    $sectionAttr = htmlentities(json_encode(array('layoutConfig' => $sectionList[$sectionCode[1]], 'layoutRow' => $row)), ENT_QUOTES, 'UTF-8');
+                    
                     if (empty($secRowClass) || !array_key_exists("meta", $secRowClass)) {
-                        $sectionHtml .= "<section data-sectioncode='".$row["sectionCode"]."' class='mb-6 ".issetParam($row["className"])."'>";
+                        $sectionHtml .= "<section data-metadataid='". issetParam($sectionList[$sectionCode[1]]["row"]['metadataid']) ."' data-metatypeid='". issetParam($sectionList[$sectionCode[1]]["row"]['metatypeid']) ."' data-attr='". $sectionAttr ."' data-sectioncode='".$row["sectionCode"]."' class='mb-6 ".issetParam($row["className"])."' style='".issetParam($row["style"])."'>";
                         $sectionHtml .= "<div class='".($sectionCount > 1 ? 'grid grid-cols-12' : '')."' style='".($sectionCount > 1 ? 'gap:1.3rem' : '')."'>";
                         foreach ($sectionList[$sectionCode[1]]["rows"] as $secRow) {
                             $jsonAttr = json_decode($secRow["otherattr"], true);
@@ -1779,6 +1785,58 @@ class Mdlayout extends Controller {
         $sectionHtml .= "</section>";        
 
         return $sectionHtml;
+    }
+
+    public function layoutBySection() {
+        $postData = Input::postData();
+        $sectionConfig = json_decode($postData["config"], true);
+        $layoutConfig = $sectionConfig['layoutConfig'];
+        $layoutRow = $sectionConfig['layoutRow'];
+        $sectionCount = count($sectionConfig['layoutConfig']["rows"]);
+        
+        $paging = array('offset' => 1, 'pageSize' => 20);
+        $criteria = array();
+        
+        if (issetParam($postData['filterDate'])) {
+            $tmp = array(
+                'filterDate' => array(
+                    array(
+                        'operator' => '=',
+                        'operand' => $postData['filterDate']
+                    )
+                )
+            ); 
+            $criteria = array_merge($criteria, $tmp);
+        }
+
+        if (issetParam($postData['filterPage'])) {
+            $paging['offset'] = $postData['filterPage']; 
+        }
+
+        $html = '';
+        if (issetParam($postData['filterPage']) === '') {
+            $html .= "<div class='".($sectionCount > 1 ? 'grid grid-cols-12' : '')."' style='".($sectionCount > 1 ? 'gap:1.3rem' : '')."'>";
+            
+            foreach ($layoutConfig["rows"] as $secRow) {
+                $jsonAttr = json_decode($secRow["otherattr"], true);
+                $html .= "<div data-widgetcode='".$secRow['widgetcode']."' class='w-full h-full ".issetParam($jsonAttr['className'])."'>";
+                $html .= (new Mdwidget())->widgetStandart($secRow, $jsonAttr, $criteria, $paging);
+                $html .= "</div>";
+            }
+            $html .= "</div>";
+        } else {
+            foreach ($layoutConfig["rows"] as $secRow) {
+                $jsonAttr = json_decode($secRow["otherattr"], true);
+                $html .= (new Mdwidget())->widgetStandart($secRow, $jsonAttr, $criteria, $paging);
+            }
+        }
+        
+        $response = array(
+            'status' => 'success', 
+            'Html' => $html
+        );
+        
+        convJson($response);
     }
 
     public function prepareLayoutData($layoutId) {

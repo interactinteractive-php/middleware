@@ -1,4 +1,13 @@
 <script type="text/javascript">
+    
+    <?php
+    if (isset($isWizard) && $isWizard) {
+    ?>
+    initKpiWizardForm_<?php echo $this->methodId; ?>();
+    <?php
+    }
+    ?>
+            
     var bp_window_<?php echo $this->methodId; ?> = $("div[data-bp-uniq-id='<?php echo $this->uniqId; ?>']");
     var isEditMode_<?php echo $this->methodId; ?> = <?php echo (($this->isEditMode) ? 'true' : 'false'); ?>;
     var checkFullExp_<?php echo $this->methodId; ?> = <?php echo empty($this->bpFullScriptsEvent) ? 'false' : 'true'; ?>;
@@ -3711,6 +3720,50 @@
         
         return;
     }
+    
+    <?php
+    if (isset($isWizard) && $isWizard) {
+    ?>
+    $('#wizard-<?php echo $this->uniqId; ?>').on('click', '.bp-icon-selection li', function(){
+        console.log($('#wizard-<?php echo $this->uniqId; ?>').find('.wizard-type-next-btn'));
+        $('#wizard-<?php echo $this->uniqId; ?>').find('.wizard-type-next-btn').closest('a').trigger('click');
+    });        
+    function initKpiWizardForm_<?php echo $this->methodId; ?>() {
+        $('#wizard-<?php echo $this->uniqId; ?>').steps({
+            headerTag: 'h3',
+            bodyTag: 'section',
+            transitionEffect: 'fade',
+            autoFocus: true, 
+            enableFinishButton: false, 
+            enableKeyNavigation: false,
+            titleTemplate: '<span class="number">#index#</span> #title#', 
+            labels: {
+                previous: '<i class="icon-arrow-left13 mr-2"></i> ' + plang.get('prev'),
+                next: plang.get('next') + ' <i class="icon-arrow-right14 ml-2 wizard-type-next-btn"></i>',
+                finish: plang.get('finish_btn') + ' <i class="icon-arrow-right14 ml-2"></i>'
+            }, 
+            onInit: function (event, currentIndex) { 
+                var $this = $(this);
+                $this.attr('data-step', currentIndex);
+                $this.find('> .steps').hide();
+                $this.find('> .actions').addClass('text-center');
+            },
+            onStepChanging: function (event, currentIndex, newIndex) {
+
+                if (currentIndex > newIndex) {
+                    return true;
+                }
+                
+                return true;
+            },
+            onStepChanged: function (event, currentIndex, priorIndex) { 
+                $(this).attr('data-step', currentIndex);
+            }
+        });
+    }
+    <?php
+    }
+    ?>
     
     var isSaveConfirm_<?php echo $this->methodId; ?> = false;
     

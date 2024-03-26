@@ -1223,6 +1223,10 @@ class Mdmetadata extends Controller {
             return null;
         }
         
+        if (is_array($value)) {
+            return null;
+        }
+        
         if (!array_key_exists($value, self::$pathDefaultValues)) {
             self::$pathDefaultValues[$value] = Mdmetadata::getDefaultValue($value);
         } 

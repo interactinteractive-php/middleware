@@ -358,13 +358,13 @@ try {
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-12">
+                                <div class="col-md-12 mt-2">
                                     <div class="form-group row">
                                         <?php echo Form::label(array('text'=>'Шүүлт хадгалах', 'class'=>'col-form-label col-md-auto text-right pr-0 pt-0 line-height-normal', 'style' => 'width: 100px')); ?>
                                         <div class="col">
                                             <?php
                                             echo Form::checkbox(array(
-                                                'class' => 'form-control form-control-sm', 
+                                                'class' => 'booleanInit', 
                                                 'name' => 'kpiDMChartIsFilterSave', 
                                                 'value' => '1', 
                                                 'saved_val' => issetParam($this->graphJsonConfig['chartFilterCriteria']) ? '1' : ''

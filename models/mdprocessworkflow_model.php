@@ -220,6 +220,7 @@ if (class_exists('mdprocessworkflow_model') != true) {
                 $array[$key]['META_DATA_NAME'] = $name[count($name) - 1];
                 $array[$key]['META_DATA_CODE'] = $parameter['META_DATA_CODE'];
                 $array[$key]['META_TYPE_ID'] = $parameter['META_TYPE_ID'];
+                $array[$key]['RECORD_TYPE'] = $parameter['RECORD_TYPE'];
                 $array[$key]['IS_SHOW'] = $parameter['IS_SHOW'];
                 $array[$key]['PARENT_META_DATA_CODE'] = $parameter['PARENT_META_DATA_CODE'];
                 $array[$key]['META_PROCESS_PARAM_LINK_ID'] = "";
@@ -260,6 +261,7 @@ if (class_exists('mdprocessworkflow_model') != true) {
                     MD.META_DATA_NAME, 
                     MPPL.PARAM_NAME AS META_DATA_CODE, 
                     MD.META_TYPE_ID,
+                    MPPL.RECORD_TYPE,
                     MPPL.IS_SHOW,
                     MPPL.PARAM_PATH
                 FROM 
@@ -288,6 +290,7 @@ if (class_exists('mdprocessworkflow_model') != true) {
                 $metaDatas[$t]['META_DATA_ID'] = $row['META_DATA_ID'];
                 $metaDatas[$t]['META_DATA_NAME'] = str_repeat("-", substr_count($row['PARAM_PATH'], '.')) . $row['META_DATA_NAME'];
                 $metaDatas[$t]['META_TYPE_ID'] = $row['META_TYPE_ID'];
+                $metaDatas[$t]['RECORD_TYPE_ID'] = $row['RECORD_TYPE'];
                 $metaDatas[$t]['IS_SHOW'] = ($row['IS_SHOW'] == 1 ? $row['IS_SHOW'] : 0);
                 $metaDatas[$t]['META_DATA_CODE'] = $row['PARAM_PATH'];
                 $metaDatas[$t]['PARENT_META_DATA_CODE'] = $parentPath;
@@ -352,6 +355,7 @@ if (class_exists('mdprocessworkflow_model') != true) {
                 $html .= '<td class="middle">';
                 $html .= $row['META_DATA_NAME'];
                 $html .= Form::hidden(array('name' => $doBpId . 'metaTypeId[]', 'id' => $doBpId . 'metaTypeId', 'value' => $row['META_TYPE_ID']));
+                $html .= Form::hidden(array('name' => $doBpId . 'recordType[]', 'id' => $doBpId . 'recordType', 'value' => $row['RECORD_TYPE']));
                 $html .= Form::hidden(array('name' => $doBpId . 'inputMetaDataName[]', 'id' => $doBpId . 'inputMetaDataName', 'value' => $row['META_DATA_NAME']));
                 $html .= Form::hidden(array('name' => $doBpId . 'inputDoBpParamId[]', 'id' => $doBpId . 'inputDoBpParamId', 'value' => $row['META_DATA_ID']));
                 $html .= Form::hidden(array('name' => $doBpId . 'id[]', 'class' => 'id', 'value' => $metaProcessParamLinkId));

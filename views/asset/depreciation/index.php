@@ -26,9 +26,9 @@
             </div>
             <div class="col-md-12">
                 <form class="form-horizontal xs-form" role="form" method="post" id="saveDepreciation-form">
-                    <fieldset class="collapsible mt10 mb10">
+                    <fieldset class="collapsible mb10">
                         <legend><?php echo $this->lang->line('filter'); ?></legend>
-                        <div class="d-flex" id="headerFilterParam">
+                        <div class="row" id="headerFilterParam">
                             <div class="col-md-4">
                                 <div class="form-group row fom-row">
                                     <?php echo Form::label(array('text' => Lang::lineDefault('PL_0317', 'Салбар нэгж'), 'for' => 'departmentCode_displayField', 'class' => 'col-form-label col-md-3 custom-label', 'required' => 'required', 'style' => 'font-size: 12px !important')); ?>
@@ -442,6 +442,8 @@
                                                     <a href="javascript:;" class="pf-custom-pager-refresh pf-custom-pager-disabled">
                                                         <span></span>
                                                     </a>
+                                                    <div class="pf-custom-pager-separator"></div>
+                                                    <select class="pagination-page-list depreciation-pagination-list"><option value="50">50</option><option value="100">100</option><option value="200">200</option><option value="300">300</option><option value="500">500</option><option value="1000">1000</option><option value="2000">2000</option></select>                                                                                                                                                            
                                                 </div>
                                                 <div class="pf-custom-pager-total">Нийт <span>0</span> байна.</div>
                                             </div>
@@ -477,7 +479,7 @@
 var isChecked_stn = true;
 var depreciationWindowId = "#depreciation";
 var assetDVMetadataId = '<?php echo $this->assetDVMetadataId; ?>';
-var assetDVRowsSize = 20;
+var assetDVRowsSize = 50;
 var offset = 0;
 var calcMethod = 0;
 var attached = false;
@@ -504,6 +506,11 @@ $(function() {
     
     $(depreciationWindowId).on('change', '#bookDate', function(){
         setDescriptionValue();
+    });
+    
+    $(depreciationWindowId).on('change', '.depreciation-pagination-list', function(){
+        assetDVRowsSize = $(this).val();
+        assetsGotoPage(1);
     });
     
     $(depreciationWindowId).on('click', '#cMethod', function(){

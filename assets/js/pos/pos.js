@@ -4564,25 +4564,6 @@ $(function () {
         }
       }
 
-      if (bankCode == 500000) {
-        var posBalanceAmountChangeCombo = $tselect
-          .closest(".pos-bank-row")
-          .find('input[name="bankAmountDtl[]"]')
-          .autoNumeric("get");
-
-        if (bankIpterminals.hasOwnProperty(bankCode)) {
-          isAcceptPrintPos = false;
-          bankIpTerminalTransfer(
-            posBalanceAmountChangeCombo,
-            bankIpterminals[bankCode],
-            "khanbank",
-            function (res) {
-              setValuePosKhaanBank($tselect, res);
-            }
-          );
-        }
-      }
-
       if (bankCode == 400000) {
         var posBalanceAmountChangeCombo = $tselect
           .closest(".pos-bank-row")

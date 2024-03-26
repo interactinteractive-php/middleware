@@ -350,5 +350,63 @@ class Mdwidget_Model extends Model {
             )";
         return $this->db->GetAll($qry);
     }
-    
+
+    public function getIndicatorWidgetModel($indicatorId) {
+        $param = array(
+            'filterIndicatorId' => $indicatorId, 
+        );
+        $result = $this->ws->runSerializeResponse(GF_SERVICE_ADDRESS, 'pageMapInfo_004', $param);            
+        return issetParamArray($result['result']);
+        /* var_dump($result);
+        die;
+
+        $qry = "SELECT
+                    KI.ID,
+                    KI.CODE,
+                    KI.NAME,
+                    KI.PARENT_ID,
+                    KK.NAME AS PARENT_NAME,
+                    C.CATEGORY_ID,
+                    K.NAME AS CATEGORY_NAME,
+                    W.C2 AS STATUS_NAME,
+                    V.C7 AS WEB_PICTURE,
+                    V.C7 AS WEBPICTURE
+                FROM KPI_INDICATOR KI
+                INNER JOIN (SELECT * FROM KPI_INDICATOR_INDICATOR_MAP WHERE SEMANTIC_TYPE_ID = ". $this->db->Param(0) ." AND SRC_INDICATOR_ID = ". $this->db->Param(1) .") t0 ON KI.ID = t0.TRG_INDICATOR_ID
+                LEFT JOIN KPI_INDICATOR_CATEGORY C ON KI.ID = C.INDICATOR_ID
+                LEFT JOIN KPI_INDICATOR K ON C.CATEGORY_ID = K.ID
+                LEFT JOIN KPI_INDICATOR KK ON KI.PARENT_ID = KK.ID
+                INNER JOIN VT_DATA.V_16606226258719 V ON KI.ID = V.SRC_RECORD_ID
+                INNER JOIN VT_DATA.V_17090292868399 W ON V.C14 = W.ID 
+                WHERE KI.KPI_TYPE_ID = 16606226258819 AND V.C3 = 5 AND V.C14 = 1709092700149809  ORDER BY t0.ORDER_NUMBER ASC";
+        
+        $param = array(
+            '69',
+            $indicatorId
+        );
+
+        $data = $this->db->GetAll($qry, $param);
+
+        return Arr::changeKeyLower($data); */
+        
+    }
+
+    public function widgetListDataModel() {
+        
+        $param = array(
+            'systemMetaGroupId' => '17090956046449',
+            'showQuery' => 0, 
+            'pagingWithoutAggregate' => 1, 
+            'ignorePermission' => 1,  
+            'criteria' => array()
+        );      
+
+        $dataResult = $this->ws->runArrayResponse(GF_SERVICE_ADDRESS, Mddatamodel::$getDataViewCommand, $param);
+
+        unset($dataResult['result']['paging']);
+        unset($dataResult['result']['aggregatecolumns']);
+
+        return issetParamArray($dataResult['result']);
+        
+    }
 }

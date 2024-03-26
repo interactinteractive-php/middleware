@@ -1714,6 +1714,15 @@ class Mdupgrade_Model extends Model {
                         ), 
                         'child' => array(
                             array(
+                                'table' => 'KPI_INDICATOR_INDICATOR_MAP', 
+                                'link' => array(
+                                    array(
+                                        'src' => 'ID', 
+                                        'trg' => 'SRC_INDICATOR_MAP_ID'
+                                    )
+                                )
+                            ), 
+                            array(
                                 'table' => 'KPI_INDICATOR_MAP_CRITERIA', 
                                 'link' => array(
                                     array(
@@ -1797,6 +1806,15 @@ class Mdupgrade_Model extends Model {
                             array(
                                 'src' => 'ID', 
                                 'trg' => 'MAIN_INDICATOR_ID'
+                            )
+                        )
+                    ), 
+                    array(
+                        'table' => 'KPI_INDICATOR_REF_VALUE', 
+                        'link' => array(
+                            array(
+                                'src' => 'ID', 
+                                'trg' => 'INDICATOR_ID'
                             )
                         )
                     ), 
@@ -2597,7 +2615,7 @@ class Mdupgrade_Model extends Model {
                 $isUseMetaUserId = Config::getFromCache('IS_USE_META_CREATED_MODIFIED_USER_ID');
             
                 if ($isUseMetaUserId == '1') {
-                    self::$exportIgnoreColumns = array('EXPORT_SCRIPT', 'COPY_COUNT');
+                    self::$exportIgnoreColumns = ['EXPORT_SCRIPT', 'COPY_COUNT'];
                 }
 
                 foreach ($metas as $meta) {
@@ -2616,6 +2634,7 @@ class Mdupgrade_Model extends Model {
                         if ($meta['META_TYPE_ID'] == 'impexcel' 
                                 || $meta['META_TYPE_ID'] == 'kpi' 
                                 || $meta['META_TYPE_ID'] == 'kpiindicator' 
+                                || $meta['META_TYPE_ID'] == 'kpiindicatorbydata' 
                                 || $meta['META_TYPE_ID'] == 'kpitype' 
                                 || $meta['META_TYPE_ID'] == 'metawidget' 
                                 || $meta['META_TYPE_ID'] == 'processrule' 
@@ -2671,14 +2690,14 @@ class Mdupgrade_Model extends Model {
 
                 $script = Compression::gzdeflate($xml);
 
-                $result = array('status' => 'success', 'result' => $script);
+                $result = ['status' => 'success', 'result' => $script];
                 
             } else {
-                $result = array('status' => 'error', 'message' => 'Татах өгөгдөл олдсонгүй!');
+                $result = ['status' => 'error', 'message' => 'Татах өгөгдөл олдсонгүй!'];
             }
             
         } else {
-            $result = array('status' => 'error', 'message' => 'Invalid ids!');
+            $result = ['status' => 'error', 'message' => 'Invalid ids!'];
         }
         
         return $result;
@@ -4883,8 +4902,6 @@ class Mdupgrade_Model extends Model {
                                     $script = 'DO $$ BEGIN '.$script.'; EXCEPTION WHEN others THEN END; $$;';
                                 }
                             }
-                            
-                            $script = str_replace('TO_CHAR(', 'TO_DATE(', $script);
 
                             try {
                                 
@@ -4943,6 +4960,7 @@ class Mdupgrade_Model extends Model {
                                     if (DB_DRIVER == 'postgres9') {
                                         
                                         $createTableScript = str_replace(' CHAR)', ')', $createTableScript);
+                                        $createTableScript = str_replace("''", "'", $createTableScript);
                                         
                                         if (strpos($createTableScript, 'ALTER TABLE') !== false) {
                                             
@@ -4959,8 +4977,7 @@ class Mdupgrade_Model extends Model {
 
                                         $this->db->Execute($createTableScript);
 
-                                    } catch (Exception $ex) { 
-                                    }
+                                    } catch (Exception $ex) { }
                                 }
                             }
                         }
@@ -4998,7 +5015,7 @@ class Mdupgrade_Model extends Model {
                                 }
 
                             } catch (Exception $ex) {
-                                        
+                                       
                                 if ($skipError != '1') {
                                     
                                     $message = $ex->getMessage();
@@ -6812,7 +6829,7 @@ class Mdupgrade_Model extends Model {
             
             $bugFixId = Input::numeric('id');
         
-            $exportData = Mdupgrade::getBugfixDataByCommand('downloadObject', array('objectCode' => 'bugfix', 'ids' => $bugFixId));
+            $exportData = Mdupgrade::getBugfixDataByCommand('downloadObject', ['objectCode' => 'bugfix', 'ids' => $bugFixId]);
 
             if ($exportData['status'] == 'success' && isset($exportData['result'])) {
 
@@ -6821,10 +6838,10 @@ class Mdupgrade_Model extends Model {
                 $fileContent = Compression::gzinflate($exportData['result']);
 
                 if ($fileContent && strpos($fileContent, '<meta id="') === false) {
-                    return array('status' => 'error', 'message' => 'PHP export хийсэн файл уншуулна уу!', 'logs' => '');
+                    return ['status' => 'error', 'message' => 'PHP export хийсэн файл уншуулна уу!', 'logs' => ''];
                 } 
 
-                $response = self::executeUpgradeScript(array($fileContent));
+                $response = self::executeUpgradeScript([$fileContent]);
 
                 if ($response['status'] == 'success') {
 
@@ -6846,7 +6863,7 @@ class Mdupgrade_Model extends Model {
                         self::$isCreateRollback = true;
                         
                         $result = self::downloadBugFixingModel($bugFixId);
-                        $oldPatch = $result['result'];
+                        $oldPatch = isset($result['result']) ? $result['result'] : null;
                         
                         if ($oldPatch) {
                             $clobResult = $this->db->UpdateClob('CUSTOMER_BUG_FIXED', 'OLD_PATCH', $oldPatch, 'ID = '.$fixedData['ID']);
@@ -6856,22 +6873,22 @@ class Mdupgrade_Model extends Model {
 
                         if ($clobResult) {
 
-                            $exportData = Mdupgrade::getBugfixDataByCommand('download', array('ids' => $bugFixId));
+                            $exportData = Mdupgrade::getBugfixDataByCommand('download', ['ids' => $bugFixId]);
 
                             if ($exportData['status'] == 'success' && isset($exportData['result'])) {
 
                                 $fileContent = Compression::gzinflate($exportData['result']);
 
                                 if ($fileContent && strpos($fileContent, '<meta id="') === false) {
-                                    return array('status' => 'error', 'message' => 'PHP export хийсэн файл уншуулна уу!', 'logs' => '');
+                                    return ['status' => 'error', 'message' => 'PHP export хийсэн файл уншуулна уу!', 'logs' => ''];
                                 } 
 
-                                $response = self::executeUpgradeScript(array($fileContent));
+                                $response = self::executeUpgradeScript([$fileContent]);
                                 
                                 $status = issetDefaultVal($response['status'], 'success');
                                 $message = issetDefaultVal($response['message'], 'Амжилттай');
 
-                                return array('status' => $status, 'message' => $message, 'logs' => issetParam($response['logs']));
+                                return ['status' => $status, 'message' => $message, 'logs' => issetParam($response['logs'])];
                             } else {
                                 return $exportData;
                             }
@@ -6879,17 +6896,17 @@ class Mdupgrade_Model extends Model {
                     }
                     
                 } else {
-                    return array('status' => 'error', 'message' => $response['message']);
+                    return ['status' => 'error', 'message' => $response['message']];
                 }
                 
             } else {
-                return array('status' => 'error', 'message' => $exportData['message']);
+                return ['status' => 'error', 'message' => $exportData['message']];
             }
             
-            return array('status' => 'error', 'message' => 'Error!');
+            return ['status' => 'error', 'message' => 'Error!'];
         
         } catch (Exception $ex) {
-            return array('status' => 'error', 'message' => $ex->getMessage());
+            return ['status' => 'error', 'message' => $ex->getMessage()];
         }
     }
     

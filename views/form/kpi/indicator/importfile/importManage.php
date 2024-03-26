@@ -96,12 +96,42 @@ $(function() {
             },
             success: function(data) {
                 $('.mv-imp-file-filter').empty();
-                $('#mv-imp-imported-data').empty().append(data + '<div class="clearfix"/>');
+                $('#mv-imp-imported-data').empty().append(data + '<div class="clearfix"/>').attr('data-indicator-id', indicatorId);
             }
         }).done(function() {
             Core.unblockUI();
         });
     });
+    
+    $('#mv-imp-imported-data').on('change', 'select[data-match-field]', function() {
+        var $this = $(this), $parent = $this.closest('#mv-imp-imported-data'), 
+            indicatorId = $parent.attr('data-indicator-id');
+        $.ajax({
+            type: 'post',
+            url: 'mdform/importManageChangeColumn',
+            data: {
+                indicatorId: indicatorId, 
+                mainIndicatorId: '<?php echo $this->mainIndicatorId; ?>', 
+                columnName: $this.attr('data-match-field'), 
+                mainColumnName: $this.val()
+            }, 
+            dataType: 'json', 
+            success: function(data) {}
+        });
+    });
+});
+
+$.contextMenu({
+    selector: '.mv-imp-file-list .imp-file-item',
+    callback: function(key, opt) {
+        if (key == 'remove') {
+            var $this = opt.$trigger;
+            mvImportManageRemoveIndicator($this);
+        } 
+    },
+    items: {
+        "remove": {name: plang.get('delete_btn'), icon: "trash"}
+    }
 });
 
 function mvRenderChildDataSets(id) {
@@ -119,11 +149,12 @@ function mvRenderChildDataSets(id) {
 function mvImportManageDataCheck(elem, indicatorId, mainIndicatorId) {
     
     PNotify.removeAll();
+    var matchColumns = mvImportManageMatchColumn(indicatorId);
         
     $.ajax({
         type: 'post',
         url: 'mdform/importManageDataCheck',
-        data: {indicatorId: indicatorId, mainIndicatorId: mainIndicatorId}, 
+        data: {indicatorId: indicatorId, mainIndicatorId: mainIndicatorId, matchColumns: matchColumns}, 
         dataType: 'json', 
         beforeSend: function() {
             Core.blockUI({message: 'Loading...', boxed: true});
@@ -276,10 +307,12 @@ function mvImportManageFieldsConfig(elem, indicatorId, mainIndicatorId) {
 }
 function mvImportManageDataUpdate(elem, indicatorId, mainIndicatorId) {
     PNotify.removeAll();
+    var matchColumns = mvImportManageMatchColumn(indicatorId);
+    
     $.ajax({
         type: 'post',
         url: 'mdform/importManageDataUpdate',
-        data: {indicatorId: indicatorId, mainIndicatorId: mainIndicatorId}, 
+        data: {indicatorId: indicatorId, mainIndicatorId: mainIndicatorId, matchColumns: matchColumns}, 
         dataType: 'json',
         beforeSend: function() {
             Core.blockUI({message: 'Loading...', boxed: true});
@@ -321,27 +354,28 @@ function mvImportManageDataCommit(elem, indicatorId, mainIndicatorId) {
         buttons: [
             {text: plang.get('yes_btn'), class: 'btn green-meadow btn-sm', click: function() {
                 $dialog.dialog('close');
+                var matchColumns = mvImportManageMatchColumn(indicatorId);
                 $.ajax({
                     type: 'post',
                     url: 'mdform/importManageDataCommit',
-                    data: {indicatorId: indicatorId, mainIndicatorId: mainIndicatorId}, 
+                    data: {indicatorId: indicatorId, mainIndicatorId: mainIndicatorId, matchColumns: matchColumns}, 
                     dataType: 'json',
                     beforeSend: function() {
                         Core.blockUI({message: 'Loading...', boxed: true});
                     },
                     success: function(data) {
                         Core.unblockUI();
+                        new PNotify({
+                            title: data.status,
+                            text: data.message,
+                            type: data.status,
+                            sticker: false, 
+                            addclass: 'pnotify-center'
+                        }); 
+                            
                         if (data.status == 'success') {
                             dataViewReload(indicatorId);
-                        } else {
-                            new PNotify({
-                                title: data.status,
-                                text: data.message,
-                                type: data.status,
-                                sticker: false, 
-                                addclass: 'pnotify-center'
-                            }); 
-                        }
+                        } 
                     }
                 });
             }},
@@ -352,68 +386,76 @@ function mvImportManageDataCommit(elem, indicatorId, mainIndicatorId) {
     });
     $dialog.dialog('open');
 }
-/*function mvImportManageDataCheck(elem, indicatorId, mainIndicatorId) {
-    
-    PNotify.removeAll();
-    
+function mvImportManageMatchColumn(indicatorId) {
     var $panelView = window['objectdatagrid_'+indicatorId].datagrid('getPanel').children('div.datagrid-view'), 
         $header = $panelView.find('.datagrid-view2 .datagrid-header-row:eq(0)'), 
         $matchCombo = $header.find('select[data-match-field]').filter(function() { return this.value != ''; }); 
+    var matchColumn = [];
     
     if ($matchCombo.length > 0) {
-        
-        Core.blockUI({message: 'Loading...', boxed: true});
-        
-        var matchColumn = [];
         
         $matchCombo.each(function() {
             var $this = $(this);
             matchColumn.push({'columnName': $this.attr('data-match-field'), 'mainColumnName': $this.val()});
         });
-        
-        $.ajax({
-            type: 'post',
-            url: 'mdform/importManageDataCheck',
-            data: {indicatorId: indicatorId, mainIndicatorId: mainIndicatorId, matchColumn: matchColumn}, 
-            dataType: 'json', 
-            success: function(data) {
-                if (data.status == 'success') {
-                    
-                    var html = [], addData = data.add, updateData = data.update;
-                    
-                    html.push('<div class="btn-group btn-group-only-left-right-radius" data-action="add" data-ids="'+addData.ids+'">');
-                        html.push('<button type="button" onclick="mvImportManageDataCheckFilter(this, \''+indicatorId+'\', \''+mainIndicatorId+'\');" class="btn btn-primary">Шинэ ( '+addData.count+' )</button>');
-                    html.push('</div>');
-                    
-                    html.push('<div class="btn-group btn-group-only-left-right-radius ml-1" data-action="update" data-ids="'+updateData.ids+'">');
-                        html.push('<button type="button" onclick="mvImportManageDataCheckFilter(this, \''+indicatorId+'\', \''+mainIndicatorId+'\');" class="btn btn-primary">Засагдах ( '+updateData.count+' )</button>');
-                    html.push('</div>');
-                    
-                    $('.mv-imp-file-filter').empty().append(html.join(''));
-                    
-                    $('a[href="#mv-imp-file-tab2"]').tab('show');
-                    
-                } else {
-                    new PNotify({
-                        title: data.status,
-                        text: data.message,
-                        type: data.status,
-                        sticker: false, 
-                        addclass: 'pnotify-center'
-                    }); 
-                }
-                Core.unblockUI();
-            }
-        });
-        
-    } else {
-        new PNotify({
-            title: 'Info',
-            text: 'Та харгалзах баганын тохиргоог хийнэ үү!',
-            type: 'info',
-            sticker: false, 
-            addclass: 'pnotify-center'
-        }); 
     }
-}*/
+    
+    return matchColumn;
+}
+function mvImportManageRemoveIndicator(elem) {
+    var $row = $(elem);
+    var dialogName = '#dialog-kpiindicatortmp-confirm';
+    if (!$(dialogName).length) {
+        $('<div id="' + dialogName.replace('#', '') + '"></div>').appendTo('body');
+    }
+    var $dialog = $(dialogName);
+
+    $dialog.html(plang.get('msg_delete_confirm'));
+    $dialog.dialog({
+        cache: false,
+        resizable: true,
+        bgiframe: true,
+        autoOpen: false,
+        title: plang.get('msg_title_confirm'), 
+        width: 300,
+        height: 'auto',
+        modal: true,
+        buttons: [
+            {text: plang.get('yes_btn'), class: 'btn green-meadow btn-sm', click: function() {
+                PNotify.removeAll();
+                
+                $.ajax({
+                    type: 'post',
+                    url: 'mdform/importManageRemoveIndicator',
+                    data: {indicatorId: $row.attr('data-id'), mainIndicatorId: '<?php echo $this->mainIndicatorId; ?>'}, 
+                    dataType: 'json',
+                    beforeSend: function () {
+                        Core.blockUI({message: 'Loading...', boxed: true});
+                    },
+                    success: function (data) {
+
+                        new PNotify({
+                            title: data.status,
+                            text: data.message,
+                            type: data.status,
+                            sticker: false, 
+                            addclass: pnotifyPosition
+                        });
+
+                        if (data.status == 'success') {
+                            $row.remove();
+                            $dialog.dialog('close');
+                        }
+
+                        Core.unblockUI();
+                    }
+                });
+            }},
+            {text: plang.get('no_btn'), class: 'btn blue-madison btn-sm', click: function () {
+                $dialog.dialog('close');
+            }}
+        ]
+    });
+    $dialog.dialog('open');
+}
 </script>

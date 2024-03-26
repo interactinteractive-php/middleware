@@ -1106,6 +1106,7 @@ function bpAddRow(mainSelector, elem, groupPath, rowCount, fillType, async, from
     
     if (addButtonLength > 0 || isCustomDtl) {
         
+        var isSubDtl = false;
         var getClickAttr = $addButton.attr('onclick');
         var uniqId = mainSelector.attr('data-bp-uniq-id');
         
@@ -1147,6 +1148,12 @@ function bpAddRow(mainSelector, elem, groupPath, rowCount, fillType, async, from
                 }
 
                 $rowEl.removeClass('multi-added-row display-none');
+                
+                if (isSubDtl) {
+                    kpiSetRowIndex($tbody, rowIndex);
+                } else {
+                    kpiSetRowIndex($tbody);
+                }
 
                 setRowNumKpiIndicatorTemplate($tbody);
                 bpDetailFreeze($table);
@@ -1154,8 +1161,6 @@ function bpAddRow(mainSelector, elem, groupPath, rowCount, fillType, async, from
             
             return;
         }
-        
-        var isSubDtl = false;
         
         if (isCustomDtl) {
             
@@ -2296,12 +2301,12 @@ function bpFillGroupByIndicator(mainSelector, elem, dataViewCode, groupPath, inp
                     for (ni; ni < rowNumLen; ni++) { 
                         $($rowNumEl[ni]).find('td:first > span').text(ni + 1);
                     }
-
-                    /*if (isSubDtl) {
-                        bpSetRowIndexDepth($parent, mainSelector, rowIndex);
+                    
+                    if (isSubDtl) {
+                        kpiSetRowIndex($getTableBody, rowIndex);
                     } else {
-                        bpSetRowIndex($parent.parent());
-                    }*/
+                        kpiSetRowIndex($getTableBody);
+                    }
 
                     var $rowEl = $getTableBody.find('> .bp-detail-row.multi-added-row');
                     var rowLen = $rowEl.length, rowi = 0;
@@ -3394,10 +3399,11 @@ function bpHideButton(mainSelector, buttonCode) {
     buttonCode = buttonCode.toLowerCase();
     
     setTimeout(function() {
-        var $dialog = mainSelector.closest('.ui-dialog');
-            
+        var bpId = mainSelector.attr('data-process-id');
+        var $dialog = mainSelector.closest('.ui-dialog').find('#dialog-businessprocess-'+bpId);
+        
         if ($dialog.length) {
-            
+            $dialog = $dialog.parent('.ui-dialog');
             var $dialogButton = $dialog.find('.bp-btn-'+buttonCode+':eq(0)');
             
             if ($dialogButton.length) {
@@ -9846,7 +9852,11 @@ function bpIsDisabled(mainSelector, elem, fieldPath) {
     return false;
 }
 function bpFullMessage(mainSelector, type, message) {
-    var $form = mainSelector.find('form#wsForm');
+    if (mainSelector.hasClass('kpi-ind-tmplt-section')) {
+        var $form = mainSelector.closest('form');
+    } else {
+        var $form = mainSelector.find('form#wsForm');
+    }
     type = type.replace('error', 'danger');
     $form.css({display: 'none'});
     $form.after('<div class="alert alert-'+type+'">'+message+'</div>');
@@ -14657,17 +14667,20 @@ function bpChangeWfmStatusByRowDataQryStr(mainSelector, elem, dvId, rowDataQrySt
     if (row) {
         var bpUniqId = mainSelector.attr('data-bp-uniq-id');
         row.callbackFnc = callbackFnc + '_' + bpUniqId;
-        if (row.wfmisneedsign == '1') {
-            beforeSignChangeWfmStatusId(elem, row.newwfmstatusid, dvId, row, row.wfmstatuscolor, row.wfmstatusname);
-        } else if (row.wfmisneedsign == '2') {
-            beforeHardSignChangeWfmStatusId(elem, row.newwfmstatusid, dvId, row, row.wfmstatuscolor, row.wfmstatusname);
-        } /*else if (v.wfmisneedsign == '3') {
-            $workflowDropdown.append('<li><a href="javascript:;" ' + advancedCriteria + ' onclick="cloudSignChangeWfmStatusId(this, \''+v.wfmstatusid+'\', \'<?php echo $this->indicatorId; ?>\', \'<?php echo $this->indicatorId; ?>\', \''+$.trim(v.wfmstatuscolor)+'\', \''+v.wfmstatusname+'\');" id="'+ v.wfmstatusid +'" data-isindicator="1">'+wfmIcon + v.wfmstatusname +' <i class="fa fa-key"></i></a></li>'); 
-        } else if (v.wfmisneedsign == '4') {
-            $workflowDropdown.append('<li><a href="javascript:;" ' + advancedCriteria + ' onclick="pinCodeChangeWfmStatusId(this, undefined, \''+v.wfmstatusid+'\', \'<?php echo $this->indicatorId; ?>\', \'<?php echo $this->indicatorId; ?>\', \''+$.trim(v.wfmstatuscolor)+'\', \''+v.wfmstatusname+'\');" id="'+ v.wfmstatusid +'" data-isindicator="1">'+wfmIcon + v.wfmstatusname +' <i class="fa fa-key"></i></a></li>'); 
-        } else if (v.wfmisneedsign == '6') {
-            $workflowDropdown.append('<li><a href="javascript:;" ' + advancedCriteria + ' onclick="otpChangeWfmStatusId(this, undefined, \''+v.wfmstatusid+'\', \'<?php echo $this->indicatorId; ?>\', \'<?php echo $this->indicatorId; ?>\', \''+$.trim(v.wfmstatuscolor)+'\', \''+v.wfmstatusname+'\');" id="'+ v.wfmstatusid +'" data-isindicator="1">'+wfmIcon + v.wfmstatusname +' <i class="fa fa-key"></i></a></li>'); 
-        }*/
+        
+        if (row.wfmstatusprocessid != '' && row.wfmstatusprocessid != 'null' && row.wfmstatusprocessid != null) {
+            if (row.wfmisneedsign == '1') {
+                transferProcessAction('signProcess', dvId, row.wfmstatusprocessid, '200101010000011', 'toolbar', elem, {callerType: 'expression', isWorkFlow: true, wfmStatusId: row.wfmstatusid, wfmStatusCode: '', selectedRow: row}, 'dataViewId='+dvId+'&refStructureId=&statusId='+row.newwfmstatusid+'&statusName='+row.wfmstatusname+'&statusColor='+row.wfmstatuscolor+'&rowId='+row.id);
+            } else if (row.wfmisneedsign == '2') {
+                transferProcessAction('hardSignProcess', dvId, row.wfmstatusprocessid, '200101010000011', 'toolbar', elem, {callerType: 'expression', isWorkFlow: true, wfmStatusId: row.wfmstatusid, wfmStatusCode: '', selectedRow: row}, 'dataViewId='+dvId+'&refStructureId=&statusId='+row.newwfmstatusid+'&statusName='+row.wfmstatusname+'&statusColor='+row.wfmstatuscolor+'&rowId='+row.id);
+            } 
+        } else {   
+            if (row.wfmisneedsign == '1') {
+                beforeSignChangeWfmStatusId(elem, row.newwfmstatusid, dvId, row, row.wfmstatuscolor, row.wfmstatusname);
+            } else if (row.wfmisneedsign == '2') {
+                beforeHardSignChangeWfmStatusId(elem, row.newwfmstatusid, dvId, row, row.wfmstatuscolor, row.wfmstatusname);
+            }
+        }
     }
     return;
 }
@@ -18032,6 +18045,13 @@ function bpSetTabLabelWidth(mainSelector, setWidth, tabIndex) {
     
     return;
 }
+function bpSetHeaderFieldStyle(mainSelector, field, styles) {
+    var $cell = mainSelector.find('td[data-cell-path="'+field+'"]:eq(0)');
+    if ($cell.length) {
+        $cell.attr('style', styles);
+    }
+    return;
+}
 function bpSendToMetaFromDetail(mainSelector, elem, fieldPath) {
     var $dtls = mainSelector.find('[data-path="'+fieldPath+'"]');
     
@@ -18359,6 +18379,10 @@ function bankIpTerminalTransfer(amount, terminalId, deviceType, callback) {
           var resultIpTerminal = {status:'success'};
   
           if (dvctype === "databank") {
+            if (!getParse["response"]) {
+                callback({status:"error", code:'', text:'Алдааны мэдээлэл ирээгүй'});
+                return;
+            }
             if (getParse.status && getParse["response"]["response_code"] == "000") {
                 resultIpTerminal['rrn'] = getParse["response"]['rrn'];
                 resultIpTerminal['pan'] = getParse["response"]['pan'];
@@ -18777,27 +18801,33 @@ function bpGetMetaVerseMethodAction(mainSelector) {
     return mainSelector.find('input[name="kpiActionType"]').val();
 }
 function codeFormatter(type, sourceXml) {
-    if (type === 'xml') {
-        var xmlDoc = new DOMParser().parseFromString(sourceXml, 'application/xml');
-        var xsltDoc = new DOMParser().parseFromString([
-            '<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform">',
-            '  <xsl:strip-space elements="*"/>',
-            '  <xsl:template match="para[content-style][not(text())]">',
-            '    <xsl:value-of select="normalize-space(.)"/>',
-            '  </xsl:template>',
-            '  <xsl:template match="node()|@*">',
-            '    <xsl:copy><xsl:apply-templates select="node()|@*"/></xsl:copy>',
-            '  </xsl:template>',
-            '  <xsl:output indent="yes"/>',
-            '</xsl:stylesheet>',
-        ].join('\n'), 'application/xml');
+    if (sourceXml != '' && sourceXml != null) {
+        if (type === 'xml') {
+            var xmlDoc = new DOMParser().parseFromString(sourceXml, 'application/xml');
+            var xsltDoc = new DOMParser().parseFromString([
+                '<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform">',
+                '  <xsl:strip-space elements="*"/>',
+                '  <xsl:template match="para[content-style][not(text())]">',
+                '    <xsl:value-of select="normalize-space(.)"/>',
+                '  </xsl:template>',
+                '  <xsl:template match="node()|@*">',
+                '    <xsl:copy><xsl:apply-templates select="node()|@*"/></xsl:copy>',
+                '  </xsl:template>',
+                '  <xsl:output indent="yes"/>',
+                '</xsl:stylesheet>'
+            ].join('\n'), 'application/xml');
 
-        var xsltProcessor = new XSLTProcessor();    
-        xsltProcessor.importStylesheet(xsltDoc);
-        var resultDoc = xsltProcessor.transformToDocument(xmlDoc);
-        var resultXml = new XMLSerializer().serializeToString(resultDoc);
-        return resultXml;    
+            var xsltProcessor = new XSLTProcessor();    
+            xsltProcessor.importStylesheet(xsltDoc);
+            var resultDoc = xsltProcessor.transformToDocument(xmlDoc);
+            var resultXml = new XMLSerializer().serializeToString(resultDoc);
+            return resultXml;    
+        } else if (type === 'json') {
+            return JSON.stringify(JSON.parse(sourceXml), null, 2);
+        }
     }
+    
+    return null;
 }
 function detectCustomerFromRegion(lookupKeyDv, dtlPath, region, elem) {
     if (!region) return;
@@ -19023,5 +19053,45 @@ function bpSaveReportTemplateToFile(mainSelector, recordId, fileType, fileName) 
         }
     }
     
+    return;
+}
+function bpSetReportTemplateFieldValue(mainSelector, field, value) {
+    var $field = mainSelector.find('span[data-reporttemplate-field="'+field+'"]');
+    
+    if ($field.length) {
+        $field.html(value);
+    } else {
+        var $reportContainer = mainSelector.find('.report-preview-container');
+        var reportHtml = $reportContainer.html();
+        
+        if (reportHtml.indexOf('['+field+']') !== -1) {
+            reportHtml = str_ireplace('['+field+']', '<span data-reporttemplate-field="'+field+'">' + value + '</span>', reportHtml);
+            $reportContainer.html(reportHtml);
+        }
+    }
+    
+    return;
+}
+function bpReportTemplatePreview(mainSelector, metaDataId, pageSize, pageOrientation, qryStr) {
+    
+    var $element = mainSelector.find('.report-preview');
+    
+    if ($element.length) {
+        
+        var processId = mainSelector.attr('data-process-id');
+        var $parent = $element.parent();
+        
+        $.ajax({
+            type: 'post',
+            url: 'mdtemplate/getReportTemplateHtml',
+            data: {processId: processId, templateMetaId: metaDataId, pageSize: pageSize.toLowerCase(), pageOrientation: pageOrientation.toLowerCase(), qryStr: qryStr},
+            dataType: 'html',
+            async: false,
+            success: function(dataHtml) {
+                $parent.empty().append(dataHtml);
+            }
+        });
+    }
+                    
     return;
 }

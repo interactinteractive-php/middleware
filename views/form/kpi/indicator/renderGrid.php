@@ -99,6 +99,8 @@
                                                 $typeCode = $process['type_code'];
                                                 $kpiTypeId = $process['kpi_type_id'];
                                                 $buttonName = $className = $onClick = $description = $opt = '';
+                                                $isDfillRelation = issetParam($process['is_dfill_relation']);
+                                                $isCfillRelation = issetParam($process['is_cfill_relation']);                                                
                                                 
                                                 if ($srcIndicatorId == $this->indicatorId) {
                                                     
@@ -108,10 +110,14 @@
                                                         $className = 'btn btn-success btn-circle btn-sm';
                                                         $buttonName = '<i class="far fa-plus"></i> '.$labelName;
                                                         
+                                                        if ($isFillRelation) {
+                                                            $opt = ', {fillSelectedRow: true, mode: \'create\'}';
+                                                        } 
+                                                        
                                                         if ($isNormalRelation) {
                                                             $onClick = "mvNormalRelationRender(this, '$kpiTypeId', '".$this->indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId});";
                                                         } else {
-                                                            $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '".$this->indicatorId."', false);";
+                                                            $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '".$this->indicatorId."', false$opt);";
                                                         }
                                                         
                                                     } elseif ($typeCode == 'update') {
@@ -270,8 +276,6 @@
                                                     
                                                     $description = $this->lang->line(issetParam($process['description']));
                                                     $processName = $this->lang->line(issetParam($process['label_name']));
-                                                    $isDfillRelation = issetParam($process['is_dfill_relation']);
-                                                    $isCfillRelation = issetParam($process['is_cfill_relation']);
                                                     
                                                     if ($typeCode == 'create') {
                                                         
@@ -308,7 +312,7 @@
                                                         }
                                                         
                                                         if ($isNormalRelation) {
-                                                            $onClick = "mvNormalRelationRender(this, '$kpiTypeId', '".$this->indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'update'});";
+                                                            $onClick = "mvNormalRelationRender(this, '$kpiTypeId', '".$this->indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'update', isFillRelation: '$isFillRelation'});";
                                                         } else {
                                                             if (issetParam($process['widget_code']) !== '') {
                                                                 $onClick = "mvWidgetRelationRender(this, '$kpiTypeId', '".$this->indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'update', widgetCode: '". $process['widget_code'] ."'});";
@@ -333,7 +337,11 @@
                                                         if ($isNormalRelation) {
                                                             $onClick = "mvNormalRelationRender(this, '$kpiTypeId', '".$this->indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'view'});";
                                                         } else {
-                                                            $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '$srcIndicatorId', true$opt);";
+                                                            if (issetParam($process['widget_code']) !== '') {
+                                                                $onClick = "mvWidgetRelationRender(this, '$kpiTypeId', '".$this->indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'update', widgetCode: '". $process['widget_code'] ."'});";
+                                                            } else {
+                                                                $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '$srcIndicatorId', true$opt);";
+                                                            }
                                                         }
                                                         
                                                     } elseif ($typeCode == 'delete') {
@@ -553,7 +561,7 @@
                     <?php
                     if (isset($this->isBasket)) {
                     ?>
-                    <table id="objectdatagrid-<?php echo $this->indicatorId; ?>" style="height: 400px"></table>
+                    <table id="objectdatagrid_<?php echo $this->indicatorId; ?>" style="height: 400px"></table>
                     <?php
                     } else {
                     ?>
@@ -669,7 +677,7 @@ var isGoogleMapView_<?php echo $this->indicatorId; ?> = false;
 var isFilterShowData_<?php echo $this->indicatorId; ?> = <?php echo ($this->isFilterShowData == '1' ? 'true' : 'false'); ?>;
 var idField_<?php echo $this->indicatorId; ?> = '<?php echo $this->idField; ?>';
 var indicatorName_<?php echo $this->indicatorId; ?> = '<?php echo Str::nlTobr($this->title); ?>';
-var objectdatagrid_<?php echo $this->indicatorId; ?> = $('#objectdatagrid-<?php echo $this->indicatorId; ?>');
+var objectdatagrid_<?php echo $this->indicatorId; ?> = $('#objectdatagrid<?php echo (isset($this->isBasket) ? '_' : '-') . $this->indicatorId; ?>');
 var drillDownCriteria_<?php echo $this->indicatorId; ?> = '<?php echo $this->drillDownCriteria; ?>';
 var dynamicHeight = 0;
 var _selectedRows_<?php echo $this->indicatorId; ?> = [];
@@ -785,7 +793,9 @@ $(function() {
             foreach ($this->row['gridOption'] as $optName => $optVal) {
                 
                 if ($optName == 'nowrap') { 
-                    echo 'nowrap: ' . (is_bool($optVal) ? json_encode($optVal) : $optVal) . ', ';
+                    echo $optName.': ' . (is_bool($optVal) ? json_encode($optVal) : $optVal) . ', ';
+                } elseif ($optName == 'multisort') { 
+                    echo 'multiSort: ' . (is_bool($optVal) ? json_encode($optVal) : $optVal) . ', ';
                 }
             }
         }
@@ -1091,7 +1101,7 @@ function filterKpiIndicatorValueForm(indicatorId) {
         dataType: 'json',
         success: function(data) {
             
-            var $filterCol = $('#object-value-list-' + indicatorId + ' .kpidv-data-filter-col');
+            var $filterCol = $('#object-value-list-' + indicatorId + ' .kpidv-data-filter-col').last();
             
             if (data.status == 'success' && data.html != '') {
                 

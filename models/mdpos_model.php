@@ -7544,7 +7544,7 @@ class Mdpos_Model extends Model {
                         'amount' => $row['amount'],
                         'confirmcode' => issetParam($row['confirmcode']),
                         'traceno' => issetParam($row['traceno']),
-                        'cardregisternumber' => $row['bankid'] == 400000 ? issetParam($row['traceno']) : issetParam($row['cardregisternumber']),
+                        'cardregisternumber' => ($row['bankid'] == 400000 || $row['bankid'] == 500000) ? issetParam($row['traceno']) : issetParam($row['cardregisternumber']),
                         'terminalnumber' => issetParam($row['terminalnumber']),
                     );
 

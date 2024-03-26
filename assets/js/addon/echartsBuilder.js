@@ -4,6 +4,26 @@ var kpIndicatorChart = {};
 
 var EchartBuilder = function() {
 
+    var convertAmount = function (num) {
+        if (num >= 1000000000000) {
+            return Math.floor(num / 1000000000000, 2) + "t ";
+        } else {
+            if (num >= 1000000000) {
+                return Math.floor(num / 1000000000, 2) + "b ";
+            } else {
+                if (num >= 1000000) {
+                    return Math.floor(num / 1000000, 2) + "m ";
+                } else {
+                    if (num >= 1000) {
+                        return Math.floor(num / 1000, 2) + "k ";
+                    } else {
+                        return num;
+                    }
+                }
+            }
+        }
+    }
+
     var pushToAry = function (name, val) {
         var obj = {};
         obj[name] = val;
@@ -11,16 +31,47 @@ var EchartBuilder = function() {
         return obj;
     }
      
+    var clearOptions = function (options) {
+        $.each(options, function (i, r) {
+            if (typeof r === 'object') {
+                clearOptions(r);
+            }
+            if (r === "{digital}") {
+                var key = i.replace('_main', '');
+                options[key] = function (value, index) {
+                    return convertAmount (value);
+                };
+            }
+        });
+        return options;
+    }
+    
     var recursivePushObj = function (tmpObj, tmp, value) {
 
         if (typeof tmp[tmpObj[0]] === 'undefined') {
             tmp[tmpObj[0]] = {};
         }
+
         if (tmpObj.length === 3 ) {
             if (typeof tmp[tmpObj[0]][tmpObj[1]] === 'undefined') {
                 tmp[tmpObj[0]][tmpObj[1]] = {};
             }
-            tmp[tmpObj[0]][tmpObj[1]][tmpObj[2]] = value;
+
+            if (value === '{digital}') {
+                if (tmpObj[2] = 'formatter_main') {
+                    tmp[tmpObj[0]][tmpObj[1]]['formatter'] = function (value, index) {
+                        return convertAmount (value);
+                    };
+                    tmp[tmpObj[0]][tmpObj[1]]['formatter_main'] = value;    
+                } else {
+                    tmp[tmpObj[0]][tmpObj[1]][tmpObj[2]] = function (value, index) {
+                        return convertAmount (value);
+                    };
+                    tmp[tmpObj[0]][tmpObj[1]][tmpObj[2]+'_main'] = value;
+                }
+            } else {
+                tmp[tmpObj[0]][tmpObj[1]][tmpObj[2]] = value;
+            }
         } else {
             tmp[tmpObj[0]][tmpObj[1]] = (tmpObj[1] === 'data') ? JSON.parse(value) : value;
         }
@@ -539,9 +590,28 @@ var EchartBuilder = function() {
                         shadowColor: 'rgba(0, 0, 0, 0.5)'
                     }
                 };
+                series = {
+                    ...series,
+                    ...option.series
+                };
                 option['series'] = series; 
                 break;
             case 'bar_polar':
+                var polarSer = {
+                    data: dataSet,
+                    type: 'bar',
+                    /* showBackground: true, */
+                    coordinateSystem: 'polar',
+                    backgroundStyle: {
+                        color: 'rgba(180, 180, 180, 0.2)'
+                    },
+                    label: {
+                        show: false,
+                        position: 'middle',
+                        formatter: '{c}'
+                    }
+                };
+                
                 option = {
                     polar: {
                         radius: [30, '80%']
@@ -569,14 +639,17 @@ var EchartBuilder = function() {
                             show: false,
                             position: 'middle',
                             formatter: '{c}'
-                        }
-                    }
+                        },
+                        ...option.series
+                    },
                 };
+                console.log(option);
                 break;
             case 'stacked_column':
             case 'clustered_column':
             case 'bar_stacked':
             case 'stacked_bar':
+            case 'line_bar':
             case 'bar_radial':
             case 'bar_label_rotation':
                 option.type = 'bar';
@@ -716,7 +789,7 @@ var EchartBuilder = function() {
                         data: []
                     };
                     
-                    if (type === 'bar_stacked' || type === 'stacked_bar') {
+                    if (type === 'bar_stacked' || type === 'stacked_bar'|| type === 'line_bar') {
                         tmp = {
                             name: xk,
                             type: 'bar',
@@ -760,7 +833,7 @@ var EchartBuilder = function() {
                 });
 
                 
-                if (type === 'stacked_bar' && typeof chartConfig.axisXGroup !== 'undefined' && chartConfig.axisXGroup !== '') {
+                if ((type === 'stacked_bar' || type === 'line_bar') && typeof chartConfig.axisXGroup !== 'undefined' && chartConfig.axisXGroup !== '') {
                     tmp['series'] = dataSet;
                     xAxisData = obj.dataXaxis;
                 } else {
@@ -1005,6 +1078,7 @@ var EchartBuilder = function() {
             case '3':
             case '2':
                 option = JSON.parse(chartConfig.buildCharConfig);
+                option = clearOptions(option);
                 if (useData == '3') {
                     if (type === 'stacked_bar' && typeof chartConfig.axisXGroup !== 'undefined' && chartConfig.axisXGroup !== '') {
                         option.series = data;
@@ -1036,7 +1110,8 @@ var EchartBuilder = function() {
 
                 break;
         }
-        
+
+        console.log(option);
         option && myChart.setOption(option);
         var jsonMinif = JSON.stringify(option);
         
@@ -1180,7 +1255,6 @@ var EchartBuilder = function() {
             yAxis = xAxisTmp;
         }
     
-        console.log(option);
         switch (type) {
             case 'pie': 
                 break;

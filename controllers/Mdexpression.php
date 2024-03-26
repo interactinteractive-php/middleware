@@ -1205,7 +1205,7 @@ class Mdexpression extends Controller {
                     $valRowExp .= '});';
                 }
                 if (strpos($valRowExp, '].removeSuccess()') !== false) {
-                    $valRowExp = str_replace($expEventCatch[0] . '.removeSuccess()', $mainSelector . '.on("change", "table[data-table-path=\'' . $expEventCatch[1] . '\'] > tbody > tr > td > a.bp-remove-row", function(e){ eventDelay(function()', $valRowExp);
+                    $valRowExp = str_replace($expEventCatch[0] . '.removeSuccess()', $mainSelector . '.on("change", "table[data-table-path=\'' . $expEventCatch[1] . '\'] > tbody > tr > td > .bp-remove-row", function(e){ eventDelay(function()', $valRowExp);
                     $valRowExp .= '}, 200);';
                     $valRowExp .= '});';
                 }
@@ -2190,19 +2190,23 @@ class Mdexpression extends Controller {
         if (!empty($parseExpressionSaveConfirm[0])) {
             foreach ($parseExpressionSaveConfirm[0] as $expValSc) {
                 preg_match_all('/saveConfirm(\((.*)+\))/', $expValSc, $scGet);
-                $scGet = $scGet[1][0];
+                $scGet = trim(ltrim(rtrim($scGet[1][0], ')'), '('));
+                $msg = str_replace("'", '', $scGet);
+                $msg = Lang::line($msg);
 
-                $msg = '   
-                if (isSaveConfirm_' . $processId . ' === false) {    
+                $msg = ' 
+                if (isSaveConfirm_' . $processId . ' === false) { 
                 (new PNotify({
                     title: \'Confirmation\',
-                    text: \'' . Lang::line(trim(ltrim(rtrim($scGet, ")"), "("))) . '\',
+                    text: \'' . $msg . '\',
                     icon: \'icon-info22\',
+                    width: \'330px\',
                     hide: false,
                     confirm: {
                         confirm: true, 
                         buttons: [{
-                            text: \'Хадгалах\', 
+                            text: \'OK\', 
+                            addClass: \'btn btn-primary\', 
                             click: function(notice) {
                                 isSaveConfirm_' . $processId . ' = true;
                                 PNotify.removeAll();
@@ -2210,11 +2214,12 @@ class Mdexpression extends Controller {
                             }
                         }, 
                         {
-                            text: \'Хаах\', 
+                            text: plang.get(\'close_btn\'), 
+                            addClass: \'btn btn-light\', 
                             click: function(notice) {
                                 PNotify.removeAll(); 
                             }
-                        }]        
+                        }]
                     },
                     buttons: {
                         closer: false,
@@ -2682,7 +2687,9 @@ class Mdexpression extends Controller {
         $fullExpression = str_replace('setDetailHeight(', 'bpSetDetailHeight(' . $mainSelector . ', ', $fullExpression);
         $fullExpression = str_replace('setFieldPrecisionScale(', 'bpSetFieldPrecisionScale(' . $mainSelector . ', checkElement, ', $fullExpression);
         $fullExpression = str_replace('setMetaVerseFieldValue(', 'bpSetMetaVerseFieldValue(' . $mainSelector . ', checkElement, ', $fullExpression);
-
+        $fullExpression = str_replace('setHeaderFieldStyle(', 'bpSetHeaderFieldStyle(' . $mainSelector . ', ', $fullExpression);
+        $fullExpression = str_replace('setReportTemplateFieldValue(', 'bpSetReportTemplateFieldValue(' . $mainSelector . ', ', $fullExpression);
+        
         $fullExpression = str_replace('unsetMask(', 'bpUnSetMask(' . $mainSelector . ', checkElement, ', $fullExpression);
         $fullExpression = str_replace('setMask(', 'bpSetMask(' . $mainSelector . ', checkElement, ', $fullExpression);
 
@@ -2922,7 +2929,8 @@ class Mdexpression extends Controller {
         $fullExpression = str_replace('runKpiIndicatorDataMart(', 'bpRunKpiIndicatorDataMart(' . $mainSelector . ', checkElement, ', $fullExpression);
         $fullExpression = str_replace('findText(', 'bpFindText(', $fullExpression);
         $fullExpression = str_replace('callKpiIndicatorForm(', 'bpCallKpiIndicatorForm(' . $mainSelector . ', checkElement, ', $fullExpression);
-
+        $fullExpression = str_replace('reportTemplatePreview(', 'bpReportTemplatePreview(' . $mainSelector . ', ', $fullExpression);
+        
         if (strpos($fullExpression, 'columnRepeatFunction(') !== false) {
             preg_match_all('/columnRepeatFunction\((.*?)\)/i', $fullExpression, $columnRepeatFunctions);
 
@@ -5717,7 +5725,7 @@ class Mdexpression extends Controller {
         $prm = [];
         
         foreach ($getParams as $row) {
-            $rowValue = explode('@', $row);
+            $rowValue = explode('@@', $row);
             $prm[$rowValue[0]] = $rowValue[1];
         }
 
@@ -6392,8 +6400,8 @@ class Mdexpression extends Controller {
         $rowExpJson = str_ireplace(':sessiondepartmentid', Mdmetadata::getDefaultValue('sessiondepartmentid'), $rowExpJson);
         $rowExpJson = str_ireplace(':sessionuserkeydepartmentid', Mdmetadata::getDefaultValue('sessionuserkeydepartmentid'), $rowExpJson);
         $rowExpJson = str_ireplace(':sessioncompanydepartmentid', Mdmetadata::getDefaultValue('sessioncompanydepartmentid'), $rowExpJson);
-        $rowExpJson = str_ireplace(':sysdate', "'".Date::currentDate('Y-m-d')."'", $rowExpJson);
         $rowExpJson = str_ireplace(':sysdatetime', "'".Date::currentDate()."'", $rowExpJson);
+        $rowExpJson = str_ireplace(':sysdate', "'".Date::currentDate('Y-m-d')."'", $rowExpJson);
 
         //Mdmetadata::getDefaultValue($value)
         $rowExpJson = json_decode($rowExpJson, true);
@@ -6412,6 +6420,7 @@ class Mdexpression extends Controller {
                         if (issetParam($row['attrs']['label']['code']) == 'find-object') {
                             $mfindObj = self::microFindObject($row['attrs']['label'], $formData);
                             if (is_null($mfindObj)) return '';
+//                            if (is_null($mfindObj)) return $row['attrs']['label'];
                             $rowExp = str_replace($row['id'], $mfindObj, $rowExp);
                         }
                         break;
@@ -6555,9 +6564,10 @@ class Mdexpression extends Controller {
             $executeScript = '$instanceExp = &getInstance();'.PHP_EOL;
             $executeScript .= '$instanceExp->load->model(\'mdform\', \'middleware/models/\');'.PHP_EOL;                  
             $executeScript .= '$pushMicroFlowMessage = [];'.PHP_EOL;
+            //pa(self::microFlowExpression($indicatorId, $formData));
             $executeScript .= self::microFlowExpression($indicatorId, $formData);
-//             pa($executeScript);
-
+            //pa($executeScript);
+            
             @eval($executeScript);
             
             if ($pushMicroFlowMessage) {

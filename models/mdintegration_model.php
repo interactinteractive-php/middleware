@@ -5,6 +5,7 @@ class Mdintegration_model extends Model {
     private static $bankIdKhan = '500000';
     private static $isSaveLogId = false;
     private static $isClearing = false;
+    private static $isCheckTransactionId = false;
     private static $saveLogId = null;
     private static $bankBillingCreatedUserId = null;
     private static $departmentId = null;
@@ -1109,7 +1110,9 @@ class Mdintegration_model extends Model {
                     $creditEconomicClassCode = $economicClass['creditEconomicClassCode'];
                     
                     foreach ($statementDetails as $row) {
-        
+                        
+                        self::$isCheckTransactionId = false;
+                        
                         $journalId = $row['NtryRef'];
                         $billDate  = date('Y-m-d H:i:s', strtotime($row['TxPostedDt']));
                         $descr     = issetParam($row['TxAddInf']) ? Str::remove_doublewhitespace(Str::remove_whitespace_feed($row['TxAddInf'])) : 'no description';
@@ -1121,6 +1124,10 @@ class Mdintegration_model extends Model {
                             $amount = number_format($row['Amt'] * -1, 6, '.', ''); 
                         } else {
                             $amount = 0;
+                        }
+                        
+                        if ($amount < 0) {
+                            self::$isCheckTransactionId = true;
                         }
                         
                         $isAlreadyCreated = self::isAlreadyCreatedByJournalId($accountCode, $journalId, null, $billDate, $descr, $isBankBillCheckDiff, $amount);
@@ -2448,6 +2455,13 @@ class Mdintegration_model extends Model {
             $amount = 0;
             $amountCol = 'AMOUNT';
         }*/
+        
+        if (self::$isCheckTransactionId) {
+            $checkCount = $this->db->GetOne("SELECT COUNT(1) FROM CM_INV_BANK WHERE TRANSACTION_ID = ".$this->db->Param(0), [$journalId]);
+            if ($checkCount) {
+                return true;
+            }
+        }
         
         $where = null;
         

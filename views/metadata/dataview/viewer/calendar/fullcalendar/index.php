@@ -182,10 +182,18 @@
                 border-top-left-radius: 0;
                 border-bottom-left-radius: 0;
                 box-shadow: 0px 2px 4px 0px #00000040;
+                min-height: 50px;
             }
             .fc-circle-event {
                 color: #333;
             }
+        }
+        .fc-circle-event {
+            overflow: hidden;
+            padding: 1px 5px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            cursor: pointer;
         }
         .fc .fc-daygrid-day-top {
             display: flex !important;

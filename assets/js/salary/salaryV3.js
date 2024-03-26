@@ -4326,7 +4326,7 @@ SalaryV3.prototype.salaryGetProcessRun = function(datas, selectedEmployee) {
                     for(var i = 0; i < allFieldsLen; i++) {
                         data += '<tr>';
                         data += '<td>' + (ii++) + '</td>';
-                        data += '<td><input type="checkbox"/><input type="hidden" value="'+datas[i].META_DATA_CODE+'"/>';
+                        data += '<td><input type="checkbox"/><input type="hidden" value="'+datas[i].META_DATA_ID+'"/>';
                         data += '<input type="hidden" value="'+datas[i].FIELD_CODE+'"/></td>';
                         data += '<td>' + datas[i].META_DATA_NAME + '</td>';
                         data += '</tr>';

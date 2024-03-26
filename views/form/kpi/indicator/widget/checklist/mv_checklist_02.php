@@ -2,14 +2,13 @@
     <div class="kpi-form-paper-portrait-child">    
         <div class="d-flex justify-content-between">
             <?php 
-                $logoImage = 'https://www.khanbank.com/uploaded/media/2022/Oct/LogoText.svg?imwidth=640';
+                $logoImage = 'assets/custom/img/new_veritech_black_logo.png';
 
                 if (isset($this->logoImage) && file_exists($this->logoImage)) {
                     $logoImage = $this->logoImage;
                 }
             ?>            
             <img style="height: 24px" src="<?php echo $logoImage; ?>"/>
-            <img style="height: 24px" class="d-none" src="assets/custom/img/new_veritech_black_logo.png"/>
         </div>
         <div class="d-flex justify-content-center">
             <p class="mb-0 mt-1 ml-2" style="font-size: 20px;font-weight: bold;"><?php echo $this->title ?></p>
@@ -21,32 +20,40 @@
             echo Form::hidden(array('data-path' => 'listIndicatorId', 'value' => $this->listIndicatorId)); 
             echo Form::hidden(array('data-path' => 'methodTypeCode', 'value' => $this->methodTypeCode)); 
             echo Form::hidden(array('data-path' => 'headerRecordId', 'value' => $this->recordId)); 
-            echo Form::hidden(array('data-path' => 'headerParams', 'value' => htmlentities(json_encode($this->selectedRow, JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8'))); 
+            echo Form::hidden(array('data-path' => 'headerParams', 'value' => htmlentities(str_replace('&quot;', '\\&quot;', json_encode($this->selectedRow, JSON_UNESCAPED_UNICODE)), ENT_QUOTES, 'UTF-8'))); 
             
             $relationTabList = Arr::groupByArrayByNullKey($this->relationList, 'TAB_NAME'); 
             ?>
 
             <div class="bp-tabs tabbable-line mv-main-tabs mv-checklist-tab w-100">
-                <ul class="nav nav-tabs">            
+                <ul class="nav nav-tabs">
+                    <?php
+                    if (!$this->isIgnoreHeaderProcess) {
+                    ?>
                     <li class="nav-item">
                         <a href="#structabcustom_<?php echo $this->uniqId; ?>" class="nav-link active" data-toggle="tab" aria-expanded="false">
                             <?php echo checkDefaultVal($this->shortDescription, 'Хүсэлт') ?>                
                         </a>
                     </li>                        
                     <?php
-                        $tabId = 1;
-                        foreach ($relationTabList as $groupName => $groupRow) {
-                            if ($groupName != 'яяяrow') {
-                                echo '<li class="nav-item">';
-                                    echo '<a href="#maintabcustom_'.$this->uniqId.'_'.($tabId++).'" class="nav-link mv-checklist-tab-link" data-toggle="tab" aria-expanded="false">';
-                                        echo $groupName;
-                                    echo '</a>';
-                                echo '</li>';                                
-                            }
-                        }                    
+                    }
+                    $tabId = 1;
+                    foreach ($relationTabList as $groupName => $groupRow) {
+                        if ($groupName != 'яяяrow') {
+                            echo '<li class="nav-item">';
+                                echo '<a href="#maintabcustom_'.$this->uniqId.'_'.$tabId.'" class="nav-link '.($this->isIgnoreHeaderProcess ? ($tabId == 1 ? 'active' : '') : '').' mv-checklist-tab-link" data-toggle="tab" aria-expanded="false">';
+                                    echo $groupName;
+                                echo '</a>';
+                            echo '</li>';
+                            $tabId ++;
+                        }
+                    }                    
                     ?>
                 </ul>        
                 <div class="tab-content" style="padding-top: 0px;padding-bottom: 0px;"> 
+                    <?php
+                    if (!$this->isIgnoreHeaderProcess) {
+                    ?>
                     <div class="tab-pane active" id="structabcustom_<?php echo $this->uniqId; ?>">
                         <div class="mv-checklist-main-render" style="width: 100%; padding: 10px 50px;">
                             <form method="post" enctype="multipart/form-data">
@@ -68,122 +75,126 @@
                         </div>                
                     </div>
                     <?php
-                        $tabId = 1;
-                        foreach ($relationTabList as $tabName => $tabRow) {
-                            if ($tabName != 'яяяrow') { ?>                    
-                                <div class="tab-pane p-1" id="maintabcustom_<?php echo $this->uniqId; ?>_<?php echo $tabId++ ?>" style="padding-bottom: 0 !important;padding-top: 0 !important;padding-right: 0 !important;">
-                                    <div class="d-flex">
-                                        <div class="sidebar sidebar-light sidebar-secondary sidebar-expand-md pr-2" style="width:280px">
-                                            <div class="sidebar-content">
+                    }
+                    $tabId = 1;
+                    foreach ($relationTabList as $tabName => $tabRow) {
+                        if ($tabName != 'яяяrow') { 
+                    ?>                    
+                        <div class="tab-pane <?php echo ($this->isIgnoreHeaderProcess ? ($tabId == 1 ? 'active' : '') : ''); ?> p-1" id="maintabcustom_<?php echo $this->uniqId; ?>_<?php echo $tabId; ?>" style="padding-bottom: 0 !important;padding-top: 0 !important;padding-right: 0 !important;">
+                            <div class="d-flex">
+                                <div class="sidebar sidebar-light sidebar-secondary sidebar-expand-md pr-2" style="width:280px">
+                                    <div class="sidebar-content">
 
-                                                <div class="card">
-                                                    <div class="card-body mv-checklist-menu">
-                                                        <ul class="nav nav-sidebar" style="margin-top:6px" data-nav-type="accordion">
-                                                            <?php
-                                                            $n = 0;
-                                                            $n2 = 0;
-                                                            $relationList = Arr::groupByArrayByNullKey($tabRow['rows'], 'GROUP_NAME');
+                                        <div class="card">
+                                            <div class="card-body mv-checklist-menu">
+                                                <ul class="nav nav-sidebar" style="margin-top:6px" data-nav-type="accordion">
+                                                    <?php
+                                                    $n = 0;
+                                                    $n2 = 0;
+                                                    $relationList = Arr::groupByArrayByNullKey($tabRow['rows'], 'GROUP_NAME');
 
-                                                            foreach ($relationList as $groupName => $groupRow) {
+                                                    foreach ($relationList as $groupName => $groupRow) {
 
-                                                                $item = '';
-                                                                $rows = $groupRow['rows'];
+                                                        $item = '';
+                                                        $rows = $groupRow['rows'];
 
-                                                                foreach ($rows as $row) {
+                                                        foreach ($rows as $row) {
 
-                                                                    $kpiTypeId = $row['KPI_TYPE_ID'];
-                                                                    $mapLabelName = $row['MAP_LABEL_NAME'];
-                                                                    $class = $itemClass = '';
-                                                                    
-                                                                    if ($mapLabelName != '') {
-                                                                        $name = $this->lang->line($mapLabelName);
-                                                                    } else {
-                                                                        if ($kpiTypeId == 2008) {
-                                                                            $name = $row['STRUCTURE_NAME'];
-                                                                        } elseif ($row['META_DATA_ID']) {
-                                                                            $name = $this->lang->line($row['META_DATA_NAME']);
-                                                                        } else {
-                                                                            $name = $row['NAME'];
-                                                                        }
-                                                                    }
+                                                            $kpiTypeId = $row['KPI_TYPE_ID'];
+                                                            $mapLabelName = $row['MAP_LABEL_NAME'];
+                                                            $class = $itemClass = '';
 
-                                                                    if ($n == 0) {
-                                                                        $class = ' active';
-                                                                    }
-
-                                                                    if (!$this->selectedRow) {
-                                                                        $class = ' disabled';
-                                                                    }
-
-                                                                    $rowJson = json_encode(array(
-                                                                        'mapId'          => $row['MAP_ID'], 
-                                                                        'indicatorId'    => $row['ID'], 
-                                                                        'strIndicatorId' => $row['STRUCTURE_INDICATOR_ID'],
-                                                                        'kpiTypeId'      => $row['KPI_TYPE_ID'], 
-                                                                        'metaDataId'     => $row['META_DATA_ID'], 
-                                                                        'metaTypeId'     => $row['META_TYPE_ID'], 
-                                                                    ));
-                                                                    $rowJson = htmlentities($rowJson, ENT_QUOTES, 'UTF-8');
-
-                                                                    $hiddenParams = json_encode(array(
-                                                                        'srcMapId'       => $row['MAP_ID'],
-                                                                        'srcIndicatorId' => $this->strIndicatorId, 
-                                                                        'srcRecordId'    => $this->recordId, 
-                                                                        'trgIndicatorId' => $row['ID']
-                                                                    ));
-                                                                    $hiddenParams = htmlentities($hiddenParams, ENT_QUOTES, 'UTF-8');
-
-                                                                    $iconName = 'far fa-square';
-
-                                                                    if (isset($this->endToEndLogData['detailData'][$row['ID']]) && $this->endToEndLogData['detailData'][$row['ID']]['STATUS_CODE'] == 'done') {
-                                                                        $iconName = 'fas fa-check-square';
-                                                                    }
-                                                                    
-                                                                    if ($row['CRITERIA'] != '') {
-                                                                        $itemClass = ' mv-checklist-criteria d-none';
-                                                                    }
-
-                                                                    $item .= '<li class="nav-item'.$itemClass.'" data-stepid="'.$row['ID'].'">
-                                                                        <a href="javascript:;" class="mv_checklist_02_sub nav-link'.$class.'" data-indicatorid="'.$this->indicatorId.'" data-uniqid="'.$this->uniqId.'" data-json="'.$rowJson.'" data-hidden-params="'.$hiddenParams.'" data-iscomment="'.$row['IS_COMMENT'].'" data-stepid="'.$row['ID'].'">
-                                                                            <i class="'.$iconName.'"></i> <span class="pt1">'.$name.'</span>
-                                                                        </a>
-                                                                    </li>';
-
-                                                                    $n ++;
-                                                                }
-
-                                                                if ($groupName != 'яяяrow') {
-                                                                    echo '<li class="nav-item nav-item-submenu '.(!$n2 ? 'nav-group-sub-mv-opened' : '').'">';
-                                                                        echo '<a href="javascript:;" class="nav-link mv_checklist_02_groupname">'.$this->lang->line($groupName).'</a>';
-                                                                        echo '<ul class="nav nav-group-sub">';
-                                                                }
-                                                                $n2++;
-
-                                                                echo $item;
-
-                                                                if ($groupName != 'яяяrow') {
-                                                                        echo '</ul>';
-                                                                    echo '</li>';
+                                                            if ($mapLabelName != '') {
+                                                                $name = $this->lang->line($mapLabelName);
+                                                            } else {
+                                                                if ($kpiTypeId == 2008) {
+                                                                    $name = $row['STRUCTURE_NAME'];
+                                                                } elseif ($row['META_DATA_ID']) {
+                                                                    $name = $this->lang->line($row['META_DATA_NAME']);
+                                                                } else {
+                                                                    $name = $row['NAME'];
                                                                 }
                                                             }
-                                                            ?>
-                                                        </ul>
-                                                    </div>
-                                                </div>
+
+                                                            if ($n == 0) {
+                                                                $class = ' active';
+                                                            }
+
+                                                            if (!$this->selectedRow && !$this->isIgnoreHeaderProcess) {
+                                                                $class = ' disabled';
+                                                            }
+
+                                                            $rowJson = json_encode(array(
+                                                                'mapId'          => $row['MAP_ID'], 
+                                                                'indicatorId'    => $row['ID'], 
+                                                                'strIndicatorId' => $row['STRUCTURE_INDICATOR_ID'],
+                                                                'kpiTypeId'      => $row['KPI_TYPE_ID'], 
+                                                                'metaDataId'     => $row['META_DATA_ID'], 
+                                                                'metaTypeId'     => $row['META_TYPE_ID'], 
+                                                            ));
+                                                            $rowJson = htmlentities($rowJson, ENT_QUOTES, 'UTF-8');
+
+                                                            $hiddenParams = json_encode(array(
+                                                                'srcMapId'       => $row['MAP_ID'],
+                                                                'srcIndicatorId' => $this->strIndicatorId, 
+                                                                'srcRecordId'    => $this->recordId, 
+                                                                'trgIndicatorId' => $row['ID']
+                                                            ));
+                                                            $hiddenParams = htmlentities($hiddenParams, ENT_QUOTES, 'UTF-8');
+
+                                                            $iconName = 'far fa-square';
+
+                                                            if (isset($this->endToEndLogData['detailData'][$row['ID']]) && $this->endToEndLogData['detailData'][$row['ID']]['STATUS_CODE'] == 'done') {
+                                                                $iconName = 'fas fa-check-square';
+                                                            }
+
+                                                            if ($row['CRITERIA'] != '') {
+                                                                $itemClass = ' mv-checklist-criteria d-none';
+                                                            }
+
+                                                            $item .= '<li class="nav-item'.$itemClass.'" data-stepid="'.$row['ID'].'">
+                                                                <a href="javascript:;" class="mv_checklist_02_sub nav-link'.$class.'" data-indicatorid="'.$this->indicatorId.'" data-uniqid="'.$this->uniqId.'" data-json="'.$rowJson.'" data-hidden-params="'.$hiddenParams.'" data-iscomment="'.$row['IS_COMMENT'].'" data-stepid="'.$row['ID'].'">
+                                                                    <i class="'.$iconName.'"></i> <span class="pt1">'.$name.'</span>
+                                                                </a>
+                                                            </li>';
+
+                                                            $n ++;
+                                                        }
+
+                                                        if ($groupName != 'яяяrow') {
+                                                            echo '<li class="nav-item nav-item-submenu '.(!$n2 ? 'nav-group-sub-mv-opened' : '').'">';
+                                                                echo '<a href="javascript:;" class="nav-link mv_checklist_02_groupname">'.$this->lang->line($groupName).'</a>';
+                                                                echo '<ul class="nav nav-group-sub">';
+                                                        }
+                                                        $n2++;
+
+                                                        echo $item;
+
+                                                        if ($groupName != 'яяяrow') {
+                                                                echo '</ul>';
+                                                            echo '</li>';
+                                                        }
+                                                    }
+                                                    ?>
+                                                </ul>
                                             </div>
                                         </div>
-                                        <div class="w-100" style="background-color: #F9F9F9">
-                                            <div>
-                                                <div class="content-wrapper pt-2 pl-3 pr-3 mv-checklist-render">        
-                                                </div>                
-                                            </div>                
-                                            <div class="mv-checklist-render-comment pl-3 pr-3">
-                                            </div>                
+                                    </div>
+                                </div>
+                                <div class="w-100" style="background-color: #F9F9F9; max-width: 1200px">
+                                    <div>
+                                        <div class="content-wrapper pt-2 pl-3 pr-3 mv-checklist-render">        
                                         </div>                
                                     </div>                
-                                </div>
-                    <?php }
-                        }                    
+                                    <div class="mv-checklist-render-comment pl-3 pr-3">
+                                    </div>                
+                                </div>                
+                            </div>                
+                        </div>
+                    <?php 
+                        $tabId ++;
+                        }
+                    }                    
                     ?>                    
                 </div>
             </div>               
@@ -277,9 +288,9 @@
 .mv-checklist2-render-parent .datagrid-pager {
     border-color: transparent;
 }
-.mv-checklist2-render-parent .datagrid .datagrid-pager {
+/*.mv-checklist2-render-parent .datagrid .datagrid-pager {
     display: none;
-}
+}*/
 .mv-checklist2-render-parent .datagrid-row-alt:not(.datagrid-row-over) {
     background: transparent;
 }
@@ -348,7 +359,8 @@
 .mv-checklist2-render-parent button.bp-btn-save i {
     display: none;
 }
-.mv-checklist2-render-parent button.bp-btn-save {
+.mv-checklist2-render-parent button.bp-btn-save, 
+.mv-checklist2-render-parent button.bp-btn-saveadd {
     color: #fff!important;
     border-color: #1B84FF!important;
     padding-left: 18px!important;
@@ -357,7 +369,8 @@
     padding-bottom: 2px !important;
     font-size: 12px!important;
 }
-.mv-checklist2-render-parent button.bp-btn-save:hover {
+.mv-checklist2-render-parent button.bp-btn-save:hover, 
+.mv-checklist2-render-parent button.bp-btn-saveadd:hover {
     background-color: #1B84FF!important;
 }
 .mv-checklist2-render-parent .mv-rows-title:not(.mv-rows-title-label) {
@@ -635,8 +648,14 @@ input.kpi-notfocus-readonly-input::placeholder {
 .mv-checklist2-render-parent .mv-hdr-label-control-label label {
     color: #666;
 }
+.mv-checklist2-render-parent .kpidv-data-filter-col .list-group {
+    background-color:transparent;
+}
 .mv-checklist2-render-parent .mv-hdr-label-control-label label .label-colon {
     display: none;
+}
+.ui-dialog .mv-checklist2-render-parent .ws-area .ws-page-content-wrapper .ws-page-content {
+    padding: 0px!important;
 }
 .mv-checklist2-render-parent .mv-hdr-label-control-input input.form-control {
     height: 32px!important;
@@ -675,10 +694,19 @@ input.kpi-notfocus-readonly-input::placeholder {
     margin: 0px;
     background: transparent;
 }
+.mv-checklist2-render-parent .viewer-container > .center-sidebar > .row > .content-wrapper > .row, 
+.mv-checklist2-render-parent .viewer-container > .center-sidebar > .row > .top-sidebar-content > .xs-form.row {
+    margin: 0;
+}
+.mv-checklist2-render-parent .mv-checklist-render div[data-meta-type="process"] .bp-header-param ul.bp-icon-selection {
+    max-height: 360px;
+}
 </style>
 
+<?php require getBasePath() . 'middleware/views/form/kpi/indicator/checklist/scripts.php'; ?>
+
 <script type="text/javascript">
-$('.mv-checklist-tab-link').on('shown.bs.tab', function() {    
+$('.mv-checklist-tab-link').on('shown.bs.tab', function() {
     var $tabPane = $($(this).attr('href')), 
         $selTb = $tabPane.find('li.nav-item:not(.d-none) > .mv_checklist_02_sub.nav-link'), 
         $selTbLength = $selTb.length;
@@ -693,6 +721,13 @@ $('.mv-checklist-tab-link').on('shown.bs.tab', function() {
         $selTb.first().trigger('click');
     }
 });
+<?php
+if ($this->isIgnoreHeaderProcess) {
+?>
+$(function() {
+    $('.mv_checklist_02_sub.nav-link:eq(0)').trigger('click');
+});
+<?php
+}
+?>
 </script>
-
-<?php require getBasePath() . 'middleware/views/form/kpi/indicator/checklist/scripts.php'; ?>

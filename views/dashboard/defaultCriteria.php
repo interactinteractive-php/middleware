@@ -1,10 +1,14 @@
-<?php if ($this->dataViewHeaderData) { ?>
-    <div class="col-md-12 xs-form changeDashboardFilterOperator-<?php echo $this->metaDataId ?>" style="max-width: 880px">
-        <?php
-        foreach ($this->dataViewHeaderData as $k => $param) {
-        ?>
-            <div class="row">
-                <div class="col-md-12">
+<?php if ($this->dataViewHeaderData) { 
+    $colCount = Arr::get($this->getAddonSettings, 'criteriaSplitColumnCount');
+?>
+    <div class="col-md-12 xs-form changeDashboardFilterOperator-<?php echo $this->metaDataId ?>" style="max-width: <?php echo $colCount ? '100%' : '880px'; ?>">
+        <div class="row">
+            <?php
+            $colCount = $colCount ? $colCount : 1;
+            $colMd = floor(12 / $colCount);
+            foreach ($this->dataViewHeaderData as $k => $param) {
+            ?>
+                <div class="mt10 col-md-<?php echo $colMd; ?>">
                     <div class="form-group row fom-row">
                         <?php echo Form::label(array('text' => Lang::line($param['META_DATA_NAME']), 'for' => 'param[' . $param['META_DATA_CODE'] . ']', 'class' => 'col-form-label col-md-4', 'style' => 'text-align: right;')); ?>
                         <div class="col-md-1 pl0 pr0 mb5 d-none"> 
@@ -43,10 +47,10 @@
                         ?>
                     </div>    
                 </div>
-            </div>
-        <?php
-        }
-        ?>
+            <?php
+            }
+            ?>
+        </div>
     </div>
     <div class="clearfix w-100"></div>
 

@@ -31,7 +31,7 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt, call
     } else if ($this.closest('.objectdatacustomgrid').length && $this.closest('.objectdatacustomgrid').find('.no-dataview').length) {
         isNoDataview = true;
         fcSelectedRow = $this.closest('.objectdatacustomgrid').find('.no-dataview.active').length ? [JSON.parse($this.closest('.objectdatacustomgrid').find('.no-dataview.active').attr('data-rowdata'))] : [];      
-    }                
+    }
 
     if (typeof opt == 'undefined' || (typeof opt != 'undefined' && isObject(opt) && Object.keys(opt).length == 0)) {
         
@@ -245,7 +245,7 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt, call
                             
                             saveKpiIndicatorFormInit($dialogSaveBtn, uniqId, indicatorId, successCallback);
                             
-                        } else if (window['kpiIndicatorBeforeSave_' + uniqId]($dialogSaveBtn) && bpFormValidate($form)) {
+                        } else if (bpFormValidate($form) && window['kpiIndicatorBeforeSave_' + uniqId]($dialogSaveBtn)) {
 
                             $form.ajaxSubmit({
                                 type: 'post',
@@ -290,23 +290,24 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt, call
                                 beforeSend: function () {
                                     Core.blockUI({message: 'Loading...', boxed: true});
                                 },
-                                success: function (data) {
+                                success: function (responseData) {
 
                                     PNotify.removeAll();
                                     new PNotify({
-                                        title: data.status,
-                                        text: data.message,
-                                        type: data.status,
+                                        title: responseData.status,
+                                        text: responseData.message,
+                                        type: responseData.status,
                                         sticker: false, 
                                         addclass: pnotifyPosition
                                     });
 
-                                    if (data.status == 'success') {
+                                    if (responseData.status == 'success') {
+                                        window['kpiIndicatorAfterSave_' + uniqId]($this, responseData.status, responseData);
                                         $dialog.dialog('close');
                                         dataViewReload(mainIndicatorId);
-
-                                        if (typeof successCallback !== 'undefined' && successCallback) {
-                                            window[successCallback]();
+                                        
+                                        if (typeof successCallback !== 'undefined' && successCallback && typeof(window[successCallback]) === 'function') {
+                                            window[successCallback](responseData);
                                         }
                                     } 
 
@@ -331,7 +332,7 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt, call
                             var $form = $dialog.find('form');    
                             var $dialogSaveBtn = $(e.target);
                             
-                            if (window['kpiIndicatorBeforeSave_' + uniqId]($dialogSaveBtn) && bpFormValidate($form)) {
+                            if (bpFormValidate($form) && window['kpiIndicatorBeforeSave_' + uniqId]($dialogSaveBtn)) {
 
                                 $form.ajaxSubmit({
                                     type: 'post',
@@ -467,7 +468,11 @@ function mvNormalRelationRender(elem, kpiTypeId, mainIndicatorId, opt) {
     if (opt.hasOwnProperty('mode')) {
         mode = opt.mode;
         if (mode == 'update' || mode == 'view') {
-            var selectedRows = getDataViewSelectedRows(mainIndicatorId);
+            if (opt.hasOwnProperty('rows')) {
+                var selectedRows = opt.rows;
+            } else {
+                var selectedRows = getDataViewSelectedRows(mainIndicatorId);
+            }
 
             if (selectedRows.length) {
 
@@ -482,6 +487,10 @@ function mvNormalRelationRender(elem, kpiTypeId, mainIndicatorId, opt) {
                 return;
             }
         }
+    }
+    
+    if (opt.hasOwnProperty('isFillRelation') && opt.isFillRelation != '') {
+        postData.isFillRelation = opt.isFillRelation;
     }
     
     if ($this.hasAttr('data-actiontype') && $this.attr('data-actiontype') == 'create' && $this.closest('.mv-checklist-render-parent').length) {
@@ -504,6 +513,11 @@ function mvNormalRelationRender(elem, kpiTypeId, mainIndicatorId, opt) {
         success: function (data) {
             PNotify.removeAll();
             if (data.status == 'success') {
+                
+                if (data.hasOwnProperty('widgetCode') && data.widgetCode == 'developer_workspace') {
+                    developerWorkspace(mainIndicatorId, data);
+                    return true;
+                }
                 
                 var $dialogName = 'dialog-valuemap-'+mainIndicatorId;
                 if (!$("#" + $dialogName).length) {
@@ -581,6 +595,40 @@ function mvNormalRelationRender(elem, kpiTypeId, mainIndicatorId, opt) {
         },
         error: function () { alert('Error'); Core.unblockUI(); }
     });
+}
+function developerWorkspace(mainIndicatorId, data) {
+    var $dialogName = 'dialog-valuemap-'+mainIndicatorId;
+    if (!$("#" + $dialogName).length) {
+        $('<div id="' + $dialogName + '"></div>').appendTo('body');
+    }
+    var $dialog = $('#' + $dialogName);
+
+    $dialog.empty().append(data.html);
+    $dialog.dialog({
+        dialogClass: 'dev-dialog', 
+        cache: false,
+        resizable: true,
+        bgiframe: true,
+        autoOpen: false,
+        title: data.title,
+        width: $(window).width(),
+        height: $(window).height(),
+        modal: true,
+        open: function() {
+            /* disableScrolling(); */
+            $('body').addClass("overflow-hidden");
+        }, 
+        close: function() {
+            /* enableScrolling(); */
+            $('body').removeClass("overflow-hidden");
+            $('html, body').scrollTop(0);
+            $dialog.empty().dialog('destroy').remove();
+            
+        }
+    });
+    $dialog.dialog('open');
+    
+    Core.unblockUI();
 }
 function mapKpiIndicatorValue(elem, kpiTypeId, mainIndicatorId, typeCode) {
     var $this = $(elem);
@@ -792,7 +840,7 @@ function saveKpiIndicatorFormInit(elem, uniqId, indicatorId, successCallback) {
     
     var $form = $('div[data-bp-uniq-id="'+uniqId+'"]').closest('form');    
 
-    if (window['kpiIndicatorBeforeSave_' + uniqId]($this) && bpFormValidate($form)) {
+    if (bpFormValidate($form) && window['kpiIndicatorBeforeSave_' + uniqId]($this)) {
 
         $form.ajaxSubmit({
             type: 'post',
@@ -1104,10 +1152,9 @@ function excelExportKpiIndicatorValue(elem, indicatorId) {
     
     var $col = $dvParent.find('.kpidv-data-filter-col');
     var getFilterData = getKpiIndicatorFilterData(elem, $col);
+    var q = window['objectdatagrid_' + indicatorId].datagrid('options').queryParams;
     
     postParams.filterData = getFilterData.filterData;
-    
-    var q = window['objectdatagrid_' + indicatorId].datagrid('options').queryParams;
     
     if (q.hasOwnProperty('postHiddenParams') && q.postHiddenParams) {
         postParams.postHiddenParams = q.postHiddenParams;
@@ -1115,6 +1162,10 @@ function excelExportKpiIndicatorValue(elem, indicatorId) {
     
     if (q.hasOwnProperty('drillDownCriteria') && q.drillDownCriteria) {
         postParams.drillDownCriteria = q.drillDownCriteria;
+    } 
+    
+    if (q.hasOwnProperty('filter') && q.filter) {
+        postParams.filter = q.filter;
     } 
 
     $.fileDownload(URL_APP + 'mdform/indicatorExcelExport', {
@@ -1684,7 +1735,7 @@ function callWebServiceKpiIndicatorValue(elem, indicatorId) {
             } else {
                 new PNotify({
                     title: data.status,
-                    text: data.status,
+                    text: data.text,
                     type: data.status,
                     addclass: pnotifyPosition,
                     sticker: false
@@ -3937,7 +3988,6 @@ function chooseKpiIndicatorRowsFromBasket(elem, indicatorId, chooseType, funcNam
         success: function(data) {
 
             $dialog.empty().append(data.html);
-
             $dialog.dialog({
                 cache: false,
                 resizable: false,
@@ -4368,6 +4418,12 @@ function getKpiIndicatorFilterData(elem, parent) {
                 }
                 
                 filterData[namedParam] = filterVal;
+            } else {
+                var $clickItem = $this.find('.mv-filter-item-click.active[data-value!=""]');
+                if ($clickItem.length) {
+                    var $parent = $clickItem.closest('[data-filter-column]');
+                    filterData[$parent.attr('data-filter-column')] = $clickItem.attr('data-value');
+                }
             }
         });
     }
@@ -5759,7 +5815,7 @@ function createMvStructureFromFile(elem, dataViewId, opts) {
         isContextMenu = opts.isContextMenu, 
         isImportManage = opts.hasOwnProperty('isImportManage') ? opts.isImportManage : false;
     
-    if (!isContextMenu && !isImportManage) {
+    if (!isContextMenu && !isImportManage && dataViewId != '') {
         var rows = getRowsDataView(dataViewId);
         if (rows.length > 0 && rows.hasOwnProperty(0) && (rows[0]).hasOwnProperty('id')) {
             indicatorId = rows[0]['id'];
@@ -5774,8 +5830,13 @@ function createMvStructureFromFile(elem, dataViewId, opts) {
             });
             return;
         }
-    } 
-        
+    }
+    
+    var callbackFunction = opts.hasOwnProperty('callbackFunction') ? opts.callbackFunction : null;
+    var devIndicatorId = opts.hasOwnProperty('devIndicatorId') ? opts.devIndicatorId : null;
+    var devAppType = opts.hasOwnProperty('devAppType') ? opts.devAppType : null;
+    var parentMenuId = opts.hasOwnProperty('parentMenuId') ? opts.parentMenuId : null;
+    
     postData.isImportManage = isImportManage ? 1 : 0;
     
     $.ajax({
@@ -5810,6 +5871,7 @@ function createMvStructureFromFile(elem, dataViewId, opts) {
                     height: 'auto',
                     modal: true,
                     close: function() {
+                        delete mvFileRowsData;
                         $dialog.empty().dialog('destroy').remove();
                     },
                     buttons: [
@@ -5822,30 +5884,14 @@ function createMvStructureFromFile(elem, dataViewId, opts) {
                             if ($form.valid()) {
 
                                 Core.blockUI({message: 'Importing... (<span id="mv-file-import-rows-count">0</span> / <span id="mv-file-import-total-count">0</span>)', boxed: true});
-
+                                
                                 setTimeout(function() {
 
                                     var delimiter = $form.find('select[name="delimiter"]').val(), 
                                         isHeader = $form.find('#headerCheckBox').is(':checked'), 
-                                        skipRows = Number($form.find('input[name="skipRows"]').val()), 
-                                        skipColumns = Number($form.find('input[name="skipColumns"]').val()), 
-                                        firstKey = 0;
+                                        skipRows = Number($form.find('input[name="skipRows"]').val());
 
-                                    if (mvFileReaderExtention == 'txt') {
-                                        var rowsData = (mvFileReader.result).split("\r\n");
-                                    } else {
-                                        var excelFileWorkbook = XLSX.read(mvFileReader.result, {type: 'binary', cellDates: true, cellText: false});
-                                        var getSheet = excelFileWorkbook.Sheets[$form.find('select[name="sheetNames"]').val()];
-                                        var sheetRange = XLSX.utils.decode_range(getSheet['!ref']);
-
-                                        sheetRange.s.r = 0; //start row
-                                        sheetRange.s.c = skipColumns; //start column
-                                        getSheet['!ref'] = XLSX.utils.encode_range(sheetRange);
-
-                                        var rowsData = XLSX.utils.sheet_to_json(getSheet, {header: 1, raw: false, defval: '', dateNF: 'YYYY-MM-DD'});
-                                    }
-
-                                    var rowsLength = rowsData.length;
+                                    var rowsLength = mvFileRowsData.length;
 
                                     if (rowsLength > 0) {
 
@@ -5854,77 +5900,59 @@ function createMvStructureFromFile(elem, dataViewId, opts) {
                                         }  
 
                                         if (skipRows > 0) {
-                                            rowsData = rowsData.slice(skipRows);
-                                            rowsLength = rowsData.length;
+                                            mvFileRowsData = mvFileRowsData.slice(skipRows);
+                                            rowsLength = mvFileRowsData.length;
                                         }
 
                                         var pageSize = 500;
                                         var total = Number(rowsLength);
-
-                                        if (mvFileReaderExtention == 'txt') {
-                                            var firstRow = (rowsData[firstKey]).split(delimiter);
-                                        } else {
-                                            var firstRow = rowsData[firstKey];
-                                        }
-
                                         var headerData = [];
 
                                         if (isHeader) {
-                                            total = total - 1;
                                             var pages = Math.ceil(total / pageSize) || 1;
 
                                             if (mvFileReaderExtention == 'txt') {
-                                                var secondRow = (rowsData[1]).split(delimiter);
+                                                var secondRow = (mvFileRowsData[0]).split(delimiter);
                                             } else {
-                                                var secondRow = rowsData[1];
+                                                var secondRow = mvFileRowsData[0];
                                             }
 
-                                            for (var f in firstRow) {
+                                            for (var f in mvFileFirstRow) {
                                                 var cellValue = (secondRow.hasOwnProperty(f)) ? (secondRow[f]).trim() : '';
                                                 var showType = 'text';
-
-                                                if (cellValue != '') {
+                                                
+                                                if (!isImportManage && cellValue != '') {
                                                     if (moment(cellValue, 'YYYY-MM-DD', true).isValid()) {
                                                         showType = 'date';
                                                     } else if (Number(cellValue) >= 0 || Number(cellValue) < 0) {
                                                         showType = 'bigdecimal';
                                                     }
                                                 }
-                                                
-                                                if (isImportManage) {
-                                                    showType = 'text';
-                                                }
 
-                                                headerData.push({'labelName': firstRow[f], 'showType': showType});
+                                                headerData.push({'labelName': mvFileFirstRow[f], 'showType': showType});
                                             }
-
-                                            delete rowsData[firstKey];
 
                                         } else {
                                             var pages = Math.ceil(total / pageSize) || 1;
 
-                                            for (var f in firstRow) {
+                                            for (var f in mvFileFirstRow) {
 
-                                                var cellValue = (firstRow[f]).trim();
+                                                var cellValue = (mvFileFirstRow[f]).trim();
                                                 var showType = 'text';
 
-                                                if (cellValue != '') {
+                                                if (!isImportManage && cellValue != '') {
                                                     if (moment(cellValue, 'YYYY-MM-DD', true).isValid()) {
                                                         showType = 'date';
                                                     } else if (Number(cellValue) >= 0 || Number(cellValue) < 0) {
                                                         showType = 'bigdecimal';
                                                     }
-                                                }
-                                                
-                                                if (isImportManage) {
-                                                    showType = 'text';
                                                 }
 
                                                 headerData.push({'labelName': 'Column'+(Number(f) + 1), 'showType': showType});
                                             }
                                         }
                                         
-                                        $('#mv-file-import-total-count').text(total);
+                                        $('#mv-file-import-total-count').text(pureNumberFormat(total));
                                         
                                         var createPostData = {indicatorId: indicatorId, headerData: headerData, isOnlyTableCreate: 1};
                                         
@@ -5937,7 +5965,14 @@ function createMvStructureFromFile(elem, dataViewId, opts) {
                                         if (isImportManage) {
                                             createPostData.name = $form.find('input[name="name"]').val();
                                             createPostData.isImportManage = 1;
-                                            createPostData.mainIndicatorId = opts.mainIndicatorId; 
+                                            createPostData.mainIndicatorId = opts.mainIndicatorId;
+                                        }
+                                        
+                                        if (devIndicatorId) {
+                                            createPostData.name = $form.find('input[name="name"]').val();
+                                            createPostData.devIndicatorId = devIndicatorId; 
+                                            createPostData.devAppType = devAppType;
+                                            createPostData.parentMenuId = parentMenuId;
                                         }
 
                                         $.ajax({
@@ -5949,7 +5984,11 @@ function createMvStructureFromFile(elem, dataViewId, opts) {
 
                                                 if (data.status == 'success') {
                                                     
-                                                    function mvInsertDataFromFileLoop(p) {
+                                                    var nowTimestamp = Date.now();
+                                                    
+                                                    function mvInsertDataFromFileLoop(p, nowTimestamp) {
+                                                        
+                                                        var recordCount = p * pageSize;
                                                         
                                                         $.ajax({
                                                             type: 'post',
@@ -5958,8 +5997,10 @@ function createMvStructureFromFile(elem, dataViewId, opts) {
                                                                 indicatorId: indicatorId,
                                                                 fileExtention: mvFileReaderExtention, 
                                                                 delimiter: delimiter, 
+                                                                recordCount: recordCount, 
+                                                                nowTimestamp: nowTimestamp, 
                                                                 headerData: headerData, 
-                                                                rowsData: rowsData.slice((p - 1) * pageSize, p * pageSize)
+                                                                rowsData: mvFileRowsData.slice((p - 1) * pageSize, recordCount)
                                                             },
                                                             dataType: 'json',
                                                             success: function(loopResponse) {
@@ -5984,6 +6025,11 @@ function createMvStructureFromFile(elem, dataViewId, opts) {
                                                                         } else if (isContextMenu) {
                                                                             $dialog.dialog('close');
                                                                             bpVisiblePanelDataViewReload('secondList');
+                                                                        } else if (callbackFunction != '') {
+                                                                            $dialog.dialog('close');
+                                                                            if (typeof(window[callbackFunction]) === 'function') {
+                                                                                window[callbackFunction]();
+                                                                            }
                                                                         } else {
                                                                             $dialog.dialog('close');
                                                                             dataViewReload(dataViewId);
@@ -5992,8 +6038,8 @@ function createMvStructureFromFile(elem, dataViewId, opts) {
                                                                         Core.unblockUI();
                                                         
                                                                     } else {
-                                                                        $('#mv-file-import-rows-count').text(p * pageSize);
-                                                                        mvInsertDataFromFileLoop(p + 1);
+                                                                        $('#mv-file-import-rows-count').text(pureNumberFormat(recordCount));
+                                                                        mvInsertDataFromFileLoop(p + 1, nowTimestamp);
                                                                     }
                                                                     
                                                                 } else {
@@ -6008,7 +6054,7 @@ function createMvStructureFromFile(elem, dataViewId, opts) {
                                                                     }); 
                                                                     Core.unblockUI();
                                                                     
-                                                                    if (isContextMenu) {
+                                                                    if (isContextMenu || isImportManage) {
                                                                         removeTempIndicatorById(indicatorId);
                                                                     }
                                                                 }
@@ -6016,7 +6062,7 @@ function createMvStructureFromFile(elem, dataViewId, opts) {
                                                         });
                                                     }
                                                     
-                                                    mvInsertDataFromFileLoop(1);
+                                                    mvInsertDataFromFileLoop(1, nowTimestamp);
 
                                                 } else {
                                                     PNotify.removeAll();
@@ -6472,6 +6518,72 @@ function mvFlowChartExecuteRedirect(elem, indicatorId) {
         window.location = 'appmenu/module/'+indicatorId+'?kmid='+indicatorId+'&mmid=1671709456096413';
     }
 }
+function mvProductRender(elem, url, indicatorId) {
+    $.ajax({
+        type: 'post',
+        url: 'mdform/mvProductRender',
+        data: {indicatorId: indicatorId}, 
+        dataType: 'json',
+        beforeSend: function() {
+            Core.blockUI({message: 'Loading...', boxed: true});
+        },
+        success: function(data) {
+            
+            if (data.status == 'success') {
+                
+                var $dialogName = 'dialog-valuemap-'+indicatorId;
+                if (!$("#" + $dialogName).length) {
+                    $('<div id="' + $dialogName + '"></div>').appendTo('body');
+                }
+                var $dialog = $('#' + $dialogName);
+                
+                $dialog.dialog({
+                    cache: false,
+                    resizable: true,
+                    bgiframe: true,
+                    autoOpen: false,
+                    title: '',
+                    width: 1000,
+                    height: 'auto',
+                    modal: true,
+                    open: function() {
+                        $dialog.append(data.html);
+                    },
+                    close: function() {
+                        $dialog.empty().dialog('destroy').remove();
+                    },
+                    buttons: [
+                        {text: plang.get('close_btn'), class: 'btn btn-sm blue-hoki bp-btn-close', click: function () {
+                            $dialog.dialog('close');
+                        }}
+                    ]
+                }).dialogExtend({
+                    "closable": true,
+                    "maximizable": true,
+                    "minimizable": true,
+                    "collapsable": true,
+                    "dblclick": "maximize",
+                    "minimizeLocation": "left",
+                    "icons": {
+                        "close": "ui-icon-circle-close",
+                        "maximize": "ui-icon-extlink",
+                        "minimize": "ui-icon-minus",
+                        "collapse": "ui-icon-triangle-1-s",
+                        "restore": "ui-icon-newwin"
+                    }
+                });
+                
+                $dialog.dialogExtend('maximize');
+                $dialog.dialog('open');
+                
+            } else {
+                window.location = url;
+            }
+            
+            Core.unblockUI();
+        }
+    });
+}
 function mvFilterRelationLoadData(elem, indicatorId, filterData) {
     var drillDownCriteria = window['drillDownCriteria_' + indicatorId],
         $elem = $(elem), 
@@ -6831,7 +6943,7 @@ function mvMultiFileRemove(elem) {
 function mvRowsPopupRender(elem) {
     var $this = $(elem), 
         title = $this.attr('title'), 
-        $parentCell = $this.closest('td'), 
+        $parentCell = $this.parent(), 
         $dialog = $this.next('.param-tree-container');
     
     if ($dialog.length == 0) {
@@ -6888,7 +7000,7 @@ function mvRowsPopupRender(elem) {
 function mvRowPopupRender(elem) {
     var $this = $(elem), 
         title = $this.attr('title'), 
-        $parentCell = $this.closest('td'), 
+        $parentCell = $this.parent(), 
         $dialog = $this.next('.param-tree-container');
     
     if ($dialog.length == 0) {
@@ -7011,7 +7123,12 @@ function mvWidgetRelationRender(elem, kpiTypeId, mainIndicatorId, opt) {
     if (opt.hasOwnProperty('mode')) {
         mode = opt.mode;
         if (mode == 'update' || mode == 'view') {
-            var selectedRows = getDataViewSelectedRows(mainIndicatorId);
+            
+            if ($this.closest('.objectdatacustomgrid').length && $this.closest('.objectdatacustomgrid').find('.no-dataview').length) {
+                var selectedRows = $this.closest('.objectdatacustomgrid').find('.no-dataview.active').length ? [JSON.parse($this.closest('.objectdatacustomgrid').find('.no-dataview.active').attr('data-rowdata'))] : [];      
+            } else {                        
+                var selectedRows = getDataViewSelectedRows(mainIndicatorId);
+            }
 
             if (selectedRows.length) {
 
@@ -7053,9 +7170,10 @@ function mvWidgetRelationRender(elem, kpiTypeId, mainIndicatorId, opt) {
                     resizable: true,
                     bgiframe: true,
                     autoOpen: false,
-                    title: '',
-                    width: 1000,
+                    title: data.Title,
+                    width: data.Width,
                     height: 'auto',
+                    closeOnEscape: false,
                     modal: true,
                     open: function() {
                         if (mode == 'view') {
@@ -7082,53 +7200,57 @@ function mvWidgetRelationRender(elem, kpiTypeId, mainIndicatorId, opt) {
                     buttons: [
                         {text: plang.get('save_btn'), class: 'btn btn-sm blue-hoki bp-btn-save d-none bp-btn-save' + data.uniqId, click: function () {
                             var $form = $dialog.find('.saveForm');
-                            $form.ajaxSubmit({
-                                type: 'post',
-                                url: 'mdform/saveKpiDynamicDataByList',
-                                dataType: 'json',
-                                beforeSend: function () {
-                                    Core.blockUI({message: 'Loading...', boxed: true});
-                                },
-                                success: function (data) {
-                                    PNotify.removeAll();
-                                    new PNotify({
-                                        title: data.status,
-                                        text: data.message,
-                                        type: data.status,
-                                        sticker: false, 
-                                        addclass: pnotifyPosition
-                                    });
+                            if (window['kpiIndicatorBeforeSave_' + data.uniqId]($this) && bpFormValidate($form)) {
+                                $form.ajaxSubmit({
+                                    type: 'post',
+                                    url: 'mdform/saveKpiDynamicDataByList',
+                                    dataType: 'json',
+                                    beforeSend: function () {
+                                        Core.blockUI({message: 'Loading...', boxed: true});
+                                    },
+                                    success: function (responseData) {
+                                        PNotify.removeAll();
+                                        new PNotify({
+                                            title: responseData.status,
+                                            text: responseData.message,
+                                            type: responseData.status,
+                                            sticker: false, 
+                                            addclass: pnotifyPosition
+                                        });
 
-                                    if (data.status == 'success') {
-                                        $dialog.dialog('close');
-                                        dataViewReload(mainIndicatorId);
-                                    } 
+                                        if (responseData.status == 'success') {
+                                            window['kpiIndicatorAfterSave_' + data.uniqId]($this, responseData.status, responseData);
+                                            $dialog.dialog('close');
+                                            dataViewReload(mainIndicatorId);
+                                        } 
 
-                                    Core.unblockUI();
-                                }
-                            });
+                                        Core.unblockUI();
+                                    }
+                                });
+                            }
                         }},
-                        {text: plang.get('close_btn'), class: 'btn btn-sm blue-hoki bp-btn-close', click: function () {
+                        {text: plang.get('close_btn'), class: 'btn btn-sm blue-hoki bp-btn-close bp-btn-close' + data.uniqId, click: function () {
                             $dialog.dialog('close');
                         }}
                     ]
                 }).dialogExtend({
                     "closable": true,
-                    "maximizable": true,
-                    "minimizable": true,
-                    "collapsable": true,
-                    "dblclick": "maximize",
+                    "maximizable": (typeof data.Maximize !== 'undefined') ? data.Maximize : true,
+                    "minimizable": (typeof data.Maximize !== 'undefined') ? data.Maximize : true,
+                    "collapsable": (typeof data.Maximize !== 'undefined') ? data.Maximize : true,
+                    "dblclick": (typeof data.Maximize !== 'undefined') ? "" : "maximize",
                     "minimizeLocation": "left",
                     "icons": {
                         "close": "ui-icon-circle-close",
-                        "maximize": "ui-icon-extlink",
-                        "minimize": "ui-icon-minus",
-                        "collapse": "ui-icon-triangle-1-s",
-                        "restore": "ui-icon-newwin"
+                        "maximize": (typeof data.Maximize !== 'undefined') ? "" : "ui-icon-extlink",
+                        "minimize": (typeof data.Maximize !== 'undefined') ? "" : "ui-icon-minus",
+                        "collapse": (typeof data.Maximize !== 'undefined') ? "" : "ui-icon-triangle-1-s",
+                        "restore": (typeof data.Maximize !== 'undefined') ? "" :  "ui-icon-newwin"
                     }
                 });
-                
-                $dialog.dialogExtend('maximize');
+                if (typeof data.Maximize !== 'undefined' && data.Maximize) {
+                    $dialog.dialogExtend('maximize');
+                }
                 $dialog.dialog('open');
                 
             } else {
@@ -7235,6 +7357,20 @@ $(function() {
         }
     });
     
+    $(document.body).on('click', 'div[data-named-param] .mv-filter-item-click', function() {
+        var _this = this, 
+            $this = $(_this), 
+            $parent = $this.closest('[data-named-param]'), 
+            loadFunction = $parent.attr('data-load-fnc');
+        
+        $parent.find('.active').removeClass('active');
+        $this.addClass('active');
+        
+        if (loadFunction != '') {
+            window[loadFunction](_this);
+        }
+    });
+    
     $(document.body).on('click', '.kpi-dtl-table > .tbody > .bp-detail-row .bp-remove-row', function() {
         var $this = $(this), $row = $this.closest('.bp-detail-row');
         
@@ -7260,33 +7396,37 @@ $(function() {
                     modal: true,
                     buttons: [
                         {text: plang.get('yes_btn'), class: 'btn green-meadow btn-sm', click: function() {
-                            var $table = $this.closest('[data-table-path]'),     
-                                $tbody = $this.closest('.tbody'), 
+                            var $table = $this.closest('[data-table-path]'),
+                                $tbody = $this.closest('.tbody'),
                                 isSetRowIndex = true;
                             
-                            if ($table.hasAttr('data-pk-columnpath') && $table.attr('data-pk-columnpath') != '') {
-                                var pkVal = $row.find('[data-path="'+$table.attr('data-pk-columnpath')+'"]');
-                                if (pkVal != '') {
-                                    bpRowBeforeRemoveInputsSetValue($row);
-                                    $row.addClass('d-none');
-                                    isSetRowIndex = false;
+                            $this.trigger('change'); 
+                            $row.addClass('d-none removed-tr');
+                            
+                            setTimeout(function() {
+                                if ($table.hasAttr('data-pk-columnpath') && $table.attr('data-pk-columnpath') != '') {
+                                    var pkVal = $row.find('[data-path="'+$table.attr('data-pk-columnpath')+'"]');
+                                    if (pkVal != '') {
+                                        bpRowBeforeRemoveInputsSetValue($row);
+                                        isSetRowIndex = false;
+                                    } else {
+                                        $row.remove();
+                                    }
                                 } else {
                                     $row.remove();
                                 }
-                            } else {
-                                $row.remove();
-                            }
-                            
-                            setRowNumKpiIndicatorTemplate($tbody);
-                            
-                            if (isSetRowIndex) {
-                                if ($table.hasClass('bprocess-table-subdtl')) {
-                                    var rowIndex = $tbody.closest('.bp-detail-row').index();
-                                    kpiSetRowIndex($tbody, rowIndex);
-                                } else {
-                                    kpiSetRowIndex($tbody);
+
+                                setRowNumKpiIndicatorTemplate($tbody);
+
+                                if (isSetRowIndex) {
+                                    if ($table.hasClass('bprocess-table-subdtl')) {
+                                        var rowIndex = $tbody.closest('.bp-detail-row').index();
+                                        kpiSetRowIndex($tbody, rowIndex);
+                                    } else {
+                                        kpiSetRowIndex($tbody);
+                                    }
                                 }
-                            }
+                            }, 205);
                             
                             $dialog.dialog('close');
                         }},
@@ -7300,15 +7440,22 @@ $(function() {
             } else {
                 var $table = $this.closest('[data-table-path]'),     
                     $tbody = $this.closest('.tbody');
-                $row.remove();
-                setRowNumKpiIndicatorTemplate($tbody);
                 
-                if ($table.hasClass('bprocess-table-subdtl')) {
-                    var rowIndex = $tbody.closest('.bp-detail-row').index();
-                    kpiSetRowIndex($tbody, rowIndex);
-                } else {
-                    kpiSetRowIndex($tbody);
-                }
+                $this.trigger('change'); 
+                $row.addClass('d-none removed-tr');
+                
+                setTimeout(function() {
+                    
+                    $row.remove();
+                    setRowNumKpiIndicatorTemplate($tbody);
+
+                    if ($table.hasClass('bprocess-table-subdtl')) {
+                        var rowIndex = $tbody.closest('.bp-detail-row').index();
+                        kpiSetRowIndex($tbody, rowIndex);
+                    } else {
+                        kpiSetRowIndex($tbody);
+                    }
+                }, 205);
             }
         }, 205);
     });

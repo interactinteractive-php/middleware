@@ -57,9 +57,9 @@ class Restapi extends Controller {
             if (!$setSession) {
                 
                 if ($isSessionId) {
-                    $response = array('status' => 'error', 'message' => 'Session not found!');
+                    $response = ['status' => 'error', 'message' => 'Session not found!'];
                 } else {
-                    $response = array('status' => 'error', 'message' => 'Username or password is wrong!');
+                    $response = ['status' => 'error', 'message' => 'Username or password is wrong!'];
                 }
                 
             } else {
@@ -75,13 +75,18 @@ class Restapi extends Controller {
 
                         if ($configRow) {
                             
-                            $result = array(
+                            $result = [
                                 'id'        => $configRow['ID'],
                                 'code'      => $configRow['CODE'],
                                 'name'      => $configRow['NAME'],
                                 'kpiTypeId' => $configRow['KPI_TYPE_ID'], 
-                                'isUseWorkflow' => $configRow['IS_USE_WORKFLOW']
-                            );
+                                'isUseWorkflow' => $configRow['IS_USE_WORKFLOW'], 
+                                'metaStructureId' => null
+                            ];
+                            
+                            if ($kpiMainIndicatorId == '17095242488819') {
+                                $result['metaStructureId'] = 1505450297170;
+                            }
                             
                             $configRow['isIgnoreStandardFields'] = true;
                             
@@ -100,6 +105,10 @@ class Restapi extends Controller {
                                 unset($value['SEMANTIC_TYPE_NAME']);
                                 unset($value['REPORT_AGGREGATE_FUNCTION']);
                                 unset($value['EXPRESSION_STRING']);
+                                
+                                if ($value['JSON_CONFIG'] != '') {
+                                    $value['JSON_CONFIG'] = json_decode($value['JSON_CONFIG'], true);
+                                }
                             }); 
                             
                             array_walk($relationData, function(&$value) {      
@@ -114,9 +123,9 @@ class Restapi extends Controller {
                             $result['process'] = $processData;
                             $result['relation'] = $relationData;
                             
-                            $response = array('status' => 'success', 'result' => $result);
+                            $response = ['status' => 'success', 'result' => $result];
                         } else {
-                            $response = array('status' => 'error', 'text' => 'Not found indicator!');
+                            $response = ['status' => 'error', 'text' => 'Not found indicator!'];
                         }
                     }
                     break;
@@ -130,7 +139,7 @@ class Restapi extends Controller {
 
                         if ($configRow) {
                             
-                            $result = array();
+                            $result = [];
                             
                             if ($configRow['KPI_TYPE_ID'] == '2008') { //Method
                                 
@@ -142,7 +151,7 @@ class Restapi extends Controller {
                                     $dataFirstRow = $data[0];
                                     $rowExp = $this->model->getKpiIndicatorFullExpressionModel($parentIndicatorId);
                                     
-                                    $result['header'] = array(
+                                    $result['header'] = [
                                         'NAME' => $dataFirstRow['NAME'],
                                         'LABEL_WIDTH' => $dataFirstRow['LABEL_WIDTH'],
                                         'KPI_TYPE_ID' => $dataFirstRow['KPI_TYPE_ID'],
@@ -156,20 +165,20 @@ class Restapi extends Controller {
                                         'WINDOW_HEIGHT' => $dataFirstRow['WINDOW_HEIGHT'], 
                                         'PARENT_INDICATOR_ID' => $parentIndicatorId, 
                                         'fullExpression' => $rowExp
-                                    );
+                                    ];
                                     
                                     unset($data[0]);
                                     
                                     $result['detail'] = array_values($data);
                                             
                                 } else {
-                                    $response = array('status' => 'error', 'text' => 'No config indicator!');
+                                    $response = ['status' => 'error', 'text' => 'No config indicator!'];
                                 }
                             }
                             
-                            $response = array('status' => 'success', 'result' => $result);
+                            $response = ['status' => 'success', 'result' => $result];
                         } else {
-                            $response = array('status' => 'error', 'text' => 'Not found indicator!');
+                            $response = ['status' => 'error', 'text' => 'Not found indicator!'];
                         }
                     }
                     break;
@@ -187,14 +196,15 @@ class Restapi extends Controller {
                         $result = $this->model->filterKpiIndicatorValueFormModel($kpiMainIndicatorId);
 
                         if ($result['status'] == 'success') {
-                            $response = array('status' => 'success', 'result' => $result['data']);
+                            $response = ['status' => 'success', 'result' => $result['data']];
                         } else {
-                            $response = array('status' => 'error', 'text' => $result['message']);
+                            $response = ['status' => 'error', 'text' => $result['message']];
                         }
                     }
                     break;
                     
                     case 'kpiIndicatorDataList':
+                    case 'kpiIndicatorDataListByAliasName':
                     {
                         $_POST['indicatorId'] = Input::paramNum($parameters['indicatorId']);
                         $_POST['page']        = issetParam($parameters['paging']['offset']);
@@ -214,44 +224,28 @@ class Restapi extends Controller {
                         if ($criteria = issetParam($parameters['criteria'])) {
                             $_POST['criteria'] = $criteria;
                         }
+                        
+                        if ($commandName == 'kpiIndicatorDataListByAliasName') {
+                            Mdform::$isTrgAliasName = true;
+                        }
 
                         $this->load->model('mdform', 'middleware/models/');
                         $result = $this->model->indicatorDataGridModel();
 
                         if ($result['status'] == 'success') {
 
-                            $response = array(
+                            $response = [
                                 'status' => 'success', 
-                                'result' => array(
-                                    'rows' => $result['rows'], 
-                                    'paging' => array(
-                                        'totalcount' => $result['total']
-                                    )
-                                )
-                            );
+                                'result' => ['rows' => $result['rows'], 'paging' => ['totalcount' => $result['total']]]
+                            ];
 
                         } else {
-                            $response = array('status' => 'error', 'text' => $result['message']);
+                            $response = ['status' => 'error', 'text' => $result['message']];
                         }
                     }
                     break;
 
                     case 'kpiIndicatorDataSave':
-                    {
-                        $kpiMainIndicatorId = Input::param($parameters['indicatorId']);
-                        $kpiCrudIndicatorId = issetVar($parameters['crudIndicatorId']);
-                        
-                        $postParameters = ['kpiMainIndicatorId' => $kpiMainIndicatorId, 'kpiCrudIndicatorId' => $kpiCrudIndicatorId];
-                        
-                        $_POST = $postParameters;
-                        Mdform::$mvSaveParams = Arr::changeKeyUpper($parameters);
-
-                        $this->load->model('mdform', 'middleware/models/');
-                        $response = $this->model->saveMetaVerseDataModel();
-                        $response = Arr::changeKeyName($response, 'message', 'text');
-                    }
-                    break;
-                
                     case 'kpiIndicatorDataSaveByAliasName':
                     {
                         $kpiMainIndicatorId = Input::param($parameters['indicatorId']);
@@ -259,9 +253,16 @@ class Restapi extends Controller {
                         
                         $postParameters = ['kpiMainIndicatorId' => $kpiMainIndicatorId, 'kpiCrudIndicatorId' => $kpiCrudIndicatorId];
                         
+                        if (isset($parameters['endToEndLog'])) {
+                            $postParameters['endToEndLog'] = $parameters['endToEndLog'];
+                        }
+                        
                         $_POST = $postParameters;
                         
-                        Mdform::$isTrgAliasName = true;
+                        if ($commandName == 'kpiIndicatorDataSaveByAliasName') {
+                            Mdform::$isTrgAliasName = true;
+                        }
+                        
                         Mdform::$mvSaveParams = Arr::changeKeyUpper($parameters);
 
                         $this->load->model('mdform', 'middleware/models/');
@@ -271,6 +272,7 @@ class Restapi extends Controller {
                     break;
                 
                     case 'kpiIndicatorGetData':
+                    case 'kpiIndicatorGetDataByAliasName':
                     {
                         $kpiMainIndicatorId = issetVar($parameters['indicatorId']);
                         
@@ -279,8 +281,16 @@ class Restapi extends Controller {
                             $this->load->model('mdform', 'middleware/models/');
                             unset($parameters['indicatorId']);
                             
-                            $crudIndicatorId = issetVar($parameters['crudIndicatorId']);
+                            $crudIndicatorId = isset($parameters['crudIndicatorId']) ? Input::param($parameters['crudIndicatorId']) : null;
                             $recordId = isset($parameters['recordId']) ? Input::param($parameters['recordId']) : null;
+                            
+                            if ($commandName == 'kpiIndicatorGetDataByAliasName') {
+                                Mdform::$isGetTrgAliasName = true;
+                            }
+                            
+                            if (issetParam($parameters['isLookupRowData'])) {
+                                Mdform::$isGetLookupRowData = true;
+                            }
                             
                             if ($crudIndicatorId) {
                                 
@@ -295,22 +305,22 @@ class Restapi extends Controller {
                                 
                             } else {
                                 if ($recordId) {
-                                    $result = $this->model->getKpiIndicatorDetailDataModel($kpiMainIndicatorId, $recordId);
+                                    $result = $this->model->getMetaVerseDataModel($kpiMainIndicatorId, ['recordId' => $recordId]);
                                 } elseif (count($parameters) > 0) {
-                                    $result = $this->model->getKpiIndicatorDetailDataModel($kpiMainIndicatorId, null, 'idField', $parameters);
+                                    $result = $this->model->getMetaVerseDataModel($kpiMainIndicatorId, $parameters);
                                 } else {
-                                    $result = array('status' => 'error', 'message' => 'Invalid parameters!');
+                                    $result = ['status' => 'error', 'message' => 'Invalid parameters!'];
                                 }
                             }
                             
                         } else {
-                            $result = array('status' => 'error', 'message' => 'Invalid indicatorId!');
+                            $result = ['status' => 'error', 'message' => 'Invalid indicatorId!'];
                         }
 
                         if ($result['status'] == 'success') {
-                            $response = array('status' => 'success', 'result' => isset($result['detailData']) ? $result['detailData'] : (isset($result['data']) ? $result['data'] : []));
+                            $response = ['status' => 'success', 'result' => isset($result['detailData']) ? $result['detailData'] : (isset($result['data']) ? $result['data'] : [])];
                         } else {
-                            $response = array('status' => 'error', 'text' => $result['message']);
+                            $response = ['status' => 'error', 'text' => $result['message']];
                         }
                     }
                     break;
@@ -339,10 +349,10 @@ class Restapi extends Controller {
                                 $response = Arr::changeKeyName($response, 'message', 'text');
                                 
                             } else {
-                                $response = array('status' => 'error', 'text' => 'Invalid parameters!');
+                                $response = ['status' => 'error', 'text' => 'Invalid parameters!'];
                             }
                         } else {
-                            $response = array('status' => 'error', 'text' => 'Invalid indicatorId!');
+                            $response = ['status' => 'error', 'text' => 'Invalid indicatorId!'];
                         }
                     }
                     break;
@@ -355,9 +365,9 @@ class Restapi extends Controller {
                         $result = $this->model->getKpiIndicatorMetaInfoModel($kpiMainIndicatorId);
 
                         if ($result['status'] == 'success') {
-                            $response = array('status' => 'success', 'result' => $result['detailData']);
+                            $response = ['status' => 'success', 'result' => $result['detailData']];
                         } else {
-                            $response = array('status' => 'error', 'text' => $result['message']);
+                            $response = ['status' => 'error', 'text' => $result['message']];
                         }
                     }
                     break;
@@ -367,7 +377,7 @@ class Restapi extends Controller {
                         $this->load->model('mdmenu', 'middleware/models/');
                         $menuData = $this->model->getKpiIndicatorMenuModel($isMobile);
                         
-                        $response = array('status' => 'success', 'result' => $menuData);
+                        $response = ['status' => 'success', 'result' => $menuData];
                     }
                     break;
                     
@@ -379,10 +389,10 @@ class Restapi extends Controller {
                             $this->load->model('mdmenu', 'middleware/models/');
                             $menuData = $this->model->getKpiMenuListByParentIdCacheModel($menuId, $isMobile);
                         } else {
-                            $menuData = array();
+                            $menuData = [];
                         }
                         
-                        $response = array('status' => 'success', 'result' => $menuData);
+                        $response = ['status' => 'success', 'result' => $menuData];
                     }
                     break;
                 
@@ -396,7 +406,7 @@ class Restapi extends Controller {
                         if ($result['status'] == 'success') {
                             $response = $result;
                         } else {
-                            $response = array('status' => 'error', 'text' => $result['message']);
+                            $response = ['status' => 'error', 'text' => $result['message']];
                         }
                     }
                     break;
@@ -409,9 +419,9 @@ class Restapi extends Controller {
                         $dashboardConfigs = $this->model->getKpiDashboardChartsModel($indicatorId);
 
                         if ($dashboardConfigs['layoutCode']) {
-                            $response = array('status' => 'success', 'result' => $dashboardConfigs);
+                            $response = ['status' => 'success', 'result' => $dashboardConfigs];
                         } else {
-                            $response = array('status' => 'error', 'text' => 'Тохиргоо олдсонгүй!');
+                            $response = ['status' => 'error', 'text' => 'Тохиргоо олдсонгүй!'];
                         }
                     }
                     break;
@@ -422,7 +432,7 @@ class Restapi extends Controller {
 
                         $this->load->model('mdform', 'middleware/models/');
                         $filterParams = $this->model->getKpiDashboardFilterParamsModel($indicatorId);
-                        $response = array('status' => 'success', 'result' => array());
+                        $response = ['status' => 'success', 'result' => []];
                         
                         if ($filterParams) {
             
@@ -445,9 +455,9 @@ class Restapi extends Controller {
                         $chartConfigs = $this->model->getKpiIndicatorChildChartsModel($indicatorId);
 
                         if ($chartConfigs['status'] == 'success') {
-                            $response = array('status' => 'success', 'result' => $chartConfigs['data']);
+                            $response = ['status' => 'success', 'result' => $chartConfigs['data']];
                         } else {
-                            $response = array('status' => 'error', 'text' => $chartConfigs['message']);
+                            $response = ['status' => 'error', 'text' => $chartConfigs['message']];
                         }
                     }
                     break;
@@ -476,6 +486,19 @@ class Restapi extends Controller {
                         } else {
                             (new Mdform())->indicatorExcelExport();
                             exit;
+                        }
+                    }
+                    break;
+                    
+                    case 'kpiIndicatorRawDataMart':
+                    {
+                        $indicatorId = issetVar($parameters['indicatorId']);
+                        
+                        if ($indicatorId) {
+                            $this->load->model('mdform', 'middleware/models/');
+                            $response = $this->model->runAllKpiDataMartByIndicatorIdModel($indicatorId);
+                        } else {
+                            $response = ['status' => 'error', 'text' => 'Invalid indicatorId!'];
                         }
                     }
                     break;
@@ -523,12 +546,12 @@ class Restapi extends Controller {
         
         if ($isMobile || self::isPhpGzCompressionInProcess() == false) {
             
-            $compressed = json_encode(array('response' => $response), JSON_UNESCAPED_UNICODE);
+            $compressed = json_encode(['response' => $response], JSON_UNESCAPED_UNICODE);
             header('Content-Type: application/json; charset=utf-8');
             
         } else {
             
-            $compressed = gzencode(json_encode(array('response' => $response), JSON_UNESCAPED_UNICODE));
+            $compressed = gzencode(json_encode(['response' => $response], JSON_UNESCAPED_UNICODE));
 
             header('Content-Type: application/json; charset=utf-8');
             header('Content-Encoding: gzip');
@@ -703,13 +726,10 @@ class Restapi extends Controller {
                         $rows = Arr::changeKeyLower($rows);
                     }
                     
-                    $response = array(
+                    $response = [
                         'status' => 'success', 
-                        'result' => array(
-                            'totalcount' => $result['total'], 
-                            'rows' => $rows
-                        )
-                    );
+                        'result' => ['totalcount' => $result['total'], 'rows' => $rows]
+                    ];
                     
                     unset($rows);
 
@@ -805,7 +825,7 @@ class Restapi extends Controller {
     
     public function runIndicatorFromMetaProcessDataTest() {
         
-        $param = file_get_contents('runIndicatorFromMetaProcessData.log');
+        $param = file_get_contents('log/runIndicatorFromMetaProcessData.log');
         
         $inputParam = json_decode($param, true);
         
@@ -815,7 +835,7 @@ class Restapi extends Controller {
             $bpParam = $inputParam[$bpCode];
 
             if ($bpParam && isset($bpParam['_metadataid']) && isset($bpParam['_indicatorid'])) {
-                $rs = $this->model->runIndicatorFromMetaProcessDataModel($bpParam);
+                $rs = $this->model->runIndicatorFromMetaProcessDataModel($bpParam, $param);
             } else {
                 $rs = array('status' => 'info', 'message' => 'No params! /_metadataid, _indicatorid/');
             }

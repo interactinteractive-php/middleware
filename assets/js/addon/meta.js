@@ -9468,6 +9468,15 @@ function mvFlowChartExecuteInit(elem, url, indicatorId) {
         mvFlowChartExecute(elem, url, indicatorId);
     } 
 }
+function mvProductRenderInit(elem, url, indicatorId) {
+    if (typeof isKpiIndicatorScript === 'undefined') {
+        $.getScript('middleware/assets/js/addon/indicator.js').done(function() {
+            mvProductRender(elem, url, indicatorId);
+        });
+    } else {
+        mvProductRender(elem, url, indicatorId);
+    } 
+}
 function tempBpFullExpressionSave() {
     if ($('.shift-p-ignore:visible').length == 0 && $('body').find("div[id*='bp-window-']").length > 0 && $('body').find("div[id*='bp-window-']").is(':visible')) {
 

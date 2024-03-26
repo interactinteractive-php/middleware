@@ -1078,7 +1078,7 @@ class Mdwebservice extends Controller {
                     }                    
                     
                     $formControl .= '<div style="'.(isset($dataRow[$in]['iconiconstyle']) ? $dataRow[$in]['iconiconstyle'] : '').'">' . $iconImg . '</div>
-                                            <p style="'.(isset($dataRow[$in]['icontextstyle']) ? $dataRow[$in]['icontextstyle'] : '').'">'. $dataRow[$in][$nameColumnName] .'</p>
+                                            <p style="'.(isset($dataRow[$in]['icontextstyle']) ? $dataRow[$in]['icontextstyle'] : '').'">'. Str::lower($dataRow[$in][$nameColumnName]) .'</p>
                                         </div>
                                     </li>';                
 
@@ -8544,10 +8544,19 @@ class Mdwebservice extends Controller {
         $message = null;
         
         if (isset($result['result']['_notification']) && is_countable($result['result']['_notification']) && count($result['result']['_notification'])) {
+            
             $arr[] = '<ul class="list list-unstyled mt-2 mb-0">';
-            foreach ($result['result']['_notification'] as $msg) {
-                $arr[] = '<li><i class="icon-arrow-right5 mr-1"></i> '.$msg.'</li>';
+            
+            if (isset($result['result']['_notification'][0])) {
+                foreach ($result['result']['_notification'] as $msg) {
+                    $arr[] = '<li><i class="icon-arrow-right5 mr-1"></i> '.$msg['message'].'</li>';
+                }
+            } else {
+                foreach ($result['result']['_notification'] as $msg) {
+                    $arr[] = '<li><i class="icon-arrow-right5 mr-1"></i> '.$msg.'</li>';
+                }
             }
+            
             $arr[] = '</ul>';
             $message = implode('', $arr);
         }
@@ -9816,7 +9825,7 @@ class Mdwebservice extends Controller {
 
     public static function getOnlyShowParamAndHiddenPrint($data, $fillParamData) {
 
-        $onlyShow = $featureParam = array();
+        $onlyShow = $featureParam = $wizardStepParam = [];
         $hiddenParam = '';
 
         foreach ($data as $row) {
@@ -9825,6 +9834,8 @@ class Mdwebservice extends Controller {
                 
                 if ($row['FEATURE_NUM'] != '') {
                     array_push($featureParam, $row);
+                } elseif (issetParam($row['WIZARD_STEP'])) {
+                    array_push($wizardStepParam, $row); 
                 } else {
                     array_push($onlyShow, $row); 
                 }
@@ -9877,11 +9888,7 @@ class Mdwebservice extends Controller {
             }
         }
 
-        return array(
-            'onlyShow' => $onlyShow,
-            'hiddenParam' => $hiddenParam,
-            'featureParam' => $featureParam
-        );
+        return ['onlyShow' => $onlyShow, 'hiddenParam' => $hiddenParam, 'featureParam' => $featureParam, 'wizardStepParam' => $wizardStepParam];
     }
     
     public function renderFeatureParam($methodId, $paramData, $fillParamData, $isDialog = false) {

@@ -3,33 +3,28 @@
         <thead>
             <tr>
                 <th class="font-weight-bold" style="width: 20px;">№</th>
-                <th class="font-weight-bold" style="width: 170px;">Баганын нэр /src/</th>
-                <th class="font-weight-bold" style="width: 120px;">Төрөл /src/</th>
-                <th class="font-weight-bold" style="width: 180px;">Нэр /src/</th>
-                <th class="font-weight-bold">Trg</th>
+                <th class="font-weight-bold" style="width: 340px;">Excel column</th>
+                <th class="font-weight-bold">Main column</th>
             </tr>
         </thead>
         <tbody>
             <?php 
-            foreach ($this->srcFields as $k => $row) {
+            foreach ($this->trgFields as $k => $row) {
             ?>
             <tr>
                 <td><?php echo ++$k; ?>.</td>
                 <td>
                     <?php 
-                    echo ($row['IS_UNIQUE'] == '1' ? '🔑 ' : '');
-                    echo $row['COLUMN_NAME']; 
-                    echo Form::hidden(array('name' => 'mapId[]', 'value' => $row['ID']));
-                    echo Form::hidden(array('name' => 'srcId[]', 'value' => $row['SRC_MAP_ID'].'|'.$row['COLUMN_NAME'].'|'.$row['SHOW_TYPE']));
+                    echo Form::hidden(['name' => 'mapId[]', 'value' => $row['ID']]);
+                    echo Form::hidden(['name' => 'trgId[]', 'value' => $row['TRG_MAP_ID']]);
+                    echo $row['TRG_LABEL_NAME']; 
                     ?>
-                </th>
-                <td><?php echo $row['SHOW_TYPE']; ?></td>
-                <td><?php echo $row['LABEL_NAME']; ?></td>
+                </td>
                 <td>
                     <?php 
-                    $trgComboTmp = $this->trgCombo;
-                    $trgComboTmp = str_replace('<option value="'.$row['TRG_MAP_ID'].'">', '<option value="'.$row['TRG_MAP_ID'].'" selected>', $trgComboTmp);
-                    echo $trgComboTmp; 
+                    $srcComboTmp = $this->srcCombo;
+                    $srcComboTmp = str_replace('<option value="'.$row['SRC_MAP_ID'].'-'.$row['INPUT_NAME'].'-', '<option selected value="'.$row['SRC_MAP_ID'].'-'.$row['INPUT_NAME'].'-', $srcComboTmp);
+                    echo $srcComboTmp; 
                     ?>
                 </td>
             </tr>

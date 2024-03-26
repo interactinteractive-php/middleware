@@ -308,6 +308,7 @@ class Mdtemplate extends Controller {
             $templateHTML = Mdstatement::configValueReplacer($templateHTML);
             $templateHTML = self::dottedConfigValueReplacer($templateHTML);
             $templateHTML = Mdstatement::textStyler($templateHTML);
+            $templateHTML = self::rowRowsPathReplacer($templateHTML);
             
             $templateHTML = preg_replace('/\#([A-Za-z0-9_.-]+)\#/s', '', $templateHTML);
             
@@ -339,6 +340,30 @@ class Mdtemplate extends Controller {
         $templateHTML = preg_replace('/(;| )([_\-.,A-Za-zА-Яа-яӨҮөүх0-9]+)\/(&nb| )/u', '$1<nobr>$2/</nobr>$3', $templateHTML);
         
         return $templateHTML;
+    }
+    
+    public static function rowRowsPathReplacer($html) {
+        preg_match_all('/\#([A-Za-z0-9_.-]+)\#/i', $html, $pathReplace);
+        
+        if (isset($pathReplace[1][0])) {
+            foreach ($pathReplace[1] as $k => $path) {
+                if (strpos($path, '.') !== false) {
+                    $path = strtolower($path);
+                    $pathArr = explode('.', $path); 
+                    $groupPath = $pathArr[0];
+                    $fieldPath = $pathArr[1];
+                    if (isset(Mdtemplate::$responseData[$groupPath])) {
+                        if (isset(Mdtemplate::$responseData[$groupPath][$fieldPath])) {
+                            $html = str_replace($pathReplace[0][$k], Mdtemplate::$responseData[$groupPath][$fieldPath], $html);
+                        } elseif (isset(Mdtemplate::$responseData[$groupPath][0][$fieldPath])) {
+                            $html = str_replace($pathReplace[0][$k], Mdtemplate::$responseData[$groupPath][0][$fieldPath], $html);
+                        }
+                    }
+                }
+            }
+        }
+        
+        return $html;
     }
     
     public static function absoluteAmount($html) {
@@ -1382,37 +1407,42 @@ class Mdtemplate extends Controller {
 
                             if ($dataElement) {
                                 
-                                if ($paging) {
-
+                                $isPagingRow = false;
+                                
+                                if ($paging && strpos($pagingConfig, '|') !== false) {
+                                    
                                     $pagingConfigArr = explode('|', $pagingConfig);
-                                    $pagingConfigGroup = strtolower($pagingConfigArr[0]);
-                                    $pagingConfigSize = $pagingConfigArr[1];
+                                    
+                                    if (isset($pagingConfigArr[1])) {
+                                        
+                                        $pagingConfigGroup = strtolower($pagingConfigArr[0]);
+                                        $pagingConfigSize  = $pagingConfigArr[1];
 
-                                    $dataElementGroup = $dataElement[$pagingConfigGroup];
-                                    $dataGroupCount = count($dataElementGroup);
-
-                                    if ($pagingConfigSize < $dataGroupCount) {
-
-                                        unset($dataElement[$pagingConfigGroup]);
-
-                                        $numPages = ceil($dataGroupCount / $pagingConfigSize);
-                                        $start = 0;
-
-                                        for ($p = 1; $p <= $numPages; $p++) {
-
-                                            $dataElementLimited = array_slice($dataElementGroup, $start, $pagingConfigSize);
-
-                                            $dataElement[$pagingConfigGroup] = $dataElementLimited;
-
-                                            $renderTemplate = self::renderTemplate($dataElement, $templateId, $isTemplateMetaId, $dataModelId);
-                                            array_push($array, $renderTemplate);
-
-                                            $start = $start + $pagingConfigSize;
+                                        if ($pagingConfigGroup && $pagingConfigSize && isset($dataElement[$pagingConfigGroup]) && $dataElement[$pagingConfigGroup]) {
+                                            $isPagingRow = true;
+                                            $dataElementGroup = $dataElement[$pagingConfigGroup];
+                                            $dataGroupCount = count($dataElementGroup);
                                         }
+                                    }
+                                }
+                                
+                                if ($isPagingRow && $pagingConfigSize < $dataGroupCount) {
 
-                                    } else {
-                                        $renderTemplate = self::renderTemplate($dataElement, $templateId, $isTemplateMetaId, $dataModelId);
+                                    unset($dataElement[$pagingConfigGroup]);
+
+                                    $numPages = ceil($dataGroupCount / $pagingConfigSize);
+                                    $start = 0;
+
+                                    for ($p = 1; $p <= $numPages; $p++) {
+
+                                        $dataElementLimited = array_slice($dataElementGroup, $start, $pagingConfigSize);
+
+                                        $dataElement[$pagingConfigGroup] = $dataElementLimited;
+
+                                        $renderTemplate = $this->renderTemplate($dataElement, $templateId, $isTemplateMetaId, $dataModelId);
                                         array_push($array, $renderTemplate);
+
+                                        $start = $start + $pagingConfigSize;
                                     }
 
                                 } else {
@@ -3717,6 +3747,7 @@ class Mdtemplate extends Controller {
         }
         table {
             border-collapse: collapse !important;
+            font-size: 12px;
             border-color: grey;
             line-height: 1em;
         }
@@ -3771,7 +3802,6 @@ class Mdtemplate extends Controller {
         }
         p {
             margin: 0;
-            margin-bottom: 0.625rem;
         }
         .right-rotate {
             -webkit-transform: rotate(90deg);
@@ -4546,6 +4576,40 @@ class Mdtemplate extends Controller {
         $_POST['responseData'] = $processResponseParam;
         
         $this->printTemplateByResponse();
+    }
+    
+    public function getReportTemplateHtml() {
+        
+        $metaDataId = Input::numeric('processId');
+        $templateMetaId = Input::numeric('templateMetaId');
+        $pageSize = Input::post('pageSize');
+        $pageOrientation = Input::post('pageOrientation');
+        
+        parse_str(urldecode($_POST['qryStr']), $dataRow);
+        
+        $_POST['metaDataId'] = $metaDataId;
+        $_POST['dataRow'] = [$dataRow];
+        $_POST['isProcess'] = 'false';
+        $_POST['responseType'] = 'outputArray';
+
+        $_POST['print_options'] = [
+            'numberOfCopies' => 1, 
+            'isPrintNewPage' => 1,
+            'isSettingsDialog' => 0,
+            'isShowPreview' => 1,
+            'isPrintPageBottom' => 0,
+            'isPrintPageRight' => 0,
+            'pageOrientation' => $pageOrientation,
+            'isPrintSaveTemplate' => 0,
+            'paperInput' => $pageOrientation,
+            'pageSize' => strtolower($pageSize ? $pageSize : 'a4'),
+            'printType' => '1col', 
+            'templateMetaId' => $templateMetaId
+        ];
+
+        $reportTemplate = (new Mdtemplate())->printOption();
+
+        echo $reportTemplate['Html'];
     }
     
 }

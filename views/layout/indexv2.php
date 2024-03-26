@@ -91,6 +91,8 @@ function widgetLayoutCallDiagramByMeta(metaDataId, executeType) {
     } */
     .widget-container {
         margin-left: -15px;
+        margin-right: -15px;
+        font-family: "Rubik", sans-serif !important;
     }
     .shadow-citizen {
         /* box-shadow: 0 0 #0000, 0 0 #0000, 0px 20px 27px 0px rgba(0, 0, 0, 0.05); */

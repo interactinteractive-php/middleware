@@ -88,7 +88,12 @@ if ($this->list) {
                     $notifyDate = new \DateTime($value['NOTIFYDATE']);
                     $date_diff = date_diff($now, $notifyDate);
 
-                    if ($date_diff->d) {
+                    if ($date_diff->m) {
+                        echo $date_diff->m . ' ' . $this->lang->line('month'); 
+                        if ($date_diff->d) {
+                            echo ' ' . $date_diff->d . ' ' . $this->lang->line('day');
+                        }
+                    } elseif ($date_diff->d) {
                         echo $date_diff->d . ' ' . $this->lang->line('day');
                     } elseif ($date_diff->h) {
                         echo $date_diff->h . ' ' . $this->lang->line('date_hour').' '.$date_diff->i.' '.$this->lang->line('date_minute');

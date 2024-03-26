@@ -14,7 +14,7 @@ $(function(){
     if (!isset($this->getStartupMeta['ACTION_META_DATA_ID']) && isset($this->getStartupMetaAllUser['ACTION_META_DATA_ID']) && $this->getStartupMetaAllUser['ACTION_META_DATA_ID'] && Session::get(SESSION_PREFIX.'startupMeta') !== '1') { 
     ?>
         var fillDataParams = 'userKeyId=<?php echo Ue::sessionUserKeyId() ?>';    
-        var actionMetaDataId = '<?php echo $this->getStartupMeta2['ACTION_META_DATA_ID'] ?>';
+        var actionMetaDataId = '<?php echo $this->getStartupMetaAllUser['ACTION_META_DATA_ID'] ?>';
             startupmeta(actionMetaDataId, fillDataParams, '1');    
     <?php 
     } 
@@ -33,14 +33,10 @@ function startupmeta(actionMetaDataId, fillDataParams, isAllUser) {
         url: 'mdmetadata/getMetaTypeById/'+actionMetaDataId,
         async: false,
         dataType: 'json',
-        beforeSend: function () {
-        },
         success: function (data) {
             actionMetaTypeId = data;
         },
-        error: function () {
-            alert("Error");
-        }
+        error: function () { alert("Error"); }
     });             
 
     if (actionMetaTypeId == '200101010000016') {
