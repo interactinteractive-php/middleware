@@ -63,7 +63,7 @@ class Mdpos_Model extends Model {
         return $data;
     }
     
-    public function setPOSSessionModel() {
+    public function setPOSSessionModel($posv3 = false) {
                 
         if (Session::isCheck(SESSION_PREFIX.'cashierId')) {
             return array('status' => 'success'); 
@@ -92,13 +92,13 @@ class Mdpos_Model extends Model {
             if ($cashierInfo['isclosed'] === '1') {
                 return array('status' => 'error', 'message' => Lang::line('isClosedPos'));
             }
-            return self::setSessionPosByRow($cashierInfo);
+            return self::setSessionPosByRow($cashierInfo, $posv3);
         } else {
             return array('status' => 'error', 'message' => Lang::line('POS_0057'));
         }
     }
     
-    public function setSessionPosByRow($cashierInfo) {
+    public function setSessionPosByRow($cashierInfo, $posv3) {
 
         $sessionEmployeeId = Ue::sessionEmployeeId();
         
@@ -172,7 +172,7 @@ class Mdpos_Model extends Model {
                 Session::set(SESSION_PREFIX.'isBasketOnly', '1');
             }
             
-        } else {
+        } elseif (!$posv3) {
             
             $posApiPath = $organizationId.'\\'.$cashierInfo['storecode'].'\\'.$cashierInfo['poscode'];
 
@@ -1425,6 +1425,7 @@ class Mdpos_Model extends Model {
         $isVatCalc              = true;
         $posBillType            = $paymentData['posBillType'];
         $showCustomerName       = Input::isEmpty('empCustomerName') ? '' : Input::post('empCustomerName');
+        $isUserPosV3            = Config::getFromCache('IS_USE_POSAPI_V3');
         
         if (($upointAmount > 0 || issetParam($paymentData['upointBalance'])) && $returnType != 'typeReduce') {
             $resultUpoint = $this->upointPaymentTransaction($paymentData, $upointAmount, getUID(), $currentDate, $paymentData['upointPayAmount'], $cashAmount, $itemData);
@@ -3668,8 +3669,28 @@ class Mdpos_Model extends Model {
 
                 $jsonParam = Str::remove_doublewhitespace(Str::removeNL($jsonParam));
 
-                $posApiArray = self::posApiFunction($jsonParam);            
-                $billId      = isset($posApiArray['billId']) ? $posApiArray['billId'] : null;                
+                if ($isUserPosV3) {                                
+
+                    $taxInvParam = array(
+                        'id' => $invoiceId
+                    );
+                    $posApiArray = $this->ws->runSerializeResponse(self::$gfServiceAddress, 'posMainSalesInvoiceSendTax', $taxInvParam);                
+                    
+                    if ($posApiArray['result'] && $posApiArray['result']['status'] === 'SUCCESS') {
+                        $posApiArray = $posApiArray['result'];
+                        $billId      = issetParam($posApiArray['id']);                                            
+                        $posApiArray['qrData'] = $posApiArray['qrdata'];
+                        $posApiArray['merchantId'] = '';
+                        $posApiArray['warningMsg'] = '';
+                        $posApiArray['success'] = $posApiArray['status'];
+                    } else {
+                        $billId = null;
+                        $posApiArray['warningMsg'] = $posApiArray['result']['message'];
+                    }
+                } else {
+                    $posApiArray = self::posApiFunction($jsonParam);
+                    $billId      = isset($posApiArray['billId']) ? $posApiArray['billId'] : null;                
+                }                
                 
             } else {
                 
@@ -4817,6 +4838,7 @@ class Mdpos_Model extends Model {
         $billDate       = Input::post('returnInvoiceBillDate');
         $isGL           = Input::post('returnInvoiceIsGL');
         $isTodayReturn  = false;
+        $isUserPosV3    = Config::getFromCache('IS_USE_POSAPI_V3');
         
         if ($isGL != '1' && Date::formatter($billDate, 'Y-m-d') == Date::currentDate('Y-m-d')) {
             $isTodayReturn = true;
@@ -4860,13 +4882,24 @@ class Mdpos_Model extends Model {
             }
             
             if ($returnBillId) {
-                
-                $jsonParam = "{
-                    'returnBillId': '" . $returnBillId . "',
-                    'date': '" . str_replace(':', '=', $billDate) . "'
-                }";
 
-                $posApiArray = self::posApiReturnBillFunction($jsonParam);
+                if ($isUserPosV3) {
+                    $taxInvParam = array(
+                        'id' => $invoiceId,
+                        'date' => $billDate
+                    );
+                    $posApiArray = $this->ws->runSerializeResponse(self::$gfServiceAddress, 'returnInvoiceAPI', $taxInvParam);                
+                    $posApiArray['success'] = true;
+                    
+                } else {
+                
+                    $jsonParam = "{
+                        'returnBillId': '" . $returnBillId . "',
+                        'date': '" . str_replace(':', '=', $billDate) . "'
+                    }";
+
+                    $posApiArray = self::posApiReturnBillFunction($jsonParam);
+                }
                 
             } else {
                 $posApiArray['success'] = true;
@@ -4999,12 +5032,23 @@ class Mdpos_Model extends Model {
             
                 if ($returnBillId) {
                     
-                    $jsonParam = "{
-                        'returnBillId': '" . $returnBillId . "',
-                        'date': '" . str_replace(':', '=', $billDate) . "'
-                    }";
+                    if ($isUserPosV3) {
+                        $taxInvParam = array(
+                            'id' => $invoiceId,
+                            'date' => $billDate
+                        );
+                        $posApiArray = $this->ws->runSerializeResponse(self::$gfServiceAddress, 'returnInvoiceAPI', $taxInvParam);                
+                        $posApiArray['success'] = true;
+                        
+                    } else {
 
-                    $posApiArray = self::posApiReturnBillFunction($jsonParam);
+                        $jsonParam = "{
+                            'returnBillId': '" . $returnBillId . "',
+                            'date': '" . str_replace(':', '=', $billDate) . "'
+                        }";
+
+                        $posApiArray = self::posApiReturnBillFunction($jsonParam);
+                    }
                     
                 } else {
                     $posApiArray['success'] = true;

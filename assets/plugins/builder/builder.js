@@ -78,7 +78,69 @@ var Builder = function() {
         });
     
     };
+
+    var remakeDraggable = function (mainId, el) {
     
+        $(mainId).each(function() {
+            $(this).draggable({
+                helper: function() {
+                    return $('<div style="height: 100px; width: 300px; background: #F9FAFA; box-shadow: 5px 5px 1px rgba(0,0,0,0.1); text-align: center; line-height: 100px; font-size: 28px; color: #16A085"><span class="fa fa-list"></span></div>');
+                },
+                revert: 'invalid',
+                appendTo: 'body',
+                connectToSortable: el,
+                stop: function(event, ui){
+                    $(this).addClass('selected-item');
+                    pageEmpty(el);
+                    allEmpty(el);
+                },
+                start: function() {
+                    var mainSelector = $(this).closest('.build-page');
+                    mainSelector.find('.selected-item').removeClass('selected-item');
+                }
+            });
+        });
+    
+    };
+    
+    var remakeSortable = function (el) {
+        var mainSelector = el;
+        el.sortable({
+            revert: true,
+            placeholder: "drop-hover",
+            beforeStop: function(event, ui) {
+                var itemSelector = mainSelector.find('.selected-item img'),
+                    rowData = itemSelector.attr('data-rowdata');
+                mainSelector.find('.selected-item').removeClass('selected-item');
+                
+                $(ui.item).removeAttr('style').addClass('row m-0').attr('data-src', itemSelector.attr('data-src'));
+                $(ui.item).find('.fa').remove();
+
+                var  frameUniqId = getUniqueId(1);
+                var __html = '';
+                if ($(ui.item).children().length == 0) {
+                    __html = mainHtml(frameUniqId, rowData, itemSelector);
+                } else {
+                    __html = $(ui.item).children().clone();
+                }
+                
+                ui.item.html(__html);
+                var _btns = actionBtns();
+                actionButtons = $(_btns);
+    
+                ui.item.find('.zoomer-cover').append(actionButtons);
+            },
+            stop: function(event, ui) {
+                mainSelector.find('#pageList ul:visible li').each(function() {
+                    $(this).find('.zoomer-cover > a').remove();
+                });
+            },
+            over: function(event, ui) {
+                mainSelector.find('#start').hide();
+            }
+        });
+    };
+
     var makeSortable = function (el) {
         var mainSelector = el.closest('.build-page');
         el.sortable({
@@ -522,6 +584,12 @@ var Builder = function() {
         }, 
         initMakeSortable: function (uniqId) {
             makeSortable(uniqId);
+        }, 
+        initRemakeDraggable: function (uniqId) {
+            remakeDraggable(uniqId);
+        }, 
+        initRemakeSortable: function (uniqId) {
+            remakeSortable(uniqId);
         }, 
         initRemoveDraggable: function (uniqId) {
             removeDraggable(uniqId);

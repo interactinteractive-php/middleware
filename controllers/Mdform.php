@@ -5707,6 +5707,11 @@ class Mdform extends Controller {
         } 
         
         $this->load->model('mdform', 'middleware/models/');
+        $this->view->metaDataId = Input::post('metaDataId');
+        $this->view->workSpaceId = Input::post('workSpaceId');
+        $this->view->isWorkFlow = Input::post('isWorkFlow');
+        $this->view->selectedRow = Input::post('selectedRow');
+        $this->view->workSpaceParams = Input::post('workSpaceParams');
         
         $this->view->indicatorId = '';
         $this->view->indicatorName = '';
@@ -5762,7 +5767,7 @@ class Mdform extends Controller {
             $this->view->fullUrlJs = AssetNew::amChartJs();
         
             $this->view->render('header');
-        } 
+        }
         
         $this->view->renderChart = '';
         

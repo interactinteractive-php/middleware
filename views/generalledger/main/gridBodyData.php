@@ -5,7 +5,7 @@ if (isset($params['generalledgerbookdtls']) && ($dtlCount = count($params['gener
     
     $mdgl = new Mdgl();
     
-    if ($dtlCount < 300) {
+    if ($dtlCount < 500) {
         $isMultiRows = false;
     } else {
         $gl = &getInstance();

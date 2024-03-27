@@ -33,6 +33,10 @@ class Mdpos extends Controller {
     }
 
     public function index() {        
+
+        if (Config::getFromCache('IS_USE_POSAPI_V3')) {
+            Message::add('s', '', AUTH_URL.'mdpos/v3');
+        }
         
         $this->view->title = 'POS';
         $this->view->uniqId = getUID();        
@@ -76,6 +80,152 @@ class Mdpos extends Controller {
         $this->view->windowSessionId = getUID();
         
         self::posConfigLoad();
+        
+        $this->view->billNum = $this->model->getBillNumModel();        
+        $this->view->getItems = '';
+        $this->view->basketInvoiceId = '';
+        $this->view->basketCount = 0;
+        $response = array();        
+        
+        if (Input::isEmpty('selectedRow') === false) {
+            $this->view->getLocker = Input::post('selectedRow');
+            
+            if (Input::isEmpty('objectParam') === false) {
+                $objectParam = json_decode(html_entity_decode(Input::post('objectParam'), ENT_QUOTES, 'UTF-8'), true);
+                if ($objectParam) {
+                    $this->view->selectedCustomerId = $objectParam['customerId'];
+                    $this->view->selectedItemId = $objectParam['itemId'];
+                }
+            }
+            
+            if (array_key_exists('resultData', $this->view->getLocker) && array_key_exists('fitmultilockercheckin_dv', $this->view->getLocker['resultData'])) {
+
+                $this->view->multipleLockers = $this->view->getLocker['resultData']['fitmultilockercheckin_dv'];
+                $this->view->getLocker = null;
+
+            } else {
+
+                $this->view->getLocker['typeid'] = '5';
+                $this->view->vipLockerId = Str::lower(Input::post('vipLockerId'));            
+                $this->view->lockerCustomerId = Str::lower(Input::post('customerId'));            
+                $this->view->specialLocker = '';            
+                $lockerKeyCode = $this->view->getLocker['keycode'];
+                
+                $result = $this->model->getInvoiceByIdModel($this->view->getLocker);
+                $this->view->vipLockerId = $this->view->vipLockerId === 'isspecialuse' ? $this->view->specialLocker = '1' : $this->view->vipLockerId;                
+
+                if ($result['status'] == 'success' && $result['data']) {
+
+                    $this->view->getLocker = $result['data'];
+                    $this->view->getLocker['keycode'] = $lockerKeyCode;
+                    $this->view->basketCount = $this->model->getBasketLockerOrderBookCountModel($this->view->getLocker['id']);
+                    
+                    if (issetParam($this->view->getLocker['alertmsg'])) {
+                        $response['message'] = $this->view->getLocker['alertmsg'];
+                    }
+                    
+                    $this->view->storeId  = Session::get(SESSION_PREFIX.'storeId');
+                    $this->view->itemList = issetParam($result['data']['pos_item_list_get']);
+                    $this->view->basketInvoiceId = $this->view->getLocker['salesorderid'];
+                    $this->view->getItems = $this->view->renderPrint('items', self::$viewPath);
+                }
+            }            
+        } else {
+            $this->view->basketCount = $this->model->getBasketOrderBookCountModel();
+        }
+                
+        /**
+         * postypecode = 2 restaurant
+         */
+        $posTypeCode = Session::get(SESSION_PREFIX.'posTypeCode');
+        $layoutCode = $posTypeCode == '3' ? 'card' : 'bottom';
+
+        $existMetaId = (new Mdmetadata())->getMetaData('16710768284569');        
+        if ($existMetaId) {
+            $this->view->quickItemList = $this->model->quickItemModel($existMetaId['META_DATA_ID']);        
+        }
+        
+        if ($posTypeCode == '5' || $layoutCode == 'card') {
+            
+            $this->view->leftSidebar = $this->view->renderPrint('layout/card/leftSidebar', self::$viewPath);
+            $this->view->rightSidebar = $this->view->renderPrint('layout/card/rightSidebar', self::$viewPath);
+            $this->view->centerSidebar = $this->view->renderPrint('layout/card/centerSidebar', self::$viewPath);
+            $this->view->layout = $this->view->renderPrint('layout/card/index', self::$viewPath);   
+
+        } elseif ($layoutCode == 'right') {
+            
+            $this->view->leftSidebar = $this->view->renderPrint('layout/right/leftSidebar', self::$viewPath);
+            $this->view->rightSidebar = $this->view->renderPrint('layout/right/rightSidebar', self::$viewPath);
+            $this->view->centerSidebar = $this->view->renderPrint('layout/right/centerSidebar', self::$viewPath);
+            $this->view->layout = $this->view->renderPrint('layout/right/index', self::$viewPath);   
+            
+        } elseif ($layoutCode == 'bottom') {
+            
+            $this->view->leftSidebar = $this->view->renderPrint('layout/bottom/leftSidebar', self::$viewPath);
+            $this->view->rightSidebar = $this->view->renderPrint('layout/bottom/rightSidebar', self::$viewPath);
+            $this->view->centerSidebar = $this->view->renderPrint('layout/bottom/centerSidebar', self::$viewPath);
+            $this->view->layout = $this->view->renderPrint('layout/bottom/index', self::$viewPath);   
+            
+        }
+        
+        if (!is_ajax_request()) {
+            $this->view->render('header', self::$viewPath);
+            $this->view->render('index', self::$viewPath);
+            $this->view->render('footer');
+            Session::set(SESSION_PREFIX.'posActiveLogin', '1');
+        } else {
+            $this->view->isAjaxLoad = true;
+            $response['html'] = $this->view->renderPrint('index', self::$viewPath);
+            $response['uniqId'] = $this->view->uniqId;
+            Session::set(SESSION_PREFIX.'posActiveLogin', '1');
+            echo json_encode($response); exit;        
+        }
+    }
+
+    public function v3() {        
+        
+        $this->view->title = 'POS V3';
+        $this->view->uniqId = getUID();        
+
+        $this->view->css = array_unique(array_merge(AssetNew::metaCss(), array('custom/css/pos/style.css')));
+        
+        $getPOSSession = $this->model->setPOSSessionModel(true);
+        
+        if ($getPOSSession['status'] == 'chooseCashier') {
+            
+            $this->view->cashierList = $getPOSSession['data'];
+            
+            if (!is_ajax_request()) {
+                
+                $this->view->render('header', self::$viewPath);
+                $this->view->render('chooseCashier', self::$viewPath);
+                $this->view->render('footer');
+                exit;
+                
+            } else {
+                $response = array('html' => $this->view->renderPrint('chooseCashierAjax', self::$viewPath), 'uniqId' => $this->view->uniqId, 'chooseCashier' => '');
+                echo json_encode($response); exit;        
+            }
+            
+        } elseif ($getPOSSession['status'] != 'success') {
+            Message::add('i', ($getPOSSession['message'] ? $getPOSSession['message'] : $this->lang->line('POS_0057')), URL . 'mdpos/message');
+        }
+        
+        $this->view->js = array_unique(
+            array_merge(
+                array(
+                    'custom/addon/plugins/scannerdetection/jquery.scannerdetection.js', 
+                    'custom/addon/plugins/jquery-fixedheadertable/jquery.fixedheadertable.min.js' 
+                ), 
+                AssetNew::metaOtherJs()
+            )
+        );
+        $this->view->fullUrlJs = array('middleware/assets/js/pos/pos.js');
+        $this->view->isAjaxLoad = false;
+        $this->view->dataViewId = Input::post('dataViewId');
+        $this->view->windowSessionId = getUID();
+        
+        self::posConfigLoad(true);
         
         $this->view->billNum = $this->model->getBillNumModel();        
         $this->view->getItems = '';
@@ -245,7 +395,7 @@ class Mdpos extends Controller {
         }
     }
     
-    public function posConfigLoad() {
+    public function posConfigLoad($posv3 = false) {
         
         $this->view->isConfigSalesPerson  = Config::getFromCacheDefault('CONFIG_POS_SALESPERSON', null, 1);
         $this->view->isConfigDelivery     = Config::getFromCacheDefault('CONFIG_POS_DELIVERY', null, 1);
@@ -319,11 +469,20 @@ class Mdpos extends Controller {
         $this->view->tempInvoiceDvId                = Config::get('CONFIG_POS_TEMP_INVOICE_DVID', 'postype='.Session::get(SESSION_PREFIX.'posTypeCode'));
         $this->view->tempInvoiceDvId                = $this->view->tempInvoiceDvId ? $this->view->tempInvoiceDvId : '1529014380513';
         $this->view->getDateCashier                 = $this->getDateCashier();
-        $this->view->getApiInfo                     = json_decode($this->getInformation(true), true);
-        $_POST['regNumber']                         = issetParam($this->view->getApiInfo['registerNo']);
-        $this->view->getApiNameInfo                 = json_decode($this->model->getOrganizationInfoModel(), true);
-        Session::set(SESSION_PREFIX.'posVatPayerName', issetParam($this->view->getApiNameInfo['name']));
-        Session::set(SESSION_PREFIX.'posVatPayerNo', issetParam($this->view->getApiInfo['registerNo']));
+
+        if (!$posv3) {
+            $this->view->getApiInfo                     = json_decode($this->getInformation(true), true);
+            $_POST['regNumber']                         = issetParam($this->view->getApiInfo['registerNo']);
+            $this->view->getApiNameInfo                 = json_decode($this->model->getOrganizationInfoModel(), true);
+            Session::set(SESSION_PREFIX.'posVatPayerName', issetParam($this->view->getApiNameInfo['name']));
+            Session::set(SESSION_PREFIX.'posVatPayerNo', issetParam($this->view->getApiInfo['registerNo']));
+        } else {
+            $this->view->getApiInfo                     = [];
+            $this->view->getApiNameInfo                 = [];
+            $_POST['regNumber']                         = '';
+            Session::set(SESSION_PREFIX.'posVatPayerName', '');
+            Session::set(SESSION_PREFIX.'posVatPayerNo', '');            
+        }
         
         if (Config::getFromCache('CONFIG_POS_HEALTHRECIPE')) {
             

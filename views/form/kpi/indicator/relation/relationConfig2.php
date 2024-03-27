@@ -43,7 +43,7 @@
                     if ($this->columns) {
                         foreach ($this->columns as $k => $col) {
                     ?>
-                    <tr data-id="<?php echo $col['ID']; ?>">
+                    <tr data-id="<?php echo $col['ID']; ?>" data-column-name="<?php echo $col['COLUMN_NAME']; ?>">
                         <td><?php echo (++$k); ?>.</td>
                         <td class="text-left font-weight-bold" data-column-name="1">
                             <?php 
@@ -138,15 +138,14 @@
     <input type="hidden" name="id" value="<?php echo $this->id; ?>" data-kpidatamart-id="2"/>
 </form>    
 
-<!--http://localhost:8080/bundle.js-->
 <script type="text/javascript">
     <?php if ($this->isWs) { ?>
         var dynamicHeight = $(window).height() - $("#app").offset().top - 20;
         $("#app").css('height', dynamicHeight - 20);
         $(".canvas").css('height', dynamicHeight - 20);
         
-//        $.cachedScript('http://localhost:8080/bundle.js').done(function() {
-        $.cachedScript('<?php echo autoVersion('assets/rappidjs/database/bundle.js'); ?>').done(function() {
+        // $.cachedScript('http://localhost:8080/bundle.js').done(function() {
+       $.cachedScript('<?php echo autoVersion('assets/rappidjs/database/bundle.js'); ?>').done(function() {
         });        
         
         function kpiDataMartAddObject2(elem) {

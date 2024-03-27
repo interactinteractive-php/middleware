@@ -2711,7 +2711,10 @@
             <?php if ($this->dataViewCriteriaType == 'button') { ?>
             $('.search-sidebar-<?php echo $this->metaDataId; ?>').click();        
             <?php } else { ?>        
-            $('.object-height-row2-minus-<?php echo $this->metaDataId; ?>').find('> .card > .card-header > .caption.card-collapse').click();
+            var $mandatoryCriteriaForm = $('#object-value-list-<?php echo $this->metaDataId; ?>').find('form#default-mandatory-criteria-form'); 
+            if ($mandatoryCriteriaForm.length == 0) {
+                $('.object-height-row2-minus-<?php echo $this->metaDataId; ?>').find('> .card > .card-header > .caption.card-collapse').click();
+            }
             <?php } ?>    
         }        
         

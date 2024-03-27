@@ -22,7 +22,7 @@
                 <?php } ?>
             </div>
             <div>
-                <span class="mr10" style="font-weight: normal;width: 250px;overflow: hidden;display: block;font-size: 13px;text-align: right;line-height: 21px;"><?php echo $this->getApiInfo['registerNo'] . (isset($this->getApiNameInfo['name']) && $this->getApiNameInfo['name'] ? ' - ' . $this->getApiNameInfo['name'] : $this->getApiNameInfo['name']); ?></span>
+                <span class="mr10" style="font-weight: normal;width: 250px;overflow: hidden;display: block;font-size: 13px;text-align: right;line-height: 21px;"><?php echo $this->getApiNameInfo ? ($this->getApiInfo['registerNo'] . (isset($this->getApiNameInfo['name']) && $this->getApiNameInfo['name'] ? ' - ' . $this->getApiNameInfo['name'] : $this->getApiNameInfo['name'])) : ''; ?></span>
             </div>
         </div>
         <?php

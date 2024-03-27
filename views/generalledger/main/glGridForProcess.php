@@ -254,7 +254,7 @@
         $glLoadWindow_<?php echo $this->uniqId; ?>.find('.gl-vat-deduction, .gl-incometax-deduction, .gl-row-remove').remove(); 
         <?php    
         }
-        if (isset($this->paramList['generalledgerbookdtls']) && count($this->paramList['generalledgerbookdtls']) <= 300) {
+        if (isset($this->paramList['generalledgerbookdtls']) && count($this->paramList['generalledgerbookdtls']) <= 500) {
         ?>
         checkIsUseGlDetail_<?php echo $this->uniqId; ?>();
         <?php
