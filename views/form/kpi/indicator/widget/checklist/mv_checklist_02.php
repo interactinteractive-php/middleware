@@ -706,7 +706,7 @@ input.kpi-notfocus-readonly-input::placeholder {
 <?php require getBasePath() . 'middleware/views/form/kpi/indicator/checklist/scripts.php'; ?>
 
 <script type="text/javascript">
-$('.mv-checklist-tab-link').on('shown.bs.tab', function() {
+$('#mv-checklist-render-parent-<?php echo $this->uniqId; ?>').on('shown.bs.tab', '.mv-checklist-tab-link', function() {
     var $tabPane = $($(this).attr('href')), 
         $selTb = $tabPane.find('li.nav-item:not(.d-none) > .mv_checklist_02_sub.nav-link'), 
         $selTbLength = $selTb.length;
@@ -725,7 +725,7 @@ $('.mv-checklist-tab-link').on('shown.bs.tab', function() {
 if ($this->isIgnoreHeaderProcess) {
 ?>
 $(function() {
-    $('.mv_checklist_02_sub.nav-link:eq(0)').trigger('click');
+    $('#mv-checklist-render-parent-<?php echo $this->uniqId; ?>').find('.mv_checklist_02_sub.nav-link:eq(0)').trigger('click');
 });
 <?php
 }

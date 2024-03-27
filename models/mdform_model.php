@@ -6345,7 +6345,7 @@ class Mdform_Model extends Model {
         return '';
     }
     
-    public function kpiIndicatorControl($row, $templateRow = array()) {
+    public function kpiIndicatorControl($row, $templateRow = []) {
         
         Mdform::$kpiIndicatorRowData = $templateRow;
         
@@ -6363,7 +6363,7 @@ class Mdform_Model extends Model {
         $defaultValue      = $row['DEFAULT_VALUE'];
         $isRequired        = $row['IS_REQUIRED'];
         $paramConfigCode   = issetParam($row['CONFIG_CODE']);
-        $value             = (is_array($templateRow)) ? issetParam($templateRow[$columnName]) : '';
+        $value             = is_array($templateRow) ? (isset($templateRow[$columnName]) ? $templateRow[$columnName] : '') : '';
         $controlName       = 'mvParam'.Mdform::$addonPathPrefix.'['.$columnNamePath.']'.Mdform::$pathSuffix;
         $cellId            = '';
         $addAttrs          = array();
@@ -7100,7 +7100,7 @@ class Mdform_Model extends Model {
                 $fileNameTag = $noFileSelected;
                 $fileView = '';
                 
-                $attrArray = array(
+                $attrArray = [
                     'name' => 'mvFile'.Mdform::$addonPathPrefix.Mdform::$pathPrefix.'['.$columnNamePath.']'.Mdform::$pathSuffix,
                     'data-path' => $columnNamePath, 
                     'data-col-path' => $code, 
@@ -7108,12 +7108,9 @@ class Mdform_Model extends Model {
                     'autocomplete' => 'off', 
                     'placeholder' => $placeholder, 
                     'data-field-name' => $cellId, 
-                ) + $addAttrs;
+                ] + $addAttrs;
                 
-                $hiddenAttrArray = array(
-                    'name' => $controlName, 
-                    'value' => $value 
-                );
+                $hiddenAttrArray = ['name' => $controlName, 'value' => $value];
                 
                 $fileHidden = Form::hidden($hiddenAttrArray);
                 
@@ -8854,7 +8851,9 @@ class Mdform_Model extends Model {
                                 $render[] = '<td class="bp-dtl-rownumber text-center">'.$n.'</td>';
 
                                 foreach ($arr as $arrRow) {
-
+                                    
+                                    $arrRow['ignoreSavedDataRow'] = true;
+                                    
                                     if ($arrRow['IS_RENDER'] == '1') {
                                         
                                         if ($arrRow['SHOW_TYPE'] == 'rows' || $arrRow['SHOW_TYPE'] == 'row') {

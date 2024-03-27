@@ -2,25 +2,26 @@
 
 class Mdupgrade_Model extends Model {
     
-    private static $exportIgnoreColumns = array('CREATED_USER_ID', 'MODIFIED_USER_ID', 'EXPORT_SCRIPT', 'COPY_COUNT');
-    private static $exportIgnoreTableColumns = array('META_PROCESS_RULE' => array('IS_ACTIVE' => 1));
-    private static $ignoreDeleteScriptTables = array('UM_SYSTEM', 'META_PROCESS_RULE');
-    private static $executedTables = array();
-    private static $executedTablesPrimaryColumn = array();
-    private static $exportedMetaIds = array();
-    private static $executedFolderIds = array();
-    private static $scriptFolderIds = array();
-    private static $deleteIds = array();
-    private static $clobColumns = array();
-    private static $blobColumns = array();
-    private static $fileColumn = array();
-    private static $fileColumns = array();
-    private static $previousTranslateList = array();
-    private static $replaceIds = array();
-    private static $updateMetaIds = array();
-    private static $exportedRecordIds = array();
-    private static $childCreateTable = array();
-    private static $exportCreateTables = array();
+    private static $exportIgnoreColumns = ['CREATED_USER_ID', 'MODIFIED_USER_ID', 'EXPORT_SCRIPT', 'COPY_COUNT'];
+    private static $exportIgnoreTableColumns = ['META_PROCESS_RULE' => ['IS_ACTIVE' => 1]];
+    private static $ignoreDeleteScriptTables = ['UM_SYSTEM', 'META_PROCESS_RULE'];
+    private static $executedTables = [];
+    private static $executedTablesPrimaryColumn = [];
+    private static $exportedMetaIds = [];
+    private static $executedFolderIds = [];
+    private static $scriptFolderIds = [];
+    private static $deleteIds = [];
+    private static $clobColumns = [];
+    private static $blobColumns = [];
+    private static $fileColumn = [];
+    private static $fileColumns = [];
+    private static $previousTranslateList = [];
+    private static $replaceIds = [];
+    private static $updateMetaIds = [];
+    private static $exportedRecordIds = [];
+    private static $childCreateTable = [];
+    private static $exportCreateTables = [];
+    private static $tablePrimaryField = [];
     private static $metaFolderId = null;
     private static $insertDataFilter = null;
     private static $deleteScript = null;
@@ -34,6 +35,7 @@ class Mdupgrade_Model extends Model {
     private static $isCreateTable = false;
     private static $isInsertData = true;
     private static $isCreateRollback = false;
+    private static $isKpiDbSchemaNameReplace = false;
 
     public function __construct() {
         parent::__construct();
@@ -1446,6 +1448,9 @@ class Mdupgrade_Model extends Model {
     
     private function objectTableRelation() {
         
+        $kpiDbSchemaName = Config::getFromCache('kpiDbSchemaName');
+        $kpiDbSchemaName = $kpiDbSchemaName ? $kpiDbSchemaName.'.' : '';
+        
         return array(
 
             'kpi' => array(
@@ -1881,6 +1886,10 @@ class Mdupgrade_Model extends Model {
                 'KPI_TYPE' => array()
             ), 
             
+            'kpiindicatorrelation' => array(
+                $kpiDbSchemaName . 'V_16754202632369' => array()
+            ), 
+            
             'impexcel' => array(
                 'IMP_EXCEL_TEMPLATE' => array(
                     array(
@@ -1912,14 +1921,20 @@ class Mdupgrade_Model extends Model {
     
     public function tablePrimaryField($tableName) {
         
-        $arr = array(
-            'NTF_NOTIFICATION' => 'NOTIFICATION_ID', 
-            'UM_OBJECT_CODE' => 'OBJECT_CODE_ID', 
-            'UM_OBJECT' => 'OBJECT_ID', 
-            'BOOK_TYPE' => 'BOOK_TYPE_ID'
-        );
+        if (!self::$tablePrimaryField) {
+            $kpiDbSchemaName = Config::getFromCache('kpiDbSchemaName');
+            $kpiDbSchemaName = $kpiDbSchemaName ? $kpiDbSchemaName.'.' : '';
+
+            self::$tablePrimaryField = [
+                'NTF_NOTIFICATION' => 'NOTIFICATION_ID', 
+                'UM_OBJECT_CODE' => 'OBJECT_CODE_ID', 
+                'UM_OBJECT' => 'OBJECT_ID', 
+                'BOOK_TYPE' => 'BOOK_TYPE_ID', 
+                $kpiDbSchemaName . 'V_16754202632369' => 'SRC_RECORD_ID'
+            ];
+        } 
         
-        return isset($arr[$tableName]) ? $arr[$tableName] : 'ID';
+        return isset(self::$tablePrimaryField[$tableName]) ? self::$tablePrimaryField[$tableName] : 'ID';
     }
     
     public function tableFileColumns($tableName) {
@@ -2385,7 +2400,6 @@ class Mdupgrade_Model extends Model {
                     UNION 
                     
                     SELECT 
-                        
                         TMP.META_TYPE_ID, 
                         TMP.META_DATA_ID, 
                         TMP.META_DATA_CODE, 
@@ -2469,10 +2483,42 @@ class Mdupgrade_Model extends Model {
                             )   
                             GROUP BY 
                                 T2.ID, 
-                                T2.CODE
-                                
+                                T2.CODE 
                         ) TMP 
                         INNER JOIN KPI_INDICATOR MD ON MD.ID = TMP.META_DATA_ID 
+                        LEFT JOIN UM_USER US ON US.USER_ID = MD.CREATED_USER_ID 
+                        LEFT JOIN UM_SYSTEM_USER UM ON UM.USER_ID = US.SYSTEM_USER_ID 
+                        LEFT JOIN UM_SYSTEM_USER UD ON UD.USER_ID = MD.MODIFIED_USER_ID 
+                    
+                    UNION 
+                    
+                    SELECT 
+                        TMP.META_TYPE_ID, 
+                        TMP.META_DATA_ID, 
+                        TMP.META_DATA_CODE, 
+                        ".$this->db->IfNull('UD.USERNAME', 'UM.USERNAME')." AS USER_NAME, 
+                        ".$this->db->IfNull('MD.MODIFIED_DATE', 'MD.CREATED_DATE')." AS MODIFIED_DATE, 
+                        MD.CREATED_DATE, 
+                        TMP.SRC_RECORD_ID 
+                    FROM (
+                            SELECT 
+                                T0.ID AS META_DATA_ID, 
+                                'kpiindicatorrelation' AS META_TYPE_ID, 
+                                TO_CHAR(T0.ID) AS META_DATA_CODE, 
+                                NULL AS SRC_RECORD_ID 
+                            FROM KPI_INDICATOR_INDICATOR_MAP T0 
+                                INNER JOIN KPI_INDICATOR T1 ON T1.ID = T0.SRC_INDICATOR_ID  
+                            WHERE T0.SRC_INDICATOR_ID IN ( 
+                                SELECT 
+                                    INDICATOR_ID 
+                                FROM META_BUG_FIXING_DTL 
+                                WHERE META_BUG_FIXING_ID IN ($ids) 
+                                    AND INDICATOR_ID IS NOT NULL
+                            ) AND T0.SEMANTIC_TYPE_ID = 10000015 
+                            GROUP BY 
+                                T0.ID  
+                        ) TMP 
+                        INNER JOIN KPI_INDICATOR_INDICATOR_MAP MD ON MD.ID = TMP.META_DATA_ID 
                         LEFT JOIN UM_USER US ON US.USER_ID = MD.CREATED_USER_ID 
                         LEFT JOIN UM_SYSTEM_USER UM ON UM.USER_ID = US.SYSTEM_USER_ID 
                         LEFT JOIN UM_SYSTEM_USER UD ON UD.USER_ID = MD.MODIFIED_USER_ID 
@@ -2635,6 +2681,7 @@ class Mdupgrade_Model extends Model {
                                 || $meta['META_TYPE_ID'] == 'kpi' 
                                 || $meta['META_TYPE_ID'] == 'kpiindicator' 
                                 || $meta['META_TYPE_ID'] == 'kpiindicatorbydata' 
+                                || $meta['META_TYPE_ID'] == 'kpiindicatorrelation' 
                                 || $meta['META_TYPE_ID'] == 'kpitype' 
                                 || $meta['META_TYPE_ID'] == 'metawidget' 
                                 || $meta['META_TYPE_ID'] == 'processrule' 
@@ -2645,6 +2692,7 @@ class Mdupgrade_Model extends Model {
                             self::$ignoreDeleteScript = true;
                         }
                         
+                        self::$isKpiDbSchemaNameReplace = false;
                         self::$isCreateTable = false;
                         self::$isInsertData = true;
                         self::$insertDataFilter = null;
@@ -2657,6 +2705,10 @@ class Mdupgrade_Model extends Model {
 
                             $meta['META_TYPE_ID'] = 'kpiindicator';
                         } 
+                        
+                        if ($meta['META_TYPE_ID'] == 'kpiindicatorrelation') { 
+                            self::$isKpiDbSchemaNameReplace = true;
+                        }
                         
                         $objectResult = self::oneObjectModel($meta['META_DATA_ID'], $meta['META_TYPE_ID'], $meta['META_DATA_CODE']);
 
@@ -3019,11 +3071,13 @@ class Mdupgrade_Model extends Model {
                     $createTableScript = self::exportCreateTableAppendXml();
                     $clobBlobScript    = self::clobBlobAppendXml();
                     
-                    if (self::$exportCreateTables) {
+                    if (self::$exportCreateTables || self::$isKpiDbSchemaNameReplace) {
                             
                         $kpiDbSchemaName   = Config::getFromCache('kpiDbSchemaName');
                         
                         $script            = str_replace(", '$kpiDbSchemaName.", ", '[kpiDbSchemaName].", $script);
+                        $script            = str_replace("INSERT INTO $kpiDbSchemaName.", 'INSERT INTO [kpiDbSchemaName].', $script);
+                        $deleteScript      = str_replace("DELETE FROM $kpiDbSchemaName.", 'DELETE FROM [kpiDbSchemaName].', $deleteScript);
                         $createTableScript = str_replace('tblName="'.$kpiDbSchemaName.'.', 'tblName="[kpiDbSchemaName].', $createTableScript);
                         $clobBlobScript    = str_replace('tblName="'.$kpiDbSchemaName.'.', 'tblName="[kpiDbSchemaName].', $clobBlobScript);
                     }

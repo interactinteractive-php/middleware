@@ -76,40 +76,40 @@ $(function () {
     return false;
   });
 
-    $(document.body).on("keydown", "#sejimPhoneNumber", function (e) {
-      var keyCode = e.keyCode ? e.keyCode : e.which;
-      if (keyCode == 13 && $(this).val() != '') {
-        $("#sejimId").val("");
-        $("#sejimLastName").val("");
-        $("#sejimFirstName").val("");
-        $("#sejimEmail").val("");
-        $("#sejimGenderId").val("");
-        $("#sejimAgeRange").val("");          
-        
-        $.ajax({
-          type: "post",
-          url: "api/callProcess",
-          data: {
-            processCode: "stCrmLead_GET_004",
-            paramData: {
-              filterPhoneNumber: $(this).val()
-            }
-          },
-          dataType: "json",
-          success: function (data) {
-                $(".serjim-fields").removeClass("d-none");
-                if (data.result) {
-                    $("#sejimId").val(data.result.id);
-                    $("#sejimLastName").val(data.result.lastname);
-                    $("#sejimFirstName").val(data.result.firstname);
-                    $("#sejimEmail").val(data.result.email);
-                    $("#sejimGenderId").val(data.result.genderid);
-                    $("#sejimAgeRange").val(data.result.agerange);
-                }
+  $(document.body).on("keydown", "#sejimPhoneNumber", function (e) {
+    var keyCode = e.keyCode ? e.keyCode : e.which;
+    if (keyCode == 13 && $(this).val() != '') {
+      $("#sejimId").val("");
+      $("#sejimLastName").val("");
+      $("#sejimFirstName").val("");
+      $("#sejimEmail").val("");
+      $("#sejimGenderId").val("");
+      $("#sejimAgeRange").val("");
+
+      $.ajax({
+        type: "post",
+        url: "api/callProcess",
+        data: {
+          processCode: "stCrmLead_GET_004",
+          paramData: {
+            filterPhoneNumber: $(this).val()
           }
-        });          
-      }
-    });
+        },
+        dataType: "json",
+        success: function (data) {
+          $(".serjim-fields").removeClass("d-none");
+          if (data.result) {
+            $("#sejimId").val(data.result.id);
+            $("#sejimLastName").val(data.result.lastname);
+            $("#sejimFirstName").val(data.result.firstname);
+            $("#sejimEmail").val(data.result.email);
+            $("#sejimGenderId").val(data.result.genderid);
+            $("#sejimAgeRange").val(data.result.agerange);
+          }
+        }
+      });
+    }
+  });
 
   $(document.body).on(
     "keydown",
@@ -197,7 +197,7 @@ $(function () {
               "virtual-keyboard-customtheme virtual-num-keyboard-customtheme",
           },
         });
-        $('.virtual-keyboard-customtheme').draggable({cursor: "move"});
+        $('.virtual-keyboard-customtheme').draggable({ cursor: "move" });
         $.keyboard.keyaction.enterkey = function (base) {
           var e = jQuery.Event("keydown");
           e.keyCode = e.which = 13;
@@ -213,16 +213,16 @@ $(function () {
     );
 
     $(document.body).on("focus", 'input.form-control:not([type="radio"],.select2, [readonly="readonly"], [readonly], readonly, [disabled="disabled"], [disabled], disabled, [data-field-name]), textarea', function (e) {
-        var $this = $(this);
-        if (isIpad) return;
-        if (
-          $this.attr("name") == "empCustomerId_displayField" ||
-          $this.attr("name") == "empCustomerId_nameField"
-        ) {
-          virtualKeyboard($this, "sidebar");
-        } else {
-          virtualKeyboard($this);
-        }
+      var $this = $(this);
+      if (isIpad) return;
+      if (
+        $this.attr("name") == "empCustomerId_displayField" ||
+        $this.attr("name") == "empCustomerId_nameField"
+      ) {
+        virtualKeyboard($this, "sidebar");
+      } else {
+        virtualKeyboard($this);
+      }
     });
 
     $(document.body).on("focus", "input.textbox-text", function (e) {
@@ -300,7 +300,7 @@ $(function () {
           "virtual-keyboard-customtheme virtual-text-keyboard-customtheme",
       },
     });
-    $('.virtual-keyboard-customtheme').draggable({cursor: "move"});
+    $('.virtual-keyboard-customtheme').draggable({ cursor: "move" });
     $.keyboard.keyaction.enterkey = function (base) {
       var e = jQuery.Event("keydown");
       e.keyCode = e.which = 13;
@@ -477,9 +477,9 @@ $(function () {
   /* Хямдрал тооцох */
   $(document).bind("keydown", "F7", function (e) {
     if ($('.pos-append-quick-item').length === 1) {
-        $('.pos-append-quick-item').first().trigger('click');
-        e.preventDefault();
-        return false;
+      $('.pos-append-quick-item').first().trigger('click');
+      e.preventDefault();
+      return false;
     }
     //if (isConfigRowDiscount && typeof posElectronTalonWindow == 'undefined') {
     if (typeof posElectronTalonWindow == "undefined") {
@@ -493,11 +493,11 @@ $(function () {
     "input, select, textarea, a, button",
     "F7",
     function (e) {
-        if ($('.pos-append-quick-item').length === 1) {
-            $('.pos-append-quick-item').first().trigger('click');
-            e.preventDefault();
-            return false;
-        }        
+      if ($('.pos-append-quick-item').length === 1) {
+        $('.pos-append-quick-item').first().trigger('click');
+        e.preventDefault();
+        return false;
+      }
       //if (isConfigRowDiscount) {
       $(this).trigger("change");
       if (typeof posElectronTalonWindow == "undefined") {
@@ -1149,21 +1149,21 @@ $(function () {
     }
 
     if ((qty > 99999 || qty < minItemQty) && returnBillType != "typeReduce") {
-        PNotify.removeAll();
-        new PNotify({
-          title: "Warning",
-          text: "Тоо хэмжээ буруу байна!",
-          type: "warning",
-          sticker: false,
-          addclass: "pnotify-center",
-        });
-        setTimeout(function() {
-            $this.autoNumeric("set", 1);
-            $this.attr("data-oldvalue", 1);
-            posCalcRow($row);
-            posItemPackageAction($tbody);
-        }, 2);
-        return e.preventDefault();
+      PNotify.removeAll();
+      new PNotify({
+        title: "Warning",
+        text: "Тоо хэмжээ буруу байна!",
+        type: "warning",
+        sticker: false,
+        addclass: "pnotify-center",
+      });
+      setTimeout(function () {
+        $this.autoNumeric("set", 1);
+        $this.attr("data-oldvalue", 1);
+        posCalcRow($row);
+        posItemPackageAction($tbody);
+      }, 2);
+      return e.preventDefault();
     }
   });
 
@@ -1238,8 +1238,8 @@ $(function () {
 
       if (isTalonListProtect) {
         if (posTypeCode == "3" || posTypeCode == "4") {
-            posRowRemove($this.closest("tr"));          
-            return;
+          posRowRemove($this.closest("tr"));
+          return;
         }
         var $dialogName = "dialog-talon-protect";
         if (!$("#" + $dialogName).length) {
@@ -1540,11 +1540,11 @@ $(function () {
                           },
                         });
                       }
-                      if (dataResponse.status == "success") {                        
+                      if (dataResponse.status == "success") {
                         $dialog.dialog("close");
-                        
+
                         $dialog.empty().append(
-                            '<form method="post" autocomplete="off" id="talonListDescriptionForm"><input type="password" autocomplete="off" style="display:none" /><textarea name="talonListDescriptionForm" required style="height: 46px;margin-top: 4px;width: 100%;font-size: 15px"></textarea></form>'
+                          '<form method="post" autocomplete="off" id="talonListDescriptionForm"><input type="password" autocomplete="off" style="display:none" /><textarea name="talonListDescriptionForm" required style="height: 46px;margin-top: 4px;width: 100%;font-size: 15px"></textarea></form>'
                         );
                         $dialog.dialog({
                           cache: false,
@@ -1579,112 +1579,112 @@ $(function () {
                             $dialog.empty().dialog("destroy").remove();
                           },
                           buttons: [{
-                              text: plang.get("insert_btn"),
-                              class: "btn btn-sm green-meadow",
-                              click: function () {
-                                PNotify.removeAll();
-                                var $form = $("#talonListDescriptionForm");
+                            text: plang.get("insert_btn"),
+                            class: "btn btn-sm green-meadow",
+                            click: function () {
+                              PNotify.removeAll();
+                              var $form = $("#talonListDescriptionForm");
 
-                                $form.validate({ errorPlacement: function () { } });
+                              $form.validate({ errorPlacement: function () { } });
 
-                                if ($form.valid()) {
-                                    if (
-                                      isConfigItemCheckEndQty &&
-                                      isConfigItemCheckEndQtyInvoice &&
-                                      Number(
-                                        $row.find('[data-field-name="endQty"]').val()
-                                      ) < qty
-                                    ) {
-                                      var endQty = $row.find('[data-field-name="endQty"]').val(),
-                                        oldVal = $this.attr("data-oldvalue");
+                              if ($form.valid()) {
+                                if (
+                                  isConfigItemCheckEndQty &&
+                                  isConfigItemCheckEndQtyInvoice &&
+                                  Number(
+                                    $row.find('[data-field-name="endQty"]').val()
+                                  ) < qty
+                                ) {
+                                  var endQty = $row.find('[data-field-name="endQty"]').val(),
+                                    oldVal = $this.attr("data-oldvalue");
 
-                                      PNotify.removeAll();
-                                      new PNotify({
-                                        title: "Warning",
-                                        text: plang.getVar("POS_0016", { endQty: endQty }),
-                                        type: "warning",
-                                        sticker: false,
-                                        addclass: "pnotify-center",
-                                      });
+                                  PNotify.removeAll();
+                                  new PNotify({
+                                    title: "Warning",
+                                    text: plang.getVar("POS_0016", { endQty: endQty }),
+                                    type: "warning",
+                                    sticker: false,
+                                    addclass: "pnotify-center",
+                                  });
 
-                                      setTimeout(function () {
-                                        if (Number(endQty) < Number(oldVal)) {
-                                          $this.autoNumeric("set", endQty);
-                                        } else {
-                                          $this.autoNumeric("set", oldVal);
-                                        }
-                                      }, 2);
-
-                                      return false;
+                                  setTimeout(function () {
+                                    if (Number(endQty) < Number(oldVal)) {
+                                      $this.autoNumeric("set", endQty);
+                                    } else {
+                                      $this.autoNumeric("set", oldVal);
                                     }
+                                  }, 2);
 
-                                    if (
-                                      isConfigItemCheckDiscountQty &&
-                                      Number(
-                                        $row.find('[data-field-name="discountQty"]').val()
-                                      ) < qty
-                                    ) {
-                                      var endQty = $row
-                                        .find('[data-field-name="discountQty"]')
-                                        .val(),
-                                        oldVal = $this.attr("data-oldvalue");
-
-                                      PNotify.removeAll();
-                                      new PNotify({
-                                        title: "Warning",
-                                        text: plang.getVar("POS_0213", {
-                                          discountQty: endQty,
-                                        }),
-                                        type: "warning",
-                                        sticker: false,
-                                        addclass: "pnotify-center",
-                                      });
-
-                                      setTimeout(function () {
-                                        if (Number(endQty) < Number(oldVal)) {
-                                          $this.autoNumeric("set", endQty);
-                                        } else {
-                                          $this.autoNumeric("set", oldVal);
-                                        }
-                                      }, 2);
-
-                                      return false;
-                                    }
-
-                                    var $tbody = $row.closest("tbody");
-                                    $this.attr("data-oldvalue", qty);
-                                    $this.autoNumeric("set", qty);
-                                    if ($this.attr("data-seperatevalue") < qty) {
-                                      $this.attr("data-seperatevalue", qty);
-                                    }
-                                    $row.find('input[name="returnDescription[]"]').val($form.find('textarea').val());                                    
-
-                                    posCalcRow($row);
-                                    posItemPackageAction($tbody);
-
-                                    if ($this.closest("tr").hasClass("bundelgroup")) {
-                                        var bundleId = $this.closest("tr").attr("data-bundle-group-id");
-                                        $this.closest("tbody").find(".bundelgroup-" + bundleId).each(function () {
-                                            if ($(this).find('input[name="quantity[]"]').length) {
-                                              $(this).find('input[name="quantity[]"]').attr("data-oldvalue", qty).autoNumeric("set", qty);
-                                              posCalcRow($(this));
-                                            }
-                                        });
-                                    }                 
-                                    $dialog.dialog("close");
+                                  return false;
                                 }
+
+                                if (
+                                  isConfigItemCheckDiscountQty &&
+                                  Number(
+                                    $row.find('[data-field-name="discountQty"]').val()
+                                  ) < qty
+                                ) {
+                                  var endQty = $row
+                                    .find('[data-field-name="discountQty"]')
+                                    .val(),
+                                    oldVal = $this.attr("data-oldvalue");
+
+                                  PNotify.removeAll();
+                                  new PNotify({
+                                    title: "Warning",
+                                    text: plang.getVar("POS_0213", {
+                                      discountQty: endQty,
+                                    }),
+                                    type: "warning",
+                                    sticker: false,
+                                    addclass: "pnotify-center",
+                                  });
+
+                                  setTimeout(function () {
+                                    if (Number(endQty) < Number(oldVal)) {
+                                      $this.autoNumeric("set", endQty);
+                                    } else {
+                                      $this.autoNumeric("set", oldVal);
+                                    }
+                                  }, 2);
+
+                                  return false;
+                                }
+
+                                var $tbody = $row.closest("tbody");
+                                $this.attr("data-oldvalue", qty);
+                                $this.autoNumeric("set", qty);
+                                if ($this.attr("data-seperatevalue") < qty) {
+                                  $this.attr("data-seperatevalue", qty);
+                                }
+                                $row.find('input[name="returnDescription[]"]').val($form.find('textarea').val());
+
+                                posCalcRow($row);
+                                posItemPackageAction($tbody);
+
+                                if ($this.closest("tr").hasClass("bundelgroup")) {
+                                  var bundleId = $this.closest("tr").attr("data-bundle-group-id");
+                                  $this.closest("tbody").find(".bundelgroup-" + bundleId).each(function () {
+                                    if ($(this).find('input[name="quantity[]"]').length) {
+                                      $(this).find('input[name="quantity[]"]').attr("data-oldvalue", qty).autoNumeric("set", qty);
+                                      posCalcRow($(this));
+                                    }
+                                  });
+                                }
+                                $dialog.dialog("close");
                               }
-                            },
-                            {
-                                text: plang.get("close_btn"),
-                                class: "btn btn-sm blue-madison",
-                                click: function () {
-                                    $row.find('input[name="employeeId[]"]').val('');
-                                    $dialog.dialog("close");
-                                }
-                            }]
+                            }
+                          },
+                          {
+                            text: plang.get("close_btn"),
+                            class: "btn btn-sm blue-madison",
+                            click: function () {
+                              $row.find('input[name="employeeId[]"]').val('');
+                              $dialog.dialog("close");
+                            }
+                          }]
                         });
-                        $dialog.dialog("open");                        
+                        $dialog.dialog("open");
 
                       } else {
                         new PNotify({
@@ -4156,54 +4156,54 @@ $(function () {
       }
     }
   );
-  
-    $(document.body).on("keydown", '#guestName', function(e) {
-        var code = (e.keyCode ? e.keyCode : e.which);
-        var _this = $(this);
-        if (code === 13) {
-            if (_this.data("ui-autocomplete")) {
-                _this.autocomplete("destroy");             
-            }
-            $.ajax({
-                type: "post",
-                url: "api/callDataview",
-                dataType: 'json',
-                data: {
-                  dataviewId: "1536742182010",
-                  criteriaData: {
-                    filterCustomerKyc: [
-                      {
-                        operator: "like",
-                        operand: '%'+_this.val()+'%',
-                      },
-                    ],
-                  },
-                },                
-                success: function(data) {
-                    if (data.status == 'success' && data.result[0]) {
-                        $('input[name="empCustomerId"]').val(data.result[0].id);
-                        $('input[name="empCustomerId_displayField"]').val(data.result[0].customercode);
-                        $('input[name="empCustomerId_nameField"]').val(data.result[0].customername);
-                        $('#guestName').val(data.result[0].customercode+' - '+$.trim(data.result[0].customername));
-                    }
-                }
-            });            
-            posRestBasketList(
-              "nullmeta",
-              "0",
-              tempInvoiceDvId,
-              "single",
-              "nullmeta",
-              $(this),
-              "casherCheck"
-            );          
-            return false;
-        } else {
-            if (!_this.data("ui-autocomplete")) {            
-                lookupAutoCompletePosGuestName(_this, 'code');
-            }
+
+  $(document.body).on("keydown", '#guestName', function (e) {
+    var code = (e.keyCode ? e.keyCode : e.which);
+    var _this = $(this);
+    if (code === 13) {
+      if (_this.data("ui-autocomplete")) {
+        _this.autocomplete("destroy");
+      }
+      $.ajax({
+        type: "post",
+        url: "api/callDataview",
+        dataType: 'json',
+        data: {
+          dataviewId: "1536742182010",
+          criteriaData: {
+            filterCustomerKyc: [
+              {
+                operator: "like",
+                operand: '%' + _this.val() + '%',
+              },
+            ],
+          },
+        },
+        success: function (data) {
+          if (data.status == 'success' && data.result[0]) {
+            $('input[name="empCustomerId"]').val(data.result[0].id);
+            $('input[name="empCustomerId_displayField"]').val(data.result[0].customercode);
+            $('input[name="empCustomerId_nameField"]').val(data.result[0].customername);
+            $('#guestName').val(data.result[0].customercode + ' - ' + $.trim(data.result[0].customername));
+          }
         }
-    });    
+      });
+      posRestBasketList(
+        "nullmeta",
+        "0",
+        tempInvoiceDvId,
+        "single",
+        "nullmeta",
+        $(this),
+        "casherCheck"
+      );
+      return false;
+    } else {
+      if (!_this.data("ui-autocomplete")) {
+        lookupAutoCompletePosGuestName(_this, 'code');
+      }
+    }
+  });
 
   $(".pos-card-layout").on(
     "click",
@@ -4831,7 +4831,7 @@ $(function () {
           "nullmeta",
           $(this),
           "casherCheck"
-        );             
+        );
       }
       posDiscountCustomer(customerRow.id);
       //            if ($('#posTable > tbody > tr').length) {
@@ -4846,28 +4846,28 @@ $(function () {
     }
   });
 
-    /*if (posTypeCode == "3") {
-        $(document).on("change", "#guestName", function () {
-            if ($(this).val()) {
-              if (/^[A-Za-zА-Яа-яӨҮөү0-9-=#_/* ]{1,256}$/.test($(this).val()) === false) {
-                  PNotify.removeAll();
-                  new PNotify({
-                    title: "Анхааруулга",
-                    text: "Том жижиг үсэг, тоо, -, =, #, /, _, * тэмдэгтүүдээс бичих боломжтой",
-                    type: "warning",
-                    sticker: false
-                  });        
-                  $(this).val('').prop("readonly", false);
-                  $('input[name="empCustomerId"]').val("");
-                  $('input[name="empCustomerId_displayField"]').val("");
-                  $('input[name="empCustomerId_nameField"]').val("");
-                  $('input[name="empCustomerId"]').attr("data-row-data", "");         
-                  return true;       
-              }    
+  /*if (posTypeCode == "3") {
+      $(document).on("change", "#guestName", function () {
+          if ($(this).val()) {
+            if (/^[A-Za-zА-Яа-яӨҮөү0-9-=#_/* ]{1,256}$/.test($(this).val()) === false) {
+                PNotify.removeAll();
+                new PNotify({
+                  title: "Анхааруулга",
+                  text: "Том жижиг үсэг, тоо, -, =, #, /, _, * тэмдэгтүүдээс бичих боломжтой",
+                  type: "warning",
+                  sticker: false
+                });        
+                $(this).val('').prop("readonly", false);
+                $('input[name="empCustomerId"]').val("");
+                $('input[name="empCustomerId_displayField"]').val("");
+                $('input[name="empCustomerId_nameField"]').val("");
+                $('input[name="empCustomerId"]').attr("data-row-data", "");         
+                return true;       
             }    
-        });
-    }*/
-  
+          }    
+      });
+  }*/
+
   $(document).on("change", "#upointIsCost", function () {
     if (returnBillType == "") {
       if ($("#upointIsCost").is(":checked")) {
@@ -4896,13 +4896,13 @@ $(function () {
           uPointAmt = ubalance;
         }
         $('input[name="upointAmountDtl[]"]').autoNumeric("set", uPointAmt).trigger("change");
-        $('input[name="upointPayAmount"]').autoNumeric("set",Number($("#upointPayAmount").autoNumeric("get")) - uPointAmt);
+        $('input[name="upointPayAmount"]').autoNumeric("set", Number($("#upointPayAmount").autoNumeric("get")) - uPointAmt);
       } else {
         $('input[name="upointAmountDtl[]"]').val("").trigger("change");
-        $('input[name="upointPayAmount"]').autoNumeric("set",$('input[name="upointPayAmount"]').attr("data-old"));
+        $('input[name="upointPayAmount"]').autoNumeric("set", $('input[name="upointPayAmount"]').attr("data-old"));
       }
     }
-  }); 
+  });
 
   $(document).on("click", ".pos-payment-accordion-upoint", function () {
     if (returnBillType == "") {
@@ -5006,19 +5006,19 @@ function posCalcRow(rowElem) {
   if (isCityTax == "1") {
     rowElem
       .find('input[name="cityTax[]"]')
-      .val(setNumberToFixed(salePrice / 111));
+      .val(setNumberToFixed(salePrice / 112 * 2));
     rowElem
       .find('input[name="lineTotalCityTax[]"]')
-      .val(setNumberToFixed(totalPrice / 111));
+      .val(setNumberToFixed(totalPrice / 112 * 2));
   }
 
   if (isVat == "1" && isCityTax == "1") {
     rowElem
       .find('input[name="noVatPrice[]"]')
-      .val(setNumberToFixed(salePrice - salePrice / 11.1));
+      .val(setNumberToFixed(salePrice - salePrice / 11.2));
     rowElem
       .find('input[name="lineTotalVat[]"]')
-      .val(setNumberToFixed(totalPrice / 11.1));
+      .val(setNumberToFixed(totalPrice / 11.2));
   } else if (isVat == "1") {
     rowElem
       .find('input[name="noVatPrice[]"]')
@@ -5351,10 +5351,6 @@ function posCalcTotal() {
     $("td.pos-amount-paid").autoNumeric("set", sum);
     $("td.pos-amount-discount").autoNumeric("set", discountSum);
 
-    if (returnBillType == "typeReduce") {
-      $("#posCashAmount").autoNumeric("set", sum);
-      $("#posPaidAmount").autoNumeric("set", sum);
-    }
     $("#posPayAmount").autoNumeric("set", sum);
   }
 
@@ -5386,16 +5382,16 @@ function posRowRemove(row) {
   //    }
 
   if (posTypeCode == "3" || posTypeCode == "4") {
-      if (typeof row.find('.pos-quantity-input').attr('readonly') !== 'undefined') {
-        PNotify.removeAll();
-        new PNotify({
-          title: "Warning",
-          text: "Устгах үйлдэл ажиллах боломжгүй байна",
-          type: "warning",
-          sticker: false,
-        });          
-        return;
-      }
+    if (typeof row.find('.pos-quantity-input').attr('readonly') !== 'undefined') {
+      PNotify.removeAll();
+      new PNotify({
+        title: "Warning",
+        text: "Устгах үйлдэл ажиллах боломжгүй байна",
+        type: "warning",
+        sticker: false,
+      });
+      return;
+    }
     if (!row.find('input[data-name="isSavedOrder"]').length) {
       row.remove();
 
@@ -5457,152 +5453,152 @@ function posRowRemove(row) {
         $dialogP.empty().dialog("destroy").remove();
       },
       buttons: [{
-          text: plang.get("insert_btn"),
-          class: "btn btn-sm green-meadow",
-          click: function () {
-            PNotify.removeAll();
-            var $form = $("#talonListPassForm");
+        text: plang.get("insert_btn"),
+        class: "btn btn-sm green-meadow",
+        click: function () {
+          PNotify.removeAll();
+          var $form = $("#talonListPassForm");
 
-            $form.validate({ errorPlacement: function () { } });
+          $form.validate({ errorPlacement: function () { } });
 
-            if ($form.valid()) {
-                $.ajax({
-                  type: "post",
-                  url: "mdpos/checkTalonListPass",
-                  data: $form.serialize(),
-                  dataType: "json",
-                  beforeSend: function () {
-                    Core.blockUI({
-                      message: "Loading...",
-                      boxed: true,
-                    });
-                  },
-                  success: function (dataSub) {
-                    var dataResponse = dataSub;
-                    if (dataResponse.status != "success") {
-                      $.ajax({
-                        type: "post",
-                        url: "api/callDataview",
-                        async: false,
-                        data: {
-                          dataviewId: "16237213033721",
-                          criteriaData: {
-                            pincode: [
-                              {
-                                operator: "=",
-                                operand: $form
-                                  .find('input[name="talonListPass"]')
-                                  .val(),
-                              },
-                            ],
-                          },
-                        },
-                        dataType: "json",
-                        beforeSend: function () {
-                          Core.blockUI({
-                            message: "Loading...",
-                            boxed: true,
-                          });
-                        },
-                        success: function (dataSub) {
-                          if (
-                            dataSub.status == "success" &&
-                            dataSub.result.length
-                          ) {
-                            dataResponse.status = "success";
-                            row.find('input[name="employeeId[]"]').val(dataSub.result[0]["employeeid"]);
-                          }
-                          Core.unblockUI();
-                        },
-                      });
-                    }
-                    if (dataResponse.status == "success") {                        
-                      $dialogP.dialog("close");
-
-                      $dialogP.empty().append(
-                          '<form method="post" autocomplete="off" id="talonListDescriptionForm"><input type="password" autocomplete="off" style="display:none" /><textarea name="talonListDescriptionForm" required style="height: 46px;margin-top: 4px;width: 100%;font-size: 15px"></textarea></form>'
-                      );
-                      $dialogP.dialog({
-                        cache: false,
-                        resizable: true,
-                        bgiframe: true,
-                        autoOpen: false,
-                        title: "Буцаалтын тайлбар оруулах",
-                        width: 350,
-                        height: "auto",
-                        modal: true,
-                        open: function () {
-                          setTimeout(function () {
-                            $('textarea[name="talonListDescriptionForm"]').focus().select();
-                          }, 100);
-                          $(this).keypress(function (e) {
-                            if (e.keyCode == $.ui.keyCode.ENTER) {
-                              $(this)
-                                .parent()
-                                .find(".ui-dialog-buttonpane button:first")
-                                .trigger("click");
-                            }
-                          });
-                          $('textarea[name="talonListDescriptionForm"]').on("keydown", function (e) {
-                            var keyCode = e.keyCode ? e.keyCode : e.which;
-                            if (keyCode == 13) {
-                              $(this).closest(".ui-dialog").find(".ui-dialog-buttonpane button:first").trigger("click");
-                            }
-                          });
-                        },
-                        close: function () {
-                          $dialogP.empty().dialog("destroy").remove();
-                        },
-                        buttons: [{
-                            text: plang.get("insert_btn"),
-                            class: "btn btn-sm green-meadow",
-                            click: function () {
-                              PNotify.removeAll();
-                              var $form = $("#talonListDescriptionForm");
-
-                              $form.validate({ errorPlacement: function () { } });
-
-                              if ($form.valid()) {
-                                  row.find("input.pos-quantity-input").autoNumeric("set", 0);
-                                  row.find("input.pos-quantity-input").attr("data-oldvalue", 0);
-                                  row.find('input[name="returnDescription[]"]').val($form.find('textarea').val());                                    
-                                  posCalcRow(row);            
-                                  $dialogP.dialog("close");
-                              }
-                            }
-                          },
+          if ($form.valid()) {
+            $.ajax({
+              type: "post",
+              url: "mdpos/checkTalonListPass",
+              data: $form.serialize(),
+              dataType: "json",
+              beforeSend: function () {
+                Core.blockUI({
+                  message: "Loading...",
+                  boxed: true,
+                });
+              },
+              success: function (dataSub) {
+                var dataResponse = dataSub;
+                if (dataResponse.status != "success") {
+                  $.ajax({
+                    type: "post",
+                    url: "api/callDataview",
+                    async: false,
+                    data: {
+                      dataviewId: "16237213033721",
+                      criteriaData: {
+                        pincode: [
                           {
-                              text: plang.get("close_btn"),
-                              class: "btn btn-sm blue-madison",
-                              click: function () {
-                                  row.find('input[name="employeeId[]"]').val('');
-                                  $dialogP.dialog("close");
-                              }
-                          }]
+                            operator: "=",
+                            operand: $form
+                              .find('input[name="talonListPass"]')
+                              .val(),
+                          },
+                        ],
+                      },
+                    },
+                    dataType: "json",
+                    beforeSend: function () {
+                      Core.blockUI({
+                        message: "Loading...",
+                        boxed: true,
                       });
-                      $dialogP.dialog("open");                        
+                    },
+                    success: function (dataSub) {
+                      if (
+                        dataSub.status == "success" &&
+                        dataSub.result.length
+                      ) {
+                        dataResponse.status = "success";
+                        row.find('input[name="employeeId[]"]').val(dataSub.result[0]["employeeid"]);
+                      }
+                      Core.unblockUI();
+                    },
+                  });
+                }
+                if (dataResponse.status == "success") {
+                  $dialogP.dialog("close");
 
-                    } else {
-                      new PNotify({
-                        title: dataSub.status,
-                        text: dataSub.message,
-                        type: dataSub.status,
-                        sticker: false,
+                  $dialogP.empty().append(
+                    '<form method="post" autocomplete="off" id="talonListDescriptionForm"><input type="password" autocomplete="off" style="display:none" /><textarea name="talonListDescriptionForm" required style="height: 46px;margin-top: 4px;width: 100%;font-size: 15px"></textarea></form>'
+                  );
+                  $dialogP.dialog({
+                    cache: false,
+                    resizable: true,
+                    bgiframe: true,
+                    autoOpen: false,
+                    title: "Буцаалтын тайлбар оруулах",
+                    width: 350,
+                    height: "auto",
+                    modal: true,
+                    open: function () {
+                      setTimeout(function () {
+                        $('textarea[name="talonListDescriptionForm"]').focus().select();
+                      }, 100);
+                      $(this).keypress(function (e) {
+                        if (e.keyCode == $.ui.keyCode.ENTER) {
+                          $(this)
+                            .parent()
+                            .find(".ui-dialog-buttonpane button:first")
+                            .trigger("click");
+                        }
                       });
-                    }
-                    Core.unblockUI();
-                  },
-                });                
-            }
+                      $('textarea[name="talonListDescriptionForm"]').on("keydown", function (e) {
+                        var keyCode = e.keyCode ? e.keyCode : e.which;
+                        if (keyCode == 13) {
+                          $(this).closest(".ui-dialog").find(".ui-dialog-buttonpane button:first").trigger("click");
+                        }
+                      });
+                    },
+                    close: function () {
+                      $dialogP.empty().dialog("destroy").remove();
+                    },
+                    buttons: [{
+                      text: plang.get("insert_btn"),
+                      class: "btn btn-sm green-meadow",
+                      click: function () {
+                        PNotify.removeAll();
+                        var $form = $("#talonListDescriptionForm");
+
+                        $form.validate({ errorPlacement: function () { } });
+
+                        if ($form.valid()) {
+                          row.find("input.pos-quantity-input").autoNumeric("set", 0);
+                          row.find("input.pos-quantity-input").attr("data-oldvalue", 0);
+                          row.find('input[name="returnDescription[]"]').val($form.find('textarea').val());
+                          posCalcRow(row);
+                          $dialogP.dialog("close");
+                        }
+                      }
+                    },
+                    {
+                      text: plang.get("close_btn"),
+                      class: "btn btn-sm blue-madison",
+                      click: function () {
+                        row.find('input[name="employeeId[]"]').val('');
+                        $dialogP.dialog("close");
+                      }
+                    }]
+                  });
+                  $dialogP.dialog("open");
+
+                } else {
+                  new PNotify({
+                    title: dataSub.status,
+                    text: dataSub.message,
+                    type: dataSub.status,
+                    sticker: false,
+                  });
+                }
+                Core.unblockUI();
+              },
+            });
           }
-        },
-        {
-          text: plang.get("close_btn"),
-          class: "btn btn-sm blue-madison",
-          click: function () {
-            $dialogP.dialog("close");
-          }
-        }],
+        }
+      },
+      {
+        text: plang.get("close_btn"),
+        class: "btn btn-sm blue-madison",
+        click: function () {
+          $dialogP.dialog("close");
+        }
+      }],
     });
     $dialogP.dialog("open");
   } else if (
@@ -5842,16 +5838,16 @@ function posPayment() {
   // Check item list
   if ($posBody.find("> tr[data-item-id]").length == 0) {
     if (posTypeCode == 3 || posTypeCode == 4) {
-        posRestBasketListPayment(
-          "nullmeta",
-          "0",
-          '',
-          "single",
-          "nullmeta",
-          '',
-          "casherCheck"
-        );                
-        return;
+      posRestBasketListPayment(
+        "nullmeta",
+        "0",
+        '',
+        "single",
+        "nullmeta",
+        '',
+        "casherCheck"
+      );
+      return;
     }
     new PNotify({
       title: "Warning",
@@ -6117,23 +6113,23 @@ function posPayment() {
           success: function (dataQrCode) {
             Core.unblockUI();
             if (dataQrCode.status == "success") {
-                if (isConfirmSaleDate === "1" && !isBasketOnly) {
-                  askDateTransaction();
-                } else {
-                  posBillPrint();
-                }                
+              if (isConfirmSaleDate === "1" && !isBasketOnly) {
+                askDateTransaction();
+              } else {
+                posBillPrint();
+              }
             } else {
-                new PNotify({
-                  title: "Warning",
-                  text: 'QPAY төлбөр төлөлт хийгдээгүй байна!',
-                  type: "warning",
-                  sticker: false,
-                  addclass: "pnotify-center"
-                });                
-                return;
+              new PNotify({
+                title: "Warning",
+                text: 'QPAY төлбөр төлөлт хийгдээгүй байна!',
+                type: "warning",
+                sticker: false,
+                addclass: "pnotify-center"
+              });
+              return;
             }
           }
-        });          
+        });
       } else {
         if (isConfirmSaleDate === "1" && !isBasketOnly) {
           askDateTransaction();
@@ -6315,48 +6311,48 @@ function posPayment() {
               .nextAll(".ui-widget-overlay:first")
               .removeClass("display-none");
           });
-          
-            if (isPosSejim != '') {
-              $.ajax({
-                type: "post",
-                url: "api/callDataview",
-                data: {
-                  dataviewId: "1699602708629179"
-                },
-                dataType: "json",
-                beforeSend: function () {
-                },
-                success: function (dataSub) {
-                  if (dataSub.status == "success" && dataSub.result.length) {
-                    var sejimAge = '<option value="">- Сонгох -</option>';
-                    for (var i = 0; i < dataSub.result.length; i++) {
-                        sejimAge += '<option value="'+dataSub.result[i].agerang+'">'+dataSub.result[i].agerang+'</option>';
-                    }
-                    $('#sejimAgeRange').html(sejimAge);
+
+          if (isPosSejim != '') {
+            $.ajax({
+              type: "post",
+              url: "api/callDataview",
+              data: {
+                dataviewId: "1699602708629179"
+              },
+              dataType: "json",
+              beforeSend: function () {
+              },
+              success: function (dataSub) {
+                if (dataSub.status == "success" && dataSub.result.length) {
+                  var sejimAge = '<option value="">- Сонгох -</option>';
+                  for (var i = 0; i < dataSub.result.length; i++) {
+                    sejimAge += '<option value="' + dataSub.result[i].agerang + '">' + dataSub.result[i].agerang + '</option>';
                   }
+                  $('#sejimAgeRange').html(sejimAge);
                 }
-              });      
-              
-              $.ajax({
-                type: "post",
-                url: "api/callDataview",
-                data: {
-                  dataviewId: "1448432578544"
-                },
-                dataType: "json",
-                beforeSend: function () {
-                },
-                success: function (dataSub) {
-                  if (dataSub.status == "success" && dataSub.result.length) {
-                    var sejimGender = '<option value="">- Сонгох -</option>';
-                    for (var i = 0; i < dataSub.result.length; i++) {
-                        sejimGender += '<option value="'+dataSub.result[i].id+'">'+dataSub.result[i].name+'</option>';
-                    }
-                    $('#sejimGenderId').html(sejimGender);
+              }
+            });
+
+            $.ajax({
+              type: "post",
+              url: "api/callDataview",
+              data: {
+                dataviewId: "1448432578544"
+              },
+              dataType: "json",
+              beforeSend: function () {
+              },
+              success: function (dataSub) {
+                if (dataSub.status == "success" && dataSub.result.length) {
+                  var sejimGender = '<option value="">- Сонгох -</option>';
+                  for (var i = 0; i < dataSub.result.length; i++) {
+                    sejimGender += '<option value="' + dataSub.result[i].id + '">' + dataSub.result[i].name + '</option>';
                   }
+                  $('#sejimGenderId').html(sejimGender);
                 }
-              });      
-            }          
+              }
+            });
+          }
 
           Core.unblockUI();
         },
@@ -6368,10 +6364,10 @@ function posPayment() {
           $("#posCashAmount").trigger("change");
         }
         setTimeout(function () {
-            if (POS_FILL_CASH_AMOUNT_PAYMENT) {
-                var posPayAmount = Number($("#posPayAmount").autoNumeric("get"));
-              $("#posCashAmount").dblclick();
-            }
+          if (POS_FILL_CASH_AMOUNT_PAYMENT) {
+            var posPayAmount = Number($("#posPayAmount").autoNumeric("get"));
+            $("#posCashAmount").dblclick();
+          }
         }, 800);
         if (
           $('input[name="serviceCustomerId"]').length &&
@@ -6630,33 +6626,33 @@ function posBillPrint() {
       return;
     }
   }
-  
+
   if ($('#sejimPhoneNumber').val() != '') {
-      var sejimMsg = '';
-      if ($('#sejimLastName').val() == '') {
-          sejimMsg += '<li>Овог заавал утга оруулна уу!</li>';
-      }
-      if ($('#sejimFirstName').val() == '') {
-          sejimMsg += '<li>Нэр заавал утга оруулна уу!</li>';
-      }
-      if ($('#sejimEmail').val() == '') {
-          sejimMsg += '<li>Имэйл заавал утга оруулна уу!</li>';
-      }
-      if ($('#sejimGenderId').val() == '') {
-          sejimMsg += '<li>Хүйс заавал утга оруулна уу!</li>';
-      }
-      if ($('#sejimAgeRange').val() == '') {
-          sejimMsg += '<li>Насны бүлэг заавал утга оруулна уу!</li>';
-      }
-      if (sejimMsg) {
-        new PNotify({
-          title: "Warning",
-          text: "<strong>Сэжим бүртгэх шалгуурын алдаа</strong></br><ul style='margin-left: -12px;'>"+sejimMsg+"</ul>",
-          type: "warning",
-          sticker: false,
-        });          
-          return;
-      }
+    var sejimMsg = '';
+    if ($('#sejimLastName').val() == '') {
+      sejimMsg += '<li>Овог заавал утга оруулна уу!</li>';
+    }
+    if ($('#sejimFirstName').val() == '') {
+      sejimMsg += '<li>Нэр заавал утга оруулна уу!</li>';
+    }
+    if ($('#sejimEmail').val() == '') {
+      sejimMsg += '<li>Имэйл заавал утга оруулна уу!</li>';
+    }
+    if ($('#sejimGenderId').val() == '') {
+      sejimMsg += '<li>Хүйс заавал утга оруулна уу!</li>';
+    }
+    if ($('#sejimAgeRange').val() == '') {
+      sejimMsg += '<li>Насны бүлэг заавал утга оруулна уу!</li>';
+    }
+    if (sejimMsg) {
+      new PNotify({
+        title: "Warning",
+        text: "<strong>Сэжим бүртгэх шалгуурын алдаа</strong></br><ul style='margin-left: -12px;'>" + sejimMsg + "</ul>",
+        type: "warning",
+        sticker: false,
+      });
+      return;
+    }
   }
 
   var payAmount = Number($("#posPayAmount").autoNumeric("get")),
@@ -6752,7 +6748,7 @@ function posBillPrint() {
       mobileNetAmt = Number($("#posMobileNetAmt").autoNumeric("get")),
       leasingAmt = Number($("#posLeasingAmt").autoNumeric("get")),
       barterAmt = Number($("#posBarterAmt").autoNumeric("get")),
-      empLoanAmt = Number($("#posEmpLoanAmt").autoNumeric("get")),      
+      empLoanAmt = Number($("#posEmpLoanAmt").autoNumeric("get")),
       lendMnAmt = Number($("#posLendMnAmt").autoNumeric("get"));
 
     $('select[name="posMobileNetBankId"], select[name="posLeasingBankId"]').removeClass("error");
@@ -7149,7 +7145,7 @@ function posBillPrint() {
     locationId: $("#posLocationId").length ? $("#posLocationId").val() : "",
     waiterId: $("#posRestWaiterId").length ? $("#posRestWaiterId").val() : "",
     posEshopOrderTime: $("#posEshopOrderTime").length ? $("#posEshopOrderTime").val() : "",
-    waiterText: ($("#posRestWaiter").length && $("#posRestWaiter").val() ? "Зөөгч: " + $("#posRestWaiter").val()  : "") + ($(".selected-pos-location").text() ? ", Ширээ: " + $(".selected-pos-location").text() : "") + ($("#guestName").length && $("#guestName").val() ? ", Харилцагч: " + $("#guestName").val().trim() : ""),
+    waiterText: ($("#posRestWaiter").length && $("#posRestWaiter").val() ? "Зөөгч: " + $("#posRestWaiter").val() : "") + ($(".selected-pos-location").text() ? ", Ширээ: " + $(".selected-pos-location").text() : "") + ($("#guestName").length && $("#guestName").val() ? ", Харилцагч: " + $("#guestName").val().trim() : ""),
     serialText: $('input[name="serialText"]').length ? $('input[name="serialText"]').val() : "",
     lockerId: lockerId,
   };
@@ -8466,21 +8462,21 @@ function posBundleSaveRow2(row, elem, matrix) {
       var $tbody = $("#posTable").find("> tbody"),
         rowHtml = "";
       var salesPersonInput = '<div class="meta-autocomplete-wrap" data-section-path="employeeId">' +
-          '<div class="input-group double-between-input">' +
-          '<input type="hidden" name="employeeId[]" id="employeeId_valueField" data-path="employeeId" class="popupInit">' +
-          '<input type="text" name="employeeId_displayField[]" class="form-control form-control-sm meta-autocomplete lookup-code-autocomplete" data-field-name="employeeId" id="employeeId_displayField" data-processid="1454315883636" data-lookupid="1522404331251" placeholder="' +
-          plang.get("code_search") +
-          '" autocomplete="off">' +
-          '<span class="input-group-btn">' +
-          "<button type=\"button\" class=\"btn default btn-bordered form-control-sm mr0\" onclick=\"dataViewSelectableGrid('employeeId', '1454315883636', '1522404331251', 'single', 'employeeId', this);\" tabindex=\"-1\"><i class=\"fa fa-search\"></i></button>" +
-          "</span>" +
-          '<span class="input-group-btn">' +
-          '<input type="text" name="employeeId_nameField" class="form-control form-control-sm meta-name-autocomplete lookup-name-autocomplete" data-field-name="employeeId" id="employeeId_nameField" data-processid="1454315883636" data-lookupid="1522404331251" placeholder="' +
-          plang.get("name_search") +
-          '" tabindex="-1" autocomplete="off">' +
-          "</span>" +
-          "</div>" +
-          "</div>";
+        '<div class="input-group double-between-input">' +
+        '<input type="hidden" name="employeeId[]" id="employeeId_valueField" data-path="employeeId" class="popupInit">' +
+        '<input type="text" name="employeeId_displayField[]" class="form-control form-control-sm meta-autocomplete lookup-code-autocomplete" data-field-name="employeeId" id="employeeId_displayField" data-processid="1454315883636" data-lookupid="1522404331251" placeholder="' +
+        plang.get("code_search") +
+        '" autocomplete="off">' +
+        '<span class="input-group-btn">' +
+        "<button type=\"button\" class=\"btn default btn-bordered form-control-sm mr0\" onclick=\"dataViewSelectableGrid('employeeId', '1454315883636', '1522404331251', 'single', 'employeeId', this);\" tabindex=\"-1\"><i class=\"fa fa-search\"></i></button>" +
+        "</span>" +
+        '<span class="input-group-btn">' +
+        '<input type="text" name="employeeId_nameField" class="form-control form-control-sm meta-name-autocomplete lookup-name-autocomplete" data-field-name="employeeId" id="employeeId_nameField" data-processid="1454315883636" data-lookupid="1522404331251" placeholder="' +
+        plang.get("name_search") +
+        '" tabindex="-1" autocomplete="off">' +
+        "</span>" +
+        "</div>" +
+        "</div>";
 
       rowHtml +=
         '<tr data-item-id="' +
@@ -9407,13 +9403,13 @@ function posNewCardCustomer(elem, p1) {
                         JSON.stringify(responseParam)
                       );
                       if (p1) {
-                            new PNotify({
-                                title: 'Success',
-                                text: plang.get('msg_save_success'),
-                                type: 'success',
-                                sticker: false, 
-                                addclass: 'pnotify-center'
-                            });                           
+                        new PNotify({
+                          title: 'Success',
+                          text: plang.get('msg_save_success'),
+                          type: 'success',
+                          sticker: false,
+                          addclass: 'pnotify-center'
+                        });
                       }
                       $dialog.dialog("close");
                     }
@@ -9631,11 +9627,11 @@ function posNewServiceCustomer(elem, p2) {
                   },
                   success: function (responseData) {
                     if (responseData.status === "success") {
-                        if (p2) {
-                            $dialog.dialog("close");
-                            Core.unblockUI();
-                            return;
-                        }
+                      if (p2) {
+                        $dialog.dialog("close");
+                        Core.unblockUI();
+                        return;
+                      }
                       var responseParam = responseData.paramData;
                       $("#newServiceCustomerJson").val(
                         JSON.stringify(responseParam)
@@ -10114,7 +10110,7 @@ function posFillItemsByInvoiceId(
             $("#posLocationId").val(data.orderData.data.locationid);
             if ($("#posRestWaiterId").val() == '') {
               $("#posRestWaiterId").val(data.orderData.data.salespersonid);
-            }            
+            }
           }
         } else {
           new PNotify({
@@ -10208,7 +10204,7 @@ function posFillItemsByInvoiceId(
 
             posFixedHeaderTable();
             posCalcTotal();
-            
+
             $tbody.find(".gift-icon").hide();
           });
       } else {
@@ -11586,6 +11582,11 @@ function posTalonReturnReduce(rowId, isId) {
           });
         }
 
+        setTimeout(function () {
+          $dialog.find(".posUserAmount").removeAttr("readonly");
+          $("#posPaidAmount").autoNumeric("set", "");
+        }, 100);
+
         Core.unblockUI();
       },
     });
@@ -12467,7 +12468,7 @@ function posFillItemRowBySerialNumber(elem) {
     concatItemName +
     '" ' +
     itemAttr +
-    '" data-item-id-customer-id="' + rowData.id + "_" + (selectedCusId ? selectedCusId : guestName) + '" data-customerid="' + (selectedCusId ? selectedCusId : guestName)+ '">' +
+    '" data-item-id-customer-id="' + rowData.id + "_" + (selectedCusId ? selectedCusId : guestName) + '" data-customerid="' + (selectedCusId ? selectedCusId : guestName) + '">' +
     '<td data-field-name="gift" class="text-center ' +
     addClassName +
     '"></td>' +
@@ -12591,7 +12592,7 @@ function posFillItemRowBySerialNumber(elem) {
     '<input type="hidden" name="editPriceEmployeeId[]">' +
     '<input type="hidden" name="cashRegisterId[]">' +
     '<input type="hidden" name="discountTypeId[]">' +
-    '<input type="hidden" name="salesPersonId[]" value="'+salesPersonId+'">' +
+    '<input type="hidden" name="salesPersonId[]" value="' + salesPersonId + '">' +
     '<input type="hidden" name="discountDescription[]">' +
     '<input type="hidden" data-field-name="endQty" value="' +
     endQty +
@@ -12763,9 +12764,9 @@ function posFillItemRowBySerialNumber(elem) {
           type: "warning",
           sticker: false,
           addclass: "pnotify-center",
-        });    
-        Core.unblockUI();          
-        return;          
+        });
+        Core.unblockUI();
+        return;
       }
       if ($tbody.find('tr[data-customerid="' + $("#guestName").val() + '"]').length) {
         $tbody
@@ -12774,9 +12775,9 @@ function posFillItemRowBySerialNumber(elem) {
         var $lastRow = $tbody.find(
           'tr[data-customerid="' + $("#guestName").val() + '"]:last'
         );
-      } else {            
+      } else {
         $tbody.append(
-          '<tr style="height: 20px;" class="multi-customer-group" data-customerid="'+$("#guestName").val()+'"><td colspan="4" style="font-size: 12px;background-color: #ffcc0099;">'+$("#guestName").val()+' (guest)</td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td></tr>'
+          '<tr style="height: 20px;" class="multi-customer-group" data-customerid="' + $("#guestName").val() + '"><td colspan="4" style="font-size: 12px;background-color: #ffcc0099;">' + $("#guestName").val() + ' (guest)</td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td></tr>'
         );
         $tbody.append(rowHtml);
         var $lastRow = $tbody.find("tr[data-item-id]:last");
@@ -12793,8 +12794,8 @@ function posFillItemRowBySerialNumber(elem) {
           type: "warning",
           sticker: false,
           addclass: "pnotify-center",
-        });    
-        Core.unblockUI();          
+        });
+        Core.unblockUI();
         return;
       }
       $tbody.append(
@@ -13107,15 +13108,15 @@ function posItemDiscountBtn() {
     var salePrice = Number($itemRow.find('input[name="salePrice[]"]').val());
 
     if ($('#isAllItemsForDiscount').is(':checked')) {
-      $tbody.find('> tr').each(function(){
+      $tbody.find('> tr').each(function () {
         $itemRow = $(this);
         salePrice = Number($itemRow.find('input[name="salePrice[]"]').val());
-        
+
         if (discountPercent > 0) {
           var $discountTypeId = $("#discountTypeId"),
             isDiscountPlus = $discountTypeId.find("option:selected").attr("param"),
             discount = (discountPercent / 100) * salePrice;
-    
+
           // if (isDiscountPlus == "1") {
           //   var discountAmount = salePrice + discount;
           //   discountPercent = -1 * discountPercent;
@@ -13123,17 +13124,17 @@ function posItemDiscountBtn() {
           // } else {
           // }
           var discountAmount = salePrice - discount;
-    
+
           $itemRow.find('td[data-field-name="salePrice"]').autoNumeric("set", discountAmount);
           /*$itemRow.find('input[name="salePrice[]"]').val(discountAmount);*/
           $itemRow.find('input[name="discountAmount[]"]').val(discountAmount);
           $itemRow.find('input[name="discountPercent[]"]').val(discountPercent);
           $itemRow.find('input[name="unitDiscount[]"]').val(discount);
           $itemRow.find('input[name="isDiscount[]"]').val("1");
-    
+
           $("#pos-discount-percent").val(discountPercent);
           $("#pos-discount-amount").autoNumeric("set", discount);
-    
+
           $itemRow.find('input[name="discountEmployeeId[]"]').attr({
             value: $("#discountEmployeeId_valueField").val(),
             "data-emp-code": $("#discountEmployeeId_displayField").val(),
@@ -13163,7 +13164,7 @@ function posItemDiscountBtn() {
           });
           $itemRow.find('input[name="discountTypeId[]"]').val("");
           $itemRow.find('input[name="discountDescription[]"]').val("");
-    
+
           $("#pos-discount-percent").val("");
           $("#pos-discount-amount").autoNumeric("set", "");
         }
@@ -13231,7 +13232,7 @@ function posItemDiscountBtn() {
         $("#pos-discount-amount").autoNumeric("set", "");
       }
       posCalcRow($itemRow);
-    }    
+    }
 
     $("#dialog-item-discount").dialog("close");
   }
@@ -13948,12 +13949,12 @@ function posToBasket() {
   if ($("#dialog-talon-protect").length && $("#dialog-talon-protect").is(":visible")) {
     return;
   }
-    if (
-        $("body").find("#dialog-pos-payment").length > 0 &&
-        $("body").find("#dialog-pos-payment").is(":visible")
-    ) {
-        return;
-    }  
+  if (
+    $("body").find("#dialog-pos-payment").length > 0 &&
+    $("body").find("#dialog-pos-payment").is(":visible")
+  ) {
+    return;
+  }
   PNotify.removeAll();
 
   var $posTableBody = $("#posTable > tbody");
@@ -14394,27 +14395,27 @@ function posToBasket() {
 }
 
 function posBasketList(elem) {
-    if (posTypeCode == 3 || posTypeCode == 4) {
-        posRestBasketList(
-          "nullmeta",
-          "0",
-          tempInvoiceDvId,
-          "single",
-          "nullmeta",
-          elem,
-          "casherCheck"
-        );        
-    } else {
-        dataViewSelectableGrid(
-          "nullmeta",
-          "0",
-          tempInvoiceDvId,
-          "single",
-          "nullmeta",
-          elem,
-          "casherCheck"
-        );
-    }
+  if (posTypeCode == 3 || posTypeCode == 4) {
+    posRestBasketList(
+      "nullmeta",
+      "0",
+      tempInvoiceDvId,
+      "single",
+      "nullmeta",
+      elem,
+      "casherCheck"
+    );
+  } else {
+    dataViewSelectableGrid(
+      "nullmeta",
+      "0",
+      tempInvoiceDvId,
+      "single",
+      "nullmeta",
+      elem,
+      "casherCheck"
+    );
+  }
 }
 
 // Pin ask dialog 
@@ -14427,7 +14428,7 @@ function posRestBasketList(metaDataCode,
   lookupMetaDataId,
   isMetaGroup,
   callback) {
-      
+
   var $dialogName = "dialog-multiuser-basket-dataview";
   if (!$("#" + $dialogName).length) {
     $('<div id="' + $dialogName + '"></div>').appendTo("body");
@@ -14442,7 +14443,7 @@ function posRestBasketList(metaDataCode,
       viewType: "detail",
       dataGridDefaultHeight: 400,
       ignorePermission: 1,
-      drillDownDefaultCriteria: 'customername='+($("#guestName").length ? $("#guestName").val().trim() : "")+'&cashRegisterId='+cashRegisterId
+      drillDownDefaultCriteria: 'customername=' + ($("#guestName").length ? $("#guestName").val().trim() : "") + '&cashRegisterId=' + cashRegisterId
     },
     beforeSend: function () {
       Core.blockUI({
@@ -14480,7 +14481,7 @@ function posRestBasketList(metaDataCode,
               text: "Сонгох",
               class: "btn blue-madison btn-sm",
               click: function () {
-                  selectedRestRowFromBasket($dialog);           
+                selectedRestRowFromBasket($dialog);
               },
             },
           ],
@@ -14536,7 +14537,7 @@ function posRestBasketList(metaDataCode,
     },
   }).done(function () {
     //Core.initDVAjax($dialog);
-  });      
+  });
 
 }
 
@@ -14550,7 +14551,7 @@ function posRestBasketListPayment(metaDataCode,
   lookupMetaDataId,
   isMetaGroup,
   callback) {
-      
+
   var $dialogName = "dialog-multiuser-basket-dataview";
   if (!$("#" + $dialogName).length) {
     $('<div id="' + $dialogName + '"></div>').appendTo("body");
@@ -14575,35 +14576,35 @@ function posRestBasketListPayment(metaDataCode,
       $dialog
         .empty()
         .append(
-          '<div class="row" id="object-value-list-'+POS_PAY_BASKET_LIST+'">' +
+          '<div class="row" id="object-value-list-' + POS_PAY_BASKET_LIST + '">' +
           dataHtml +
           "</div>"
         );
       $dialog.dialog({
-          cache: false,
-          resizable: true,
-          bgiframe: true,
-          autoOpen: false,
-          title: "Харилцагчийн үйлчилгээнүүд",
-          position: { my: "top", at: "top+50" },
-          width: 1000,
-          height: "auto",
-          modal: true,
-          open: function () {
-            $dialog.find(".top-sidebar-content:eq(0)").attr("style", "padding-left: 15px !important");
-            $dialog.find('a[onclick*="toQuickMenu"]').remove();
-          },
-          close: function () {
-            $dialog.empty().dialog("destroy").remove();
-          },
-          buttons: [{
-                text: "Сонгох",
-                class: "btn blue-madison btn-sm",
-                click: function () {
-                    selectedRestRowFromBasketPayment($dialog);           
-                }
-            }]
-        })
+        cache: false,
+        resizable: true,
+        bgiframe: true,
+        autoOpen: false,
+        title: "Харилцагчийн үйлчилгээнүүд",
+        position: { my: "top", at: "top+50" },
+        width: 1000,
+        height: "auto",
+        modal: true,
+        open: function () {
+          $dialog.find(".top-sidebar-content:eq(0)").attr("style", "padding-left: 15px !important");
+          $dialog.find('a[onclick*="toQuickMenu"]').remove();
+        },
+        close: function () {
+          $dialog.empty().dialog("destroy").remove();
+        },
+        buttons: [{
+          text: "Сонгох",
+          class: "btn blue-madison btn-sm",
+          click: function () {
+            selectedRestRowFromBasketPayment($dialog);
+          }
+        }]
+      })
         .dialogExtend({
           closable: true,
           maximizable: true,
@@ -14655,289 +14656,289 @@ function posRestBasketListPayment(metaDataCode,
     },
   }).done(function () {
     //Core.initDVAjax($dialog);
-  });      
+  });
 
 }
 
 function selectedRestRowFromBasket($dialog) {
-    isMultiCustomerPrintBill = false;
-    restClears();
-    Core.blockUI({
-      message: "Loading...",
-      boxed: true,
-    });
-    
-    if (posTypeCode == 4) {
-        var rows = getDataViewSelectedRows("1529014380513"),
-          rows2 = [];
+  isMultiCustomerPrintBill = false;
+  restClears();
+  Core.blockUI({
+    message: "Loading...",
+    boxed: true,
+  });
 
-        if ($("div[data-path-uniqid]").length === 1) {
-          rows2 = getDataViewSelectedRows(
-            $("div[data-path-uniqid]").attr("data-path-uniqid")
-          );
-        }
-        if ($("div[data-path-uniqid]").length > 1) {
-          rows2 = getDataViewSelectedRows(
-            $("div[data-path-uniqid]").eq(0).attr("data-path-uniqid")
-          );
-          var rows22 = getDataViewSelectedRows(
-            $("div[data-path-uniqid]").eq(1).attr("data-path-uniqid")
-          );
-          rows2 = rows2.concat(rows22);
-        }
+  if (posTypeCode == 4) {
+    var rows = getDataViewSelectedRows("1529014380513"),
+      rows2 = [];
 
-        if (rows.length || rows2.length) {
-          if (rows.length) {
-            for (var cus = 0; cus < rows.length; cus++) {
-              if (rows[0]["customername"] != rows[cus]["customername"]) {
-                alert("Нэг харилцагчийн бараа сонгоно уу!");
-                return;
-              }
-            }
+    if ($("div[data-path-uniqid]").length === 1) {
+      rows2 = getDataViewSelectedRows(
+        $("div[data-path-uniqid]").attr("data-path-uniqid")
+      );
+    }
+    if ($("div[data-path-uniqid]").length > 1) {
+      rows2 = getDataViewSelectedRows(
+        $("div[data-path-uniqid]").eq(0).attr("data-path-uniqid")
+      );
+      var rows22 = getDataViewSelectedRows(
+        $("div[data-path-uniqid]").eq(1).attr("data-path-uniqid")
+      );
+      rows2 = rows2.concat(rows22);
+    }
+
+    if (rows.length || rows2.length) {
+      if (rows.length) {
+        for (var cus = 0; cus < rows.length; cus++) {
+          if (rows[0]["customername"] != rows[cus]["customername"]) {
+            alert("Нэг харилцагчийн бараа сонгоно уу!");
+            return;
           }
+        }
+      }
 
-          if (rows2.length) {
-            for (var cus = 0; cus < rows2.length; cus++) {
-              if (rows2[0]["customername"] != rows2[cus]["customername"]) {
-                alert("Нэг харилцагчийн бараа сонгоно уу!");
-                return;
-              }
-            }
+      if (rows2.length) {
+        for (var cus = 0; cus < rows2.length; cus++) {
+          if (rows2[0]["customername"] != rows2[cus]["customername"]) {
+            alert("Нэг харилцагчийн бараа сонгоно уу!");
+            return;
           }
-
-        if (rows2.length) {
-            var row = rows2[0];
-        } else {
-            var row = rows[0];                        
         }
+      }
 
-        if (row.customername) {
-          $("#guestName").val(row.customername);
-        }
+      if (rows2.length) {
+        var row = rows2[0];
+      } else {
+        var row = rows[0];
+      }
 
-            var getCustomerItemsArray = "",
-              customerId = "";
+      if (row.customername) {
+        $("#guestName").val(row.customername);
+      }
 
-            if (rows2.length) {
-              getCustomerItemsArray = rows2;
-              customerId = row["customerid"];
-            } else {
-              Core.blockUI({
-                message: "Loading...",
-                boxed: true,
-              });
-              var getCustomerItems = $.ajax({
-                type: "post",
-                url: "api/callDataview",
-                data: {
-                  dataviewId: "16842299439629",
-                  pagingWithoutAggregate: 1,
-                  criteriaData: {
-                    salesOrderId: [
-                      { operator: "=", operand: row["salesorderid"] }
-                    ],
-                    filterGuestNames: [
-                      { operator: "=", operand: row["customername"] },
-                    ]
-                  }
-                },
-                dataType: "json",
-                async: false,
-                success: function (data) {
-                  return data.result;
-                },
-              });
-              getCustomerItemsArray =
-                getCustomerItems.responseJSON.result;
-              customerId = row["customerid"];
-              Core.unblockUI();
+      var getCustomerItemsArray = "",
+        customerId = "";
+
+      if (rows2.length) {
+        getCustomerItemsArray = rows2;
+        customerId = row["customerid"];
+      } else {
+        Core.blockUI({
+          message: "Loading...",
+          boxed: true,
+        });
+        var getCustomerItems = $.ajax({
+          type: "post",
+          url: "api/callDataview",
+          data: {
+            dataviewId: "16842299439629",
+            pagingWithoutAggregate: 1,
+            criteriaData: {
+              salesOrderId: [
+                { operator: "=", operand: row["salesorderid"] }
+              ],
+              filterGuestNames: [
+                { operator: "=", operand: row["customername"] },
+              ]
             }
+          },
+          dataType: "json",
+          async: false,
+          success: function (data) {
+            return data.result;
+          },
+        });
+        getCustomerItemsArray =
+          getCustomerItems.responseJSON.result;
+        customerId = row["customerid"];
+        Core.unblockUI();
+      }
 
-            var prms = {
-              status: "success",
-              data: {
-                id: row['salesorderid'],
-                locationid: $("#posLocationId").val(),
-                salespersonid: $("#posRestWaiterId").val(),
-                customerid: customerId,
-                pos_item_list_get: getCustomerItemsArray,
+      var prms = {
+        status: "success",
+        data: {
+          id: row['salesorderid'],
+          locationid: $("#posLocationId").val(),
+          salespersonid: $("#posRestWaiterId").val(),
+          customerid: customerId,
+          pos_item_list_get: getCustomerItemsArray,
+        },
+      };
+
+      var basketParams = [
+        { id: "", event: "multiCustomer", data: prms },
+      ];
+      posFillItemsByBasket(
+        "",
+        "",
+        "",
+        "",
+        basketParams
+      );
+      $dialog.dialog("close");
+    } else {
+      alert("Жагсаалтаас сонгоно уу!");
+    }
+    return;
+  }
+
+  let $dialogNameWaterPin = "dialog-waiter-pincode";
+  if (!$("#" + $dialogNameWaterPin).length) {
+    $('<div id="' + $dialogNameWaterPin + '"></div>').appendTo("body");
+  }
+  let $dialogWaiterPin = $("#" + $dialogNameWaterPin);
+
+  $dialogWaiterPin
+    .empty()
+    .append('<form method="post" autocomplete="off" id="waiterPassForm"><input type="password" name="waiterPinCode" class="form-control" style="font-size:60px; height:40px;" autocomplete="off" required="required"></form>');
+
+  $dialogWaiterPin.dialog({
+    cache: false,
+    resizable: true,
+    bgiframe: true,
+    autoOpen: false,
+    title: "Нууц үг оруулах",
+    width: 400,
+    height: "auto",
+    modal: true,
+    open: function () {
+      $dialogWaiterPin.on(
+        "keydown",
+        'input[name="waiterPinCode"]',
+        function (e) {
+          let keyCode = e.keyCode ? e.keyCode : e.which;
+          if (keyCode === 13) {
+            $(this)
+              .closest(".ui-dialog")
+              .find(".ui-dialog-buttonpane button:first")
+              .trigger("click");
+            return false;
+          }
+        }
+      );
+    },
+    close: function () {
+      $dialogWaiterPin.empty().dialog("destroy").remove();
+    },
+    buttons: [{
+      text: plang.get("insert_btn"),
+      class: "btn btn-sm green-meadow",
+      click: function () {
+        PNotify.removeAll();
+        let $form = $("#waiterPassForm");
+        $form.validate({ errorPlacement: function () { } });
+
+        if ($form.valid()) {
+          let isPinSuccess = false,
+            waiterObj = [];
+          talonListPass = $form.find('input[name="waiterPinCode"]').val(),
+
+            $.ajax({
+              type: "post",
+              url: "mdpos/checkTalonListPass",
+              data: { talonListPass },
+              dataType: "json",
+              beforeSend: function () {
+                Core.blockUI({
+                  message: "Loading...",
+                  boxed: true,
+                });
               },
-            };
+              success: function (dataSub) {
+                let waiterId = $("#posRestWaiterId").val(),
+                  salesOrderId = $("#posRestSalesOrderId").val(),
+                  posLocationId = $(`#posLocationId`).val();
 
-            var basketParams = [
-              { id: "", event: "multiCustomer", data: prms },
-            ];
-            posFillItemsByBasket(
-              "",
-              "",
-              "",
-              "",
-              basketParams
-            );
-            $dialog.dialog("close");
-          } else {
-            alert("Жагсаалтаас сонгоно уу!");
-          }                      
-         return;
-    }
+                if (dataSub.status == 'success') {
+                  isPinSuccess = true;
+                }
 
-    let $dialogNameWaterPin = "dialog-waiter-pincode";
-    if (!$("#" + $dialogNameWaterPin).length) {
-      $('<div id="' + $dialogNameWaterPin + '"></div>').appendTo("body");
-    }
-    let $dialogWaiterPin = $("#" + $dialogNameWaterPin);
+                Core.unblockUI();
+                const dataviewId = "16207061606511";
+                $.ajax({
+                  type: "post",
+                  url: "api/callDataview",
+                  data: {
+                    dataviewId,
+                    criteriaData: {
+                      pincode: [
+                        {
+                          operator: "=",
+                          operand: talonListPass
+                        },
+                      ],
+                    },
+                  },
+                  dataType: "json",
+                  async: false,
+                  beforeSend: function () {
+                    Core.blockUI({
+                      message: "Loading...",
+                      boxed: true,
+                    });
+                  },
+                  success: function (dataSub) {
+                    if (
+                      dataSub.status == "success" &&
+                      dataSub.result.length
+                    ) {
+                      isPinSuccess = true;
+                      waiterObj = dataSub.result;
+                    } else {
+                      new PNotify({
+                        title: "Анхааруулга",
+                        text: "Зөөгчийн мэдээлэл олдсонгүй",
+                        type: "warning",
+                        sticker: false,
+                      });
+                    }
+                    Core.unblockUI();
+                  },
+                });
 
-    $dialogWaiterPin
-      .empty()
-      .append('<form method="post" autocomplete="off" id="waiterPassForm"><input type="password" name="waiterPinCode" class="form-control" style="font-size:60px; height:40px;" autocomplete="off" required="required"></form>');
+                if (isPinSuccess) {
+                  $dialogWaiterPin.dialog("close");
+                  var rows = getDataViewSelectedRows("1529014380513"),
+                    rows2 = [];
 
-    $dialogWaiterPin.dialog({
-      cache: false,
-      resizable: true,
-      bgiframe: true,
-      autoOpen: false,
-      title: "Нууц үг оруулах",
-      width: 400,
-      height: "auto",
-      modal: true,
-      open: function () {
-        $dialogWaiterPin.on(
-          "keydown",
-          'input[name="waiterPinCode"]',
-          function (e) {
-            let keyCode = e.keyCode ? e.keyCode : e.which;
-            if (keyCode === 13) {
-              $(this)
-                .closest(".ui-dialog")
-                .find(".ui-dialog-buttonpane button:first")
-                .trigger("click");
-              return false;
-            }
-          }
-        );
-      },
-      close: function () {
-        $dialogWaiterPin.empty().dialog("destroy").remove();
-      },
-      buttons: [{
-        text: plang.get("insert_btn"),
-        class: "btn btn-sm green-meadow",
-        click: function () {
-          PNotify.removeAll();
-          let $form = $("#waiterPassForm");
-          $form.validate({ errorPlacement: function () { } });
-
-          if ($form.valid()) {
-            let isPinSuccess = false,
-              waiterObj = [];
-            talonListPass = $form.find('input[name="waiterPinCode"]').val(),
-
-              $.ajax({
-                type: "post",
-                url: "mdpos/checkTalonListPass",
-                data: { talonListPass },
-                dataType: "json",
-                beforeSend: function () {
-                  Core.blockUI({
-                    message: "Loading...",
-                    boxed: true,
-                  });
-                },
-                success: function (dataSub) {
-                  let waiterId = $("#posRestWaiterId").val(),
-                    salesOrderId = $("#posRestSalesOrderId").val(),
-                    posLocationId = $(`#posLocationId`).val();
-
-                  if (dataSub.status == 'success') {
-                    isPinSuccess = true;
+                  if ($("div[data-path-uniqid]").length === 1) {
+                    rows2 = getDataViewSelectedRows(
+                      $("div[data-path-uniqid]").attr("data-path-uniqid")
+                    );
+                  }
+                  if ($("div[data-path-uniqid]").length > 1) {
+                    rows2 = getDataViewSelectedRows(
+                      $("div[data-path-uniqid]").eq(0).attr("data-path-uniqid")
+                    );
+                    var rows22 = getDataViewSelectedRows(
+                      $("div[data-path-uniqid]").eq(1).attr("data-path-uniqid")
+                    );
+                    rows2 = rows2.concat(rows22);
                   }
 
-                  Core.unblockUI();
-                    const dataviewId = "16207061606511";
-                    $.ajax({
-                      type: "post",
-                      url: "api/callDataview",
-                      data: {
-                        dataviewId,
-                        criteriaData: {
-                          pincode: [
-                            {
-                              operator: "=",
-                              operand: talonListPass
-                            },
-                          ],
-                        },
-                      },
-                      dataType: "json",
-                      async: false,
-                      beforeSend: function () {
-                        Core.blockUI({
-                          message: "Loading...",
-                          boxed: true,
-                        });
-                      },
-                      success: function (dataSub) {
-                        if (
-                          dataSub.status == "success" &&
-                          dataSub.result.length
-                        ) {
-                          isPinSuccess = true;
-                          waiterObj = dataSub.result;
-                        } else {
-                          new PNotify({
-                            title: "Анхааруулга",
-                            text: "Зөөгчийн мэдээлэл олдсонгүй",
-                            type: "warning",
-                            sticker: false,
-                          });
-                        }
-                        Core.unblockUI();
-                      },
-                    });
-
-                  if (isPinSuccess) {
-                    $dialogWaiterPin.dialog("close");
-                    var rows = getDataViewSelectedRows("1529014380513"),
-                      rows2 = [];
-
-                    if ($("div[data-path-uniqid]").length === 1) {
-                      rows2 = getDataViewSelectedRows(
-                        $("div[data-path-uniqid]").attr("data-path-uniqid")
-                      );
-                    }
-                    if ($("div[data-path-uniqid]").length > 1) {
-                      rows2 = getDataViewSelectedRows(
-                        $("div[data-path-uniqid]").eq(0).attr("data-path-uniqid")
-                      );
-                      var rows22 = getDataViewSelectedRows(
-                        $("div[data-path-uniqid]").eq(1).attr("data-path-uniqid")
-                      );
-                      rows2 = rows2.concat(rows22);
-                    }
-
-                    if (rows.length || rows2.length) {
-                      if (rows.length) {
-                        for (var cus = 0; cus < rows.length; cus++) {
-                          if (rows[0]["customername"] != rows[cus]["customername"]) {
-                            alert("Нэг харилцагчийн бараа сонгоно уу!");
-                            return;
-                          }
+                  if (rows.length || rows2.length) {
+                    if (rows.length) {
+                      for (var cus = 0; cus < rows.length; cus++) {
+                        if (rows[0]["customername"] != rows[cus]["customername"]) {
+                          alert("Нэг харилцагчийн бараа сонгоно уу!");
+                          return;
                         }
                       }
-
-                      if (rows2.length) {
-                        for (var cus = 0; cus < rows2.length; cus++) {
-                          if (rows2[0]["customername"] != rows2[cus]["customername"]) {
-                            alert("Нэг харилцагчийн бараа сонгоно уу!");
-                            return;
-                          }
-                        }
-                      }
+                    }
 
                     if (rows2.length) {
-                        var row = rows2[0];
+                      for (var cus = 0; cus < rows2.length; cus++) {
+                        if (rows2[0]["customername"] != rows2[cus]["customername"]) {
+                          alert("Нэг харилцагчийн бараа сонгоно уу!");
+                          return;
+                        }
+                      }
+                    }
+
+                    if (rows2.length) {
+                      var row = rows2[0];
                     } else {
-                        var row = rows[0];                        
+                      var row = rows[0];
                     }
 
                     if (row['locationid']) {
@@ -14946,7 +14947,7 @@ function selectedRestRowFromBasket($dialog) {
                         .find("div")
                         .html('[ Сонгосон ширээ: <strong class="selected-pos-location">' +
                           row['locationname'] + "</strong> ]");
-                    }                  
+                    }
 
                     if (($("#posRestWaiterId").val() == "" ||
                       $("#posRestSalesOrderId").val() == "" ||
@@ -14995,380 +14996,380 @@ function selectedRestRowFromBasket($dialog) {
                       return;
                     }
 
-                        var getCustomerItemsArray = "",
-                          customerId = "";
+                    var getCustomerItemsArray = "",
+                      customerId = "";
 
-                        if (rows2.length) {
-                          getCustomerItemsArray = rows2;
-                          customerId = row["customerid"];
-                        } else {
-                          Core.blockUI({
-                            message: "Loading...",
-                            boxed: true,
-                          });
-                          var getCustomerItems = $.ajax({
-                            type: "post",
-                            url: "api/callDataview",
-                            data: {
-                              dataviewId: "16842299439629",
-                              pagingWithoutAggregate: 1,
-                              criteriaData: {
-                                salesOrderId: [
-                                  { operator: "=", operand: row["salesorderid"] }
-                                ],
-                                filterGuestNames: [
-                                  { operator: "=", operand: row["customername"] },
-                                ]                                
-                              },
-                            },
-                            dataType: "json",
-                            async: false,
-                            success: function (data) {
-                              return data.result;
-                            },
-                          });
-                          getCustomerItemsArray =
-                            getCustomerItems.responseJSON.result;
-                          customerId = row["customerid"];
-                          Core.unblockUI();
-                        }
-
-                        var prms = {
-                          status: "success",
-                          data: {
-                            id: row['salesorderid'],
-                            locationid: $("#posLocationId").val(),
-                            salespersonid: $("#posRestWaiterId").val(),
-                            customerid: customerId,
-                            pos_item_list_get: getCustomerItemsArray,
+                    if (rows2.length) {
+                      getCustomerItemsArray = rows2;
+                      customerId = row["customerid"];
+                    } else {
+                      Core.blockUI({
+                        message: "Loading...",
+                        boxed: true,
+                      });
+                      var getCustomerItems = $.ajax({
+                        type: "post",
+                        url: "api/callDataview",
+                        data: {
+                          dataviewId: "16842299439629",
+                          pagingWithoutAggregate: 1,
+                          criteriaData: {
+                            salesOrderId: [
+                              { operator: "=", operand: row["salesorderid"] }
+                            ],
+                            filterGuestNames: [
+                              { operator: "=", operand: row["customername"] },
+                            ]
                           },
-                        };
+                        },
+                        dataType: "json",
+                        async: false,
+                        success: function (data) {
+                          return data.result;
+                        },
+                      });
+                      getCustomerItemsArray =
+                        getCustomerItems.responseJSON.result;
+                      customerId = row["customerid"];
+                      Core.unblockUI();
+                    }
 
-                        var basketParams = [
-                          { id: "", event: "multiCustomer", data: prms },
-                        ];
-                        posFillItemsByBasket(
-                          "",
-                          "",
-                          "",
-                          "",
-                          basketParams
-                        );
-                        $dialog.dialog("close");
-                      } else {
-                        alert("Жагсаалтаас сонгоно уу!");
-                      }                                                      
+                    var prms = {
+                      status: "success",
+                      data: {
+                        id: row['salesorderid'],
+                        locationid: $("#posLocationId").val(),
+                        salespersonid: $("#posRestWaiterId").val(),
+                        customerid: customerId,
+                        pos_item_list_get: getCustomerItemsArray,
+                      },
+                    };
 
+                    var basketParams = [
+                      { id: "", event: "multiCustomer", data: prms },
+                    ];
+                    posFillItemsByBasket(
+                      "",
+                      "",
+                      "",
+                      "",
+                      basketParams
+                    );
+                    $dialog.dialog("close");
                   } else {
-                    new PNotify({
-                      title: "Анхааруулга",
-                      text: "Нууц үг буруу байна!",
-                      type: "warning",
-                      sticker: false,
-                    });
+                    alert("Жагсаалтаас сонгоно уу!");
                   }
 
+                } else {
+                  new PNotify({
+                    title: "Анхааруулга",
+                    text: "Нууц үг буруу байна!",
+                    type: "warning",
+                    sticker: false,
+                  });
                 }
-              });
-          }
-        },
+
+              }
+            });
+        }
       },
-      {
-        text: plang.get("close_btn"),
-        class: "btn btn-sm blue-madison",
-        click: function () {
-          $dialogWaiterPin.dialog("close");
-        },
+    },
+    {
+      text: plang.get("close_btn"),
+      class: "btn btn-sm blue-madison",
+      click: function () {
+        $dialogWaiterPin.dialog("close");
       },
-      ],
-    });
-    $dialogWaiterPin.dialog("open");
-    Core.unblockUI();           
+    },
+    ],
+  });
+  $dialogWaiterPin.dialog("open");
+  Core.unblockUI();
 }
 
 function selectedRestRowFromBasketPayment($dialog) {
-    isMultiCustomerPrintBill = true;
-    restClears();
-    Core.blockUI({
-      message: "Loading...",
-      boxed: true,
-    });
-    
-    if (posTypeCode == 4) {
-        var rows = getDataViewSelectedRows(POS_PAY_BASKET_LIST),
-          rows2 = [];
+  isMultiCustomerPrintBill = true;
+  restClears();
+  Core.blockUI({
+    message: "Loading...",
+    boxed: true,
+  });
 
-        if ($("div[data-path-uniqid]").length === 1) {
-          rows2 = getDataViewSelectedRows(
-            $("div[data-path-uniqid]").attr("data-path-uniqid")
-          );
-        }
-        if ($("div[data-path-uniqid]").length > 1) {
-          rows2 = getDataViewSelectedRows(
-            $("div[data-path-uniqid]").eq(0).attr("data-path-uniqid")
-          );
-          var rows22 = getDataViewSelectedRows(
-            $("div[data-path-uniqid]").eq(1).attr("data-path-uniqid")
-          );
-          rows2 = rows2.concat(rows22);
-        }
+  if (posTypeCode == 4) {
+    var rows = getDataViewSelectedRows(POS_PAY_BASKET_LIST),
+      rows2 = [];
 
-        if (rows.length || rows2.length) {
-//          if (rows.length) {
-//            for (var cus = 0; cus < rows.length; cus++) {
-//              if (rows[0]["customername"] != rows[cus]["customername"]) {
-//                alert("Нэг харилцагчийн бараа сонгоно уу!");
-//                return;
-//              }
-//            }
-//          }
-//
-//          if (rows2.length) {
-//            for (var cus = 0; cus < rows2.length; cus++) {
-//              if (rows2[0]["customername"] != rows2[cus]["customername"]) {
-//                alert("Нэг харилцагчийн бараа сонгоно уу!");
-//                return;
-//              }
-//            }
-//          }
-
-        if (rows2.length) {
-            var row = rows2[0];
-        } else {
-            var row = rows[0];                        
-        }
-
-        if (row.customername) {
-          $("#guestName").val(row.customername);
-        }
-
-            var getCustomerItemsArray = "",
-              customerId = "";
-
-            if (rows2.length) {
-              getCustomerItemsArray = rows2;
-              customerId = row["customerid"];
-            } else {
-                var salesIds = '';
-                for (var cus = 0; cus < rows.length; cus++) {
-                    salesIds += rows[cus]["salesorderid"]+',';
-                }                
-                salesIds = rtrim(salesIds, ',');
-              Core.blockUI({
-                message: "Loading...",
-                boxed: true,
-              });
-              var getCustomerItems = $.ajax({
-                type: "post",
-                url: "api/callDataview",
-                data: {
-                  dataviewId: "16842299439629",
-                  pagingWithoutAggregate: 1,
-                  criteriaData: {
-                    salesOrderId: [
-                      { operator: "in", operand: salesIds }
-                    ],
-                  },
-                },
-                dataType: "json",
-                async: false,
-                success: function (data) {
-                  return data.result;
-                },
-              });
-              getCustomerItemsArray =
-                getCustomerItems.responseJSON.result;
-              customerId = row["customerid"];
-              Core.unblockUI();
-            }
-
-            var prms = {
-                status: "success",
-                data: {
-                    id: row['salesorderid'],
-                    locationid: $("#posLocationId").val(),
-                    salespersonid: $("#posRestWaiterId").val(),
-                    customerid: customerId,
-                    pos_item_list_get: getCustomerItemsArray,
-                }
-            };
-
-            var basketParams = [
-              { id: "", event: "multiCustomer", data: prms }
-            ];
-            posFillItemsByBasket(
-              "",
-              "",
-              "onlyviewqty",
-              "mergeCustomer",
-              basketParams
-            );
-            $dialog.dialog("close");
-          } else {
-            alert("Жагсаалтаас сонгоно уу!");
-          }                      
-         return;
+    if ($("div[data-path-uniqid]").length === 1) {
+      rows2 = getDataViewSelectedRows(
+        $("div[data-path-uniqid]").attr("data-path-uniqid")
+      );
+    }
+    if ($("div[data-path-uniqid]").length > 1) {
+      rows2 = getDataViewSelectedRows(
+        $("div[data-path-uniqid]").eq(0).attr("data-path-uniqid")
+      );
+      var rows22 = getDataViewSelectedRows(
+        $("div[data-path-uniqid]").eq(1).attr("data-path-uniqid")
+      );
+      rows2 = rows2.concat(rows22);
     }
 
-    let $dialogNameWaterPin = "dialog-waiter-pincode";
-    if (!$("#" + $dialogNameWaterPin).length) {
-      $('<div id="' + $dialogNameWaterPin + '"></div>').appendTo("body");
+    if (rows.length || rows2.length) {
+      //          if (rows.length) {
+      //            for (var cus = 0; cus < rows.length; cus++) {
+      //              if (rows[0]["customername"] != rows[cus]["customername"]) {
+      //                alert("Нэг харилцагчийн бараа сонгоно уу!");
+      //                return;
+      //              }
+      //            }
+      //          }
+      //
+      //          if (rows2.length) {
+      //            for (var cus = 0; cus < rows2.length; cus++) {
+      //              if (rows2[0]["customername"] != rows2[cus]["customername"]) {
+      //                alert("Нэг харилцагчийн бараа сонгоно уу!");
+      //                return;
+      //              }
+      //            }
+      //          }
+
+      if (rows2.length) {
+        var row = rows2[0];
+      } else {
+        var row = rows[0];
+      }
+
+      if (row.customername) {
+        $("#guestName").val(row.customername);
+      }
+
+      var getCustomerItemsArray = "",
+        customerId = "";
+
+      if (rows2.length) {
+        getCustomerItemsArray = rows2;
+        customerId = row["customerid"];
+      } else {
+        var salesIds = '';
+        for (var cus = 0; cus < rows.length; cus++) {
+          salesIds += rows[cus]["salesorderid"] + ',';
+        }
+        salesIds = rtrim(salesIds, ',');
+        Core.blockUI({
+          message: "Loading...",
+          boxed: true,
+        });
+        var getCustomerItems = $.ajax({
+          type: "post",
+          url: "api/callDataview",
+          data: {
+            dataviewId: "16842299439629",
+            pagingWithoutAggregate: 1,
+            criteriaData: {
+              salesOrderId: [
+                { operator: "in", operand: salesIds }
+              ],
+            },
+          },
+          dataType: "json",
+          async: false,
+          success: function (data) {
+            return data.result;
+          },
+        });
+        getCustomerItemsArray =
+          getCustomerItems.responseJSON.result;
+        customerId = row["customerid"];
+        Core.unblockUI();
+      }
+
+      var prms = {
+        status: "success",
+        data: {
+          id: row['salesorderid'],
+          locationid: $("#posLocationId").val(),
+          salespersonid: $("#posRestWaiterId").val(),
+          customerid: customerId,
+          pos_item_list_get: getCustomerItemsArray,
+        }
+      };
+
+      var basketParams = [
+        { id: "", event: "multiCustomer", data: prms }
+      ];
+      posFillItemsByBasket(
+        "",
+        "",
+        "onlyviewqty",
+        "mergeCustomer",
+        basketParams
+      );
+      $dialog.dialog("close");
+    } else {
+      alert("Жагсаалтаас сонгоно уу!");
     }
-    let $dialogWaiterPin = $("#" + $dialogNameWaterPin);
+    return;
+  }
 
-    $dialogWaiterPin.empty().append('<form method="post" autocomplete="off" id="waiterPassForm"><input type="password" name="waiterPinCode" class="form-control" style="font-size:60px; height:40px;" autocomplete="off" required="required"></form>');
+  let $dialogNameWaterPin = "dialog-waiter-pincode";
+  if (!$("#" + $dialogNameWaterPin).length) {
+    $('<div id="' + $dialogNameWaterPin + '"></div>').appendTo("body");
+  }
+  let $dialogWaiterPin = $("#" + $dialogNameWaterPin);
 
-    $dialogWaiterPin.dialog({
-      cache: false,
-      resizable: true,
-      bgiframe: true,
-      autoOpen: false,
-      title: "Нууц үг оруулах",
-      width: 400,
-      height: "auto",
-      modal: true,
-      open: function () {
-        $dialogWaiterPin.on(
-          "keydown",
-          'input[name="waiterPinCode"]',
-          function (e) {
-            let keyCode = e.keyCode ? e.keyCode : e.which;
-            if (keyCode === 13) {
-              $(this)
-                .closest(".ui-dialog")
-                .find(".ui-dialog-buttonpane button:first")
-                .trigger("click");
-              return false;
-            }
+  $dialogWaiterPin.empty().append('<form method="post" autocomplete="off" id="waiterPassForm"><input type="password" name="waiterPinCode" class="form-control" style="font-size:60px; height:40px;" autocomplete="off" required="required"></form>');
+
+  $dialogWaiterPin.dialog({
+    cache: false,
+    resizable: true,
+    bgiframe: true,
+    autoOpen: false,
+    title: "Нууц үг оруулах",
+    width: 400,
+    height: "auto",
+    modal: true,
+    open: function () {
+      $dialogWaiterPin.on(
+        "keydown",
+        'input[name="waiterPinCode"]',
+        function (e) {
+          let keyCode = e.keyCode ? e.keyCode : e.which;
+          if (keyCode === 13) {
+            $(this)
+              .closest(".ui-dialog")
+              .find(".ui-dialog-buttonpane button:first")
+              .trigger("click");
+            return false;
           }
-        );
-      },
-      close: function () {
-        $dialogWaiterPin.empty().dialog("destroy").remove();
-      },
-      buttons: [{
-        text: plang.get("insert_btn"),
-        class: "btn btn-sm green-meadow",
-        click: function () {
-          PNotify.removeAll();
-          let $form = $("#waiterPassForm");
-          $form.validate({ errorPlacement: function () { } });
+        }
+      );
+    },
+    close: function () {
+      $dialogWaiterPin.empty().dialog("destroy").remove();
+    },
+    buttons: [{
+      text: plang.get("insert_btn"),
+      class: "btn btn-sm green-meadow",
+      click: function () {
+        PNotify.removeAll();
+        let $form = $("#waiterPassForm");
+        $form.validate({ errorPlacement: function () { } });
 
-          if ($form.valid()) {
-            let isPinSuccess = false,
-              waiterObj = [];
-            talonListPass = $form.find('input[name="waiterPinCode"]').val(),
+        if ($form.valid()) {
+          let isPinSuccess = false,
+            waiterObj = [];
+          talonListPass = $form.find('input[name="waiterPinCode"]').val(),
 
-              $.ajax({
-                type: "post",
-                url: "mdpos/checkTalonListPass",
-                data: { talonListPass },
-                dataType: "json",
-                beforeSend: function () {
-                  Core.blockUI({
-                    message: "Loading...",
-                    boxed: true,
-                  });
-                },
-                success: function (dataSub) {
-                  let waiterId = $("#posRestWaiterId").val(),
-                    salesOrderId = $("#posRestSalesOrderId").val(),
-                    posLocationId = $(`#posLocationId`).val();
+            $.ajax({
+              type: "post",
+              url: "mdpos/checkTalonListPass",
+              data: { talonListPass },
+              dataType: "json",
+              beforeSend: function () {
+                Core.blockUI({
+                  message: "Loading...",
+                  boxed: true,
+                });
+              },
+              success: function (dataSub) {
+                let waiterId = $("#posRestWaiterId").val(),
+                  salesOrderId = $("#posRestSalesOrderId").val(),
+                  posLocationId = $(`#posLocationId`).val();
 
-                    if (dataSub.status == 'success') {
-                      isPinSuccess = true;
+                if (dataSub.status == 'success') {
+                  isPinSuccess = true;
+                }
+
+                Core.unblockUI();
+                const dataviewId = "16207061606511";
+                $.ajax({
+                  type: "post",
+                  url: "api/callDataview",
+                  data: {
+                    dataviewId,
+                    criteriaData: {
+                      pincode: [{
+                        operator: "=",
+                        operand: talonListPass
+                      }]
                     }
-
-                    Core.unblockUI();
-                    const dataviewId = "16207061606511";
-                    $.ajax({
-                      type: "post",
-                      url: "api/callDataview",
-                      data: {
-                        dataviewId,
-                        criteriaData: {
-                            pincode: [{
-                                operator: "=",
-                                operand: talonListPass
-                            }]
-                        }
-                      },
-                      dataType: "json",
-                      async: false,
-                      beforeSend: function () {
-                        Core.blockUI({
-                          message: "Loading...",
-                          boxed: true,
-                        });
-                      },
-                      success: function (dataSub) {
-                        if (
-                          dataSub.status == "success" &&
-                          dataSub.result.length
-                        ) {
-                          isPinSuccess = true;
-                          waiterObj = dataSub.result;
-                        } else {
-                          new PNotify({
-                            title: "Анхааруулга",
-                            text: "Зөөгчийн мэдээлэл олдсонгүй",
-                            type: "warning",
-                            sticker: false,
-                          });
-                        }
-                        Core.unblockUI();
-                      },
+                  },
+                  dataType: "json",
+                  async: false,
+                  beforeSend: function () {
+                    Core.blockUI({
+                      message: "Loading...",
+                      boxed: true,
                     });
-
-                  if (isPinSuccess) {
-                    $dialogWaiterPin.dialog("close");
-                    var rows = getDataViewSelectedRows(POS_PAY_BASKET_LIST),
-                      rows2 = [];
-
-                    if ($("div[data-path-uniqid]").length === 1) {
-                      rows2 = getDataViewSelectedRows(
-                        $("div[data-path-uniqid]").attr("data-path-uniqid")
-                      );
+                  },
+                  success: function (dataSub) {
+                    if (
+                      dataSub.status == "success" &&
+                      dataSub.result.length
+                    ) {
+                      isPinSuccess = true;
+                      waiterObj = dataSub.result;
+                    } else {
+                      new PNotify({
+                        title: "Анхааруулга",
+                        text: "Зөөгчийн мэдээлэл олдсонгүй",
+                        type: "warning",
+                        sticker: false,
+                      });
                     }
-                    if ($("div[data-path-uniqid]").length > 1) {
-                      rows2 = getDataViewSelectedRows(
-                        $("div[data-path-uniqid]").eq(0).attr("data-path-uniqid")
-                      );
-                      var rows22 = getDataViewSelectedRows(
-                        $("div[data-path-uniqid]").eq(1).attr("data-path-uniqid")
-                      );
-                      rows2 = rows2.concat(rows22);
-                    }
+                    Core.unblockUI();
+                  },
+                });
 
-                    if (rows.length || rows2.length) {
-                      if (rows.length) {
-                        for (var cus = 0; cus < rows.length; cus++) {
-                          if (rows[0]["customername"] != rows[cus]["customername"]) {
-                            alert("Нэг харилцагчийн бараа сонгоно уу!");
-                            return;
-                          }
+                if (isPinSuccess) {
+                  $dialogWaiterPin.dialog("close");
+                  var rows = getDataViewSelectedRows(POS_PAY_BASKET_LIST),
+                    rows2 = [];
+
+                  if ($("div[data-path-uniqid]").length === 1) {
+                    rows2 = getDataViewSelectedRows(
+                      $("div[data-path-uniqid]").attr("data-path-uniqid")
+                    );
+                  }
+                  if ($("div[data-path-uniqid]").length > 1) {
+                    rows2 = getDataViewSelectedRows(
+                      $("div[data-path-uniqid]").eq(0).attr("data-path-uniqid")
+                    );
+                    var rows22 = getDataViewSelectedRows(
+                      $("div[data-path-uniqid]").eq(1).attr("data-path-uniqid")
+                    );
+                    rows2 = rows2.concat(rows22);
+                  }
+
+                  if (rows.length || rows2.length) {
+                    if (rows.length) {
+                      for (var cus = 0; cus < rows.length; cus++) {
+                        if (rows[0]["customername"] != rows[cus]["customername"]) {
+                          alert("Нэг харилцагчийн бараа сонгоно уу!");
+                          return;
                         }
                       }
-
-                      if (rows2.length) {
-                        for (var cus = 0; cus < rows2.length; cus++) {
-                          if (rows2[0]["customername"] != rows2[cus]["customername"]) {
-                            alert("Нэг харилцагчийн бараа сонгоно уу!");
-                            return;
-                          }
-                        }
-                      }
+                    }
 
                     if (rows2.length) {
-                        var row = rows2[0];
+                      for (var cus = 0; cus < rows2.length; cus++) {
+                        if (rows2[0]["customername"] != rows2[cus]["customername"]) {
+                          alert("Нэг харилцагчийн бараа сонгоно уу!");
+                          return;
+                        }
+                      }
+                    }
+
+                    if (rows2.length) {
+                      var row = rows2[0];
                     } else {
-                        var row = rows[0];                        
+                      var row = rows[0];
                     }
 
                     if (row['locationid']) {
                       $("#posLocationId").val(row['locationid']);
                       $(".rest-table-btn").find("div").html('[ Сонгосон ширээ: <strong class="selected-pos-location">' + row['locationname'] + "</strong> ]");
-                    }                  
+                    }
 
                     if (($("#posRestWaiterId").val() == "" ||
                       $("#posRestSalesOrderId").val() == "" ||
@@ -15415,105 +15416,105 @@ function selectedRestRowFromBasketPayment($dialog) {
                       return;
                     }
 
-                        var getCustomerItemsArray = "",
-                          customerId = "";
+                    var getCustomerItemsArray = "",
+                      customerId = "";
 
-                        if (rows2.length) {
-                          getCustomerItemsArray = rows2;
-                          customerId = row["customerid"];
-                        } else {
-                            var salesIds = '';
-                            for (var cus = 0; cus < rows.length; cus++) {
-                                salesIds += rows[cus]["salesorderid"]+',';
-                            }                
-                            salesIds = rtrim(salesIds, ',');
-                          Core.blockUI({
-                            message: "Loading...",
-                            boxed: true,
-                          });
-                          var getCustomerItems = $.ajax({
-                            type: "post",
-                            url: "api/callDataview",
-                            data: {
-                              dataviewId: "16842299439629",
-                              pagingWithoutAggregate: 1,
-                              criteriaData: {
-                                salesOrderId: [
-                                  { operator: "in", operand: salesIds }
-                                ],
-                              },
-                            },
-                            dataType: "json",
-                            async: false,
-                            success: function (data) {
-                              return data.result;
-                            },
-                          });
-                          getCustomerItemsArray =
-                            getCustomerItems.responseJSON.result;
-                          customerId = row["customerid"];
-                          Core.unblockUI();
-                        }
-
-                        var prms = {
-                          status: "success",
-                          data: {
-                            id: row['salesorderid'],
-                            locationid: $("#posLocationId").val(),
-                            salespersonid: $("#posRestWaiterId").val(),
-                            customerid: customerId,
-                            pos_item_list_get: getCustomerItemsArray,
+                    if (rows2.length) {
+                      getCustomerItemsArray = rows2;
+                      customerId = row["customerid"];
+                    } else {
+                      var salesIds = '';
+                      for (var cus = 0; cus < rows.length; cus++) {
+                        salesIds += rows[cus]["salesorderid"] + ',';
+                      }
+                      salesIds = rtrim(salesIds, ',');
+                      Core.blockUI({
+                        message: "Loading...",
+                        boxed: true,
+                      });
+                      var getCustomerItems = $.ajax({
+                        type: "post",
+                        url: "api/callDataview",
+                        data: {
+                          dataviewId: "16842299439629",
+                          pagingWithoutAggregate: 1,
+                          criteriaData: {
+                            salesOrderId: [
+                              { operator: "in", operand: salesIds }
+                            ],
                           },
-                        };
+                        },
+                        dataType: "json",
+                        async: false,
+                        success: function (data) {
+                          return data.result;
+                        },
+                      });
+                      getCustomerItemsArray =
+                        getCustomerItems.responseJSON.result;
+                      customerId = row["customerid"];
+                      Core.unblockUI();
+                    }
 
-                        var basketParams = [
-                          { id: "", event: "multiCustomer", data: prms },
-                        ];
-                        posFillItemsByBasket(
-                          "",
-                          "",
-                          "onlyviewqty",
-                          "mergeCustomer",
-                          basketParams
-                        );
-                        $dialog.dialog("close");
-                      } else {
-                        alert("Жагсаалтаас сонгоно уу!");
-                      }                                                      
+                    var prms = {
+                      status: "success",
+                      data: {
+                        id: row['salesorderid'],
+                        locationid: $("#posLocationId").val(),
+                        salespersonid: $("#posRestWaiterId").val(),
+                        customerid: customerId,
+                        pos_item_list_get: getCustomerItemsArray,
+                      },
+                    };
 
+                    var basketParams = [
+                      { id: "", event: "multiCustomer", data: prms },
+                    ];
+                    posFillItemsByBasket(
+                      "",
+                      "",
+                      "onlyviewqty",
+                      "mergeCustomer",
+                      basketParams
+                    );
+                    $dialog.dialog("close");
                   } else {
-                    new PNotify({
-                      title: "Анхааруулга",
-                      text: "Нууц үг буруу байна!",
-                      type: "warning",
-                      sticker: false,
-                    });
+                    alert("Жагсаалтаас сонгоно уу!");
                   }
 
+                } else {
+                  new PNotify({
+                    title: "Анхааруулга",
+                    text: "Нууц үг буруу байна!",
+                    type: "warning",
+                    sticker: false,
+                  });
                 }
-              });
-          }
-        },
+
+              }
+            });
+        }
       },
-      {
-        text: plang.get("close_btn"),
-        class: "btn btn-sm blue-madison",
-        click: function () {
-          $dialogWaiterPin.dialog("close");
-        },
+    },
+    {
+      text: plang.get("close_btn"),
+      class: "btn btn-sm blue-madison",
+      click: function () {
+        $dialogWaiterPin.dialog("close");
       },
-      ],
-    });
-    $dialogWaiterPin.dialog("open");
-    Core.unblockUI();           
+    },
+    ],
+  });
+  $dialogWaiterPin.dialog("open");
+  Core.unblockUI();
 }
 
 function dataviewHandlerDblClickRow1529014380513(row) {
-    selectedRestRowFromBasket($('#dialog-multiuser-basket-dataview'));
+  selectedRestRowFromBasket($('#dialog-multiuser-basket-dataview'));
 }
 
 function dataviewHandlerDblClickRow16860252240099(row) {
-    selectedRestRowFromBasketPayment($('#dialog-multiuser-basket-dataview'));
+  selectedRestRowFromBasketPayment($('#dialog-multiuser-basket-dataview'));
 }
 
 // Pin ask dialog 
@@ -15527,16 +15528,16 @@ function casherCheck(metaDataCode,
   isMetaGroup,
   callback) {
 
-    posFillItemsByBasket(metaDataCode,
-      processMetaDataId,
-      chooseType,
-      elem,
-      rows,
-      paramRealPath,
-      lookupMetaDataId,
-      isMetaGroup,
-      callback);
-    return;
+  posFillItemsByBasket(metaDataCode,
+    processMetaDataId,
+    chooseType,
+    elem,
+    rows,
+    paramRealPath,
+    lookupMetaDataId,
+    isMetaGroup,
+    callback);
+  return;
 }
 
 function posFillItemsByBasket(
@@ -15790,42 +15791,42 @@ function posFillItemsByBasket(
             }
 
             if (posTypeCode == "4") {
-                $('#guestName').prop('readonly', true);
-                var savedCustomerId = data.data ? data.data.customerid : data.orderData.data.customerid;
-                
-                if (savedCustomerId) {
-                    $.ajax({
-                      type: "post",
-                      url: "api/callDataview",
-                      data: {
-                        dataviewId: "1536742182010",
-                        criteriaData: {
-                          id: [
-                            {
-                              operator: "=",
-                              operand: savedCustomerId
-                            }
-                          ]
+              $('#guestName').prop('readonly', true);
+              var savedCustomerId = data.data ? data.data.customerid : data.orderData.data.customerid;
+
+              if (savedCustomerId) {
+                $.ajax({
+                  type: "post",
+                  url: "api/callDataview",
+                  data: {
+                    dataviewId: "1536742182010",
+                    criteriaData: {
+                      id: [
+                        {
+                          operator: "=",
+                          operand: savedCustomerId
                         }
-                      },
-                      dataType: "json",
-                      success: function (data) {
-                        if (data.status === "success" && data.result[0]) {
-                          $('input[name="empCustomerId"]').val(data.result[0]["id"]);
-                          $('input[name="empCustomerId_displayField"]').val(data.result[0]["customercode"]);
-                          $('input[name="empCustomerId_nameField"]').val(
-                            data.result[0]["customername"]
-                          );
-                          $('input[name="empCustomerId"]').attr("data-row-data",JSON.stringify(data.result[0]));
-                        } else {
-                          $('input[name="empCustomerId"]').val("");
-                          $('input[name="empCustomerId_displayField"]').val("");
-                          $('input[name="empCustomerId_nameField"]').val("");
-                          $('input[name="empCustomerId"]').attr("data-row-data", "");
-                        }
-                      }
-                    });
-                }
+                      ]
+                    }
+                  },
+                  dataType: "json",
+                  success: function (data) {
+                    if (data.status === "success" && data.result[0]) {
+                      $('input[name="empCustomerId"]').val(data.result[0]["id"]);
+                      $('input[name="empCustomerId_displayField"]').val(data.result[0]["customercode"]);
+                      $('input[name="empCustomerId_nameField"]').val(
+                        data.result[0]["customername"]
+                      );
+                      $('input[name="empCustomerId"]').attr("data-row-data", JSON.stringify(data.result[0]));
+                    } else {
+                      $('input[name="empCustomerId"]').val("");
+                      $('input[name="empCustomerId_displayField"]').val("");
+                      $('input[name="empCustomerId_nameField"]').val("");
+                      $('input[name="empCustomerId"]').attr("data-row-data", "");
+                    }
+                  }
+                });
+              }
             } else if (posTypeCode == "3") {
               if ($("#posLocationId").val() == '') {
                 $('#guestName').prop('readonly', true);
@@ -15848,30 +15849,30 @@ function posFillItemsByBasket(
                 var savedCustomerId = data.data ? data.data.customerid : data.orderData.data.customerid;
 
                 if (savedCustomerId) {
-                    $.ajax({
-                      type: "post",
-                      url: "api/callDataview",
-                      data: {
-                        dataviewId: "1536742182010",
-                          criteriaData: {
-                            id: [{ operator: "=", operand: savedCustomerId ? savedCustomerId : '' }]
-                          }
-                      },
-                      dataType: "json",
-                      success: function (data) {
-                        if (data.status === "success" && data.result[0]) {
-                          $('input[name="empCustomerId"]').attr("data-row-data", JSON.stringify(data.result[0]));                      
-                          $('input[name="empCustomerId"]').val(data.result[0]["id"]);
-                          $('input[name="empCustomerId_displayField"]').val(data.result[0]["customercode"]);
-                          $('input[name="empCustomerId_nameField"]').val(data.result[0]["customername"]);
-                        } else {
-                          $('input[name="empCustomerId"]').val("");
-                          $('input[name="empCustomerId_displayField"]').val("");
-                          $('input[name="empCustomerId_nameField"]').val("");
-                          $('input[name="empCustomerId"]').attr("data-row-data", "");
-                        }
-                      },
-                    });
+                  $.ajax({
+                    type: "post",
+                    url: "api/callDataview",
+                    data: {
+                      dataviewId: "1536742182010",
+                      criteriaData: {
+                        id: [{ operator: "=", operand: savedCustomerId ? savedCustomerId : '' }]
+                      }
+                    },
+                    dataType: "json",
+                    success: function (data) {
+                      if (data.status === "success" && data.result[0]) {
+                        $('input[name="empCustomerId"]').attr("data-row-data", JSON.stringify(data.result[0]));
+                        $('input[name="empCustomerId"]').val(data.result[0]["id"]);
+                        $('input[name="empCustomerId_displayField"]').val(data.result[0]["customercode"]);
+                        $('input[name="empCustomerId_nameField"]').val(data.result[0]["customername"]);
+                      } else {
+                        $('input[name="empCustomerId"]').val("");
+                        $('input[name="empCustomerId_displayField"]').val("");
+                        $('input[name="empCustomerId_nameField"]').val("");
+                        $('input[name="empCustomerId"]').attr("data-row-data", "");
+                      }
+                    },
+                  });
                 }
               }
             }
@@ -15889,14 +15890,14 @@ function posFillItemsByBasket(
 
             posFixedHeaderTable();
             posCalcTotal();
-            
+
             if (chooseType === 'onlyviewqty') {
               $tbody.find("button.btn").prop("disabled", true);
               $tbody.find('input[type="text"]').prop("readonly", true);
               $tbody.find(".basket-inputqty-button").each(function () {
                 $(this).find("span:eq(0)").hide();
                 $(this).find("span:eq(2)").hide();
-              });                
+              });
             }
           });
       } else {
@@ -17938,7 +17939,7 @@ function posLiftPrinter(liftData, loopPrint, callback) {
       ws.send(
         '{"command":"skyresort_dot_printer", "dateTime":"' +
         currentDateTime +
-        '", details: [{"key": "port", "value": "'+liftPort+'"},' +
+        '", details: [{"key": "port", "value": "' + liftPort + '"},' +
         '{"key": "title", "value": "' +
         liftData.title +
         '"}, ' +
@@ -18473,53 +18474,53 @@ function posVoidBankTerminalFn(
   confCode,
   callback
 ) {
-    Core.blockUI({
-      message: "МЭДЭЭЛЭЛ ДАМЖУУЛЖ БАЙНА...",
-      boxed: true,
-    });
-    
-    if (deviceType === "tdb_paxs300") {
-        setTimeout(function () {
-            var response = $.ajax({
-                type: 'post',
-                url: 'http://127.0.0.1:8088/ecrt1000',
-                data: {
-                    traceNum: confCode,
-                    operation: "Void"
-                },
-                dataType: 'json',
-                async: false
-            });
-            var result = response.responseJSON;
-            Core.unblockUI();
+  Core.blockUI({
+    message: "МЭДЭЭЛЭЛ ДАМЖУУЛЖ БАЙНА...",
+    boxed: true,
+  });
 
-            if (result.ecrResult['RespCode'] == 00) {
-                new PNotify({
-                  title: "Success",
-                  text: "<strong>ГҮЙЛГЭЭ АМЖИЛТТАЙ ХИЙГДЛЭЭ</strong>",
-                  type: "success",
-                  sticker: false,
-                  addclass: "pnotify-center",
-                });
-                callback({status:''});
-                return;
-            } else {
-                PNotify.removeAll();
-                new PNotify({
-                  title: "Bank terminal error [TDB]",
-                  text: "ГҮЙЛГЭЭ АМЖИЛТГҮЙ: [" + result.ecrResult['RespCode'] + "]",
-                  type: "error",
-                  sticker: false,
-                  addclass: "pnotify-center",
-                });
-                callback({status:'error'});
-                Core.unblockUI();
-                return;
-            }        
-        }, 100);    
+  if (deviceType === "tdb_paxs300") {
+    setTimeout(function () {
+      var response = $.ajax({
+        type: 'post',
+        url: 'http://127.0.0.1:8088/ecrt1000',
+        data: {
+          traceNum: confCode,
+          operation: "Void"
+        },
+        dataType: 'json',
+        async: false
+      });
+      var result = response.responseJSON;
+      Core.unblockUI();
+
+      if (result.ecrResult['RespCode'] == 00) {
+        new PNotify({
+          title: "Success",
+          text: "<strong>ГҮЙЛГЭЭ АМЖИЛТТАЙ ХИЙГДЛЭЭ</strong>",
+          type: "success",
+          sticker: false,
+          addclass: "pnotify-center",
+        });
+        callback({ status: '' });
         return;
-    }
-    
+      } else {
+        PNotify.removeAll();
+        new PNotify({
+          title: "Bank terminal error [TDB]",
+          text: "ГҮЙЛГЭЭ АМЖИЛТГҮЙ: [" + result.ecrResult['RespCode'] + "]",
+          type: "error",
+          sticker: false,
+          addclass: "pnotify-center",
+        });
+        callback({ status: 'error' });
+        Core.unblockUI();
+        return;
+      }
+    }, 100);
+    return;
+  }
+
   var ws = new WebSocket("ws://localhost:58324/socket");
 
   ws.onopen = function () {
@@ -18553,7 +18554,7 @@ function posVoidBankTerminalFn(
             sticker: false,
             addclass: "pnotify-center",
           });
-          callback({status:'success'});
+          callback({ status: 'success' });
         } else {
           PNotify.removeAll();
           new PNotify({
@@ -18567,7 +18568,7 @@ function posVoidBankTerminalFn(
             sticker: false,
             addclass: "pnotify-center",
           });
-          callback({status:'error'});
+          callback({ status: 'error' });
           Core.unblockUI();
           return;
         }
@@ -18581,7 +18582,7 @@ function posVoidBankTerminalFn(
             sticker: false,
             addclass: "pnotify-center",
           });
-          callback({status:''});
+          callback({ status: '' });
         } else {
           PNotify.removeAll();
           new PNotify({
@@ -18591,7 +18592,7 @@ function posVoidBankTerminalFn(
             sticker: false,
             addclass: "pnotify-center",
           });
-          callback({status:'error'});
+          callback({ status: 'error' });
           Core.unblockUI();
           return;
         }
@@ -18605,7 +18606,7 @@ function posVoidBankTerminalFn(
             sticker: false,
             addclass: "pnotify-center",
           });
-          callback({status:''});
+          callback({ status: '' });
         } else {
           PNotify.removeAll();
           new PNotify({
@@ -18615,12 +18616,12 @@ function posVoidBankTerminalFn(
             sticker: false,
             addclass: "pnotify-center",
           });
-          callback({status:'error'});
+          callback({ status: 'error' });
           Core.unblockUI();
           return;
         }
       } else {
-        callback({status:''});
+        callback({ status: '' });
 
         new PNotify({
           title: "Success",
@@ -18639,7 +18640,7 @@ function posVoidBankTerminalFn(
         sticker: false,
         addclass: "pnotify-center",
       });
-      callback({status:'error'})
+      callback({ status: 'error' })
     }
     Core.unblockUI();
   };
@@ -18686,7 +18687,7 @@ function posVoidBankTerminal(confCode, bankAmount, callback) {
         }
 
         if (deviceType == "") {
-          callback({status:'success'});
+          callback({ status: 'success' });
           return;
         }
 
@@ -18732,7 +18733,7 @@ function posVoidBankTerminal(confCode, bankAmount, callback) {
                 }
                 if (bankCode == 400000 && bankIpterminals.hasOwnProperty(bankCode)) {
                   deviceType = "tdb_paxs300";
-                }                
+                }
 
                 if (deviceType == "") {
                   callback(res);
@@ -18749,7 +18750,7 @@ function posVoidBankTerminal(confCode, bankAmount, callback) {
                   function (res) {
                     if (res.status != 'error') {
                       $self.addClass("worked");
-                    }                    
+                    }
 
                     if (index == $bankRow.length - 1) {
                       callback(res);
@@ -18788,7 +18789,7 @@ function posVoidBankTerminal(confCode, bankAmount, callback) {
                         }
                         if (bankCode == 400000 && bankIpterminals.hasOwnProperty(bankCode)) {
                           deviceType = "tdb_paxs300";
-                        }                        
+                        }
 
                         if (deviceType == "") {
                           callback(res);
@@ -18842,7 +18843,7 @@ function posVoidBankTerminal(confCode, bankAmount, callback) {
                                 }
                                 if (bankCode == 400000 && bankIpterminals.hasOwnProperty(bankCode)) {
                                   deviceType = "tdb_paxs300";
-                                }                                
+                                }
 
                                 if (deviceType == "") {
                                   callback(res);
@@ -18879,8 +18880,8 @@ function posVoidBankTerminal(confCode, bankAmount, callback) {
         );
         return false;
       } else {
-          callback({status:'success'});
-          return;        
+        callback({ status: 'success' });
+        return;
       }
     });
   } else {
@@ -18918,7 +18919,7 @@ function posSaleSocialPay(amount, phone) {
         $('input[name="posSocialpayUID"]').val(data.message);
         posSocialPayQrCheckInterval = setInterval(function () {
           socialPayCheckQrCode(data.message, amount);
-        }, 3000);        
+        }, 3000);
       } else {
         new PNotify({
           title: "Warning",
@@ -18970,7 +18971,7 @@ function posQRSocialPay() {
         $('input[name="posSocialpayUID"]').val(data.message.invoiceid);
         posSocialPayQrCheckInterval = setInterval(function () {
           socialPayCheckQrCode(data.message.invoiceid, amount);
-        }, 3000);             
+        }, 3000);
         $dialog.empty().append('<div class="w-100 text-center mt15 mb15">' + data.message.qr + "</div>");
         $dialog.dialog({
           cache: false,
@@ -21086,7 +21087,7 @@ function appendItem(itemPostData, renderType, callback) {
           '<tr data-item-id="' +
           rowData.id +
           '" data-item-id-customer-id="' + rowData.id + "_" + guestName +
-          '" data-customerid="' + guestName+ '" data-item-code="' +
+          '" data-customerid="' + guestName + '" data-item-code="' +
           concatItemName +
           '" ' +
           itemAttr +
@@ -21214,9 +21215,9 @@ function appendItem(itemPostData, renderType, callback) {
           '<input type="hidden" name="cashRegisterId[]">' +
           '<input type="hidden" name="salesorderdetailid[]">' +
           '<input type="hidden" name="discountTypeId[]">' +
-          '<input type="hidden" name="salesPersonId[]" value="'+salesPersonId+'">' +
-          '<input type="hidden" name="packageId[]" value="'+packageId+'">' +
-          '<input type="hidden" name="packageName[]" value="'+packageName+'">' +
+          '<input type="hidden" name="salesPersonId[]" value="' + salesPersonId + '">' +
+          '<input type="hidden" name="packageId[]" value="' + packageId + '">' +
+          '<input type="hidden" name="packageName[]" value="' + packageName + '">' +
           '<input type="hidden" name="discountDescription[]">' +
           '<input type="hidden" data-field-name="endQty" value="' +
           endQty +
@@ -21360,11 +21361,11 @@ function appendItem(itemPostData, renderType, callback) {
             '<td colspan="6" data-item-gift-cell="true"></td>' +
             "</tr>";
         }
-        
+
         if ($tbody.find('tr.item-package').length && !$tbody.find('tr.item-nopackage').length && rowData.hasOwnProperty("mainpackageid") && rowData.mainpackageid == '') {
-            $tbody.append(
-              '<tr style="height: 20px;" class="item-nopackage"><td style="font-size: 12px;background-color: #ffcc0099;"></td><td colspan="5" style="font-size: 12px;background-color: #ffcc0099;">Багцгүй</td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td></tr>'
-            );            
+          $tbody.append(
+            '<tr style="height: 20px;" class="item-nopackage"><td style="font-size: 12px;background-color: #ffcc0099;"></td><td colspan="5" style="font-size: 12px;background-color: #ffcc0099;">Багцгүй</td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td></tr>'
+          );
         }
 
         if (posTypeCode == "3" && selectedCusId) {
@@ -21392,10 +21393,10 @@ function appendItem(itemPostData, renderType, callback) {
                 type: "warning",
                 sticker: false,
                 addclass: "pnotify-center",
-              });    
-              Core.unblockUI();          
-              return;          
-            }              
+              });
+              Core.unblockUI();
+              return;
+            }
             if ($tbody.find('tr[data-customerid="' + $("#guestName").val() + '"]').length) {
               $tbody
                 .find('tr[data-customerid="' + $("#guestName").val() + '"]:last')
@@ -21403,9 +21404,9 @@ function appendItem(itemPostData, renderType, callback) {
               var $lastRow = $tbody.find(
                 'tr[data-customerid="' + $("#guestName").val() + '"]:last'
               );
-            } else {            
+            } else {
               $tbody.append(
-                '<tr style="height: 20px;" class="multi-customer-group" data-customerid="'+$("#guestName").val()+'"><td colspan="4" style="font-size: 12px;background-color: #ffcc0099;">'+$("#guestName").val()+' (guest)</td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td></tr>'
+                '<tr style="height: 20px;" class="multi-customer-group" data-customerid="' + $("#guestName").val() + '"><td colspan="4" style="font-size: 12px;background-color: #ffcc0099;">' + $("#guestName").val() + ' (guest)</td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td></tr>'
               );
               $tbody.append(rowHtml);
               var $lastRow = $tbody.find("tr[data-item-id]:last");
@@ -21422,8 +21423,8 @@ function appendItem(itemPostData, renderType, callback) {
                 type: "warning",
                 sticker: false,
                 addclass: "pnotify-center",
-              });    
-              Core.unblockUI();          
+              });
+              Core.unblockUI();
               return;
             }
             $tbody.append(
@@ -21492,7 +21493,7 @@ function appendItem(itemPostData, renderType, callback) {
 
         $lastRow.click();
         setTimeout(function () {
-            $lastRow.find("input.pos-quantity-input").focus().select();
+          $lastRow.find("input.pos-quantity-input").focus().select();
         }, 300);
 
         posItemPackageAction($tbody);
@@ -21760,28 +21761,28 @@ function restTables(elem, openType) {
       ];
 
       $dialog.dialog({
-          cache: false,
-          resizable: true,
-          bgiframe: true,
-          autoOpen: false,
-          title: "Ширээний жагсаалт",
-          modal: true,
-          closeOnEscape: true,
-          close: function () {
-            $dialog.empty().dialog("destroy").remove();
-          },
-          buttons: buttons,
-        }).dialogExtend({
-          closable: true,
-          maximizable: true,
-          minimizable: true,
-          collapsable: true,
-          dblclick: "maximize",
-          minimizeLocation: "left",
-          icons: {
-            close: "ui-icon-circle-close",
-          },
-        });
+        cache: false,
+        resizable: true,
+        bgiframe: true,
+        autoOpen: false,
+        title: "Ширээний жагсаалт",
+        modal: true,
+        closeOnEscape: true,
+        close: function () {
+          $dialog.empty().dialog("destroy").remove();
+        },
+        buttons: buttons,
+      }).dialogExtend({
+        closable: true,
+        maximizable: true,
+        minimizable: true,
+        collapsable: true,
+        dblclick: "maximize",
+        minimizeLocation: "left",
+        icons: {
+          close: "ui-icon-circle-close",
+        },
+      });
       $dialog.dialogExtend("maximize");
       $dialog.dialog("open");
 
@@ -21882,15 +21883,15 @@ function restTables(elem, openType) {
                       type: "post",
                       url: "api/callDataview",
                       data: {
-                          dataviewId: "16237213033721",
-                          criteriaData: {
-                              pincode: [{
-                                      operator: "=",
-                                      operand: $form.find('input[name="waiterPinCode"]').val(),
-                                  }
-                              ],
-                          },
-                      },      
+                        dataviewId: "16237213033721",
+                        criteriaData: {
+                          pincode: [{
+                            operator: "=",
+                            operand: $form.find('input[name="waiterPinCode"]').val(),
+                          }
+                          ],
+                        },
+                      },
                       dataType: "json",
                       beforeSend: function () {
                         Core.blockUI({
@@ -21912,7 +21913,7 @@ function restTables(elem, openType) {
                         ) {
                           isPinSuccess = false;
                         }
-  
+
                         if (!isPinSuccess) {
                           $.ajax({
                             type: "post",
@@ -21955,7 +21956,7 @@ function restTables(elem, openType) {
                             },
                           });
                         }
-  
+
                         if (isPinSuccess) {
                           if (
                             selectedRow["salespersonid"] != null &&
@@ -21972,7 +21973,7 @@ function restTables(elem, openType) {
                               return;
                             }
                           }
-  
+
                           if (
                             postParams["openType"] &&
                             postParams["openType"] == "f9" &&
@@ -21995,7 +21996,7 @@ function restTables(elem, openType) {
                                   $('input[name="deskId"]').val(data.result[0].id);
                                   $('input[name="deskId_displayField"]').val(data.result[0].locationcode);
                                   $('input[name="deskId_nameField"]').val(data.result[0].locationname);
-                                  $('input[name="deskId"]').attr("data-row-data",JSON.stringify(data.result[0])).trigger("change");
+                                  $('input[name="deskId"]').attr("data-row-data", JSON.stringify(data.result[0])).trigger("change");
                                 } else {
                                   $('input[name="deskId"]').val("");
                                   $('input[name="deskId_displayField"]').val("");
@@ -22025,7 +22026,7 @@ function restTables(elem, openType) {
                             }
                             posFillItemsByBasket("", "", "", "", basketParams);
                           }
-  
+
                           var getLastReadDateOrder = $.ajax({
                             type: "post",
                             url: "api/callProcess",
@@ -22040,11 +22041,11 @@ function restTables(elem, openType) {
                           if (getLastReadDateOrder.status == "success") {
                             lastReadDateOrder = getLastReadDateOrder.result.result
                           }
-  
+
                           $("#posLocationId").val(locationId);
                           $("#posRestSalesOrderId").val(selectedRow["salesorderid"] ? selectedRow["salesorderid"] : "");
                           $(".rest-table-btn").find("div").html('[ Сонгосон ширээ: <strong class="selected-pos-location">' + $this.attr("data-locationname") + "</strong> ]");
-  
+
                           if (
                             ($("#posRestWaiterId").val() == "" ||
                               $("#posRestSalesOrderId").val() == "" ||
@@ -22061,10 +22062,10 @@ function restTables(elem, openType) {
                             $("#posRestWaiterId").val(waiterObj[0]["id"]);
                             $("#posRestWaiter").val(waiterObj[0]["salespersonname"]);
                             $(".rest-table-btn").find("div").html(
-                                $(".rest-table-btn").find("div").html() + "<div>[ Сонгосон зөөгч: <strong>" + waiterObj[0]["salespersonname"] + "</strong> ]</div>"
+                              $(".rest-table-btn").find("div").html() + "<div>[ Сонгосон зөөгч: <strong>" + waiterObj[0]["salespersonname"] + "</strong> ]</div>"
                             );
                           }
-  
+
                           $dialogWaiterPin.dialog("close");
                           setTimeout(function () {
                             $("#dialog-pos-rest-tables").dialog("close");
@@ -22078,7 +22079,7 @@ function restTables(elem, openType) {
                           });
                         }
                       },
-                    });                    
+                    });
                   } else {
                     $.ajax({
                       type: "post",
@@ -22192,7 +22193,7 @@ function restTables(elem, openType) {
                                   $('input[name="deskId"]').val(data.result[0].id);
                                   $('input[name="deskId_displayField"]').val(data.result[0].locationcode);
                                   $('input[name="deskId_nameField"]').val(data.result[0].locationname);
-                                  $('input[name="deskId"]').attr("data-row-data",JSON.stringify(data.result[0])).trigger("change");
+                                  $('input[name="deskId"]').attr("data-row-data", JSON.stringify(data.result[0])).trigger("change");
                                 } else {
                                   $('input[name="deskId"]').val("");
                                   $('input[name="deskId_displayField"]').val("");
@@ -22258,10 +22259,10 @@ function restTables(elem, openType) {
                             $("#posRestWaiterId").val(waiterObj[0]["id"]);
                             $("#posRestWaiter").val(waiterObj[0]["salespersonname"]);
                             $(".rest-table-btn").find("div").html(
-                                $(".rest-table-btn").find("div").html() +
-                                "<div>[ Сонгосон зөөгч: <strong>" +
-                                waiterObj[0]["salespersonname"] +
-                                "</strong> ]</div>"
+                              $(".rest-table-btn").find("div").html() +
+                              "<div>[ Сонгосон зөөгч: <strong>" +
+                              waiterObj[0]["salespersonname"] +
+                              "</strong> ]</div>"
                             );
                           }
 
@@ -22782,7 +22783,7 @@ function foodItem() {
 
   $rows.each(function () {
     var $row = $(this);
-    if ( $row.find('input[data-name="isFood"]').length && $row.find('input[data-name="isFood"]').val() == "1" && $row.find('input[name="salesOrderId[]"]').val() == "" ) {
+    if ($row.find('input[data-name="isFood"]').length && $row.find('input[data-name="isFood"]').val() == "1" && $row.find('input[name="salesOrderId[]"]').val() == "") {
       isFood = true;
       itemHtml +=
         '<tr class=""><td data-field-name="gift" class="text-center d-none" style=""></td><td data-field-name="itemCode" class="text-left d-none" style="font-size: 14px;">8656170014839</td><td data-field-name="serialNumber" data-config-column="serialnumber" class="text-left hide" style=""></td><td data-field-name="itemName" class="text-left pt10 pb10" title="" style="font-size: 14px; line-height: 15px;font-weight: normal;"><div class="item-code-mini" style="color:#A0A0A0;font-size: 12px;">' +
@@ -22810,10 +22811,10 @@ function foodItem() {
   }
   var $dialogP = $("#" + $dialogName);
   $dialogP.empty().append(
-      '<form method="post" autocomplete="off" id="talonFoodCalcForm">' +
-      itemHtml +
-      "</form>"
-    );
+    '<form method="post" autocomplete="off" id="talonFoodCalcForm">' +
+    itemHtml +
+    "</form>"
+  );
   $dialogP.dialog({
     cache: false,
     resizable: true,
@@ -22839,11 +22840,11 @@ function foodItem() {
       });
 
       $(document.body).on("click", "table.table-only-food > tbody > tr", function (e) {
-          $(this).parents("tbody").find("tr").removeClass("pos-selected-row");
-          if ($(e.target)[0]["nodeName"] != "BUTTON" || $(e.target)[0]["nodeName"] != "I") {
-            $(this).addClass("pos-selected-row");
-          }
+        $(this).parents("tbody").find("tr").removeClass("pos-selected-row");
+        if ($(e.target)[0]["nodeName"] != "BUTTON" || $(e.target)[0]["nodeName"] != "I") {
+          $(this).addClass("pos-selected-row");
         }
+      }
       );
       $(document.body).on("click", ".insert-text-food", function (e) {
         var oldText = $dialogP.find("table.table-only-food > tbody > tr.pos-selected-row").find("textarea").val();
@@ -22980,21 +22981,21 @@ function posDiscountCustomer(id, changeCustomer) {
           $tr.attr("data-customerid", id);
           if ($tr.hasClass("multi-customer-group")) {
             $tr.find("> td:eq(0)").html(
-                $('input[name="empCustomerId_displayField"]').val() +
-                "-" +
-                $('input[name="empCustomerId_nameField"]').val() +
-                ' <a href="javascript:;" style="background-color: #e4b700;color: #333;padding: 4px 3px 3px 4px;margin-left: 13px; display:none" onclick="posCustomerList(this);">харилцагч өөрчлөх</a>'
-              );
+              $('input[name="empCustomerId_displayField"]').val() +
+              "-" +
+              $('input[name="empCustomerId_nameField"]').val() +
+              ' <a href="javascript:;" style="background-color: #e4b700;color: #333;padding: 4px 3px 3px 4px;margin-left: 13px; display:none" onclick="posCustomerList(this);">харилцагч өөрчлөх</a>'
+            );
           }
         }
 
         if ($tr.find('input[name="customerId[]"]').length) {
           if (typeof changeCustomer !== "undefined") {
-            $tr.attr("data-item-id-customer-id",$tr.attr("data-item-id") + "_" + changeCustomer.id);
+            $tr.attr("data-item-id-customer-id", $tr.attr("data-item-id") + "_" + changeCustomer.id);
             $tr.find('input[name="customerId[]"]').val(changeCustomer.id);
             $tr.find('input[name="guestName[]"]').val(changeCustomer.customercode + "-" + changeCustomer.customername);
           } else {
-            $tr.attr("data-item-id-customer-id",$tr.attr("data-item-id") + "_" + id);
+            $tr.attr("data-item-id-customer-id", $tr.attr("data-item-id") + "_" + id);
             $tr.find('input[name="customerId[]"]').val(id);
             $tr.find('input[name="guestName[]"]').val($("#guestName").length ? $("#guestName").val() : "");
           }
@@ -23199,86 +23200,86 @@ function dataviewHandlerDblClickRow1622644015973310(row) {
   Core.blockUI({
     animate: true,
   });
-  
-    var getCustomerItems = $.ajax({
-      type: "post",
-      url: "api/callDataview",
-      data: {
-        dataviewId: "1621573481500557",
-        criteriaData: {
-          customerId: [{ operator: "=", operand: row["customerid"] }],
-          filterGuestNames: [{ operator: "=", operand: row["customername"] }],
-        },
-      },
-      dataType: "json",
-      async: false,
-      success: function (data) {
-        return data.result;
-      },
-    });
-    getCustomerItemsArray = getCustomerItems.responseJSON.result;
-    customerId = row["customerid"];
-    Core.unblockUI();
 
-    var prms = {
-      status: "success",
-      data: {
-        id: $("#basketInvoiceId").val(),
-        locationid: $("#posLocationId").val(),
-        salespersonid: $("#posRestWaiterId").val(),
-        customerid: customerId,
-        pos_item_list_get: getCustomerItemsArray,
+  var getCustomerItems = $.ajax({
+    type: "post",
+    url: "api/callDataview",
+    data: {
+      dataviewId: "1621573481500557",
+      criteriaData: {
+        customerId: [{ operator: "=", operand: row["customerid"] }],
+        filterGuestNames: [{ operator: "=", operand: row["customername"] }],
       },
-    };
+    },
+    dataType: "json",
+    async: false,
+    success: function (data) {
+      return data.result;
+    },
+  });
+  getCustomerItemsArray = getCustomerItems.responseJSON.result;
+  customerId = row["customerid"];
+  Core.unblockUI();
 
-    isMultiCustomerPrintBill = true;
+  var prms = {
+    status: "success",
+    data: {
+      id: $("#basketInvoiceId").val(),
+      locationid: $("#posLocationId").val(),
+      salespersonid: $("#posRestWaiterId").val(),
+      customerid: customerId,
+      pos_item_list_get: getCustomerItemsArray,
+    },
+  };
 
-    var basketParams = [{ id: "", event: "multiCustomer", data: prms }];
-    posFillItemsByBasket("", "", "", "mergeCustomer", basketParams);
-    $("#dialog-multiuser-dataview").dialog("close");
+  isMultiCustomerPrintBill = true;
+
+  var basketParams = [{ id: "", event: "multiCustomer", data: prms }];
+  posFillItemsByBasket("", "", "", "mergeCustomer", basketParams);
+  $("#dialog-multiuser-dataview").dialog("close");
 }
 
 function dataviewHandlerDblClickRow16838643965049(row) {
   Core.blockUI({
     animate: true,
   });
-  
-    var getCustomerItems = $.ajax({
-      type: "post",
-      url: "api/callDataview",
-      data: {
-        dataviewId: "16838637815969",
-        criteriaData: {
-          customerId: [{ operator: "=", operand: row["customerid"] }],
-          filterGuestNames: [{ operator: "=", operand: row["customername"] }],
-        },
-      },
-      dataType: "json",
-      async: false,
-      success: function (data) {
-        return data.result;
-      },
-    });
-    getCustomerItemsArray = getCustomerItems.responseJSON.result;
-    customerId = row["customerid"];
-    Core.unblockUI();
 
-    var prms = {
-      status: "success",
-      data: {
-        id: $("#basketInvoiceId").val(),
-        locationid: $("#posLocationId").val(),
-        salespersonid: $("#posRestWaiterId").val(),
-        customerid: customerId,
-        pos_item_list_get: getCustomerItemsArray,
+  var getCustomerItems = $.ajax({
+    type: "post",
+    url: "api/callDataview",
+    data: {
+      dataviewId: "16838637815969",
+      criteriaData: {
+        customerId: [{ operator: "=", operand: row["customerid"] }],
+        filterGuestNames: [{ operator: "=", operand: row["customername"] }],
       },
-    };
+    },
+    dataType: "json",
+    async: false,
+    success: function (data) {
+      return data.result;
+    },
+  });
+  getCustomerItemsArray = getCustomerItems.responseJSON.result;
+  customerId = row["customerid"];
+  Core.unblockUI();
 
-    isMultiCustomerPrintBill = true;
+  var prms = {
+    status: "success",
+    data: {
+      id: $("#basketInvoiceId").val(),
+      locationid: $("#posLocationId").val(),
+      salespersonid: $("#posRestWaiterId").val(),
+      customerid: customerId,
+      pos_item_list_get: getCustomerItemsArray,
+    },
+  };
 
-    var basketParams = [{ id: "", event: "multiCustomer", data: prms }];
-    posFillItemsByBasket("", "", "", "mergeCustomer", basketParams);
-    $("#dialog-multiuser-dataview").dialog("close"); 
+  isMultiCustomerPrintBill = true;
+
+  var basketParams = [{ id: "", event: "multiCustomer", data: prms }];
+  posFillItemsByBasket("", "", "", "mergeCustomer", basketParams);
+  $("#dialog-multiuser-dataview").dialog("close");
 }
 
 function multiCustomerListPos(locationId, customerId) {
@@ -23755,7 +23756,7 @@ function selectedMultiCustomerListPos(
             $("#posLocationId").val(data.orderData.data.locationid);
             if ($("#posRestWaiterId").val() == '') {
               $("#posRestWaiterId").val(data.orderData.data.salespersonid);
-            }            
+            }
           }
         } else {
           new PNotify({
@@ -23915,8 +23916,8 @@ function multiCustomer(callback) {
       var guestName = responseParam.result.guestnames, guestNameConcat = "";
       if (guestName) {
         guestName = guestName.split(",");
-        for(var g = 0; g < guestName.length; g++) {
-          guestNameConcat += "'"+guestName[g]+"',";
+        for (var g = 0; g < guestName.length; g++) {
+          guestNameConcat += "'" + guestName[g] + "',";
         }
         guestNameConcat = rtrim(guestNameConcat, ',');
       }
@@ -24528,83 +24529,83 @@ function createBillResultDataFromInvoice(
 }
 
 function appendItemPackage(packageItems, item) {
-    var $tbody = $("#posTable").find("> tbody");
-    $tbody.append(
-      '<tr style="height: 20px;" class="item-package"><td style="font-size: 12px;background-color: #ffcc0099;"></td><td colspan="5" style="font-size: 12px;background-color: #ffcc0099;">'+item.itemname+'</td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td></tr>'
-    );
-    var itemPostData;
-    for (var i = 0; i < packageItems.length; i++) {
-        itemPostData = {
-          code: packageItems[i]['itemcode'],
-          packageIdItem: item.itemid
-        };  
-        appendItem(itemPostData, "", function () {            
-        });         
-    }
+  var $tbody = $("#posTable").find("> tbody");
+  $tbody.append(
+    '<tr style="height: 20px;" class="item-package"><td style="font-size: 12px;background-color: #ffcc0099;"></td><td colspan="5" style="font-size: 12px;background-color: #ffcc0099;">' + item.itemname + '</td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td><td class="d-none"></td></tr>'
+  );
+  var itemPostData;
+  for (var i = 0; i < packageItems.length; i++) {
+    itemPostData = {
+      code: packageItems[i]['itemcode'],
+      packageIdItem: item.itemid
+    };
+    appendItem(itemPostData, "", function () {
+    });
+  }
 }
 
 function appendQuickItem(elem, itemCode, itemId) {
   var itemPostData = {
     code: itemCode
-  };  
+  };
   appendItem(
     itemPostData,
     "",
     function () { }
-  );  
+  );
 }
 
 function posSearchQpay(elem) {
   var $this = $(elem),
     $row = $this.closest(".pos-qpay-row");
 
-    var monAmount = $row.find(".bigdecimalInit").autoNumeric("get");
-    if (!monAmount) {
-      PNotify.removeAll();
-      new PNotify({
-        title: 'Warning',
-        text: 'Qpay төлөх дүнгээ оруулна уу!',
-        type: 'warning',
-        sticker: false,
-        addclass: "pnotify-center",
-      });
-      return;
-    }
-
-    $.ajax({
-      type: "post",
-      url: "mdpos/qpayGenerateQrCode",
-      data: { amount: monAmount },
-      dataType: "json",
-      beforeSend: function () {
-        Core.blockUI({
-          message: "Generating...",
-          boxed: true,
-        });
-      },
-      success: function (dataQrCode) {
-        Core.unblockUI();
-
-        if (dataQrCode.status == "success") {
-          candyQrUuid = dataQrCode.bill_no;
-          qpayQRCodeShow($row, monAmount, dataQrCode);
-          $('input[name="qpay_bill_no"]').val(dataQrCode.bill_no);
-          $('input[name="qpay_traceNo"]').val(dataQrCode.traceNo);
-
-          posQpayQrCheckInterval = setInterval(function () {
-            qpayCheckQrCode(dataQrCode.traceNo, monAmount, $row);
-          }, 3000);
-        } else {
-          new PNotify({
-            title: dataQrCode.status,
-            text: dataQrCode.message,
-            type: dataQrCode.status,
-            sticker: false,
-            addclass: "pnotify-center"
-          });
-        }
-      },
+  var monAmount = $row.find(".bigdecimalInit").autoNumeric("get");
+  if (!monAmount) {
+    PNotify.removeAll();
+    new PNotify({
+      title: 'Warning',
+      text: 'Qpay төлөх дүнгээ оруулна уу!',
+      type: 'warning',
+      sticker: false,
+      addclass: "pnotify-center",
     });
+    return;
+  }
+
+  $.ajax({
+    type: "post",
+    url: "mdpos/qpayGenerateQrCode",
+    data: { amount: monAmount },
+    dataType: "json",
+    beforeSend: function () {
+      Core.blockUI({
+        message: "Generating...",
+        boxed: true,
+      });
+    },
+    success: function (dataQrCode) {
+      Core.unblockUI();
+
+      if (dataQrCode.status == "success") {
+        candyQrUuid = dataQrCode.bill_no;
+        qpayQRCodeShow($row, monAmount, dataQrCode);
+        $('input[name="qpay_bill_no"]').val(dataQrCode.bill_no);
+        $('input[name="qpay_traceNo"]').val(dataQrCode.traceNo);
+
+        posQpayQrCheckInterval = setInterval(function () {
+          qpayCheckQrCode(dataQrCode.traceNo, monAmount, $row);
+        }, 3000);
+      } else {
+        new PNotify({
+          title: dataQrCode.status,
+          text: dataQrCode.message,
+          type: dataQrCode.status,
+          sticker: false,
+          addclass: "pnotify-center"
+        });
+      }
+    },
+  });
 }
 
 function qpayQRCodeShow(row, amount, data) {
@@ -24631,12 +24632,12 @@ function qpayQRCodeShow(row, amount, data) {
       $dialog.empty().dialog("destroy").remove();
     },
     buttons: [{
-        text: data.close_btn,
-        class: "btn btn-sm blue-hoki",
-        click: function () {
-          $dialog.dialog("close");
-          clearInterval(posQpayQrCheckInterval);
-        },
+      text: data.close_btn,
+      class: "btn btn-sm blue-hoki",
+      click: function () {
+        $dialog.dialog("close");
+        clearInterval(posQpayQrCheckInterval);
+      },
     }],
   });
   $dialog.dialog("open");
@@ -24659,166 +24660,166 @@ function qpayCheckQrCode(uuid, amount, row) {
 }
 
 function socialPayCheckQrCode(uuid, amount) {
-    $.ajax({
-      type: "post",
-      url: "mdpos/socialPayCheckInvoice",
-      data: {
-        amount: amount,
-        id: uuid
-      },
-      dataType: "json",
-      beforeSend: function () { },
-      success: function (data) {
-        PNotify.removeAll();
-        if (data.status == "success") {
-          if (data.message.resp_code == "00") {
-            $('input[name="posSocialpayApprovalCode"]').val(
-              data.message.approval_code
-            );
-            $('input[name="posSocialpayCardNumber"]').val(
-              data.message.card_number
-            );
-            $('input[name="posSocialpayTerminal"]').val(
-              data.message.terminal
-            );
-            new PNotify({
-              title: "Success",
-              text: "Төлбөр амжилттай төлөгдлөө",
-              type: "success",
-              sticker: false,
-              addclass: "pnotify-center",
-            });    
-            clearInterval(posSocialPayQrCheckInterval);
-          } else {
-            new PNotify({
-              title: "Warning",
-              text: data.message.resp_desc,
-              type: "warning",
-              sticker: false,
-              addclass: "pnotify-center",
-            });
-          }
-          return;
+  $.ajax({
+    type: "post",
+    url: "mdpos/socialPayCheckInvoice",
+    data: {
+      amount: amount,
+      id: uuid
+    },
+    dataType: "json",
+    beforeSend: function () { },
+    success: function (data) {
+      PNotify.removeAll();
+      if (data.status == "success") {
+        if (data.message.resp_code == "00") {
+          $('input[name="posSocialpayApprovalCode"]').val(
+            data.message.approval_code
+          );
+          $('input[name="posSocialpayCardNumber"]').val(
+            data.message.card_number
+          );
+          $('input[name="posSocialpayTerminal"]').val(
+            data.message.terminal
+          );
+          new PNotify({
+            title: "Success",
+            text: "Төлбөр амжилттай төлөгдлөө",
+            type: "success",
+            sticker: false,
+            addclass: "pnotify-center",
+          });
+          clearInterval(posSocialPayQrCheckInterval);
         } else {
           new PNotify({
             title: "Warning",
-            text: data.message,
+            text: data.message.resp_desc,
             type: "warning",
             sticker: false,
             addclass: "pnotify-center",
           });
-          return;
         }
-      },
-    });
+        return;
+      } else {
+        new PNotify({
+          title: "Warning",
+          text: data.message,
+          type: "warning",
+          sticker: false,
+          addclass: "pnotify-center",
+        });
+        return;
+      }
+    },
+  });
 }
 
 function lookupAutoCompletePosGuestName(elem, type) {
-    var _this = elem;
-    var _lookupId = _this.attr("data-lookupid");
-    var _metaDataId = _this.attr("data-metadataid");
-    var _processId = _this.attr("data-processid");
-    var bpElem = _this.parent().parent().find("input[type='hidden']");
-    var _paramRealPath = bpElem.attr("data-path");
-    var _parent = _this.closest("meta-autocomplete-wrap");
-    var params = '';
-    var isHoverSelect = false;
+  var _this = elem;
+  var _lookupId = _this.attr("data-lookupid");
+  var _metaDataId = _this.attr("data-metadataid");
+  var _processId = _this.attr("data-processid");
+  var bpElem = _this.parent().parent().find("input[type='hidden']");
+  var _paramRealPath = bpElem.attr("data-path");
+  var _parent = _this.closest("meta-autocomplete-wrap");
+  var params = '';
+  var isHoverSelect = false;
 
-    _this.autocomplete({
-        minLength: 1,
-        maxShowItems: 30,
-        delay: 500,
-        highlightClass: "lookup-ac-highlight", 
-        appendTo: "body",
-        position: {my : "left top", at: "left bottom", collision: "flip flip"}, 
-        autoSelect: false,
-        source: function(request, response) {
+  _this.autocomplete({
+    minLength: 1,
+    maxShowItems: 30,
+    delay: 500,
+    highlightClass: "lookup-ac-highlight",
+    appendTo: "body",
+    position: { my: "left top", at: "left bottom", collision: "flip flip" },
+    autoSelect: false,
+    source: function (request, response) {
 
-            if (lookupAutoCompleteRequest != null) {
-                lookupAutoCompleteRequest.abort();
-                lookupAutoCompleteRequest = null;
-            }
+      if (lookupAutoCompleteRequest != null) {
+        lookupAutoCompleteRequest.abort();
+        lookupAutoCompleteRequest = null;
+      }
 
-            lookupAutoCompleteRequest = $.ajax({
-                type: "post",
-                url: "api/callDataview",
-                dataType: 'json',
-                data: {
-                  dataviewId: "1536742182010",
-                  criteriaData: {
-                    filterCustomerKyc: [
-                      {
-                        operator: "like",
-                        operand: '%'+request.term+'%',
-                      },
-                    ],
-                  },
-                },                
-                success: function(data) {
-                    if (data.status == 'success') {
-                        response($.map(data.result, function(item) {
-                            return {
-                                value: item.id, 
-                                label: item.customercode,
-                                name: item.customername, 
-                                id: item.id
-                            };
-                        }));
-                    }
-                }
-            });
+      lookupAutoCompleteRequest = $.ajax({
+        type: "post",
+        url: "api/callDataview",
+        dataType: 'json',
+        data: {
+          dataviewId: "1536742182010",
+          criteriaData: {
+            filterCustomerKyc: [
+              {
+                operator: "like",
+                operand: '%' + request.term + '%',
+              },
+            ],
+          },
         },
-        focus: function(event, ui) {
-            if (typeof event.keyCode === 'undefined' || event.keyCode == 0) {
-                isHoverSelect = false;
-            } else {
-                if (event.keyCode == 38 || event.keyCode == 40) {
-                    isHoverSelect = true;
-                }
-            }
-            return false;
-        },
-        open: function() {
-            $(this).autocomplete('widget').zIndex(99999999999999);
-            return false;
-        },
-        close: function() {
-            $(this).autocomplete("option","appendTo","body"); 
-        }, 
-        select: function(event, ui) {
-            var origEvent = event;	
-
-            if (isHoverSelect || event.originalEvent.originalEvent.type == 'click') {
-                $('input[name="empCustomerId"]').val(ui.item.id);
-                $('input[name="empCustomerId_displayField"]').val(ui.item.label);
-                $('input[name="empCustomerId_nameField"]').val(ui.item.name);
-                $('#guestName').val(ui.item.label+' - '+$.trim(ui.item.name));
-                event.preventDefault();
-            } else {
-                $('input[name="empCustomerId"]').val(ui.item.id);
-                $('input[name="empCustomerId_displayField"]').val(ui.item.label);
-                $('input[name="empCustomerId_nameField"]').val(ui.item.name);
-                $('#guestName').val(ui.item.label+' - '+$.trim(ui.item.name));
-                event.preventDefault();
-            }
-
-            while (origEvent.originalEvent !== undefined){
-                origEvent = origEvent.originalEvent;
-            }
-
-            if (origEvent.type === 'click') {
-                var e = jQuery.Event("keydown");
-                e.keyCode = e.which = 13;
-                _this.trigger(e);
-            }
+        success: function (data) {
+          if (data.status == 'success') {
+            response($.map(data.result, function (item) {
+              return {
+                value: item.id,
+                label: item.customercode,
+                name: item.customername,
+                id: item.id
+              };
+            }));
+          }
         }
-    }).autocomplete("instance")._renderItem = function(ul, item) {
-        ul.addClass('lookup-ac-render');
-        var re = new RegExp("(" + this.term + ")", "gi"),
-            cls = this.options.highlightClass,
-            template = "<span class='" + cls + "'>$1</span>",
-            name = item.name.replace(re, template);
+      });
+    },
+    focus: function (event, ui) {
+      if (typeof event.keyCode === 'undefined' || event.keyCode == 0) {
+        isHoverSelect = false;
+      } else {
+        if (event.keyCode == 38 || event.keyCode == 40) {
+          isHoverSelect = true;
+        }
+      }
+      return false;
+    },
+    open: function () {
+      $(this).autocomplete('widget').zIndex(99999999999999);
+      return false;
+    },
+    close: function () {
+      $(this).autocomplete("option", "appendTo", "body");
+    },
+    select: function (event, ui) {
+      var origEvent = event;
 
-        return $('<li>').append('<div class="lookup-ac-render-code">'+item.label+'</div><div class="lookup-ac-render-name">'+name+'</div>').appendTo(ul);
-    };
+      if (isHoverSelect || event.originalEvent.originalEvent.type == 'click') {
+        $('input[name="empCustomerId"]').val(ui.item.id);
+        $('input[name="empCustomerId_displayField"]').val(ui.item.label);
+        $('input[name="empCustomerId_nameField"]').val(ui.item.name);
+        $('#guestName').val(ui.item.label + ' - ' + $.trim(ui.item.name));
+        event.preventDefault();
+      } else {
+        $('input[name="empCustomerId"]').val(ui.item.id);
+        $('input[name="empCustomerId_displayField"]').val(ui.item.label);
+        $('input[name="empCustomerId_nameField"]').val(ui.item.name);
+        $('#guestName').val(ui.item.label + ' - ' + $.trim(ui.item.name));
+        event.preventDefault();
+      }
+
+      while (origEvent.originalEvent !== undefined) {
+        origEvent = origEvent.originalEvent;
+      }
+
+      if (origEvent.type === 'click') {
+        var e = jQuery.Event("keydown");
+        e.keyCode = e.which = 13;
+        _this.trigger(e);
+      }
+    }
+  }).autocomplete("instance")._renderItem = function (ul, item) {
+    ul.addClass('lookup-ac-render');
+    var re = new RegExp("(" + this.term + ")", "gi"),
+      cls = this.options.highlightClass,
+      template = "<span class='" + cls + "'>$1</span>",
+      name = item.name.replace(re, template);
+
+    return $('<li>').append('<div class="lookup-ac-render-code">' + item.label + '</div><div class="lookup-ac-render-name">' + name + '</div>').appendTo(ul);
+  };
 }

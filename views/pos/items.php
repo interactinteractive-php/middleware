@@ -194,13 +194,13 @@ if ($this->itemList) {
         $lineTotalCityTax = $lineTotalVat = 0;
 
         if ($isCityTax == '1') {
-            $cityTax = number_format($salePrice / 111, 6, '.', '');
-            $lineTotalCityTax = number_format($totalPrice / 111, 6, '.', '');
+            $cityTax = number_format($salePrice / 112 * 2, 6, '.', '');
+            $lineTotalCityTax = number_format($totalPrice / 112 * 2, 6, '.', '');
         }
 
         if ($isVat == '1' && $isCityTax == '1') {
-            $item['novatprice'] = number_format($salePrice - ($salePrice / 11.1), 6, '.', '');
-            $lineTotalVat = number_format($totalPrice / 11.1, 6, '.', '');
+            $item['novatprice'] = number_format($salePrice - ($salePrice / 11.2), 6, '.', '');
+            $lineTotalVat = number_format($totalPrice / 11.2, 6, '.', '');
         } else if ($isVat == '1') {
             $item['novatprice'] = number_format($salePrice - ($salePrice / 11), 6, '.', '');
             $lineTotalVat = number_format($totalPrice / 11, 6, '.', '');

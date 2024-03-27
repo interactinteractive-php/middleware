@@ -98,7 +98,7 @@ class Mdpos_Model extends Model {
         }
     }
     
-    public function setSessionPosByRow($cashierInfo, $posv3) {
+    public function setSessionPosByRow($cashierInfo, $posv3 = false) {
 
         $sessionEmployeeId = Ue::sessionEmployeeId();
         
@@ -1521,9 +1521,13 @@ class Mdpos_Model extends Model {
         if ($returnType == 'typeChange') {
             unset($_POST['returnInvoiceId']);
         }
-
+        
         if (Input::isEmpty('returnInvoiceId') == false) {
             $params['id'] = Input::post('returnInvoiceId');
+        }
+        
+        if (Input::isEmpty('returnInvoiceIdReduce') == false) {            
+            $params['id'] = Input::post('returnInvoiceIdReduce');
         }
 
         if (isset($itemData['contractId'])) {
@@ -1935,6 +1939,10 @@ class Mdpos_Model extends Model {
             );
 
             if (Input::isEmpty('returnInvoiceId') == false) {
+                $paramsDtl[$k]['id'] = $itemData['id'][$k];
+            }                                    
+
+            if (Input::isEmpty('returnInvoiceIdReduce') == false) {
                 $paramsDtl[$k]['id'] = $itemData['id'][$k];
             }                                    
             
@@ -3676,7 +3684,7 @@ class Mdpos_Model extends Model {
                     );
                     $posApiArray = $this->ws->runSerializeResponse(self::$gfServiceAddress, 'posMainSalesInvoiceSendTax', $taxInvParam);                
                     
-                    if ($posApiArray['result'] && $posApiArray['result']['status'] === 'SUCCESS') {
+                    if (isset($posApiArray['result']) && $posApiArray['result']['status'] === 'SUCCESS') {
                         $posApiArray = $posApiArray['result'];
                         $billId      = issetParam($posApiArray['id']);                                            
                         $posApiArray['qrData'] = $posApiArray['qrdata'];
@@ -3685,7 +3693,7 @@ class Mdpos_Model extends Model {
                         $posApiArray['success'] = $posApiArray['status'];
                     } else {
                         $billId = null;
-                        $posApiArray['warningMsg'] = $posApiArray['result']['message'];
+                        $posApiArray['warningMsg'] = issetParam($posApiArray['result']['message']) ? $posApiArray['result']['message'] : 'posMainSalesInvoiceSendTax хариу ирсэнгүй!';
                     }
                 } else {
                     $posApiArray = self::posApiFunction($jsonParam);
@@ -4184,7 +4192,11 @@ class Mdpos_Model extends Model {
                 
                 $warningMsg = isset($posApiArray['warningMsg']) ? $posApiArray['warningMsg'] : (isset($posApiArray['message']) ? $posApiArray['message'] : 'PosApi алдаа: NULL');
                 
-                $response = array('status' => 'warning', 'message' => self::apiStringReplace($warningMsg, true));
+                if ($isUserPosV3) {
+                    $response = array('status' => 'warning', 'message' => $warningMsg);
+                } else {
+                    $response = array('status' => 'warning', 'message' => self::apiStringReplace($warningMsg, true));
+                }
             }
 
         } else {
@@ -14750,14 +14762,22 @@ class Mdpos_Model extends Model {
 
     public function billTypeReduce3PrintModel($returnInvoiceId) {
         unset($_POST['returnInvoiceId']);
-        $_POST['parentSalesInvoiceId'] = $returnInvoiceId;
-        $response = $this->billTypeCancelPrintModel($returnInvoiceId);
+        $billDate       = Input::post('returnInvoiceBillDate');
+        $isTodayReturn = false;
         
-        if ($response['status'] == 'success') {
-            return $this->billPrintModel();
+        if (Date::formatter($billDate, 'Y-m-d') == Date::currentDate('Y-m-d')) {
+            $isTodayReturn = true;
+        }  
+
+        if ($isTodayReturn) {
+            $_POST['returnInvoiceIdReduce'] = $returnInvoiceId;
         } else {
-            return $response;
+            $_POST['parentSalesInvoiceId'] = $returnInvoiceId;
         }
+
+        $billResult = $this->billPrintModel();
+        
+        return $billResult;
     }
 
     public function billTypeReduce2PrintModel($returnInvoiceId) {
@@ -18327,15 +18347,15 @@ class Mdpos_Model extends Model {
         $totalprice  = $qty * $saleprice;
 
         if ($iscitytax == '1') {
-            $row['citytax'] = number_format($saleprice / 111, 6, '.', '');
-            $row['unitcitytax'] = number_format($saleprice / 111, 6, '.', '');
-            $row['linetotalcitytax'] = number_format($totalprice / 111, 6, '.', '');
-            $row['linetotalcitytaxamount'] = number_format($totalprice / 111, 6, '.', '');
+            $row['citytax'] = number_format($saleprice / 112 * 2, 6, '.', '');
+            $row['unitcitytax'] = number_format($saleprice / 112 * 2, 6, '.', '');
+            $row['linetotalcitytax'] = number_format($totalprice / 112 * 2, 6, '.', '');
+            $row['linetotalcitytaxamount'] = number_format($totalprice / 112 * 2, 6, '.', '');
         }
 
         if ($isvat == '1' && $iscitytax == '1') {
-            $row['novatprice'] = number_format($saleprice - ($saleprice / 11.1), 6, '.', '');
-            $row['linetotalvat'] = number_format($totalprice / 11.1, 6, '.', '');
+            $row['novatprice'] = number_format($saleprice - ($saleprice / 11.2), 6, '.', '');
+            $row['linetotalvat'] = number_format($totalprice / 11.2, 6, '.', '');
         } else if ($isvat == '1') {
             $row['novatprice'] = number_format($saleprice - ($saleprice / 11), 6, '.', '');
             $row['linetotalvat'] = number_format($totalprice / 11, 6, '.', '');

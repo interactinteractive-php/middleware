@@ -6,7 +6,9 @@ var strIndicatorId_<?php echo $this->uniqId; ?> = '<?php echo $this->strIndicato
     
 $(function() { 
     
-    $checkListMenu_<?php echo $this->uniqId; ?>.height($(window).height() - $checkListMenu_<?php echo $this->uniqId; ?>.offset().top - 51);
+    if ($checkListMenu_<?php echo $this->uniqId; ?>.length) {
+        $checkListMenu_<?php echo $this->uniqId; ?>.height($(window).height() - $checkListMenu_<?php echo $this->uniqId; ?>.offset().top - 51);
+    }
     
     $checkListMenu_<?php echo $this->uniqId; ?>.on('click', 'a.nav-link:not(.disabled), .add-mv-relation-btn', function() {
         var $this = $(this);
