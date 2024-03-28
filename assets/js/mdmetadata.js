@@ -1931,6 +1931,92 @@ function selectableObjectDataGrid(metaDataCode, processMetaDataId, chooseType, e
 function metaDirectURL(url, target) {
     window.open(url, target);
 }
+function addGLPopup(elem, processMetaDataId, dataViewId, paramData) {
+    paramData.push({name: 'dialogMode', value: true});
+    $.ajax({
+        type: 'post',
+        url: 'mdgl/entry',
+        data: paramData,
+        dataType: 'json',
+        beforeSend: function() {
+            Core.blockUI({boxed: true, message: 'Loading...'});
+        },
+        success: function(data) {
+            
+            var $dialogName = 'dialog-add-gl';
+            if (!$("#" + $dialogName).length) {
+                $('<div id="' + $dialogName + '"></div>').appendTo('body');
+            }
+            var $dialog = $('#' + $dialogName);
+    
+            $dialog.empty().append(data.html);
+            $dialog.dialog({
+                cache: false,
+                resizable: true,
+                bgiframe: true,
+                autoOpen: false,
+                title: data.title,
+                width: 1300, 
+                height: 'auto',
+                modal: true,
+                closeOnEscape: isCloseOnEscape,
+                close: function() {
+                    $dialog.empty().dialog('destroy').remove();
+                },
+                buttons: [
+                    {
+                        text: plang.get('save_btn'),
+                        class: 'btn green-meadow btn-sm bp-btn-save',
+                        click: function() {
+                            $('form#glEntryForm', '#' + $dialogName).ajaxSubmit({
+                                type: 'post',
+                                url: 'mdgl/createGlEntry',
+                                dataType: 'json',
+                                beforeSend: function() {
+                                    Core.blockUI({message: 'Loading...', boxed: true});
+                                },
+                                success: function(data) {
+                                    PNotify.removeAll();
+
+                                    if (data.status == 'success') {
+                                        new PNotify({
+                                            title: 'Success',
+                                            text: data.message,
+                                            type: 'success',
+                                            sticker: false
+                                        });
+                                        $dialog.dialog('close');
+                                        dataViewReload(dataViewId);
+                                    } else {
+                                        new PNotify({
+                                            title: data.status,
+                                            text: data.message,
+                                            type: data.status,
+                                            sticker: false,
+                                            hide: true,
+                                            addclass: pnotifyPosition,
+                                            delay: 1000000000
+                                        });
+                                    }
+                                    Core.unblockUI();
+                                }
+                            });
+                        }
+                    },
+                    {
+                        text: plang.get('close_btn'),
+                        class: 'btn blue-madison btn-sm bp-btn-close',
+                        click: function() {
+                            $dialog.dialog('close');
+                        }
+                    }
+                ]
+            });
+            $dialog.dialog('open');
+            Core.unblockUI();
+        }
+    });
+}
 function editGLPopup(elem, processMetaDataId, dataViewId, paramData) {
     paramData.push({name: 'dialogMode', value: true});
     $.ajax({
@@ -2092,6 +2178,10 @@ function urlRedirectByDataView(elem, processMetaDataId, url, target, dataViewId,
                 var inputPath = fieldPathArr[1];
 
                 paramData.push({ name: getParam, value: inputPath });
+                
+                if (getParam === 'renderType' && inputPath === 'popup') {
+                    _dialogMode = 'popup';
+                }
             }
         }
 
@@ -2151,6 +2241,11 @@ function urlRedirectByDataView(elem, processMetaDataId, url, target, dataViewId,
             }
             
             popupConnectGeneralLedger(elem, processMetaDataId, dataViewId, selectedRows);
+            return;
+
+        } else if (urlLower == 'mdgl/entry' && _dialogMode == 'popup') {
+
+            addGLPopup(elem, processMetaDataId, dataViewId, paramData);
             return;
 
         } else if (urlLower == 'mdgl/edit_entry' && _dialogMode == 'popup') {

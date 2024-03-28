@@ -4071,8 +4071,8 @@ class Mdstatement extends Controller {
                     $iframeReport = self::iframeReportFilter();
                     
                     if ($iframeReport['status'] != 'success') {
-                        $response = array('metaType' => 'error', 'message' => $iframeReport['message']);
-                        echo json_encode($response); exit;
+                        $response = ['metaType' => 'error', 'message' => $iframeReport['message']];
+                        echo json_encode($response, JSON_UNESCAPED_UNICODE); exit;
                     }
                     
                     $row['reportId'] = $iframeReport['reportId'];
@@ -4084,14 +4084,14 @@ class Mdstatement extends Controller {
                 
                 $contentHtml = (new Mdstatement())->dataModelReportDrillViewer($linkMetaId, $row, $reportHtml);
 
-                $response = array(
+                $response = [
                     'title' => $title,  
                     'html' => $contentHtml,
                     'metaType' => 'statement',
                     'close_btn' => Lang::line('close_btn')
-                );
+                ];
 
-                echo json_encode($response); exit;
+                echo json_encode($response, JSON_UNESCAPED_UNICODE); exit;
 
             } elseif ($getTypeId == Mdmetadata::$businessProcessMetaTypeId) {
 
@@ -4147,7 +4147,7 @@ class Mdstatement extends Controller {
                         }
                         
                     } else {
-                        echo json_encode(array('metaType' => 'error', 'message' => 'ID тохиргоо дутуу байна!')); exit;
+                        echo json_encode(['metaType' => 'error', 'message' => 'ID тохиргоо дутуу байна!'], JSON_UNESCAPED_UNICODE); exit;
                     }
                 }
 
@@ -4192,9 +4192,7 @@ class Mdstatement extends Controller {
             
         } else {
             
-            $response = array(
-                'metaType' => 'error',
-            );
+            $response = ['metaType' => 'error'];
             echo json_encode($response); exit;
         }
     }

@@ -124,8 +124,24 @@ class Mdgl extends Controller {
         } else {
             $this->view->isSavePrint = false;
         }
+        
+        if (Input::postCheck('dialogMode')) {
             
-        $this->view->render('main/entry', $this->viewPath);
+            $this->view->isPopup = true;
+            
+            $response = [
+                'html' => $this->view->renderPrint('main/entry', $this->viewPath),
+                'title' => $this->view->title, 
+                'metaType' => 'add_gl', 
+                'uniqId' => $this->view->uniqId, 
+                'glMainDvId' => self::$glMainDvId
+            ];
+            
+            jsonResponse($response);
+            
+        } else {
+            $this->view->render('main/entry', $this->viewPath);
+        }
 
         if (!$this->view->isAjax) {
             $this->view->render('footer');
@@ -255,11 +271,10 @@ class Mdgl extends Controller {
             
             $response = array(
                 'html' => $this->view->renderPrint('main/editEntry', $this->viewPath),
-                'title' => 'Журнал бичилт', 
+                'title' => $this->view->title, 
                 'metaType' => 'edit_gl', 
                 'uniqId' => $this->view->uniqId, 
                 'isPrint' => $this->view->isPrint, 
-                'uniqId' => $this->view->uniqId, 
                 'glMainDvId' => self::$glMainDvId, 
                 'save_btn' => $this->lang->line('save_btn'), 
                 'close_btn' => $this->lang->line('close_btn'), 
@@ -277,26 +292,6 @@ class Mdgl extends Controller {
         if (!$this->view->isAjax) {
             $this->view->render('footer');
         }
-    }
-    
-    public function glFileAttach($uniqId, $refStructureId, $sourceId) {
-        
-        $this->load->model('mdmetadata', 'middleware/models/');
-        
-        $this->view->callbackFnc = '';
-        $this->view->uniqId      = $uniqId;
-        $this->view->metaDataId  = $refStructureId;
-        $this->view->metaValueId = $sourceId;
-        $this->view->actionType  = 'update';
-        
-        $this->view->metaValueFileRows = $this->model->getMetaDataValueFilesModel($this->view->metaDataId, $this->view->metaValueId);
-        $this->view->metaValueFileCount = count($this->view->metaValueFileRows);
-        
-        $fileContent = $this->view->renderPrint('addon/viewFile', 'middleware/views/webservice/');
-        
-        $this->load->model('mdgl', 'middleware/models/');
-        
-        return $fileContent;
     }
     
     public function view_entry($id = '') {
@@ -419,6 +414,26 @@ class Mdgl extends Controller {
     public function deleteGlEntryWithBook() {
         $data = $this->model->deleteGlEntryWithBookModel();
         echo json_encode($data); exit();
+    }
+    
+    public function glFileAttach($uniqId, $refStructureId, $sourceId) {
+        
+        $this->load->model('mdmetadata', 'middleware/models/');
+        
+        $this->view->callbackFnc = '';
+        $this->view->uniqId      = $uniqId;
+        $this->view->metaDataId  = $refStructureId;
+        $this->view->metaValueId = $sourceId;
+        $this->view->actionType  = 'update';
+        
+        $this->view->metaValueFileRows = $this->model->getMetaDataValueFilesModel($this->view->metaDataId, $this->view->metaValueId);
+        $this->view->metaValueFileCount = count($this->view->metaValueFileRows);
+        
+        $fileContent = $this->view->renderPrint('addon/viewFile', 'middleware/views/webservice/');
+        
+        $this->load->model('mdgl', 'middleware/models/');
+        
+        return $fileContent;
     }
     
     public function saveBillRate() {

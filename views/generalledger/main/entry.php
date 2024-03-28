@@ -20,37 +20,42 @@ if (!$this->isAjax) {
         <div class="card-body">
 <?php
 } else {
+    if (!$this->isPopup) {
 ?>
-        <div class="caption buttons d-flex align-items-center mt5 mb10">
-            <div class="dv-right-tools-btn">
-                <?php
-                echo html_tag('a', 
-                    array(
-                        'href' => 'javascript:;', 
-                        'class' => 'btn btn-circle btn-secondary card-subject-btn-border mr10', 
-                        'onclick' => 'backFirstContent(this);',
-                        'data-dm-id' => $this->dataViewId
-                    ), 
-                    '<i class="icon-arrow-left8"></i>', 
-                    $this->isDataView 
-                );
-                ?>
-            </div>
-            <div class="caption-subject font-weight-bold uppercase card-subject-blue glheader">
-                <?php echo Lang::line('FIN_1000'); ?>
-            </div>
-            <div class="ml-auto">
-                <?php echo Mduser::linkAnchorIconQuickMenu('mdgl/entry', Lang::line('FIN_1000')); ?>
-            </div>
+    <div class="caption buttons d-flex align-items-center mt5 mb10">
+        <div class="dv-right-tools-btn">
+            <?php
+            echo html_tag('a', 
+                array(
+                    'href' => 'javascript:;', 
+                    'class' => 'btn btn-circle btn-secondary card-subject-btn-border mr10', 
+                    'onclick' => 'backFirstContent(this);',
+                    'data-dm-id' => $this->dataViewId
+                ), 
+                '<i class="icon-arrow-left8"></i>', 
+                $this->isDataView 
+            );
+            ?>
         </div>
+        <div class="caption-subject font-weight-bold uppercase card-subject-blue glheader">
+            <?php echo Lang::line('FIN_1000'); ?>
+        </div>
+        <div class="ml-auto">
+            <?php echo Mduser::linkAnchorIconQuickMenu('mdgl/entry', Lang::line('FIN_1000')); ?>
+        </div>
+    </div>
 <?php    
     }
+}
 ?>
         <form id="glEntryForm" class="form-horizontal" method="post">
             <div class="hide mt10" id="boot-fileinput-error-wrap"></div>
             <div class="clearfix w-100"></div>
             <?php echo $this->addForm; ?>
             
+            <?php
+            if (!$this->isPopup) {
+            ?>
             <div class="form-actions mt15 form-actions-btn">
                 <div class="row">
                     <div class="col-md-12 text-right">
@@ -94,6 +99,9 @@ if (!$this->isAjax) {
                     </div>
                 </div>
             </div>
+            <?php
+            }
+            ?>
         </form>
     </div>
 <?php
