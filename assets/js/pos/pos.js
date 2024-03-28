@@ -13491,7 +13491,7 @@ function posCashMoneyBill(open) {
   return;
 }
 
-function posOrderSave() {
+function posOrderSave(isInv) {
   PNotify.removeAll();
 
   var $posTableBody = $("#posTable > tbody");
@@ -13573,6 +13573,7 @@ function posOrderSave() {
     amount: $(".pos-amount-paid").autoNumeric("get"),
     isDelivery: Number($isDeliveryRows.length) + Number($isServiceGiftDelivery),
     invoiceId: $("#invoiceId").val(),
+    isInv: typeof isInv !== 'undefined' ? isInv : '',
   };
 
   $.ajax({
@@ -13641,6 +13642,7 @@ function posOrderSave() {
                   data: {
                     paymentData: paymentData,
                     itemData: itemData,
+                    isInv: typeof isInv !== 'undefined' ? isInv : '',
                   },
                   dataType: "json",
                   beforeSend: function () {

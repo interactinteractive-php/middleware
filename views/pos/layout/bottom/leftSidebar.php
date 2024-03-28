@@ -9,6 +9,7 @@
         </tr> -->
         <?php echo $this->crmChoosePosition['top']; ?>
         <?php
+        if ($this->sidebarShowList) {
         foreach ($this->sidebarShowList['']['rows'] as $row) {
             if ($row['path'] == 'customerId') {
                 if (array_key_exists($row['ordernumber'], $this->sidebarShowList)) {
@@ -21,7 +22,7 @@
                     }
                 }
             }
-        } ?>
+        }} ?>
         <tr class="<?php echo Session::get(SESSION_PREFIX.'posTypeCode') == '4' ? '' : 'hidden' ?>">
             <td colspan="2" class="text-left pb0">Guest name:</td>
         </tr>
@@ -333,6 +334,9 @@
     ?>
     <button type="button" class="btn btn-block btn-circle blue-madison btn-sm" onclick="posInvoiceList(this, '<?php echo Config::getFromCacheDefault('CONFIG_POS_INVOICE_LIST_META_DATA_ID', null, 0) ?>');" data-criteria="storeId=<?php echo Session::get(SESSION_PREFIX.'storeId'); ?>">
         <?php echo $this->lang->line('POS_0147'); ?> <span class="infoShortcut">(F3)</span>
+    </button>
+    <button type="button" style="background-color: #1BBC9B !important;color: #fff !important;" class="btn btn-block btn-circle blue-madison btn-sm" onclick="posOrderSave(1);">
+        Нэхэмжлэл үүсгэх
     </button>
     <?php
     }

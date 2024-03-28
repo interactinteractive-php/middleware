@@ -6,8 +6,6 @@ var strIndicatorId_<?php echo $this->uniqId; ?> = '<?php echo $this->strIndicato
     
 $(function() { 
     
-//    $checkListMenu_<?php echo $this->uniqId; ?>.height($(window).height() - $checkListMenu_<?php echo $this->uniqId; ?>.offset().top - 51);
-    
     $checkList_<?php echo $this->uniqId; ?>.on('click', '.back-menu-card-list', function() {
         $checkList_<?php echo $this->uniqId; ?>.find('.prnt-content-wrapper').hide();
         $checkList_<?php echo $this->uniqId; ?>.find('.sidebar').show();        
@@ -739,13 +737,12 @@ $(function() {
     ?>
     
 });
-
 function saveKpiIndicatorHeaderForm(elem) {
     var $this = $(elem);
     var $form = $this.closest('form');
     var uniqId = $form.find('[data-bp-uniq-id]').attr('data-bp-uniq-id');
 
-    if (window['kpiIndicatorBeforeSave_' + uniqId]($this) && bpFormValidate($form)) {
+    if (bpFormValidate($form) && window['kpiIndicatorBeforeSave_' + uniqId]($this)) {
         
         var $parent = $this.closest('.mv-checklist-render-parent');
         var listIndicatorId = $parent.find('input[data-path="listIndicatorId"]').val();
@@ -777,16 +774,20 @@ function saveKpiIndicatorHeaderForm(elem) {
 
                 if (data.status == 'success') {
                     
+                    var idField = data.hasOwnProperty('idField') ? data.idField : 'ID';
+                    
+                    $form.find('input[name="mvParam['+idField+']"]').val(data.rowId);
                     $form.find('input[name="sf[ID]"]').val(data.rowId);
                     
                     var $headerParams = $parent.find('input[data-path="headerParams"]');
                     
                     if ($headerParams.length) {
                         var dataResult = data.result;
+                        
                         $parent.find('input[data-path="headerRecordId"]').val(data.rowId);
                         
-                        if (!dataResult.hasOwnProperty('ID')) {
-                            dataResult.ID = data.rowId;
+                        if (!dataResult.hasOwnProperty(idField)) {
+                            dataResult[idField] = data.rowId;
                         }
                         
                         $headerParams.val(htmlentities(JSON.stringify(dataResult), 'ENT_QUOTES', 'UTF-8'));
@@ -797,6 +798,10 @@ function saveKpiIndicatorHeaderForm(elem) {
                     }
                     
                     $parent.find('.mv-checklist-menu').find('.nav-link.disabled').removeClass('disabled');
+                    
+                    if ($parent.find('.mv-checklist-tab-link:visible:eq(0)').length == 1) {
+                        $parent.find('.mv-checklist-tab-link:visible:eq(0)').trigger('click');
+                    }
                     
                     window['kpiIndicatorAfterSave_' + uniqId]($this, data.status, data);
                     

@@ -1688,7 +1688,7 @@ SalaryV3.prototype.callDataGridStructure = function(isTrigger) {
         loadMsg: 'Ажилтны мэдээлэл ачааллаж байна, Түр хүлээнэ үү',
         pageSize: _self.selectedPage,
         pageList: [
-            20, 50, 100, 150, _self.unlimitPage, 400, 600, 800
+            50, 100, 150, _self.unlimitPage, 400, 600, 800, 1000, 2000
         ],
         remoteSort: true,
         frozenColumns: [_self.frozenFields],

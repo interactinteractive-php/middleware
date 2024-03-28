@@ -27,6 +27,7 @@ class Mdstatement extends Controller {
     private static $isMultiDetail = false;
     public static $isWithDrillDown = false;
     public static $isHdrRepeatPage = false;
+    public static $isIgnoreHdrRepeatPage = false;
     public static $isKpiIndicator = false;
     public static $isPivotView = false;
     public static $isFooterQrCode = false;
@@ -386,7 +387,7 @@ class Mdstatement extends Controller {
         if (isset($groupingData[$depth])) {
             
             if (!isset($rows[0][$groupingData[$depth]['GROUP_FIELD_PATH']])) {
-                return html_tag('div', array('class' => 'alert alert-warning'), 'Grouping хийж байгаа талбар үндсэн Datasource-с олдсонгүй!');
+                return html_tag('div', ['class' => 'alert alert-warning'], 'Grouping хийж байгаа талбар үндсэн Datasource-с олдсонгүй!');
             }
             
             $groupingCount = count($groupingData);
@@ -410,7 +411,7 @@ class Mdstatement extends Controller {
 
             foreach ($groupedArray as $groupedRow) {
                 
-                self::$addonTableBodyRows = array();
+                self::$addonTableBodyRows = [];
                 
                 $rowDepth = $depth + 1;
                 self::$data['rownum_'.$rowDepth] = 0;
@@ -429,7 +430,7 @@ class Mdstatement extends Controller {
                     
                     $groupValue = self::stCellValue($typeCode, $groupKey, $groupValue);
 
-                    $params = array_merge($params, array($groupKey => $groupValue));                                        
+                    $params = array_merge($params, [$groupKey => $groupValue]);
                     
                     if (strpos($groupHeader.$groupFooter.$tableFoot.self::$addonTableFoot, 'sum(#'.$groupKey.'#)')) {
                         
@@ -509,11 +510,11 @@ class Mdstatement extends Controller {
                         self::$addonTableFoot = str_replace('min(#'.$groupKey.'#)', $groupKey.'_min_'.$rowDepth, self::$addonTableFoot);
                         
                         foreach (range($rowDepth, $groupingCount) as $number) {
-                            self::$data[$groupKey.'_min_'.$number] = array();
+                            self::$data[$groupKey.'_min_'.$number] = [];
                         }
                     }
                     if (isset(self::$data[$groupKey.'_min_'.$rowDepth])) {
-                        self::$data[$groupKey.'_min_'.$rowDepth] = array();
+                        self::$data[$groupKey.'_min_'.$rowDepth] = [];
                     }
                     
                     if (strpos($groupHeader.$groupFooter.$tableFoot.self::$addonTableFoot, 'max(#'.$groupKey.'#)')) {
@@ -524,13 +525,12 @@ class Mdstatement extends Controller {
                         self::$addonTableFoot = str_replace('max(#'.$groupKey.'#)', $groupKey.'_max_'.$rowDepth, self::$addonTableFoot);
                         
                         foreach (range($rowDepth, $groupingCount) as $number) {
-                            self::$data[$groupKey.'_max_'.$number] = array();
+                            self::$data[$groupKey.'_max_'.$number] = [];
                         }
                     }
                     if (isset(self::$data[$groupKey.'_max_'.$rowDepth])) {
-                        self::$data[$groupKey.'_max_'.$rowDepth] = array();
+                        self::$data[$groupKey.'_max_'.$rowDepth] = [];
                     }
-                    
                 }
                 
                 $groupHeader = str_replace('#rownum#', $groupCounter, $groupHeader);
@@ -1041,11 +1041,11 @@ class Mdstatement extends Controller {
                 
                 if (self::$isFooterQrCode) {
                     
-                    self::$qrData = array(
+                    self::$qrData = [
                         'statementId'   => $statementId, 
                         'statementName' => $renderDataViewStatement['statementName'], 
                         'filterData'    => Input::post('filterData')
-                    );
+                    ];
 
                     $htmlData[] = self::generateReportQrCode();
                 }
@@ -1056,7 +1056,7 @@ class Mdstatement extends Controller {
             }
         }
         
-        return array('htmlData' => implode('', $htmlData), 'status' => $status, 'message' => $message);
+        return ['htmlData' => implode('', $htmlData), 'status' => $status, 'message' => $message];
     }
     
     public function generateReportQrCode() {
@@ -1097,7 +1097,7 @@ class Mdstatement extends Controller {
         
         if (!$dataViewId && $getRowStatement['IS_BLANK'] == '1') {
             
-            $result = array('status' => 'success', 'rows' => array());
+            $result = ['status' => 'success', 'rows' => []];
             
         } elseif (Mdstatement::$isKpiIndicator) {
             
@@ -1137,7 +1137,7 @@ class Mdstatement extends Controller {
                 self::$rowsCount += count($result['rows']);
                 
                 if (self::$rowsCount > 30000) {
-                    return array('status' => 'error', 'message' => 'Тайлангийн мөр 30,000-аас их мөр ирсэн тул та тухайн тайланг жагсаалтаар харна уу!');
+                    return ['status' => 'error', 'message' => 'Тайлангийн мөр 30,000-аас их мөр ирсэн тул та тухайн тайланг жагсаалтаар харна уу!'];
                 }
                 
                 self::$UIExpression = Mdexpression::statementUIExpression($getRowStatement, $params);
@@ -1152,7 +1152,7 @@ class Mdstatement extends Controller {
                 }
                 
                 if (isset($realParams['isGroupingIgnore']) && $realParams['isGroupingIgnore'] == '1') {
-                    $groupingData = array();
+                    $groupingData = [];
                 } else {
                     
                     $groupingCount = '';
@@ -1221,12 +1221,12 @@ class Mdstatement extends Controller {
                     }
                     if (count($minAggregate[1]) > 0) {
                         foreach ($minAggregate[1] as $m => $mv) {
-                            self::$data[$mv.'_min'] = array();
+                            self::$data[$mv.'_min'] = [];
                         }
                     }
                     if (count($maxAggregate[1]) > 0) {
                         foreach ($maxAggregate[1] as $ma => $mav) {
-                            self::$data[$mav.'_max'] = array();
+                            self::$data[$mav.'_max'] = [];
                         }
                     }
                     
@@ -1332,26 +1332,62 @@ class Mdstatement extends Controller {
                     
                     if (self::$isHdrRepeatPage) {
                         
-                        $groupingHtml = self::reportGrouping($renderType, $statementId, $dataViewId, $groupingData, $result['rows'], $params, 0, $detailHtml, $tableHtml, $tableBody, $tableFoot, $constantKeys, $expressionArr, $getRowStatement['IS_GROUP_MERGE']);
-                        
-                        $tableHtml->addClass('pf-repeat-page-header');
-                        
-                        $tableHtml['tbody']->empty();
-                        $tableHtml['tfoot']->remove();
-                        
-                        if ($tableBody) {
+                        if (self::$isIgnoreHdrRepeatPage) {
                             
-                            $tableHtml['tbody']->html($groupingHtml . Mdstatement::$tmpReportFooter);
-                        }
-                        
-                        if (self::$isPivotView) {
-                            
-                            $html .= '<div class="pivot-datatable-wrapper" data-left-count="'.Mdstatement::$freezeLeftColumnCount.'">';
-                                $html .= $tableHtml->html($tableHtml->html());
-                            $html .= '</div>';
+                            foreach ($groupingData as $g => $group) {
+                                
+                                if (isset($group['isIgnoreHdrRepeatPage'])) {
+                                    
+                                    $groupedArray = Arr::groupByArray($result['rows'], $group['GROUP_FIELD_PATH']);
+                                    $groupHeaderHtml = $group['GROUP_HEADER'];
+                                    
+                                    self::$data['groupCount_1'] = 0;
+                                    
+                                    foreach ($groupedArray as $groupedRow) {
+                                        
+                                        $groupHeader = $groupHeaderHtml;
+                                        
+                                        foreach ($groupedRow['row'] as $paramKey => $paramValue) {                  
+                                            $groupHeader = str_replace('#'.$paramKey.'#', $paramValue, $groupHeader);
+                                        }
+                                        
+                                        $html .= $groupHeader;
+                                        
+                                        $tableHtml['tbody']->empty();
+                                        $tableHtml['tfoot']->remove();
+                                        
+                                        $groupingHtml = self::reportGrouping($renderType, $statementId, $dataViewId, $groupingData, $groupedRow['rows'], $params, 1, $detailHtml, $tableHtml, $tableBody, $tableFoot, $constantKeys, $expressionArr, $getRowStatement['IS_GROUP_MERGE']);
+                                        
+                                        $tableHtml->addClass('pf-repeat-page-header no-freeze');
+                                        $tableHtml['tbody']->html($groupingHtml);
+                                        
+                                        $html .= $tableHtml->html($tableHtml->html());
+                                    }
+                                }
+                            }
                             
                         } else {
-                            $html .= $tableHtml->html($tableHtml->html());
+                        
+                            $groupingHtml = self::reportGrouping($renderType, $statementId, $dataViewId, $groupingData, $result['rows'], $params, 0, $detailHtml, $tableHtml, $tableBody, $tableFoot, $constantKeys, $expressionArr, $getRowStatement['IS_GROUP_MERGE']);
+
+                            $tableHtml->addClass('pf-repeat-page-header');
+
+                            $tableHtml['tbody']->empty();
+                            $tableHtml['tfoot']->remove();
+
+                            if ($tableBody) {
+                                $tableHtml['tbody']->html($groupingHtml . Mdstatement::$tmpReportFooter);
+                            }
+
+                            if (self::$isPivotView) {
+
+                                $html .= '<div class="pivot-datatable-wrapper" data-left-count="'.Mdstatement::$freezeLeftColumnCount.'">';
+                                    $html .= $tableHtml->html($tableHtml->html());
+                                $html .= '</div>';
+
+                            } else {
+                                $html .= $tableHtml->html($tableHtml->html());
+                            }
                         }
                         
                     } else {

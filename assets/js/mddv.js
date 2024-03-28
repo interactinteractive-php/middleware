@@ -113,16 +113,20 @@ function gridFileField(val, row) {
         if (isNumeric(firstVal)) {
             
             var fieldName = this.field, tabName = '', labelName = '<i class="icon-file-eye2 font-size-20"></i>';
-            
+            var usestampedfileview = '';
             if (row.hasOwnProperty(fieldName + '_tabname')) {
                 tabName = row[fieldName + '_tabname'];
+            }
+
+            if (row.hasOwnProperty('usestampedfileview')) {
+                usestampedfileview = '1';
             }
             
             if (row.hasOwnProperty(fieldName + '_labelname') && row[fieldName + '_labelname']) {
                 labelName = row[fieldName + '_labelname'];
             }
             
-            return '<a href="javascript:;" onclick="bpContentViewerById(this, \'\', \'' + val + '\', {tabName: \''+tabName+'\'});" title="'+plang.get('file_view')+'">'+labelName+'</a>';
+            return '<a href="javascript:;" onclick="bpContentViewerById(this, \'\', \'' + val + '\', {tabName: \''+tabName+'\'}, \'' + usestampedfileview + '\');" title="'+plang.get('file_view')+'">'+labelName+'</a>';
         }
         
         var fieldName = this.field, 
@@ -4198,7 +4202,7 @@ $(function () {
         var $this = $(this), $thisBpIconUl = $this.closest('ul.bp-icon-selection'), 
             dataId = $this.attr('data-id'), singleDataId = dataId;
         
-        if ($this.hasClass('active')) {
+        if ($this.hasClass('active') && !$this.closest('.wizard').length) {
             $this.removeClass('active');
             singleDataId = '';
         } else {

@@ -661,7 +661,7 @@ function saveKpiIndicatorHeaderForm(elem) {
     var $form = $this.closest('form');
     var uniqId = $form.find('[data-bp-uniq-id]').attr('data-bp-uniq-id');
 
-    if (window['kpiIndicatorBeforeSave_' + uniqId]($this) && bpFormValidate($form)) {
+    if (bpFormValidate($form) && window['kpiIndicatorBeforeSave_' + uniqId]($this)) {
         
         var $parent = $this.closest('.mv-checklist-render-parent');
         var listIndicatorId = $parent.find('input[data-path="listIndicatorId"]').val();
@@ -718,6 +718,10 @@ function saveKpiIndicatorHeaderForm(elem) {
                     
                     $parent.find('.mv-checklist-menu').find('.nav-link.disabled').removeClass('disabled');
                     
+                    if ($parent.find('.mv-checklist-tab-link:visible:eq(0)').length == 1) {
+                        $parent.find('.mv-checklist-tab-link:visible:eq(0)').trigger('click');
+                    }
+                    
                     window['kpiIndicatorAfterSave_' + uniqId]($this, data.status, data);
                     
                     if ($parent.find('.mv-checklist-criteria').length) {
@@ -737,7 +741,7 @@ function checkListSaveKpiIndicatorForm(elem) {
     var $form = $this.closest('form');
     var uniqId = $form.find('[data-bp-uniq-id]').attr('data-bp-uniq-id');  
 
-    if (window['kpiIndicatorBeforeSave_' + uniqId]($this) && bpFormValidate($form)) {
+    if (bpFormValidate($form) && window['kpiIndicatorBeforeSave_' + uniqId]($this)) {
         
         var $parent = $this.closest('.mv-checklist-render-parent');
         var $active = $parent.find('ul.nav-sidebar a.nav-link.active[data-json]');

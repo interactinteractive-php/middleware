@@ -3725,7 +3725,6 @@
     if (isset($isWizard) && $isWizard) {
     ?>
     $('#wizard-<?php echo $this->uniqId; ?>').on('click', '.bp-icon-selection li', function(){
-        console.log($('#wizard-<?php echo $this->uniqId; ?>').find('.wizard-type-next-btn'));
         $('#wizard-<?php echo $this->uniqId; ?>').find('.wizard-type-next-btn').closest('a').trigger('click');
     });        
     function initKpiWizardForm_<?php echo $this->methodId; ?>() {

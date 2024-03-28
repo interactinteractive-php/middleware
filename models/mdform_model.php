@@ -11716,6 +11716,11 @@ class Mdform_Model extends Model {
                 }
             }
             
+            if ($kpiTypeId == '1191') {
+                $response = self::runKpiStoredProcedure($kpiMainIndicatorId, Mdform::$mvSaveParams);
+                return $response;
+            }
+            
             if ($isIgnoreAlter == false) {
             
                 if ($isTblCreated == false) {
@@ -11774,11 +11779,6 @@ class Mdform_Model extends Model {
             
             $sessionValues = Session::get(SESSION_PREFIX . 'sessionValues');
             $sessionName   = issetDefaultVal($sessionValues['sessionusername'], Ue::getSessionPersonWithLastName());
-            
-            if ($kpiTypeId == '1191') {
-                $response = self::runKpiStoredProcedure($kpiMainIndicatorId, Mdform::$mvSaveParams);
-                return $response;
-            }
             
             /**
              * Start Microflow expression
@@ -12713,12 +12713,24 @@ class Mdform_Model extends Model {
             if ($dbHost && $dbPort && $dbSid && $dbUsername && $dbPassword) {
 
             } else {
-
-                $procedure = $this->db->PrepareSP("BEGIN $procedureName; END;");
                 
-                foreach ($parameters as $paramName => $paramVal) {
-                    if (stripos($procedureName, ':'.$paramName) !== false) {
-                        $this->db->InParameter($procedure, $paramVal, $paramName);
+                if (DB_DRIVER == 'oci8') {
+                    
+                    $procedure = $this->db->PrepareSP("BEGIN $procedureName; END;");
+
+                    foreach ($parameters as $paramName => $paramVal) {
+                        if (stripos($procedureName, ':'.$paramName) !== false) {
+                            $this->db->InParameter($procedure, $paramVal, $paramName);
+                        }
+                    }
+                    
+                } else {
+                    $procedure = "BEGIN $procedureName; END;";
+                    
+                    foreach ($parameters as $paramName => $paramVal) {
+                        if (stripos($procedure, ':'.$paramName) !== false) {
+                            $procedure = str_ireplace(':'.$paramName, ($paramVal == '' ? 'null' : $paramVal), $procedure);
+                        }
                     }
                 }
                 

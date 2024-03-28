@@ -1931,7 +1931,92 @@ function selectableObjectDataGrid(metaDataCode, processMetaDataId, chooseType, e
 function metaDirectURL(url, target) {
     window.open(url, target);
 }
+function editGLPopup(elem, processMetaDataId, dataViewId, paramData) {
+    paramData.push({name: 'dialogMode', value: true});
+    $.ajax({
+        type: 'post',
+        url: 'mdgl/edit_entry',
+        data: paramData,
+        dataType: 'json',
+        beforeSend: function() {
+            Core.blockUI({boxed: true, message: 'Loading...'});
+        },
+        success: function(data) {
+            
+            var $dialogName = 'dialog-edit-gl';
+            if (!$("#" + $dialogName).length) {
+                $('<div id="' + $dialogName + '"></div>').appendTo('body');
+            }
+            var $dialog = $('#' + $dialogName);
+    
+            $dialog.empty().append(data.html);
+            $dialog.dialog({
+                cache: false,
+                resizable: true,
+                bgiframe: true,
+                autoOpen: false,
+                title: data.title,
+                width: 1300, 
+                height: 'auto',
+                modal: true,
+                closeOnEscape: isCloseOnEscape,
+                close: function() {
+                    $dialog.empty().dialog('destroy').remove();
+                },
+                buttons: [
+                    {
+                        text: plang.get('save_btn'),
+                        class: 'btn green-meadow btn-sm bp-btn-save',
+                        click: function() {
+                            $('form#glEntryForm', '#' + $dialogName).ajaxSubmit({
+                                type: 'post',
+                                url: 'mdgl/updateGlEntry',
+                                dataType: 'json',
+                                beforeSend: function() {
+                                    Core.blockUI({message: 'Loading...', boxed: true});
+                                },
+                                success: function(data) {
+                                    PNotify.removeAll();
 
+                                    if (data.status == 'success') {
+                                        new PNotify({
+                                            title: 'Success',
+                                            text: data.message,
+                                            type: 'success',
+                                            sticker: false
+                                        });
+                                        $dialog.dialog('close');
+                                        dataViewReload(dataViewId);
+                                    } else {
+                                        new PNotify({
+                                            title: data.status,
+                                            text: data.message,
+                                            type: data.status,
+                                            sticker: false,
+                                            hide: true,
+                                            addclass: pnotifyPosition,
+                                            delay: 1000000000
+                                        });
+                                    }
+                                    Core.unblockUI();
+                                }
+                            });
+                        }
+                    },
+                    {
+                        text: plang.get('close_btn'),
+                        class: 'btn blue-madison btn-sm bp-btn-close',
+                        click: function() {
+                            $dialog.dialog('close');
+                        }
+                    }
+                ]
+            });
+            $dialog.dialog('open');
+            Core.unblockUI();
+        }
+    });
+}
 function urlRedirectByDataView(elem, processMetaDataId, url, target, dataViewId, postParams, getParams, selectedRow, wfmStatusParams, openParams) {
     var lowerTarget = target ? target.toLowerCase() : '', _dialogMode = '', _dialogView = '',
         dataType = 'html', processTitle = '';
@@ -1991,6 +2076,9 @@ function urlRedirectByDataView(elem, processMetaDataId, url, target, dataViewId,
                 }
                 if (postParam === 'dialogView' && fieldValue === 'fullscreen') {
                     _dialogView = 'fullscreen';
+                }
+                if (postParam === 'renderType' && fieldValue === 'popup') {
+                    _dialogMode = 'popup';
                 }
             }
         }
@@ -2063,6 +2151,11 @@ function urlRedirectByDataView(elem, processMetaDataId, url, target, dataViewId,
             }
             
             popupConnectGeneralLedger(elem, processMetaDataId, dataViewId, selectedRows);
+            return;
+
+        } else if (urlLower == 'mdgl/edit_entry' && _dialogMode == 'popup') {
+
+            editGLPopup(elem, processMetaDataId, dataViewId, paramData);
             return;
 
         } else if (urlLower == 'contentopener') {
@@ -18987,58 +19080,52 @@ function drillDownStatement(elem, rowStr) {
                             class: 'btn purple-plum btn-sm bp-run-btn bp-btn-saveprint ' + hidePrintButton,
                             click: function(e) {
 
-                                if (window['processBeforeSave_' + processUniqId]($(e.target))) {
+                                if (window['processBeforeSave_' + processUniqId]($(e.target)) && bpFormValidate(processForm)) {
 
-                                    if (bpFormValidate(processForm)) {
+                                    processForm.ajaxSubmit({
+                                        type: 'post',
+                                        url: 'mdwebservice/runProcess',
+                                        dataType: 'json',
+                                        beforeSend: function() {
+                                            Core.blockUI({message: 'Түр хүлээнэ үү', boxed: true});
+                                        },
+                                        success: function(responseData) {
 
-                                        processForm.ajaxSubmit({
-                                            type: 'post',
-                                            url: 'mdwebservice/runProcess',
-                                            dataType: 'json',
-                                            beforeSend: function() {
-                                                Core.blockUI({message: 'Түр хүлээнэ үү', boxed: true});
-                                            },
-                                            success: function(responseData) {
+                                            PNotify.removeAll();
 
-                                                PNotify.removeAll();
-
-                                                if (responseData.status === 'success') {
-                                                    new PNotify({
-                                                        title: 'Success',
-                                                        text: responseData.message,
-                                                        type: 'success',
-                                                        addclass: pnotifyPosition,
-                                                        sticker: false
-                                                    });
-                                                    if (responseData.rowId !== '') {
-                                                        processPrintPreview(e.target, linkMetaId, responseData.rowId, data.get_process_id, responseData.resultData);
-                                                    }
-                                                    $dialog.dialog('close');
-
-                                                } else {
-                                                    new PNotify({
-                                                        title: 'Error',
-                                                        text: responseData.message,
-                                                        type: 'error',
-                                                        sticker: false,
-                                                        hide: true,
-                                                        addclass: pnotifyPosition,
-                                                        delay: 1000000000
-                                                    });
+                                            if (responseData.status === 'success') {
+                                                new PNotify({
+                                                    title: 'Success',
+                                                    text: responseData.message,
+                                                    type: 'success',
+                                                    addclass: pnotifyPosition,
+                                                    sticker: false
+                                                });
+                                                if (responseData.rowId !== '') {
+                                                    processPrintPreview(e.target, linkMetaId, responseData.rowId, data.get_process_id, responseData.resultData);
                                                 }
+                                                $dialog.dialog('close');
 
-                                                bpIgnoreGroupRemove(processForm);
-
-                                                Core.unblockUI();
-                                            },
-                                            error: function() {
-                                                alert('Error');
+                                            } else {
+                                                new PNotify({
+                                                    title: 'Error',
+                                                    text: responseData.message,
+                                                    type: 'error',
+                                                    sticker: false,
+                                                    hide: true,
+                                                    addclass: pnotifyPosition,
+                                                    delay: 1000000000
+                                                });
                                             }
-                                        });
-                                        
-                                    } else {
-                                        bpIgnoreGroupRemove(processForm);
-                                    }
+
+                                            bpIgnoreGroupRemove(processForm);
+
+                                            Core.unblockUI();
+                                        },
+                                        error: function() {
+                                            alert('Error');
+                                        }
+                                    });
 
                                 } else {
                                     bpIgnoreGroupRemove(processForm);

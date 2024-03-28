@@ -1510,7 +1510,7 @@ class Mdstatement_model extends Model {
         return array();
     }
     
-    public function isRenderColumnModel($rowHtml, $expRowFields = null, $dataViewId = '', $getRowStatement = array()) {
+    public function isRenderColumnModel($rowHtml, $expRowFields = null, $dataViewId = '', $getRowStatement = []) {
         
         $dataViewColumnsType = Mdstatement::$dataViewColumnsType;
         $array = array();
@@ -1563,14 +1563,14 @@ class Mdstatement_model extends Model {
                 FROM CUSTOMER_ST_GROUPING_CONFIG 
                 WHERE USER_ID = $sessionUserIdPh 
                     AND STATEMENT_META_DATA_ID = $statementIdPh", 
-                array($sessionUserId, $statementId)
+                [$sessionUserId, $statementId]
             );
             
             if ($row) {
                 
                 if ($row['GROUP_FIELD_PATH'] == 'fieldnotselected') {
                     
-                    $data = array();
+                    $data = [];
                     
                 } else {
                     
@@ -1580,14 +1580,15 @@ class Mdstatement_model extends Model {
                             LG.GROUP_HEADER, 
                             LG.GROUP_FOOTER, 
                             LG.HEADER_BG_COLOR, 
-                            LG.FOOTER_BG_COLOR 
+                            LG.FOOTER_BG_COLOR, 
+                            LG.IS_IGNORE_HDR_REPEAT_PAGE 
                         FROM CUSTOMER_ST_GROUPING_CONFIG GC 
                             INNER JOIN META_STATEMENT_LINK_GROUP LG ON LG.META_DATA_ID = GC.STATEMENT_META_DATA_ID 
                                 AND LOWER(GC.GROUP_FIELD_PATH) = LOWER(LG.GROUP_FIELD_PATH)  
                         WHERE GC.USER_ID = $sessionUserIdPh 
                             AND GC.STATEMENT_META_DATA_ID = $statementIdPh  
                         ORDER BY GC.GROUP_ORDER ASC", 
-                        array($sessionUserId, $statementId)
+                        [$sessionUserId, $statementId]
                     );
                 }
             } 
@@ -1601,7 +1602,8 @@ class Mdstatement_model extends Model {
                     LG.GROUP_HEADER, 
                     LG.GROUP_FOOTER, 
                     LG.HEADER_BG_COLOR, 
-                    LG.FOOTER_BG_COLOR 
+                    LG.FOOTER_BG_COLOR, 
+                    LG.IS_IGNORE_HDR_REPEAT_PAGE 
                 FROM META_STATEMENT_LINK_GROUP LG 
                     INNER JOIN META_STATEMENT_LINK SL ON SL.ID = LG.META_STATEMENT_LINK_ID 
                 WHERE SL.".(Mdstatement::$isKpiIndicator ? 'MAIN_INDICATOR_ID' : 'META_DATA_ID')." = $sessionUserIdPh  
@@ -1632,6 +1634,7 @@ class Mdstatement_model extends Model {
                         'GROUP_FOOTER' => null, 
                         'HEADER_BG_COLOR' => null,
                         'FOOTER_BG_COLOR' => null,
+                        'IS_IGNORE_HDR_REPEAT_PAGE' => null
                     );
                 }
             }
@@ -1668,7 +1671,8 @@ class Mdstatement_model extends Model {
                         GROUP_HEADER, 
                         GROUP_FOOTER, 
                         HEADER_BG_COLOR, 
-                        FOOTER_BG_COLOR 
+                        FOOTER_BG_COLOR, 
+                        IS_IGNORE_HDR_REPEAT_PAGE 
                     FROM META_STATEMENT_LINK_GROUP  
                     WHERE META_DATA_ID = $statementId 
                         AND ID IN (".rtrim($imploder, ', ').") 
@@ -1677,7 +1681,7 @@ class Mdstatement_model extends Model {
                         $orderByCase 
                         END ASC"); 
             } else {
-                $data = array();
+                $data = [];
             }
 
             $isDetectGroupingUserOption = true;
@@ -1689,14 +1693,27 @@ class Mdstatement_model extends Model {
         }
 
         if (Mdstatement::$isHdrRepeatPage && $data) {
+            
+            Mdstatement::$isIgnoreHdrRepeatPage = false;
 
             $detailHtml = phpQuery::newDocumentHTML($reportDetailHtml);
             $tbodyCellCount = $detailHtml['table > tbody td']->length - (($groupingCount) ? $groupingCount : 0);
             
-            $array = array();
+            $array = [];
 
             foreach ($data as $k => $row) {
-
+                
+                if ($row['IS_IGNORE_HDR_REPEAT_PAGE'] == 1) {
+                    
+                    $row['isIgnoreHdrRepeatPage'] = 1;
+                    $row['GROUP_HEADER'] = Str::cleanOut($row['GROUP_HEADER']);
+                    
+                    $array[$k] = $row;
+                    Mdstatement::$isIgnoreHdrRepeatPage = true;
+                    
+                    continue;
+                }
+                
                 $array[$k]['GROUP_FIELD_PATH'] = $row['GROUP_FIELD_PATH'];
 
                 if ($row['GROUP_HEADER']) {
@@ -1722,8 +1739,16 @@ class Mdstatement_model extends Model {
                     if ($row['HEADER_BG_COLOR']) {
                         $style .= 'background-color: '.$row['HEADER_BG_COLOR'].';';
                     }
-
-                    $array[$k]['GROUP_HEADER'] = '<tr><td colspan="'.$tbodyCellCount.'" style="'.$style.'">'.$row['GROUP_HEADER'].'</td></tr>';
+                    
+                    if (Mdstatement::$isIgnoreHdrRepeatPage) {
+                        
+                        $hdrHtml = phpQuery::newDocumentHTML($row['GROUP_HEADER']);
+                        $tableRow = $hdrHtml['tbody']->html();
+                        
+                        $array[$k]['GROUP_HEADER'] = $tableRow;
+                    } else {
+                        $array[$k]['GROUP_HEADER'] = '<tr><td colspan="'.$tbodyCellCount.'" style="'.$style.'">'.$row['GROUP_HEADER'].'</td></tr>';
+                    }
 
                 } else {
                     $array[$k]['GROUP_HEADER'] = $row['GROUP_HEADER'];
@@ -1762,7 +1787,7 @@ class Mdstatement_model extends Model {
 
             if (isset(Mdstatement::$UIExpression['group'])) {
 
-                $array = array();
+                $array = [];
                 $hdrExpEval = str_replace('$objHtmlReplace', '$hdrHtml', Mdstatement::$UIExpression['group']);
                 $ftrExpEval = str_replace('$objHtmlReplace', '$ftrHtml', Mdstatement::$UIExpression['group']);
 

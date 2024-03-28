@@ -14965,7 +14965,7 @@ function bpCheckFingerPrint(elem, fingerIp) {
         Core.unblockUI();
     }
 }
-function bpContentViewerById(elem, recordIds, contentIds, obj) {
+function bpContentViewerById(elem, recordIds, contentIds, obj, usestampedfileview) {
     
     PNotify.removeAll();
     
@@ -14986,7 +14986,7 @@ function bpContentViewerById(elem, recordIds, contentIds, obj) {
         $.ajax({
             type: 'post',
             url: 'mdpreview/contentViewerById',
-            data: {uniqId: uniqId, recordIds: realRecordIds, contentIds: realContentIds},
+            data: {uniqId: uniqId, recordIds: realRecordIds, contentIds: realContentIds, useStampedFileView: usestampedfileview},
             dataType: 'json', 
             beforeSend: function() {
                 Core.blockUI({message: 'Loading...', boxed: true});

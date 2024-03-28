@@ -361,6 +361,10 @@ $(function(){
     });
     
     <?php
+    if (Input::post('isInv') == '1') { ?>
+        $('input[name="orderTypeIdTemp"]').last().trigger('click');
+    <?php }
+    
     if ($this->row) {
     ?>
     var $orderDialog = $('#dialog-pos-order');    

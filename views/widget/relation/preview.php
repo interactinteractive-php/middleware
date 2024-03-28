@@ -27,15 +27,26 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                     }
                 }
             }
+            
+            $tmp['position-recordid'] = $tmp['position-starttime'] = $tmp['position-endtime'] = '';
+
             if (issetParam($rVal['TIME'])) {
                 $parsed = date_parse($rVal['TIME']);
-                $startTimeSecond = $parsed['hour'] * 3600 + $parsed['minute'] * 60 + $parsed['second'];    
-                $startTime = str_replace('$00:', '', '$'.$rVal['TIME']);
-
-
-                $tmp['position-starttime'] = $startTimeSecond;
-                $tmp['position-endtime'] = '';
+                $timeSecond = $parsed['hour'] * 3600 + $parsed['minute'] * 60 + $parsed['second'];    
+                $tmp['position-starttime'] = $timeSecond;
             }
+
+            if (issetParam($rVal['RECORDID'])) {
+                $tmp['position-recordid'] = $rVal['RECORDID'];
+            }
+
+            if (issetParam($rVal['ENDTIME'])) {
+                $parsed = date_parse($rVal['ENDTIME']);
+                $timeSecond = $parsed['hour'] * 3600 + $parsed['minute'] * 60 + $parsed['second'];    
+
+                $tmp['position-endtime'] = $timeSecond;
+            }
+            
             array_push($tmparr, $tmp);
             array_push($hideTmparr, $rVal);
         }
@@ -54,8 +65,8 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                                 $html = '';
                                 $html .= '<a href="javascript:;" data-starttime="" data-endtime="" class="go-video-startendtime">';
                                     $html .= '<div class="detail_cart_slider_imagevideo" data-starttime="'. issetParam($tmparr['0']['position-starttime']) .'">';
-                                        $html .= '<video width="100%" controls data-id="main_video_'. $this->uniqId .'">';
-                                            $html .= '<source src="'. issetParam($tmparr['0']['position1']) .'" type="video/mp4">';
+                                        $html .= '<video width="100%" controls id="main_video_'. $this->uniqId .'">';
+                                            $html .= '<source src="'. issetParam($tmparr['0']['position1']) .'" type="video/mp4" >';
                                             $html .= 'Your browser does not support HTML5 video.';
                                         $html .= '</video>';
                                         $html .= '<button class="d-none" id="playVideo'. $this->uniqId .'" data-id="main_video_'. $this->uniqId .'">Play</button>';
@@ -68,12 +79,7 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                         <div class="text-center overflow-auto d-flex col-component">
                             <?php foreach ($tmparr as $key => $row) { ?>
                                 <div class="media-component">
-                                    <!-- <a href="javascript:;" data-starttime="00:00:00" data-endtime="00:01:00" class="go-video-startendtime">
-                                        <div class="detail_cart_slider_imagevideo">
-                                            <canvas id="canvas_<?php echo $rk ?>" width="500" height="280"></canvas>
-                                        </div>        
-                                    </a> -->
-                                    <?php echo '<div class="detail_cart_slider_imagevideo" style="height: 115px;" data-starttime="'. issetParam($row['position-starttime']) .'">'
+                                    <?php echo '<div class="detail_cart_slider_imagevideo'. $this->uniqId .'" style="height: 115px;" data-starttime="'. issetParam($row['position-starttime']) .'" data-endtime="'. issetParam($row['position-endtime']) .'" data-recordid="'. issetParam($row['position-recordid']) .'">'
                                                 . '<canvas id="canvas_'. $key . '_' . $this->uniqId .'" width="125" class="d-none" height="125"></canvas>'
                                                 . '<video width="100%" controls id="video_' . $key . '_' . $this->uniqId .'"  class="d-none" >'
                                                     . '<source src="'. issetParam($tmparr['0']['position1']) .'" type="video/mp4" data-id="' . $key . '_' . $this->uniqId .'" class="mx-auto videotoimg" height="110px"/>'
@@ -94,27 +100,78 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
 <?php echo issetParam($this->uniqCss) ?>
 <?php echo issetParam($this->uniqJs) ?>
 <script type="text/javascript">
+    var mainVideo<?php echo $this->uniqId ?> = document.getElementById('main_video_<?php echo $this->uniqId ?>');
+    var myvideo<?php echo $this->uniqId ?> = document.getElementById('main_video_<?php echo $this->uniqId ?>');
+    var videoToImageCheckInterval<?php echo $this->uniqId ?>;
+    var dtlRowCount<?php echo $this->uniqId ?> = $('.detail_cart_slider_imagevideo<?php echo $this->uniqId ?>').length;
+    var dc<?php echo $this->uniqId ?> = 0;
+
     $(function() {
-        /* videoToImageFn<?php echo $this->uniqId ?>(); */
-        $('#mv-checklist-render<?php echo $this->uniqId ?> .videotoimg').each(function (key, row) {
-            videoToImageFn<?php echo $this->uniqId ?>(row)
-        });
+        $('#main_video_<?php echo $this->uniqId ?>').hide().parent().append('<h4>'+ plang.get('waiting_video_play') +'...</h4>');
+        videoToImageCheckInterval<?php echo $this->uniqId ?> = setInterval(function () {
+            videoToImageFn<?php echo $this->uniqId ?>('#mv-checklist-render<?php echo $this->uniqId ?> .videotoimg:eq('+ dc<?php echo $this->uniqId ?> +')');          
+        }, 800);        
     });
+
 
     function videoToImageFn<?php echo $this->uniqId ?>(param) {
         var $self = $(param);
             dataId = $self.attr('data-id'),
-            myvideo = document.getElementById('video_' + dataId);
-            startTimer = $(param).closest('.detail_cart_slider_imagevideo').attr('data-starttime')
-            myvideo.currentTime = startTimer
-            ;
-        
+            startTimer = parseInt($(param).closest('.detail_cart_slider_imagevideo<?php echo $this->uniqId ?>').attr('data-starttime'));
+
+            myvideo<?php echo $this->uniqId ?> = document.getElementById('video_' + dataId),
+            myvideo<?php echo $this->uniqId ?>.currentTime = startTimer;
+            
+
         setTimeout(function() {
             canvas = document.getElementById('canvas_' + dataId);
-            console.log(canvas);
-            canvas.getContext('2d').drawImage(myvideo, 0, 0, 125, 125);
+            canvas.getContext('2d').drawImage(myvideo<?php echo $this->uniqId ?>, 0, 0, 125, 125);
             var img = canvas.toDataURL('image/png');			
-            $(param).closest('.detail_cart_slider_imagevideo').css('background-image', "url('"+img+"')");
+            $(param).closest('.detail_cart_slider_imagevideo<?php echo $this->uniqId ?>').css('background-image', "url('"+img+"')");
+            dc<?php echo $this->uniqId ?>++;
+
+            if (dc<?php echo $this->uniqId ?> == dtlRowCount<?php echo $this->uniqId ?>) {            
+                clearInterval(videoToImageCheckInterval<?php echo $this->uniqId ?>);
+                myvideo<?php echo $this->uniqId ?>.currentTime = 0;
+            }
         }, 500);
     }
+
+    $('body').on('click', '.detail_cart_slider_imagevideo<?php echo $this->uniqId ?>', function (e) {
+        var _this = $(this),
+            video = _this.find('source.videotoimg');
+
+        var start = _this.data('starttime');
+        var end = _this.data('endtime');
+        $('#main_video_<?php echo $this->uniqId ?>').show().parent().find('h4').remove();
+
+        function checkTime() {
+            if (mainVideo<?php echo $this->uniqId ?>.currentTime >= endTime) {
+               mainVideo<?php echo $this->uniqId ?>.pause();
+               clearInterval(videoTimeToSaveInterval<?php echo $this->uniqId ?>);
+            } else {
+               setTimeout(checkTime, 100);
+            }
+        }
+
+        mainVideo<?php echo $this->uniqId ?>.pause();
+        mainVideo<?php echo $this->uniqId ?>.currentTime = start;
+        setTimeout(function () {
+            mainVideo<?php echo $this->uniqId ?>.play();
+            checkTime();
+        }, 100);
+
+        if (typeof _this.attr('data-recordid') !== 'undefined' && _this.attr('data-recordid')) {
+            videoTimeToSaveInterval<?php echo $this->uniqId ?> = setInterval(function () {
+                $.ajax({
+                    type: "post",
+                    url: "mdcontentui/contentVisitorLog",
+                    data: { recordId: _this.attr('data-recordid'), duration: mainVideo<?php echo $this->uniqId ?>.currentTime },
+                    success: function (data) {                    
+                    }
+                });             
+                e.preventDefault();
+            });  
+        }
+    });
 </script>

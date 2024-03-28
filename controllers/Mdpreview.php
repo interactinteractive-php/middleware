@@ -551,7 +551,40 @@ class Mdpreview extends Controller {
                         $pathInfo = pathinfo($filePath['PHYSICAL_PATH']);
                         $extension = $pathInfo['extension'];
                     }
-                    
+
+                    if (Input::post('useStampedFileView') === '1') {
+                        $fullPathPic = Config::get('stamp_filepath');
+
+                        $params = array(
+                            'stampImageB64' => base64_encode(file_get_contents($fullPathPic)),
+                            'pdfFileB64' => base64_encode(file_get_contents($filePath['PHYSICAL_PATH'])),
+                            /* 'pdfFilePath' => $_SERVER['DOCUMENT_ROOT'] . '/' . $filePath['PHYSICAL_PATH'], */
+                            'position' => 't_right',
+                        );
+
+                        $result = $this->ws->runArrayResponse(GF_SERVICE_ADDRESS, 'NTR_CONSUL_STAMP_BP', $params);
+
+                        if (issetParam($result['result']['stampedpdfb64'])) {
+                            $tmpFilePathArr = $filePathArr = explode('/', $filePath['PHYSICAL_PATH']);
+                            $tmpFilePathArr[sizeOf($tmpFilePathArr)-1] = 'stamped';
+                            $stampledFilePath = implode('/', $tmpFilePathArr);
+
+                            if (!is_dir($stampledFilePath)) {
+                                mkdir($stampledFilePath, 0777, true);
+                            }
+
+                            Mdcache::createCacheFolder($stampledFilePath, 0.5);
+
+                            $filePathArr[sizeOf($filePathArr)-1] = 'stamped/' . $filePathArr[sizeOf($filePathArr)-1];
+                            $stampledFilePath = implode('/', $filePathArr);
+                            
+                            $pdf_b64 = base64_decode($result['result']['stampedpdfb64']);
+                            file_put_contents($stampledFilePath, $pdf_b64);
+
+                            $filePath['PHYSICAL_PATH'] = $stampledFilePath;
+                        }
+                    }
+
                     $this->view->fileArr[] = array(
                         'contentId'    => $filePath['CONTENT_ID'], 
                         'path'         => $filePath['PHYSICAL_PATH'], 

@@ -4897,10 +4897,10 @@ class Mdpos_Model extends Model {
 
                 if ($isUserPosV3) {
                     $taxInvParam = array(
-                        'id' => $invoiceId,
+                        'id' => $returnInvoiceId,
                         'date' => $billDate
                     );
-                    $posApiArray = $this->ws->runSerializeResponse(self::$gfServiceAddress, 'returnInvoiceAPI', $taxInvParam);                
+                    $posApiArray = $this->ws->runSerializeResponse(self::$gfServiceAddress, 'posMainSalesInvoiceReturnTax', $taxInvParam);                
                     $posApiArray['success'] = true;
                     
                 } else {
@@ -5046,10 +5046,10 @@ class Mdpos_Model extends Model {
                     
                     if ($isUserPosV3) {
                         $taxInvParam = array(
-                            'id' => $invoiceId,
+                            'id' => $returnInvoiceId,
                             'date' => $billDate
                         );
-                        $posApiArray = $this->ws->runSerializeResponse(self::$gfServiceAddress, 'returnInvoiceAPI', $taxInvParam);                
+                        $posApiArray = $this->ws->runSerializeResponse(self::$gfServiceAddress, 'posMainSalesInvoiceReturnTax', $taxInvParam);                
                         $posApiArray['success'] = true;
                         
                     } else {
@@ -7564,6 +7564,7 @@ class Mdpos_Model extends Model {
             'shoppyAmount'          => '', 
             'glmtRewardAmount'      => '', 
             'socialPayRewardAmount' => '', 
+            'posTaxInvoiceAmount'   => '', 
             'couponAmount'          => 0, 
             'bankList'              => array(), 
             'accountTransferList'   => array(), 
@@ -7642,6 +7643,10 @@ class Mdpos_Model extends Model {
                 } elseif ($row['paymenttypeid'] == '54') {
 
                     $array['socialPayRewardAmount'] = $row['amount'];
+
+                } elseif ($row['paymenttypeid'] == '57') {
+
+                    $array['posTaxInvoiceAmount'] = $row['amount'];
 
                 } elseif ($row['paymenttypeid'] == '6') {
 
@@ -9638,7 +9643,7 @@ class Mdpos_Model extends Model {
                 $isNewUpdate = true;
             }*/
             
-        } elseif (isset($prevInfo) && $prevInfo) {
+        } elseif (isset($prevInfo) && $prevInfo && Input::post('isInv') != 1) {
             
             $params['id']    = $prevInfo['id'];
             $params['total'] = $totalAmount;
@@ -9688,12 +9693,26 @@ class Mdpos_Model extends Model {
             $result = $this->ws->runSerializeResponse(self::$gfServiceAddress, $processCode, $params);        
         }
         
-        if ($result['status'] == 'success') {
+        if ($result['status'] == 'success') {                        
             
             $response = array('status' => 'success', 'message' => 'Амжилттай хадгалагдлаа.', 'id' => $result['result']['id'], 'orderTypeId' => $orderTypeId, 'orderData' => $result['result']);
             self::insertActionLog($processCode.'['.$result['result']['id'].']-Online_POS Save Order', $params, $result);
             
             $response['basketCount'] = self::getBasketOrderBookCountModel($storeId);
+            
+            if (Config::getFromCache('IS_USE_POSAPI_V3')) {                                
+
+                $taxInvParam = array(
+                    'id' => $result['result']['id']
+                );
+                $posApiArray = $this->ws->runSerializeResponse(self::$gfServiceAddress, 'posMainInvoiceSendTax', $taxInvParam);                
+
+                if (isset($posApiArray['result']) && $posApiArray['result']['status'] === 'SUCCESS') {
+                } else {
+                    $posApiArray['warningMsg'] = issetParam($posApiArray['result']['message']) ? $posApiArray['result']['message'] : 'posMainInvoiceSendTax хариу ирсэнгүй!';
+                    $response = array('status' => 'error', 'message' => $posApiArray['warningMsg'], 'id' => $result['result']['id'], 'orderTypeId' => $orderTypeId, 'orderData' => $result['result']);
+                }
+            }            
             
         } else {
             self::insertActionLog($processCode.'-Online_POS Save Order Error', $params, $result);
