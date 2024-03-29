@@ -13282,15 +13282,18 @@ class Mdwebservice extends Controller {
             if (Input::postCheck('mdcomment_text')) {
                 
                 $comment = Input::post('mdcomment_text');
-                $dataComment = array(
-                    'ID'               => getUID(),
-                    'REF_STRUCTURE_ID' => $refStructureId,
-                    'RECORD_ID'        => $sourceId,
-                    'COMMENT_TEXT'     => $comment,
-                    'CREATED_USER_ID'  => $sessionUserKeyId,
-                    'CREATED_DATE'     => $currentDate
-                );
-                $this->db->AutoExecute('ECM_COMMENT', $dataComment);
+                
+                if ($comment != '') {
+                    $dataComment = [
+                        'ID'               => getUID(),
+                        'REF_STRUCTURE_ID' => $refStructureId,
+                        'RECORD_ID'        => $sourceId,
+                        'COMMENT_TEXT'     => $comment,
+                        'CREATED_USER_ID'  => $sessionUserKeyId,
+                        'CREATED_DATE'     => $currentDate
+                    ];
+                    $this->db->AutoExecute('ECM_COMMENT', $dataComment);
+                }
                 
                 unset($_POST['mdcomment_text']);
             }
@@ -13298,15 +13301,18 @@ class Mdwebservice extends Controller {
             if (Input::postCheck('bpcomment_text')) {
                 
                 $comment = Input::post('bpcomment_text');
-                $dataComment = array(
-                    'ID'               => getUID(),
-                    'REF_STRUCTURE_ID' => $refStructureId,
-                    'RECORD_ID'        => $sourceId,
-                    'COMMENT_TEXT'     => $comment,
-                    'CREATED_USER_ID'  => $sessionUserKeyId,
-                    'CREATED_DATE'     => $currentDate
-                );
-                $this->db->AutoExecute('ECM_COMMENT', $dataComment);
+                
+                if ($comment != '') {
+                    $dataComment = [
+                        'ID'               => getUID(),
+                        'REF_STRUCTURE_ID' => $refStructureId,
+                        'RECORD_ID'        => $sourceId,
+                        'COMMENT_TEXT'     => $comment,
+                        'CREATED_USER_ID'  => $sessionUserKeyId,
+                        'CREATED_DATE'     => $currentDate
+                    ];
+                    $this->db->AutoExecute('ECM_COMMENT', $dataComment);
+                }
                 
                 unset($_POST['bpcomment_text']);
             }
