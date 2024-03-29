@@ -871,13 +871,15 @@ function checkListSaveKpiIndicatorForm() {
                         $form.find('input[name="sf[ID]"]').val(data.rowId);
                     }
                     
-                    var dataResult = data.result;
-                        
-                    if (dataResult.hasOwnProperty('checkListStatus') && dataResult.checkListStatus != '') {
-                        if (dataResult.checkListStatus == 'done') {
-                            $active.find('i:eq(0)').removeClass('far fa-square').addClass('fas fa-check-square');
-                        } else {
-                            $active.find('i:eq(0)').removeClass('fas fa-check-square').addClass('far fa-square');
+                    if (data.hasOwnProperty('result')) {
+                        var dataResult = data.result;
+
+                        if (dataResult.hasOwnProperty('checkListStatus') && dataResult.checkListStatus != '') {
+                            if (dataResult.checkListStatus == 'done') {
+                                $active.find('i:eq(0)').removeClass('far fa-square').addClass('fas fa-check-square');
+                            } else {
+                                $active.find('i:eq(0)').removeClass('fas fa-check-square').addClass('far fa-square');
+                            }
                         }
                     }
                     

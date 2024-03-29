@@ -6217,7 +6217,7 @@ class Mdform extends Controller {
         } else {
         
             $mapData = $this->model->getSrcTrgPathModel($srcMapId, $trgIndicatorId);
-            
+
             if ($mapData) {
                 
                 $selectedRowPost = Input::post('selectedRow');
@@ -6253,7 +6253,7 @@ class Mdform extends Controller {
         $indicatorContent = self::kpiIndicatorTemplateRender(); 
         $indicatorContent['indicatorInfo'] = $getIndicatorDescription; 
         
-        echo json_encode($indicatorContent, JSON_UNESCAPED_UNICODE);
+        convJson($indicatorContent);
     }
     
     public function mvNormalRelationRender($relationList = []) {

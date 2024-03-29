@@ -10802,14 +10802,14 @@ class Mdform_Model extends Model {
                 $pkColumnName = 'ID';
 
                 if (!isset(Mdform::$mvParamsConfig['detail'][$parentColumnNamePath.'_pfpk'])) {
-                    throw new Exception('Primary key баганын тохиргоо олдсонгүй!'); 
+                    throw new Exception('Primary key баганын тохиргоо олдсонгүй! /'.$parentColumnNamePath.'/'); 
                 }
 
             } else {
                 $pkColumnName = issetParam(Mdform::$mvParamsConfig['detail'][$parentColumnNamePath.'_pfpk']);
 
                 if (!$pkColumnName) {
-                    throw new Exception('Primary key баганын тохиргоо олдсонгүй!'); 
+                    throw new Exception('Primary key баганын тохиргоо олдсонгүй! /'.$parentColumnNamePath.'/'); 
                 }
             }
             
@@ -11009,7 +11009,7 @@ class Mdform_Model extends Model {
         
         if ($configRow['TABLE_NAME'] && !$pkColumnName) {
             
-            throw new Exception('Primary key баганын тохиргоо олдсонгүй!'); 
+            throw new Exception('Primary key баганын тохиргоо олдсонгүй! /'.$parentColumnNamePath.'/'); 
         } 
         
         $parentTableName = $configRow['TABLE_NAME'];
@@ -11385,14 +11385,14 @@ class Mdform_Model extends Model {
                     if ($isIgnoreAlter == false) {
 
                         if (!isset(Mdform::$mvParamsConfig['header'][$pkColumnName])) {
-                            throw new Exception('Primary key баганын тохиргоо олдсонгүй!'); 
+                            throw new Exception('Primary key баганын тохиргоо олдсонгүй! /Header/'); 
                         }
 
                     } else {
                         $pkColumnName = issetParam(Mdform::$mvParamsConfig['header_pfpk']);
 
                         if (!$pkColumnName) {
-                            throw new Exception('Primary key баганын тохиргоо олдсонгүй!'); 
+                            throw new Exception('Primary key баганын тохиргоо олдсонгүй! /Header/'); 
                         }
                     }
                 }

@@ -47,13 +47,14 @@ if ($this->getCountCardData) {
 
             if (issetParam($this->theme) === 'card' && issetParam($jsonArr['aggregateField']) && issetParam($jsonArr['aggregateFunction'])) {
                 echo '<li>'
-                    . '<a href="javascript:;" style="background: '. $colors[$k] .';"
+                    . '<a href="javascript:;" style="box-shadow: none;border-radius: 6px;"
                             class="'.$cssClass.' card-section" onclick="dataViewFilterCardFieldPath_'.$this->metaDataId.'(\''.$this->fieldPath.'\', \''.$value.'\', this);" data-default-active="'.$activeTab.'">'
-                        . '<div class="d-flex">'
-                            . '<span class="uppercase text-left text-two-line" style="width: 67% !important">'. $title . '</span>'
-                            . '<div class="ml-1 pull-right">'
-                                . '<span class="text-right w-100 pull-left"> '. Number::formatMoney($row['count']) .'</span>'
-                                . ($jsonArr['aggregateLabelName'] ? '<span class="text-right w-100 pull-left" >'. $jsonArr['aggregateLabelName'] .'</span>'  : '')
+                        . '<div style="width: 100%;display: flex;flex-direction: column;">'
+                            . '<div style="align-self: flex-end;" class="mb10"><img style="height: 20px" src="assets/custom/img/new_veritech_black_logo.png"></div>'
+                            . '<div class="uppercase text-left text-two-line mt15" style="font-weight: bold;">'. $title . '</div>'
+                            . '<div style="text-align: left;line-height: 7px;margin-bottom: 5px;">'
+                                . '<span style="font-size: 11px;">Дансны нэр</span>'
+//                                . ($jsonArr['aggregateLabelName'] ? '<span class="text-right w-100 pull-left" >'. $jsonArr['aggregateLabelName'] .'</span>'  : '')
                             . '</div>' 
                         . '</div>'
                     . '</a>'
@@ -71,18 +72,18 @@ if ($this->getCountCardData) {
         }
 
         if (issetParam($this->theme) === 'card' && issetParam($jsonArr['aggregateField']) && issetParam($jsonArr['aggregateFunction'])) {
-            echo '<li>'
-                . '<a href="javascript:;" style="background: '. $colors[$k+1] .';"
-                        class="wfm-status-done card-section" onclick="dataViewFilterCardFieldPath_'.$this->metaDataId.'(\'all\', \'all\', this);">'
-                    . '<div class="d-flex">'
-                        . '<span class="uppercase text-left text-two-line" style="width: 67% !important">'. $this->lang->line('all') . '</span>'
-                        . '<div class="ml-1 pull-right">'
-                            . '<span class="text-right w-100 pull-left"> '. Number::formatMoney($total).'</span>'
-                            . ($jsonArr['aggregateLabelName'] ? '<span class="text-right w-100 pull-left" >'. $jsonArr['aggregateLabelName'] .'</span>'  : '')
-                        . '</div>' 
-                    . '</div>'
-                . '</a>'
-            .'</li>';
+//            echo '<li>'
+//                . '<a href="javascript:;" style="background: '. $colors[$k+1] .';"
+//                        class="wfm-status-done card-section" onclick="dataViewFilterCardFieldPath_'.$this->metaDataId.'(\'all\', \'all\', this);">'
+//                    . '<div class="d-flex">'
+//                        . '<span class="uppercase text-left text-two-line" style="width: 67% !important">'. $this->lang->line('all') . '</span>'
+//                        . '<div class="ml-1 pull-right">'
+//                            . '<span class="text-right w-100 pull-left"> '. Number::formatMoney($total).'</span>'
+//                            . ($jsonArr['aggregateLabelName'] ? '<span class="text-right w-100 pull-left" >'. $jsonArr['aggregateLabelName'] .'</span>'  : '')
+//                        . '</div>' 
+//                    . '</div>'
+//                . '</a>'
+//            .'</li>';
         } else {
             ?>
             <li><a href="javascript:;" class="wfm-status-done uppercase" onclick="dataViewFilterCardFieldPath_<?php echo $this->metaDataId; ?>('all', 'all', this);"><?php echo $this->lang->line('all') . ' ('.$total.')'; ?></a></li>
@@ -155,6 +156,8 @@ if ($this->getCountCardData) {
         }
         .slick-track {
             margin: 0 !important;
+            display: flex;
+            gap: 10px;
         }
         .slick-slide {
             width: 320px;
@@ -177,12 +180,12 @@ if ($this->getCountCardData) {
 
 .wfm-status-step {
     .card-section {
-        background: #FFF !important;
+        background: #c1e790d4;
         color: #585858 !important;
         font-weight: 500;
         max-height: max-content;
         box-shadow: 0px 20px 27px 0px #0000000D;
-        padding: 20px;
+        padding: 15px;
         width: 285px;
         height: 120px;
         min-height: 75px;
@@ -192,7 +195,7 @@ if ($this->getCountCardData) {
 
     .card-section:hover {
         color: #FFF !important;
-        background: linear-gradient(90deg, #55C595 0%, #3DAC7C 100%) !important;
+        background: #1B84FF !important;
     }
 }
 
@@ -223,7 +226,7 @@ if ($this->getCountCardData) {
 .wfm-status-step ul li:last-child a:after {
     display: none; 
 }
-.wfm-status-step ul li a.wfm-status-done:hover {
+/*.wfm-status-step ul li a.wfm-status-done:hover {
     background-color: #56bc91;
 }
 .wfm-status-step ul li a.wfm-status-done {
@@ -233,7 +236,7 @@ if ($this->getCountCardData) {
 .wfm-status-step ul li a.wfm-status-current {
     color: #fff;
     background-color: #0070d2;
-}
+}*/
 </style>
 <?php
     } else {
