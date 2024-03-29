@@ -363,14 +363,16 @@ class Mdcomment_Model extends Model {
                             WITH RECURSIVE TMP_ECM_COMMENT AS 
                             (
                                 SELECT 
-                                    U1.ID 
+                                    U1.ID,
+                                    U1.PARENT_ID 
                                 FROM ECM_COMMENT U1 
                                 WHERE ID = $id1Ph 
 
                                 UNION ALL 
 
                                 SELECT 
-                                    U2.ID 
+                                    U2.ID, 
+                                    U2.PARENT_ID 
                                 FROM ECM_COMMENT U2 
                                     JOIN TMP_ECM_COMMENT ON TMP_ECM_COMMENT.PARENT_ID = U2.ID 
                             ) SELECT * FROM TMP_ECM_COMMENT";

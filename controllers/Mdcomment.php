@@ -73,7 +73,7 @@ class Mdcomment extends Controller {
     public function saveCommentProcess()
     {
         $response = $this->model->saveCommentProcessModel();
-        jsonResponse($response);
+        convJson($response);
     }
     
     public function updateCommentProcess()
