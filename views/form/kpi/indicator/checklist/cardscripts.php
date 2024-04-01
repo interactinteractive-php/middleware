@@ -577,7 +577,7 @@ $(function() {
                                 Core.unblockUI();
                             }
                             
-                            var $dialog = $checkList_<?php echo $this->uniqId2; ?>.find(".mv-checklist-render-card");
+                            var $dialog = $checkList_<?php echo $this->uniqId2; ?>.find(".mv-checklist-render-card:visible");
                             var $parentDialog = $checkList_<?php echo $this->uniqId2; ?>.find('.ui-dialog-content');                    
                             if ($parentDialog.length) {  
                                 $parentDialog.css({'position': 'static', 'overflow': 'inherit'});         
@@ -602,7 +602,7 @@ $(function() {
                                     text: plang.get('save_btn'),
                                     class: "btn btn-sm green-meadow",
                                     click: function () {
-                                      checkListSaveKpiIndicatorForm();
+                                      checkListSaveKpiIndicatorForm($dialog.find('.kpi-ind-tmplt-section'));
                                       $dialog.dialog("close");
                                     },
                                   },{
@@ -690,7 +690,7 @@ $(function() {
                                         Core.unblockUI();
                                     }
                                     
-                                    var $dialog = $checkList_<?php echo $this->uniqId2; ?>.find(".mv-checklist-render-card");
+                                    var $dialog = $checkList_<?php echo $this->uniqId2; ?>.find(".mv-checklist-render-card:visible");
                                     var $parentDialog = $checkList_<?php echo $this->uniqId2; ?>.find('.ui-dialog-content');                    
                                     if ($parentDialog.length) {  
                                         $parentDialog.css({'position': 'static', 'overflow': 'inherit'});         

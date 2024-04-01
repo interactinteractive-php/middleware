@@ -4584,34 +4584,79 @@ function mvColumnDrillDown(elem, indicatorId, columnName, rowIndex) {
                     if (data.status == 'success') {
 
                         var rowData = rows[rowIndex], configData = data.data;
-                        var row = Object.fromEntries(Object.entries(rowData).map(([key, val]) => [key.toLowerCase(), val]));
-
+                        var origRow = Object.fromEntries(Object.entries(rowData).map(([key, val]) => [key.toLowerCase(), val]));
+                        var isAccessDrillRow = false;
+                        var configRow;
+                        var configRows;
+                        var linkIndicatorId;
+                        var linkMetaDataId;
+                        var showType;
+                        var rowSort = Object.keys(origRow).map(function(k) { return { key: k }; }).sort(function(a, b) { return b.key.length - a.key.length; });
+                        var row = {};
+                        
+                        for (var k in rowSort) {
+                            row[rowSort[k]['key']] = origRow[rowSort[k]['key']];
+                        }
+                        
                         for (var c in configData) {
-
-                            var configRow = configData[c]['row'], 
+                            
+                            if (isAccessDrillRow == false) {
+                                
+                                configRow = configData[c]['row'];
                                 configRows = configData[c]['rows'];
-                            var linkIndicatorId = configRow['LINK_INDICATOR_ID'], 
-                                linkMetaDataId = configRow['LINK_META_DATA_ID'], 
-                                showType = configRow['SHOW_TYPE'], 
-                                criteria = configRow['CRITERIA'];
-                            var isNewTab = (showType == 'newtab' || showType == 'newrender' || showType == 'tab') ? true : false;
-                            var drillDownCriteria = '';
+                                linkIndicatorId = configRow['LINK_INDICATOR_ID'];
+                                linkMetaDataId = configRow['LINK_META_DATA_ID'];
+                                showType = configRow['SHOW_TYPE'];
+                                var criteria = configRow['CRITERIA'];
 
-                            for (var r in configRows) {
+                                if (criteria != '') {
+                                    criteria = criteria.toLowerCase();
 
-                                var srcParam = (configRows[r]['SRC_PARAM']) ? (configRows[r]['SRC_PARAM']).toLowerCase() : '', 
-                                    trgParam = configRows[r]['TRG_PARAM'], 
-                                    defaultValue = configRows[r]['DEFAULT_VALUE'];
+                                    $.each(row, function(key, val) {
+                                        if (criteria.indexOf(key) > -1) {
+                                            row = (row === null) ? '' : val.toLowerCase();
+                                            var regex = new RegExp('\\b' + key + '\\b', 'g');
+                                            criteria = criteria.replace(regex, "'" + val.toString() + "'");
+                                        }
+                                    });
 
-                                if (defaultValue != null && defaultValue != '') {
-                                    drillDownCriteria += trgParam + '=' + defaultValue + '&';
-                                } else if (row.hasOwnProperty(srcParam)) {
-                                    drillDownCriteria += trgParam + '=' + row[srcParam] + '&';
+                                    try {
+                                        if (eval(criteria)) {
+                                            isAccessDrillRow = true;
+                                        }
+                                    } catch (err) { 
+                                        isAccessDrillRow = false; 
+                                        console.log(err); 
+                                    }
+                                } else {
+                                    isAccessDrillRow = true;
+                                }
+
+                                if (isAccessDrillRow) {
+                                    
+                                    var isNewTab = (showType == 'newtab' || showType == 'newrender' || showType == 'tab') ? true : false;
+                                    var drillDownCriteria = '';
+
+                                    for (var r in configRows) {
+
+                                        var srcParam = (configRows[r]['SRC_PARAM']) ? (configRows[r]['SRC_PARAM']).toLowerCase() : '', 
+                                            trgParam = configRows[r]['TRG_PARAM'], 
+                                            defaultValue = configRows[r]['DEFAULT_VALUE'];
+
+                                        if (defaultValue != null && defaultValue != '') {
+                                            drillDownCriteria += trgParam + '=' + defaultValue + '&';
+                                        } else if (row.hasOwnProperty(srcParam)) {
+                                            drillDownCriteria += trgParam + '=' + row[srcParam] + '&';
+                                        }
+                                    }
+
+                                    drillDownCriteria = rtrim(drillDownCriteria, '&');
                                 }
                             }
-
-                            drillDownCriteria = rtrim(drillDownCriteria, '&');
-
+                        }
+                        
+                        if (isAccessDrillRow) {
+                            
                             if (linkIndicatorId != '' && linkIndicatorId != null) {
 
                                 var kpiTypeId = configRow['KPI_TYPE_ID'];
@@ -4646,8 +4691,20 @@ function mvColumnDrillDown(elem, indicatorId, columnName, rowIndex) {
                             } else if (linkMetaDataId != '' && linkMetaDataId != null) {
                                 gridDrillDownLink(elem, configRow['META_TYPE_CODE'], '', linkMetaDataId, '', indicatorId, columnName, linkMetaDataId, drillDownCriteria, isNewTab, undefined, configRow['DIALOG_WIDTH'], configRow['DIALOG_HEIGHT']);
                             }
+                        
+                        } else {
+                            
+                            PNotify.removeAll();
+                            new PNotify({
+                                title: 'Warning',
+                                text: 'Нөхцөл тохирохгүй байна!',
+                                type: 'warning',
+                                addclass: pnotifyPosition,
+                                sticker: false
+                            });
                         }
                     }
+                    
                     Core.unblockUI();
                 }
             });

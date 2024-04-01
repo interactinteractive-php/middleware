@@ -600,7 +600,6 @@ $(function() {
                         var html = [];
                 
                         html.push(dataHtml.html);
-                        html.push('<div class="w-100 prnt-content-wrapper"></div>');
 
                         viewProcess_<?php echo $this->uniqId; ?>.empty().append(html.join('')).promise().done(function() {
                             Core.unblockUI();

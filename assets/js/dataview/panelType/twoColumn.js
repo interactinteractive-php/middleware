@@ -304,6 +304,26 @@ var panelDrawTree = function(uniqId, mainDvId, listMetaDataId, listName, loadedR
             }
         },
         "plugins": ['state', 'cookies', 'wholerow', 'dnd'], 
+        "dnd": {
+            "is_draggable": function (node) {
+                if (isObject(node) && node.hasOwnProperty(0)) {
+                    var node = node[0];
+                    var rowData = $(node.text).attr('data-rowdata');
+
+                    if (rowData) {
+                        if (typeof rowData !== 'object') {
+                            var jsonObj = JSON.parse(html_entity_decode(rowData, "ENT_QUOTES"));
+                        } else {
+                            var jsonObj = rowData;
+                        }
+                        
+                        if (jsonObj.hasOwnProperty('isignoredragdrop') && jsonObj.isignoredragdrop == '1') {
+                            return false;
+                        }
+                    }
+                }
+            }
+        },
         
         /*"plugins": ['state', 'cookies', 'wholerow', 'dnd', 'search'], 
         "search": {

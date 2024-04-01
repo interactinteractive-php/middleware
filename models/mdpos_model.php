@@ -3684,6 +3684,12 @@ class Mdpos_Model extends Model {
                         'id' => $invoiceId,
                         'invoiceId' => $basketInvoiceId
                     );
+                    
+                    if (isset($paymentData['reportmonth'])) {
+                        $prevMonth = date('Y-m', strtotime(date('Y-m')." -1 month")) . '-25';
+                        $taxInvParam['reportMonth'] = $prevMonth;
+                    }
+                    
                     $posApiArray = $this->ws->runSerializeResponse(self::$gfServiceAddress, 'posMainSalesInvoiceSendTax', $taxInvParam);                
                     
                     if (isset($posApiArray['result']) && $posApiArray['result']['status'] === 'SUCCESS') {

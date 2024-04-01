@@ -1717,7 +1717,7 @@ class Mdform extends Controller {
             if (isset($isReturnArray) && $isReturnArray) {
                 $content = $this->indicatorMapRender(true);
                 if (Input::numeric('isJson')) {
-                    echo json_encode(array('title' => $this->view->title, 'html' => $content['html']), JSON_UNESCAPED_UNICODE);
+                    convJson(['title' => $this->view->title, 'html' => $content['html']]);
                 } else {
                     return $content;
                 }
@@ -1765,6 +1765,18 @@ class Mdform extends Controller {
         }
         
         $this->view->process = $this->model->getKpiIndicatorProcessModel($this->view->indicatorId);
+        $this->view->actions = $this->model->indicatorActionsModel([
+            'indicatorId' => $this->view->indicatorId, 
+            'processList' => $this->view->process, 
+            'isDataMart' => $this->view->isDataMart, 
+            'isRawDataMart' => $this->view->isRawDataMart, 
+            'isCheckQuery' => $this->view->isCheckQuery, 
+            'isCallWebService' => $this->view->isCallWebService, 
+            'isPrint' => $this->view->isPrint, 
+            'isUseWorkflow' => $this->view->isUseWorkflow, 
+            'isImportManage' => isset($this->view->isImportManage) ? $this->view->isImportManage : false 
+        ]);
+        
         $this->view->relationComponents = $this->model->getKpiIndicatorMapWithoutTypeModel($this->view->indicatorId, '10000000,10000001,10000009');
         $this->view->relationComponents = Arr::groupByArrayOnlyRow($this->view->relationComponents, 'NAME', false);
         $defaultListView = 'kpi/indicator/list'; 
@@ -3548,6 +3560,9 @@ class Mdform extends Controller {
                 $this->view->isDataMart = false; 
                 $this->view->isCallWebService = false;
                 $this->view->isRawDataMart = false;
+                $this->view->isCheckQuery = false;
+                $this->view->isPrint = false;
+                $this->view->isUseWorkflow = false;
                 $this->view->isIgnoreFilter = true;
                 $this->view->drillDownCriteria = '';
 
@@ -3557,7 +3572,18 @@ class Mdform extends Controller {
                 }
 
                 $this->view->process = $this->model->getKpiIndicatorProcessWidgetModel($this->view->indicatorId, $mapId);
-                $this->view->columns = $this->model->renderKpiIndicatorColumnsModel($this->view->indicatorId, $this->view->row['isCheckSystemTable'], array('columnsData' => $this->view->columnsData));
+                $this->view->actions = $this->model->indicatorActionsModel([
+                    'indicatorId' => $this->view->indicatorId, 
+                    'processList' => $this->view->process, 
+                    'isDataMart' => $this->view->isDataMart, 
+                    'isRawDataMart' => $this->view->isRawDataMart, 
+                    'isCheckQuery' => $this->view->isCheckQuery, 
+                    'isCallWebService' => $this->view->isCallWebService, 
+                    'isPrint' => $this->view->isPrint, 
+                    'isUseWorkflow' => $this->view->isUseWorkflow, 
+                    'isImportManage' => isset($this->view->isImportManage) ? $this->view->isImportManage : false 
+                ]);
+                $this->view->columns = $this->model->renderKpiIndicatorColumnsModel($this->view->indicatorId, $this->view->row['isCheckSystemTable'], ['columnsData' => $this->view->columnsData]);
                 
                 $this->view->hiddenParams = '';
                 $this->view->postHiddenParams = $postHiddenParams;
@@ -4628,7 +4654,7 @@ class Mdform extends Controller {
     
     public function getColumnDrillDownConfig() {
         $response = $this->model->getColumnDrillDownConfigModel();
-        echo json_encode($response);
+        convJson($response);
     }
     
     public function updateJsonKpiIndicatorMap() {
@@ -6006,14 +6032,15 @@ class Mdform extends Controller {
         
         $this->view->isGridType = 'datagrid';
         $this->view->isTreeGridData = '';
-        $this->view->isUseWorkflow = $this->view->row['IS_USE_WORKFLOW'];
+        $this->view->isUseWorkflow = false;
         $this->view->isFilterShowData = $this->view->row['IS_FILTER_SHOW_DATA'];
-        $this->view->isPrint = $this->view->row['COUNT_REPORT_TEMPLATE'] ? true : false;
+        $this->view->isPrint = false;
         
-        $this->view->isDataMart = $this->view->row['KPI_TYPE_ID'] == '1040' ? true : false; 
-        $this->view->isCallWebService = ($this->view->row['KPI_TYPE_ID'] == '1080' || $this->view->row['KPI_TYPE_ID'] == '1160' || $this->view->row['KPI_TYPE_ID'] == '1161');
-        $this->view->isRawDataMart = $this->view->row['KPI_TYPE_ID'] == '1044' ? true : false;
-        $this->view->isCheckQuery = $this->view->row['KPI_TYPE_ID'] == '1200' ? true : false;
+        $this->view->isDataMart = false; 
+        $this->view->isCallWebService = false;
+        $this->view->isRawDataMart = false;
+        $this->view->isCheckQuery = false;
+        $this->view->isPrint = false;
         $this->view->drillDownCriteria = '';
         $this->view->hiddenParams = '';
         $this->view->postHiddenParams = '';
@@ -6027,6 +6054,19 @@ class Mdform extends Controller {
         
         $this->view->isHideCheckBox = Input::post('isHideCheckBox', 1);
         $this->view->process = [];
+        $this->view->actions = $this->model->indicatorActionsModel([
+            'indicatorId' => $this->view->indicatorId, 
+            'mainIndicatorId' => $this->view->mainIndicatorId, 
+            'processList' => $this->view->process, 
+            'isDataMart' => $this->view->isDataMart, 
+            'isRawDataMart' => $this->view->isRawDataMart, 
+            'isCheckQuery' => $this->view->isCheckQuery, 
+            'isCallWebService' => $this->view->isCallWebService, 
+            'isPrint' => $this->view->isPrint, 
+            'isUseWorkflow' => $this->view->isUseWorkflow, 
+            'isImportManage' => isset($this->view->isImportManage) ? $this->view->isImportManage : false 
+        ]);
+        
         $mainColumnsData = [];
         
         foreach ($this->view->mainColumnsData as $mainColumn) {

@@ -1245,6 +1245,25 @@
                 </div>   
                 <?php } ?>
 
+                <div class="card mb5 <?php echo Config::getFromCache('POS_VAT_PERIOD_MONTH') && Date::currentDate('d') <= Config::getFromCache('POS_VAT_PERIOD_MONTH') ? '' : 'hidden' ?>">
+                    <div class="card-header" style="padding-left: 5px !important;">
+                        <h6 class="card-title">
+                            <a data-toggle="collapse" class="text-default" href="#pos-payment-account-reportmonth">
+                                Баримт нөхөж бичих
+                            </a>
+                        </h6>
+                    </div>
+                    <div id="pos-payment-account-reportmonth" class="collapse" data-parent="#pos-payment-accordion">
+                        <div class="card-body">
+                            <div class="col">
+                                <div class="form-group row fom-row">
+                                    <label class="col-form-label panel-title" for="reportmonth">Өмнөх сар нөхөж бичих</label>
+                                    <input type="checkbox" name="reportmonth" id="reportmonth" class="form-control ml15" value="1"/>
+                                </div>    
+                            </div>
+                        </div>    
+                    </div>
+                </div>                  
 
                 <div class="card mb5 <?php echo Config::getFromCache('POS_PAY_LEFT_SIDE_SHOW_LEAD') ? '' : 'hidden' ?>">
                     <div class="card-header" style="padding-left: 5px !important;">
