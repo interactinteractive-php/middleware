@@ -821,8 +821,13 @@ $(function() {
         },   
         <?php
         if (isset(Mdform::$gridStyler['row'])) {
+            
+            if ($this->isTreeGridData) {
+                echo 'rowStyler: function(row) {'."\n";
+            } else {
+                echo 'rowStyler: function(index, row) {'."\n";
+            } 
         ?>
-        rowStyler: function(index, row) {
             <?php echo Mdform::$gridStyler['row']; ?>
         },        
         <?php 

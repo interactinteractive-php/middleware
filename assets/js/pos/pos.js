@@ -10040,15 +10040,27 @@ function posSelectedCustomer(
 
 function posInvoiceList(elem, metaId) {
   if (metaId != 0) {
-    dataViewSelectableGrid(
-      "nullmeta",
-      "0",
-      metaId,
-      "single",
-      "nullmeta",
-      elem,
-      "createBillResultDataFromInvoice"
-    );
+    if (isUserPosV3) {
+        dataViewSelectableGrid(
+          "nullmeta",
+          "0",
+          metaId,
+          "single",
+          "nullmeta",
+          elem,
+          "casherCheck"
+        );
+    } else {
+        dataViewSelectableGrid(
+          "nullmeta",
+          "0",
+          metaId,
+          "single",
+          "nullmeta",
+          elem,
+          "createBillResultDataFromInvoice"
+        );
+    }
   } else {
     dataViewSelectableGrid(
       "nullmeta",
@@ -24430,7 +24442,7 @@ function createBillResultDataFromInvoice(
   isMetaGroup
 ) {
   var row = rows[0];
-  console.log("row", row);
+  
   var invoiceId = row.salesinvoiceid;
 
   if (invoiceId) {

@@ -1515,7 +1515,8 @@ class Mdpos_Model extends Model {
             'customerContactPhone'=> issetParam($paymentData['localCustomerPhone']),
             'wfmStatusId'       => '1505964291977811', 
             'customerId'        => '',
-            'parentSalesInvoiceId'=> Input::post('parentSalesInvoiceId')
+            'parentSalesInvoiceId'=> Input::post('parentSalesInvoiceId'),
+            'customerNo'        => Str::upper(issetParam($paymentData['orgRegNumber']))
         );
 
         if ($returnType == 'typeChange') {
@@ -3680,7 +3681,8 @@ class Mdpos_Model extends Model {
                 if ($isUserPosV3) {                                
 
                     $taxInvParam = array(
-                        'id' => $invoiceId
+                        'id' => $invoiceId,
+                        'invoiceId' => $basketInvoiceId
                     );
                     $posApiArray = $this->ws->runSerializeResponse(self::$gfServiceAddress, 'posMainSalesInvoiceSendTax', $taxInvParam);                
                     
@@ -4900,7 +4902,7 @@ class Mdpos_Model extends Model {
                         'id' => $returnInvoiceId,
                         'date' => $billDate
                     );
-                    $posApiArray = $this->ws->runSerializeResponse(self::$gfServiceAddress, 'posMainSalesInvoiceReturnTax', $taxInvParam);                
+                    $posApiArray = $this->ws->runSerializeResponse(self::$gfServiceAddress, 'posMainSalesInvoiceReturnTax_V1', $taxInvParam);                
                     $posApiArray['success'] = true;
                     
                 } else {
@@ -5049,7 +5051,7 @@ class Mdpos_Model extends Model {
                             'id' => $returnInvoiceId,
                             'date' => $billDate
                         );
-                        $posApiArray = $this->ws->runSerializeResponse(self::$gfServiceAddress, 'posMainSalesInvoiceReturnTax', $taxInvParam);                
+                        $posApiArray = $this->ws->runSerializeResponse(self::$gfServiceAddress, 'posMainSalesInvoiceReturnTax_V1', $taxInvParam);                
                         $posApiArray['success'] = true;
                         
                     } else {

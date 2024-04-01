@@ -390,7 +390,7 @@
 .mv-checklist2-render-parent .sidebar-light .nav-sidebar .nav-item>.nav-link {
     text-transform: none;
 }
-.mv-checklist2-render-parent .sidebar-light .nav-sidebar .nav-item>.nav-link.active {
+.mv-checklist2-render-parent .sidebar-light .nav-sidebar .nav-item>.nav-link:not(.mv_card_status_widget).active {
     background-color: #1b84ff54;
 }
 .mv-checklist2-render-parent .mv-checklist-title {
@@ -422,7 +422,7 @@
     margin-right: -10px;
     overflow: auto;
 }
-.mv-checklist2-render-parent .mv-checklist-menu li {
+.mv-checklist2-render-parent .mv-checklist-menu:not(.mv-checklist-card-menu) li {
     width: 100%;
 }
 .mv-checklist2-render-parent > .sidebar .card-body .nav-sidebar a.nav-link {

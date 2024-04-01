@@ -6663,6 +6663,27 @@ class Mdform extends Controller {
         }
     }
     
+    public function showRelationCardHtml() {
+        
+        $this->view->uniqId = Input::post('uniqId');
+        $this->view->uniqId2 = getUID();
+        $this->view->relationList = $this->model->getChildRenderStructureModel(Input::post('trgIndicatorId'), [Mdform::$semanticTypes['normal'], Mdform::$semanticTypes['config']]);
+        $this->view->structureIndicatorId = Input::numeric('structureIndicatorId');
+        $this->view->strIndicatorId = $this->view->structureIndicatorId;
+        $this->view->methodIndicatorId = Input::numeric('methodIndicatorId');
+        $this->view->recordId = Input::numeric('dynamicRecordId');
+        $this->view->mode = Input::post('mode');
+        $this->view->isIgnoreHeaderProcess = Input::numeric('isIgnoreHeaderProcess');
+        $this->view->indicatorId = Input::numeric('trgIndicatorId');
+        
+        $selectedRow = Input::post('selectedRow');
+        $this->view->selectedRow = Arr::changeKeyLower($selectedRow ? $selectedRow : []);        
+        
+        jsonResponse(array(
+            'html'       => $this->view->renderPrint('kpi/indicator/widget/checklist/mv_checklist_card_html', self::$viewPath)
+        ));
+    }    
+    
     public function addRelationHtmlForm() {
         
         $this->view->uniqId = getUID();

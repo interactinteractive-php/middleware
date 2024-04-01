@@ -569,6 +569,45 @@ $(function() {
                     }
                 });
                 
+            } else if (kpiTypeId == '2022') {
+            
+                var postData = {
+                    mainIndicatorId: jsonObj.mainIndicatorId, 
+                    structureIndicatorId: strIndicatorId, 
+                    trgIndicatorId: indicatorId, 
+                    trgIndicatorKpiTypeId: kpiTypeId, 
+                    uniqId: '<?php echo $this->uniqId; ?>', 
+                    typeCode: '', 
+                    recordId: '', 
+                    srcMapId: mapId, 
+                    selectedRow: ''
+                };
+
+                if ($headerParams.length) {
+                    postData.selectedRow = rowParse;
+                    postData.recordId = headerRecordId;
+                }
+                
+                $.ajax({
+                    type: 'post',
+                    url: 'mdform/showRelationCardHtml',
+                    data: postData,
+                    dataType: 'json',
+                    beforeSend: function() {
+                        Core.blockUI({message: 'Loading...', boxed: true});
+                    },
+                    success: function(dataHtml) {
+                        var html = [];
+                
+                        html.push(dataHtml.html);
+                        html.push('<div class="w-100 prnt-content-wrapper"></div>');
+
+                        viewProcess_<?php echo $this->uniqId; ?>.empty().append(html.join('')).promise().done(function() {
+                            Core.unblockUI();
+                        });
+                    }
+                });            
+                
             } else {
                 
                 var recordId = headerRecordId;
