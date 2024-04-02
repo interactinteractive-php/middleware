@@ -18841,7 +18841,7 @@ function detectCustomerFromRegion(lookupKeyDv, dtlPath, region, elem) {
     
     if (window.google && google.maps && currentPolygon && window['kpiMarkerObject']) {
         for (var i = 0; i < window['kpiMarkerObject'].length; i++) {
-            if (google.maps.geometry.poly.containsLocation(window['kpiMarkerObject'][i].getPosition(), currentPolygon)) {
+            if (google.maps.geometry.poly.containsLocation(window['kpiMarkerObject'][i].getPosition(), currentPolygon) && window['kpiMarkerObject'][i].visible) {
                 customerIds.push({"customerid":window['kpiMarkerObject'][i]['rowData']['CUSTOMERID']});
             }
         }       

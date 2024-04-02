@@ -93,7 +93,6 @@ if ($this->getCountCardData) {
         
     </ul>
 </div>
-<?php if (issetParam($this->theme) === 'card' && issetParam($jsonArr['aggregateField']) && issetParam($jsonArr['aggregateFunction'])) { ?>
 <script type="text/javascript">
     $('.wfm-status-step<?php echo $this->metaDataId ?> > ul').slick({
         dots: false,
@@ -164,76 +163,53 @@ if ($this->getCountCardData) {
             width: 320px;
         }
     }
-    
-    .wfm-status-step {
-        .card-section {
-            background: #c1e790d4;
-            color: #585858 !important;
-            font-weight: 500;
-            max-height: max-content;
-            box-shadow: 0px 20px 27px 0px #0000000D;
-            padding: 15px;
-            width: 285px;
-            height: 120px;
-            min-height: 75px;
-            display: inline-flex;
-            align-items: end;
-        }
-
-        .card-section:hover {
-            color: #FFF !important;
-            background: #1B84FF !important;
-        }
-    }
-    
-
-    .wfm-status-step ul li a {
-        background-color: #eaedf4;
-        color: #515f77;
-    }
 </style>
-<?php } else { ?>
-<style type="text/css">
-
-    .wfm-status-step ul {
-        display: inline-table;
-    }
-    .wfm-status-step ul li {
-        display: inline;
-    }
-    
-    .wfm-status-step ul li a.wfm-status-done:hover {
-        background-color: #56bc91;
-    }
-    .wfm-status-step ul li a.wfm-status-done {
-        color: #fff;
-        background-color: #0ca766;
-    }
-    .wfm-status-step ul li a.wfm-status-current {
-        color: #fff;
-        background-color: #0070d2;
-    }
-</style>
-<?php } ?>
 <style type="text/css">
 .wfm-status-step {
     text-align: left;
 }
 .wfm-status-step ul {
     list-style: none;
+    /* display: inline-table; */
     margin-bottom: 0;
     padding: 0;
+}
+.wfm-status-step ul li {
+    /* display: inline; */
+}
+
+.wfm-status-step {
+    .card-section {
+        background: #c1e790d4;
+        color: #585858 !important;
+        font-weight: 500;
+        max-height: max-content;
+        box-shadow: 0px 20px 27px 0px #0000000D;
+        padding: 15px;
+        width: 285px;
+        height: 120px;
+        min-height: 75px;
+        display: inline-flex;
+        align-items: end;
+    }
+
+    .card-section:hover {
+        color: #FFF !important;
+        background: #1B84FF !important;
+    }
 }
 
 .wfm-status-step ul li a {
     display: inline-block;
     height: 26px;
+    background-color: #eaedf4;
     text-align: center;
     padding: 2px 12px;
     position: relative;
     margin: 3px 4px 5px 0px;
     font-size: 13px;
     text-decoration: none;
+    color: #515f77;
     border-radius: 17px;
     font-weight: 600;
     line-height: 22px;

@@ -217,7 +217,7 @@ class Mdstatement_model extends Model {
                     if (array_key_exists('ROW_GROUP_IS_MERGE', $rowGroupRow)) {
                         $rowGroupMerge[$rowGroupFieldLower] = $rowGroupRow['ROW_GROUP_IS_MERGE'];
                     } else {
-                        $rowGroupMerge[$rowGroupFieldLower] = 1;
+                        $rowGroupMerge[$rowGroupFieldLower] = 0;
                     }
                 }
             }

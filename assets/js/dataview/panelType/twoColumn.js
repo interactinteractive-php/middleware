@@ -322,6 +322,8 @@ var panelDrawTree = function(uniqId, mainDvId, listMetaDataId, listName, loadedR
                         }
                     }
                 }
+                
+                return true;
             }
         },
         

@@ -3411,7 +3411,7 @@ class Mdobject extends Controller {
 
     public function setRowWfmStatus() {
         $result = $this->model->setRowWfmStatusModel();
-        echo json_encode($result, JSON_UNESCAPED_UNICODE); exit;
+        convJson($result);
     }
     
     public function checkMetaDataType() {

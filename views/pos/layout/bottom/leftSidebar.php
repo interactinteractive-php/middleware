@@ -335,7 +335,7 @@
     <button type="button" class="btn btn-block btn-circle blue-madison btn-sm" onclick="posInvoiceList(this, '<?php echo Config::getFromCache('IS_USE_POSAPI_V3') ? '1521452365722' : Config::getFromCacheDefault('CONFIG_POS_INVOICE_LIST_META_DATA_ID', null, 0) ?>');" data-criteria="storeId=<?php echo Session::get(SESSION_PREFIX.'storeId'); ?>">
         <?php echo $this->lang->line('POS_0147'); ?> <span class="infoShortcut">(F3)</span>
     </button>
-    <button type="button" style="background-color: #1BBC9B !important;color: #fff !important;" class="btn btn-block btn-circle blue-madison btn-sm" onclick="posOrderSave(1);">
+    <button type="button" style="background-color: #1BBC9B !important;color: #fff !important;" class="btn btn-block btn-circle blue-madison btn-sm hidden" onclick="posOrderSave(1);">
         Нэхэмжлэл үүсгэх
     </button>
     <?php

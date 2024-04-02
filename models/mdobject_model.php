@@ -8763,7 +8763,7 @@ class Mdobject_Model extends Model {
             return $response;
         }
         
-        if (Input::isEmpty('refStructureId') === false && Input::isEmpty('recordId') === false && Input::postCheck('order')) {
+        if (Input::isEmpty('metaDataId') === false && Input::isEmpty('recordId') === false && Input::postCheck('order')) {
             
             $sessionUserId = Ue::sessionUserKeyId();
             $currentDate   = Date::currentDate();
@@ -8780,6 +8780,16 @@ class Mdobject_Model extends Model {
                 'wfmStatusId'       => $wfmStatusId, 
                 'id'                => $recordId
             );
+            
+            if (Input::numeric('isIndicator') == 1) {
+                
+                $indicatorId = $this->getStructureIndicatorIdModel($param['systemMetaGroupId']);
+                
+                $param['refMetaGroupId'] = $indicatorId;
+                $param['isIndicator'] = 1;
+                
+                unset($param['systemMetaGroupId']);
+            }
             
             if (Input::postCheck('selectedRow')) {
                 $selectedRow = json_decode(Input::postNonTags('selectedRow'), true);

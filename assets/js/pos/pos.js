@@ -3274,6 +3274,7 @@ $(function () {
     "change",
     '#pos-payment-form input[data-path="serviceCustomerId"]',
     function () {
+        return;
       var $deliveryPanel = $(".pos-payment-delivery-header");
       var $this = $(this),
         rowData = JSON.parse($this.attr("data-row-data"));

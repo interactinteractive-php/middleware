@@ -4609,7 +4609,7 @@ function mvColumnDrillDown(elem, indicatorId, columnName, rowIndex) {
                                 showType = configRow['SHOW_TYPE'];
                                 var criteria = configRow['CRITERIA'];
 
-                                if (criteria != '') {
+                                if (criteria != '' && criteria != null) {
                                     criteria = criteria.toLowerCase();
 
                                     $.each(row, function(key, val) {

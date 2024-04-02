@@ -12,6 +12,7 @@
     echo Form::hidden(array('name' => 'metaDataId', 'value' => $this->metaDataId)); 
     echo Form::hidden(array('name' => 'recordId', 'value' => $this->recordId)); 
     echo Form::hidden(array('name' => 'wfmStatusId', 'value' => $this->wfmStatusId)); 
+    echo Form::hidden(array('name' => 'isIndicator', 'value' => issetParam($this->dataRow['iskpiindicator']))); 
 
     $wfmRuleId = isset($this->getWfmStatus['DEFAULT_RULE_ID']) ? $this->getWfmStatus['DEFAULT_RULE_ID'] : '1';
     ?>
@@ -1119,52 +1120,6 @@ function wmfDrillFromDataview_<?php echo $this->metaDataId ?>(elem, logId) {
     
     var $statusDialog = $this.closest('.ui-dialog-content');
     $statusDialog.dialog('option', 'position', {my: 'center', at: 'center', of: window});
-    
-    /*var $dialogName = 'dialog-drill-wfm-dataview';
-    if (!$("#" + $dialogName).length) {
-        $('<div id="' + $dialogName + '"></div>').appendTo('body');
-    }
-    var $dialog = $('#' + $dialogName);
-            
-    $.ajax({
-        type: 'post',
-        url: 'mdobject/dataValueViewer',
-        data: {metaDataId: '1591866439972019', viewType: 'detail', ignorePermission: 1, uriParams: '{"wfmStatusLogId": "'+logId+'"}'},
-        beforeSend: function() { Core.blockUI({animate: true}); },
-        success: function(dataHtml) {
-            
-            $dialog.empty().append('<div class="row" id="object-value-list-1591866439972019">' + dataHtml + '</div>');
-            $dialog.dialog({
-                cache: false,
-                resizable: false,
-                bgiframe: true,
-                autoOpen: false,
-                dialogClass: 'dialog-overflow-hidden',
-                title: '',
-                width: 1000,
-                height: 'auto',
-                modal: false,
-                position: {my: 'top', at: 'top+37'},
-                open: function() {
-                    $dialog.find('.object-height-row2-minus-1591866439972019').remove();
-                }, 
-                close: function () {
-                    $dialog.empty().dialog('destroy').remove();
-                }
-            }).dialogExtend({
-                "closable": true,
-                "maximizable": false, 
-                "minimizeLocation": "left",
-                "icons": {
-                    "close": "ui-icon-circle-close"
-                }
-            });
-            
-            $dialog.dialog('open');
-            Core.unblockUI();
-        },
-        error: function() { alert('Error'); Core.unblockUI(); }
-    });*/
 }
 
 function wfmLogAssignSave(elem) {

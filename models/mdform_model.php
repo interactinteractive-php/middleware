@@ -7094,6 +7094,28 @@ class Mdform_Model extends Model {
             }   
             break;
         
+            case 'json':
+            {
+                $attrArray = array(
+                    'name' => $controlName, 
+                    'data-path' => $columnNamePath, 
+                    'data-col-path' => $code, 
+                    'data-field-name' => $cellId, 
+                    'value' => $value, 
+                    'placeholder' => $placeholder, 
+                    'style' => 'height: 28px; overflow: hidden; resize: none;', 
+                    'draggable' => 'false', 
+                    'rows' => '1', 
+                    'class' => 'form-control form-control-sm expression_editorInit'
+                ) + $addAttrs;
+                
+                $control = '<div class="input-group">
+                            '.Form::textArea($attrArray).'
+                            <span class="input-group-append"><button class="btn grey-cascade" type="button" onclick="bpExpressionEditor(this);"><i class="far fa-code"></i></button></span> 
+                        </div>';
+            }   
+            break;
+        
             case 'file':
             {
                 $noFileSelected = 'No file selected';
@@ -11345,6 +11367,8 @@ class Mdform_Model extends Model {
                                 
                                 Mdform::$mvSaveParams[$columnNamePath] = $val;
 
+                            } elseif ($showType == 'json') {
+                                Mdform::$mvSaveParams[$columnNamePath] = Mdform::$mvPostParams[$columnNamePath];
                             } else {
                                 Mdform::$mvSaveParams[$columnNamePath] = issetVar(Mdform::$mvPostParams[$columnNamePath]);
                             }
@@ -11447,6 +11471,22 @@ class Mdform_Model extends Model {
                                 }
                                 
                                 if ($showType == 'clob' || $showType == 'text_editor' || $showType == 'html_clicktoedit' || $showType == 'expression_editor') {
+                                    
+                                    if ($getValue == '') {
+                                        $saveData[$columnName] = null;
+                                    } elseif (strlen($getValue) > 4000) {
+                                        $clobField[$columnName] = $getValue;
+                                    } else {
+                                        $saveData[$columnName] = $getValue;
+                                    }
+                                    
+                                } elseif ($showType == 'json') {
+                                    
+                                    $getValue = isset(Mdform::$mvSaveParams[$columnNamePath]) ? Mdform::$mvSaveParams[$columnNamePath] : null;
+                                    
+                                    if ($getValue != '' && !Json::isJson($getValue)) {
+                                        throw new Exception('JSON format invalid!');
+                                    }
                                     
                                     if ($getValue == '') {
                                         $saveData[$columnName] = null;
