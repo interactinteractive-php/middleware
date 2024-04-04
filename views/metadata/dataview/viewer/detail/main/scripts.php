@@ -6394,7 +6394,7 @@
                         var $this = $(this), $parent = $this.parent('li');
                         var parentId = $parent.attr('id');
 
-                        if (parentId != 'all') {
+                        if (parentId != 'all' && parentId != 'null') {
                             var $rows = $(ui.helper).find('> tr');
                             var dataRows = _thisGrid.datagrid('getRows');
                             var dtlIds = [];
