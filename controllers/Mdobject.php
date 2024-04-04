@@ -5368,4 +5368,9 @@ class Mdobject extends Controller {
         return $result;
     }    
     
+    public function draggableRowsToFilter() {
+        $response = $this->model->draggableRowsToFilterModel();
+        convJson($response);
+    }
+    
 }

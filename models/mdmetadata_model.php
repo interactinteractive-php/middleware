@@ -2556,7 +2556,8 @@ class Mdmetadata_Model extends Model {
                         'CLASS_NAME' => $isCustom ? Input::post('className') : null, 
                         'METHOD_NAME' => $isCustom ? Input::post('methodName') : null, 
                         'FORM_CONTROL' => Input::post('formControl'),
-                        'COLOR_SCHEMA' => Input::post('colorSchema') 
+                        'COLOR_SCHEMA' => Input::post('colorSchema'), 
+                        'DRAG_ROWS_RUN_PROCESS_ID' => Input::numeric('dragRowsRunProcessId')
                     );
 
                     if (self::isExistsMetaLink('META_GROUP_LINK', 'META_DATA_ID', $metaDataId)) {
@@ -7463,6 +7464,9 @@ class Mdmetadata_Model extends Model {
                 ML.RULE_PROCESS_ID, 
                 MDR.META_DATA_CODE AS RULE_META_DATA_CODE, 
                 MDR.META_DATA_NAME AS RULE_META_DATA_NAME, 
+                ML.DRAG_ROWS_RUN_PROCESS_ID, 
+                MDD.META_DATA_CODE AS DRAG_ROWS_RUN_PROCESS_CODE, 
+                MDD.META_DATA_NAME AS DRAG_ROWS_RUN_PROCESS_NAME, 
                 ML.LAYOUT_META_DATA_ID, 
                 ML.EXTERNAL_META_DATA_ID, 
                 ML.WS_URL, 
@@ -7486,6 +7490,7 @@ class Mdmetadata_Model extends Model {
                 LEFT JOIN META_DATA MDLE ON MDLE.META_DATA_ID = ML.DATA_LEGEND_DV_ID 
                 LEFT JOIN META_DATA MDL ON MDL.META_DATA_ID = ML.LAYOUT_META_DATA_ID 
                 LEFT JOIN META_DATA MDR ON MDR.META_DATA_ID = ML.RULE_PROCESS_ID 
+                LEFT JOIN META_DATA MDD ON MDD.META_DATA_ID = ML.DRAG_ROWS_RUN_PROCESS_ID 
             WHERE ML.META_DATA_ID = ".$this->db->Param(0), array($metaDataId));
 
         if ($row) {
@@ -9629,7 +9634,7 @@ class Mdmetadata_Model extends Model {
                 '' AS PARENT_ID, 
                 ".$this->db->IfNull('FL.DATA_TYPE', 'MT.META_TYPE_CODE')." AS DATA_TYPE,  
                 MD.META_DATA_CODE AS PARAM_REAL_PATH,  
-                '' AS IS_SHOW, 
+                1 AS IS_SHOW, 
                 '' AS IS_REQUIRED, 
                 '' AS DEFAULT_VALUE, 
                 '' AS LOOKUP_META_DATA_ID, 

@@ -19,6 +19,7 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
         $position1Group = $position1Grp['0'];
         $tmparr = $hideTmparr = array();
         foreach ($position1Grp as $rKey => $rVal) {
+            
             for ($c=1; $c<=10; $c++) {
                 if (issetParam($rowsArray['position-' . $c]['src_indicator_path'])) {
                     $position1PathArr = explode('.', $rowsArray['position-' . $c]['src_indicator_path']);
@@ -30,19 +31,19 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
             
             $tmp['position-recordid'] = $tmp['position-starttime'] = $tmp['position-endtime'] = '';
 
-            if (issetParam($rVal['TIME'])) {
-                $parsed = date_parse($rVal['TIME']);
-                $timeSecond = $parsed['hour'] * 3600 + $parsed['minute'] * 60 + $parsed['second'];    
+            if (issetParam($rVal['START_TIME'])) {
+                $parsed = explode(':', $rVal['START_TIME']);
+                $timeSecond = $parsed['0'] * 3600 + $parsed['1'] * 60 + $parsed['2'];    
                 $tmp['position-starttime'] = $timeSecond;
             }
 
-            if (issetParam($rVal['RECORDID'])) {
-                $tmp['position-recordid'] = $rVal['RECORDID'];
+            if (issetParam($rVal['CONTENT_ID'])) {
+                $tmp['position-recordid'] = $rVal['CONTENT_ID'];
             }
 
-            if (issetParam($rVal['ENDTIME'])) {
-                $parsed = date_parse($rVal['ENDTIME']);
-                $timeSecond = $parsed['hour'] * 3600 + $parsed['minute'] * 60 + $parsed['second'];    
+            if (issetParam($rVal['END_TIME'])) {
+                $parsed = explode(':', $rVal['END_TIME']);
+                $timeSecond = $parsed['0'] * 3600 + $parsed['1'] * 60 + $parsed['2'];    
 
                 $tmp['position-endtime'] = $timeSecond;
             }
@@ -82,7 +83,7 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                                     <?php echo '<div class="detail_cart_slider_imagevideo'. $this->uniqId .'" style="height: 115px;" data-starttime="'. issetParam($row['position-starttime']) .'" data-endtime="'. issetParam($row['position-endtime']) .'" data-recordid="'. issetParam($row['position-recordid']) .'">'
                                                 . '<canvas id="canvas_'. $key . '_' . $this->uniqId .'" width="125" class="d-none" height="125"></canvas>'
                                                 . '<video width="100%" controls id="video_' . $key . '_' . $this->uniqId .'"  class="d-none" >'
-                                                    . '<source src="'. issetParam($tmparr['0']['position1']) .'" type="video/mp4" data-id="' . $key . '_' . $this->uniqId .'" class="mx-auto videotoimg" height="110px"/>'
+                                                    . '<source src="'. issetParam($row['position1']) .'" type="video/mp4" data-id="' . $key . '_' . $this->uniqId .'" class="mx-auto videotoimg" height="110px"/>'
                                                 . '</video>'
                                             . '</div>'; ?>
                                     <p class="m-0 text-left text-info"><?php echo checkDefaultVal($row['position2'], 'pos-2') ?></p>
@@ -143,10 +144,13 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
 
         var start = _this.data('starttime');
         var end = _this.data('endtime');
+        if (typeof videoTimeToSaveInterval<?php echo $this->uniqId ?> !=='undefined')
+            clearInterval(videoTimeToSaveInterval<?php echo $this->uniqId ?>);
+            
         $('#main_video_<?php echo $this->uniqId ?>').show().parent().find('h4').remove();
 
         function checkTime() {
-            if (mainVideo<?php echo $this->uniqId ?>.currentTime >= endTime) {
+            if (mainVideo<?php echo $this->uniqId ?>.currentTime >= end) {
                mainVideo<?php echo $this->uniqId ?>.pause();
                clearInterval(videoTimeToSaveInterval<?php echo $this->uniqId ?>);
             } else {
@@ -171,7 +175,7 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                     }
                 });             
                 e.preventDefault();
-            });  
+            }, 1000);  
         }
     });
 </script>

@@ -7180,11 +7180,15 @@ function mvWidgetRelationRender(elem, kpiTypeId, mainIndicatorId, opt) {
     if (opt.hasOwnProperty('mode')) {
         mode = opt.mode;
         if (mode == 'update' || mode == 'view') {
-            
             if ($this.closest('.objectdatacustomgrid').length && $this.closest('.objectdatacustomgrid').find('.no-dataview').length) {
                 var selectedRows = $this.closest('.objectdatacustomgrid').find('.no-dataview.active').length ? [JSON.parse($this.closest('.objectdatacustomgrid').find('.no-dataview.active').attr('data-rowdata'))] : [];      
             } else {                        
-                var selectedRows = getDataViewSelectedRows(mainIndicatorId);
+                if ($this.hasClass('no-dataview') && $this.attr('data-rowdata')) {
+                    isNoDataview = true;
+                    fcSelectedRow = [JSON.parse($this.attr('data-rowdata'))];
+                } else {
+                    var selectedRows = getDataViewSelectedRows(mainIndicatorId);
+                }
             }
 
             if (selectedRows.length) {
@@ -7252,6 +7256,14 @@ function mvWidgetRelationRender(elem, kpiTypeId, mainIndicatorId, opt) {
                         }
                     },
                     close: function() {
+                        if (typeof window['videoTimeToSaveInterval' + data.uniqId] !=='undefined') {
+                            clearInterval(window['videoTimeToSaveInterval' + data.uniqId]);
+                        }
+
+                        if (typeof window['videoToImageCheckInterval' + data.uniqId] !=='undefined') {
+                            clearInterval(window['videoToImageCheckInterval' + data.uniqId]);
+                        }
+
                         $dialog.empty().dialog('destroy').remove();
                     },
                     buttons: [

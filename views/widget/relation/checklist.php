@@ -1245,14 +1245,22 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
             stepKey = _this.attr('data-stepid'),
             rowJson = JSON.parse(_this.attr('data-json')),
             hideParams = JSON.parse(_this.attr('data-paramhidden')),
-            $parentSelector = _this.closest('#mv-checklist-render<?php echo $this->uniqId ?>');
+            $parentSelector = _this.closest('#mv-checklist-render<?php echo $this->uniqId ?>'),
+            $parent = _this.closest('.<?php echo $this->uniqId ?>');
         
         $parentSelector.find('.checklistmenu-item.selected').removeClass('selected');
         _this.parent().addClass('selected');
         /* _this.find('i.icon-checkbox-unchecked2').addClass('icon-checkbox-checked2').removeClass('icon-checkbox-unchecked2'); */
 
+        var $parentMenu = $parent.find('.checklistmenu-item.selected').closest('.nav-item-submenu');
         $parentSelector.find('.main-content > .mv-checklist-render-comment').hide();
         $parentSelector.find('.main-content > .mv-checklist-render-comment[data-stepkey="'+ stepKey +'"]').show();
+
+        if ($parent.find('.checklistmenu-item.selected').next().length == 0 && $parentMenu.next().length == 0) {
+            $parent.find('.bp-btn-finish<?php echo $this->uniqId ?>').show();
+            $parent.find('.next-question').hide();
+            $parent.find('.prev-question').show();
+        }
     };
 
     function kpiIndicatorBeforeSave_<?php echo $this->uniqId; ?>(thisButton) {

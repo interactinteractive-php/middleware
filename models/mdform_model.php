@@ -10839,7 +10839,7 @@ class Mdform_Model extends Model {
             $pkColumnName = issetParam(Mdform::$mvParamsConfig['detail'][$parentColumnNamePath.'_pfpk']);
         }
         
-        $parentTableName = $configRow['TABLE_NAME'];        
+        $parentTableName = self::replaceKpiDbSchemaName($configRow['TABLE_NAME']);
         $params = Mdform::$mvParamsConfig['detail'][$parentColumnNamePath];
             
         $saveData = $clobField = $setColumns = [];
@@ -11034,7 +11034,7 @@ class Mdform_Model extends Model {
             throw new Exception('Primary key баганын тохиргоо олдсонгүй! /'.$parentColumnNamePath.'/'); 
         } 
         
-        $parentTableName = $configRow['TABLE_NAME'];
+        $parentTableName = self::replaceKpiDbSchemaName($configRow['TABLE_NAME']);
         $params = Mdform::$mvParamsConfig['detail'][$parentColumnNamePath];
         
         foreach ($data as $k => $row) {
@@ -23379,6 +23379,19 @@ class Mdform_Model extends Model {
                                 $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '$srcIndicatorId', true$opt);";
                             }
                         }
+                        
+                        $contextMenu[] = [
+                            'crudIndicatorId' => $crudIndicatorId, 
+                            'labelName' => $processName,
+                            'onClick' => $onClick,
+                            'actionName' => 'edit',
+                            'iconName' => 'edit', 
+                            'data-actiontype' => $typeCode, 
+                            'data-main-indicatorid' => $indicatorId, 
+                            'data-structure-indicatorid' => $srcIndicatorId, 
+                            'data-crud-indicatorid' => $crudIndicatorId,
+                            'data-mapid' => issetParam($process['map_id'])
+                        ];
 
                     } elseif ($typeCode == 'read') {
 

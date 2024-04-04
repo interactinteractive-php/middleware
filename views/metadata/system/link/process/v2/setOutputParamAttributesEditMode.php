@@ -210,162 +210,178 @@ $(function(){
     $dialogId.on('keydown', 'input.process-output-param-add-code', function (e) {
         if (e.which === 13) {
             
+            Core.blockUI({message: 'Loading...', boxed: true});
             var $this = $(this); 
-            var _value = $this.val(); 
-            var _isName = false; 
-            var $tbody = $this.closest('.output-params-new-config-parent').find('table.output-params-new-config > tbody');
             
-            if (typeof $this.attr('data-ac-id') !== 'undefined') {
-                _isName = 'idselect';
-                _value = $this.attr('data-ac-id');
-            }
-            
-            var isLast = false, isEmpty = false;
-            
-            if ($tbody.find('> tr').length === 0) {
+            setTimeout(function () {
                 
-                var paramGroupPath = '';
-                var depth = 0;
-                var parentId = '';
-                isEmpty = true;
-                
-            } else {
-                
-                if ($tbody.find('> tr.selected').length) {
-                
-                    var $addRow = $tbody.find('> tr.selected');
-                    $addRow.find('> td:eq(0), > td:eq(1)').css('background-color', 'white');
-                    $addRow.removeClass('selected');
+                var _value = $this.val(); 
+                var _isName = false; 
+                var $tbody = $this.closest('.output-params-new-config-parent').find('table.output-params-new-config > tbody');
+
+                if (typeof $this.attr('data-ac-id') !== 'undefined') {
+                    _isName = 'idselect';
+                    _value = $this.attr('data-ac-id');
+                }
+
+                var isLast = false, isEmpty = false;
+
+                if ($tbody.find('> tr').length === 0) {
+
+                    var paramGroupPath = '';
+                    var depth = 0;
+                    var parentId = '';
+                    isEmpty = true;
 
                 } else {
-                    var $addRow = $tbody.find('> tr:last');
-                    isLast = true;
-                }
 
-                var paramGroupPath = '';
-                var depth = $addRow.attr('data-depth');
-                var parentId = $addRow.attr('data-parent-id');
+                    if ($tbody.find('> tr.selected').length) {
 
-                if (depth !== '0') {
-                    paramGroupPath = $addRow.find('.process-path-name').text();
-                }
+                        var $addRow = $tbody.find('> tr.selected');
+                        $addRow.removeClass('selected');
 
-                if ($addRow.attr('data-row-type') === 'group' && $addRow.find('.fa-plus').length) {
-
-                    var plusDepth = Number(depth) + 1;
-                    var paramPath = $addRow.attr('data-path');
-
-                    if ($tbody.find("tr[data-depth='"+plusDepth+"'][data-path^='"+paramPath+".']").length) {
-                        $addRow = $tbody.find("> tr[data-depth='"+plusDepth+"'][data-path^='"+paramPath+".']:last");
-                    }              
-
-                } else if ($addRow.attr('data-row-type') === 'group' && $addRow.find('.fa-minus').length) {
-
-                    var plusDepth = Number(depth) + 1;
-                    var paramPath = $addRow.attr('data-path');
-                    
-                    if ($addRow.hasAttr('data-id')) {
-                        parentId = $addRow.attr('data-id');
                     } else {
-                        parentId = $addRow.find('.process-param-rowid').val();
+                        var $addRow = $tbody.find('> tr:last');
+                        isLast = true;
                     }
 
-                    if ($tbody.find("tr[data-depth='"+plusDepth+"'][data-path^='"+paramPath+".']").length) {
-                        $addRow = $tbody.find("> tr[data-depth='"+plusDepth+"'][data-path^='"+paramPath+".']:last");
-                        depth = plusDepth;
+                    var paramGroupPath = '';
+                    var depth = $addRow.attr('data-depth');
+                    var parentId = $addRow.attr('data-parent-id');
+
+                    if (depth !== '0') {
+                        paramGroupPath = $addRow.find('.process-path-name').text();
                     }
 
-                    paramGroupPath = paramPath + '.' + _value;    
-                }
-            }
-            
-            $.ajax({
-                type: 'post',
-                url: 'mdmetadata/processOutputParamAddCode',
-                data: {
-                    code: _value,
-                    isName: _isName, 
-                    depth: depth, 
-                    parentId: parentId, 
-                    paramGroupPath: paramGroupPath 
-                },
-                async: false,
-                dataType: 'json', 
-                beforeSend: function(){
-                    $this.addClass('spinner2');
-                },
-                success: function(jsonData){
-                    
-                    $this.removeAttr('data-ac-id');
-                    $this.val('');
-                    
-                    if (jsonData.hasOwnProperty('status')) {
-                        
-                        PNotify.removeAll();
-                        new PNotify({
-                            title: jsonData.status,
-                            text: jsonData.message, 
-                            type: jsonData.status,
-                            sticker: false
-                        });
-                        
-                    } else {
-                        
-                        if ($tbody.find('input.process-param-path:attrNoCase("value","'+jsonData.path+'")').length) {
-                            
-                            $this.removeClass('spinner2');
-                            Core.unblockUI();
-                            PNotify.removeAll();
+                    if ($addRow.attr('data-row-type') === 'group' && $addRow.find('.fa-plus').length) {
 
-                            new PNotify({
-                                title: 'Анхааруулга',
-                                text: 'Уг ('+jsonData.path+') path өмнө нь үүссэн байна!', 
-                                type: 'info',
-                                sticker: false
-                            });
+                        var plusDepth = Number(depth) + 1;
+                        var paramPath = $addRow.attr('data-path');
 
-                            return;
-                            
+                        if ($tbody.find("tr[data-depth='"+plusDepth+"'][data-path^='"+paramPath+".']").length) {
+                            $addRow = $tbody.find("> tr[data-depth='"+plusDepth+"'][data-path^='"+paramPath+".']:last");
+                        }              
+
+                    } else if ($addRow.attr('data-row-type') === 'group' && $addRow.find('.fa-minus').length) {
+
+                        var plusDepth = Number(depth) + 1;
+                        var paramPath = $addRow.attr('data-path');
+
+                        if ($addRow.hasAttr('data-id')) {
+                            parentId = $addRow.attr('data-id');
                         } else {
-                            
-                            var dataRow = jsonData.html;
+                            parentId = $addRow.find('.process-param-rowid').val();
+                        }
+
+                        if ($tbody.find("tr[data-depth='"+plusDepth+"'][data-path^='"+paramPath+".']").length) {
+                            $addRow = $tbody.find("> tr[data-depth='"+plusDepth+"'][data-path^='"+paramPath+".']:last");
+                        }
                         
-                            if (isEmpty) {
+                        depth = plusDepth;
+                        paramGroupPath = paramPath + '.' + _value;    
+                    }
+                }
+                
+                _value = _value.trim();
+                
+                if (_value !== '') {
+                    
+                    $.ajax({
+                        type: 'post',
+                        url: 'mdmetadata/processOutputParamAddCode',
+                        data: {
+                            code: _value,
+                            isName: _isName, 
+                            depth: depth, 
+                            parentId: parentId, 
+                            paramGroupPath: paramGroupPath 
+                        },
+                        async: false,
+                        dataType: 'json', 
+                        success: function(jsonData){
 
-                                $tbody.html(dataRow);
-                                processOutputParamInitFreeze();
+                            $this.removeAttr('data-ac-id');
+                            $this.val('');
 
-                                var $addedRow = $tbody.find('> tr:eq(0)');
-                                isLast = true;
+                            if (jsonData.hasOwnProperty('status')) {
                                 
+                                Core.unblockUI();
+                                PNotify.removeAll();
+                                new PNotify({
+                                    title: jsonData.status,
+                                    text: jsonData.message, 
+                                    type: jsonData.status,
+                                    sticker: false
+                                });
+
                             } else {
 
-                                $addRow.after(dataRow);
+                                if ($tbody.find('input.process-param-path:attrNoCase("value","'+jsonData.path+'")').length) {
 
-                                processOutputParamInitFreeze();
-                                //$addRow.find('td:eq(0), td:eq(1)').css('background-color', 'white');
+                                    Core.unblockUI();
+                                    PNotify.removeAll();
 
-                                var $addedRow = $addRow.next();
-                                
-                                if ($addedRow.is(':last-child')) {
-                                    isLast = true;
+                                    new PNotify({
+                                        title: 'Анхааруулга',
+                                        text: 'Уг ('+jsonData.path+') path өмнө нь үүссэн байна!', 
+                                        type: 'info',
+                                        sticker: false
+                                    });
+
+                                    return;
+
+                                } else {
+
+                                    var dataRow = jsonData.html;
+
+                                    if (isEmpty) {
+
+                                        $tbody.html(dataRow);
+                                        Core.unblockUI();
+                                        
+                                        processOutputParamInitFreeze();
+
+                                        var $addedRow = $tbody.find('> tr:eq(0)');
+                                        isLast = true;
+
+                                    } else {
+
+                                        $addRow.after(dataRow);
+                                        Core.unblockUI();
+
+                                        processOutputParamInitFreeze();
+
+                                        var $addedRow = $addRow.next();
+
+                                        if ($addedRow.is(':last-child')) {
+                                            isLast = true;
+                                        }
+                                    }
+                                    
+                                    var $parentScrollDiv = $('div#fz-process-output-params-option');
+                                    var scrollTopSize = 0;
+                                    
+                                    if (isLast) {
+                                        scrollTopSize = 4000;
+                                    }
+
+                                    if (scrollTopSize > 0) {
+                                        $parentScrollDiv.scrollTop(scrollTopSize);
+                                    }
+
+                                    $addedRow.trigger('click');
                                 }
                             }
-
-                            if (isLast) {
-                                $('div#fz-process-output-params-option').scrollTop(4000);
-                            }
-
-                            //$addedRow.find('td:eq(0), td:eq(1)').css('background-color', 'white');
+                        },
+                        error: function () {
+                            alert("Error");
                         }
-                    }
-                    
-                    $this.removeClass('spinner2');
-                },
-                error: function () {
-                    alert("Error");
+                    });
+                
+                } else {
+                    Core.unblockUI();
                 }
-            });
+            }, 25);
         }
     });
     $dialogId.on('focus', 'input.process-output-param-add-code', function(e){

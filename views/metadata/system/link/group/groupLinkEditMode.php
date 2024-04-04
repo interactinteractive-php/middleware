@@ -1407,6 +1407,29 @@
                                 ?>
                             </td>
                         </tr>
+                        <tr class="ddatamodel-grid-option">
+                            <td class="left-padding"><?php echo $this->lang->line('Drag rows process'); ?></td>
+                            <td colspan="2">
+                                <div class="meta-autocomplete-wrap" data-params="autoSearch=1&metaTypeId=<?php echo Mdmetadata::$businessProcessMetaTypeId; ?>">
+                                    <div class="input-group double-between-input">
+                                        <input id="dragRowsRunProcessId" name="dragRowsRunProcessId" type="hidden" value="<?php echo Arr::get($this->gRow, 'DRAG_ROWS_RUN_PROCESS_ID'); ?>">
+                                        <input id="_displayField" class="form-control form-control-sm md-code-autocomplete" value="<?php echo Arr::get($this->gRow, 'DRAG_ROWS_RUN_PROCESS_CODE'); ?>" title="<?php echo Arr::get($this->gRow, 'DRAG_ROWS_RUN_PROCESS_CODE'); ?>" placeholder="<?php echo $this->lang->line('META_00068'); ?>" type="text">
+                                        <span class="input-group-btn">
+                                            <button type="button" class="btn default btn-bordered form-control-sm mr0" onclick="commonMetaDataSelectableGrid('single', '', this);"><i class="fa fa-search"></i></button>
+                                        </span>     
+                                        <span class="input-group-btn not-group-btn">
+                                            <div class="btn-group pf-meta-manage-dropdown">
+                                                <button class="btn grey-cascade btn-bordered form-control-sm mr0 dropdown-toggle" type="button" data-toggle="dropdown"></button>
+                                                <ul class="dropdown-menu dropdown-menu-right" style="min-width: 126px;" role="menu"></ul>
+                                            </div>
+                                        </span>  
+                                        <span class="input-group-btn flex-col-group-btn">
+                                            <input id="_nameField" class="form-control form-control-sm md-name-autocomplete" value="<?php echo Arr::get($this->gRow, 'DRAG_ROWS_RUN_PROCESS_NAME'); ?>" title="<?php echo Arr::get($this->gRow, 'DRAG_ROWS_RUN_PROCESS_NAME'); ?>" placeholder="<?php echo $this->lang->line('META_00099'); ?>" type="text">      
+                                        </span>     
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>

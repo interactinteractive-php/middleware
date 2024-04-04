@@ -250,17 +250,6 @@ if ($this->getCountCardData) {
 .wfm-status-step ul li:last-child a:after {
     display: none; 
 }
-/*.wfm-status-step ul li a.wfm-status-done:hover {
-    background-color: #56bc91;
-}
-.wfm-status-step ul li a.wfm-status-done {
-    color: #fff;
-    background-color: #0ca766;
-}
-.wfm-status-step ul li a.wfm-status-current {
-    color: #fff;
-    background-color: #0070d2;
-}*/
 </style>
 <?php
     } else {

@@ -370,7 +370,6 @@ $(function(){
                     if ($tbody.find('> tr.selected').length) {
 
                         var $addRow = $tbody.find('> tr.selected');
-                        //$addRow.find('> td:eq(0), > td:eq(1)').css('background-color', 'white');
                         $addRow.removeClass('selected');
 
                     } else {
@@ -483,7 +482,6 @@ $(function(){
                                         Core.unblockUI();
                                         
                                         processParamInitFreeze();
-                                        //$addRow.find('td:eq(0), td:eq(1)').css('background-color', 'white');
 
                                         var $addedRow = $addRow.next();
                                         
@@ -497,23 +495,12 @@ $(function(){
                                     
                                     if (isLast) {
                                         scrollTopSize = 4000;
-                                    } /*else {
-                                        
-                                        var scrollHeight = $parentScrollDiv[0].scrollHeight;
-                                        var clientHeight = $parentScrollDiv[0].clientHeight;
-
-                                        if (scrollHeight !== clientHeight) {
-                                            var nextRowTop = $addedRow.offset().top;
-                                            var parentScrollTop = $parentScrollDiv.scrollTop();
-                                            scrollTopSize = parentScrollTop + $addedRow.height() + 25;
-                                        }
-                                    }*/
+                                    }
                                     
                                     if (scrollTopSize > 0) {
                                         $parentScrollDiv.scrollTop(scrollTopSize);
                                     }
 
-                                    //$addedRow.find('td:eq(0), td:eq(1)').css('background-color', 'white');
                                     $addedRow.trigger('click');
                                 }
                             }

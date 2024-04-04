@@ -306,7 +306,7 @@ var panelDrawTree = function(uniqId, mainDvId, listMetaDataId, listName, loadedR
         "plugins": ['state', 'cookies', 'wholerow', 'dnd'], 
         "dnd": {
             "is_draggable": function (node) {
-                if (isObject(node) && node.hasOwnProperty(0)) {
+                if ((isObject(node) || isArray(node)) && node.hasOwnProperty(0)) {
                     var node = node[0];
                     var rowData = $(node.text).attr('data-rowdata');
 

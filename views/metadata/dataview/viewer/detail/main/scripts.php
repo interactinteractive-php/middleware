@@ -1146,10 +1146,7 @@
                                 type: 'post',
                                 url: 'mdobject/dataViewSetOrder',
                                 beforeSend: function() {
-                                    Core.blockUI({
-                                        message: 'Loading...',
-                                        boxed: true
-                                    });
+                                    Core.blockUI({message: 'Loading...', boxed: true});
                                 },                            
                                 data: {
                                     dataViewId: '<?php echo $this->metaDataId ?>', 
@@ -1300,6 +1297,8 @@
                 
                 var tmpDvOpt = _thisGrid.datagrid('options'), tmpDvQueryParams = tmpDvOpt.queryParams;
                 delete tmpDvQueryParams.isClickFilter;
+                    
+                dvDraggableRowsToFilter_<?php echo $this->metaDataId; ?>($panelView, _thisGrid);
             }            
         });
         
@@ -6368,6 +6367,65 @@
                 }
             });
         }
+    }
+    
+    function dvDraggableRowsToFilter_<?php echo $this->metaDataId; ?>($panelView, _thisGrid) {
+        <?php
+        if (issetParam($this->row['DRAG_ROWS_RUN_PROCESS_ID'])) {
+        ?>
+        var dvId = '<?php echo $this->metaDataId; ?>';
+        $panelView.find(".datagrid-view2 tr").draggable({
+            appendTo: "body", 
+            zIndex: 1000, 
+            cursor: "pointer", 
+            cursorAt: {top: 15, left: -15}, 
+            /*drag: function() { return false; },*/
+            helper: function() {
+                var $selectedRows = $("<table>", {class: "table table-xs table-bordered bg-white", style: 'position: fixed;'});
+                var $cloneRow = $(this).clone();
+                $selectedRows.append($cloneRow);
+                return $selectedRows;
+            }, 
+            start: function(event, ui) {
+                $('#dataViewStructureTreeView_' + dvId).find("a.jstree-anchor").droppable({
+                    hoverClass: "ui-state-highlight",
+                    tolerance: "pointer",
+                    drop: function(e, ui) {
+                        var $this = $(this), $parent = $this.parent('li');
+                        var parentId = $parent.attr('id');
+
+                        if (parentId != 'all') {
+                            var $rows = $(ui.helper).find('> tr');
+                            var dataRows = _thisGrid.datagrid('getRows');
+                            var dtlIds = [];
+                            $rows.each(function() {
+                                var $row = $(this);
+                                dtlIds.push({
+                                    'sourceId': parentId, 
+                                    'targetId': dataRows[$row.attr('datagrid-row-index')]['id']
+                                });
+                            });
+
+                            $.ajax({
+                                type: 'post',
+                                url: 'mdobject/draggableRowsToFilter',
+                                data: {metaDataId: dvId, headerId: parentId, dtlIds: dtlIds},
+                                dataType: 'json',
+                                success: function(data) {
+                                    console.log(data);
+                                }
+                            });
+                        }
+
+                        $(ui.helper).remove();
+                    }
+                });
+            }
+        });
+        <?php
+        }
+        ?>
+        return;
     }
 </script>
 <?php 

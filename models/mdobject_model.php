@@ -319,7 +319,8 @@ class Mdobject_Model extends Model {
                     GL.COLOR_SCHEMA, 
                     GL.IS_IGNORE_CLEAR_FILTER, 
                     GL.WS_URL AS DV_WS_URL, 
-                    MD.DESCRIPTION 
+                    MD.DESCRIPTION, 
+                    GL.DRAG_ROWS_RUN_PROCESS_ID 
                 FROM META_GROUP_LINK GL 
                     INNER JOIN META_DATA MD ON MD.META_DATA_ID = GL.META_DATA_ID 
                     LEFT JOIN META_DATA_FOLDER_MAP MFM ON MFM.META_DATA_ID = GL.META_DATA_ID 
@@ -12411,6 +12412,41 @@ class Mdobject_Model extends Model {
                 AND DATA_TYPE <> 'group'", array($dvId));
         
         return $data;
+    }
+    
+    public function draggableRowsToFilterModel() {
+        
+        $metaDataId = Input::numeric('metaDataId');
+        $headerId = Input::numeric('headerId');
+        $dtlIds = Input::post('dtlIds');
+        $result = ['status' => 'error', 'message' => 'Invalid parameters!'];
+        
+        if ($metaDataId && $headerId && $dtlIds) {
+            
+            $configRow = self::getDataViewConfigRowModel($metaDataId);
+            
+            if ($processId = issetParam($configRow['DRAG_ROWS_RUN_PROCESS_ID'])) {
+                
+                $this->load->model('mdwebservice', 'middleware/models/');
+                $bpRow = $this->model->getMethodIdByMetaDataModel($processId);
+                
+                if ($bpRow) {
+                    $param = [
+                        'sourceId' => $headerId, 
+                        'targetIds' => $dtlIds 
+                    ];
+                    $result = $this->ws->runArrayResponse(GF_SERVICE_ADDRESS, $bpRow['META_DATA_CODE'], $param);
+
+                    if ($result['status'] == 'success') {
+                        $result = ['status' => 'success'];
+                    } else {
+                        $result = ['status' => 'error', 'message' => $this->ws->getResponseMessage($result)];
+                    }
+                }
+            }
+        }
+        
+        return $result;
     }
     
 }

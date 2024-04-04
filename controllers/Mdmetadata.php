@@ -2715,17 +2715,17 @@ class Mdmetadata extends Controller {
             $row['PARENT_ID'] = $parentId;
             $row['PARAM_REAL_PATH'] = $paramGroupPath.$row['PARAM_REAL_PATH'];
             
-            $this->view->params = array($row);
+            $this->view->params = [$row];
             
         } else {
             
-            $this->view->params = array(
-                array(
+            $this->view->params = [
+                [
                     'ID' => getUID(),
                     'PARENT_ID' => $parentId,
                     'DATA_TYPE' => 'string', 
                     'PARAM_REAL_PATH' => $paramGroupPath.$realCode,
-                    'IS_SHOW' => '',
+                    'IS_SHOW' => 1,
                     'IS_REQUIRED' => '',
                     'DEFAULT_VALUE' => '',
                     'LOOKUP_META_DATA_ID' => '',
@@ -2737,10 +2737,10 @@ class Mdmetadata extends Controller {
                     'CHOOSE_TYPE' => '',
                     'RECORD_TYPE' => '',
                     'TAB_NAME' => '',
-                    'LABEL_NAME' => '',
+                    'LABEL_NAME' => $realCode,
                     'PARAM_NAME' => $realCode
-                )
-            );
+                ]
+            ];
         }
         
         $this->view->fieldDataTypeOptions = $this->model->fieldDataTypeComboOptions('IS_BP = 1');
@@ -2748,10 +2748,10 @@ class Mdmetadata extends Controller {
         $this->view->depth = Input::post('depth');
         $this->view->isNew = 1;
         
-        echo json_encode(array(
+        convJson([
             'path' => $this->view->params[0]['PARAM_REAL_PATH'], 
             'html' => $this->view->renderPrint('system/link/process/v2/input', self::$viewPath)
-        )); exit;
+        ]);
     }
     
     public function processOutputParamAddCode() {
@@ -2807,22 +2807,22 @@ class Mdmetadata extends Controller {
             $row['PARENT_ID'] = $parentId;
             $row['PARAM_REAL_PATH'] = $paramGroupPath.$row['PARAM_REAL_PATH'];
             
-            $this->view->params = array($row);
+            $this->view->params = [$row];
             
         } else {
             
-            $this->view->params = array(
-                array(
+            $this->view->params = [
+                [
                     'ID' => getUID(),
                     'PARENT_ID' => $parentId,
                     'DATA_TYPE' => 'string', 
                     'PARAM_REAL_PATH' => $paramGroupPath.$realCode,
-                    'IS_SHOW' => '',
+                    'IS_SHOW' => 1,
                     'RECORD_TYPE' => '',
-                    'LABEL_NAME' => '',
+                    'LABEL_NAME' => $realCode,
                     'PARAM_NAME' => $realCode
-                )
-            );
+                ]
+            ];
         }
         
         $this->view->fieldDataTypeOptions = $this->model->fieldDataTypeComboOptions('IS_DV = 1');
@@ -2830,10 +2830,10 @@ class Mdmetadata extends Controller {
         $this->view->depth = Input::post('depth');
         $this->view->isNew = 1;
         
-        echo json_encode(array(
+        convJson([
             'path' => $this->view->params[0]['PARAM_REAL_PATH'], 
             'html' => $this->view->renderPrint('system/link/process/v2/output', self::$viewPath)
-        )); exit;
+        ]);
     }
     
     public function processParamAddMulti() {
