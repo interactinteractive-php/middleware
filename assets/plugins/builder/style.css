@@ -1,5 +1,54 @@
 .build-page {
     
+            
+    .top-action-btns {
+        background: #333;
+        padding: 0.3rem 1rem;
+        border-radius: 5px;
+        max-width: max-content;
+        min-width: min-content;
+        position: absolute;
+        right: 20%;
+        top: 10px;
+        display: inline-flex;
+        
+        .span {
+            margin-left: 1rem;
+            display: inline-block;
+            font-size: 11px;
+            line-height: 1;
+            padding-right: 5px;
+            vertical-align: middle;
+            font-weight: bold;
+        }
+
+        button {
+            padding: 4px;
+            margin-left: 0;
+            font-size: 11px;
+        }
+
+        .close {
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: inline-flex;
+            background: rgb(0 0 0 / 30%);
+            font-size: 11px;
+            font-weight: bold;
+            line-height: 11px;
+            margin-left: 1rem;
+            padding: 0.5rem 0.4rem !important;
+            justify-content: center;
+            place-items: center;
+            border: none;
+        }
+
+        .close:hover {
+            background-color: #C83B3D !important;
+        }
+    }
+    
     #hidden {
         display: none !important;
     }
@@ -181,7 +230,7 @@
                 overflow: hidden !important;
                 overflow-y: hidden !important;
             }
-    
+
             .zoomer-cover > .action-btns button.btn {
                 border-radius: 0px;
                 float: right;
@@ -207,7 +256,7 @@
             .standart-section {
                 position: relative !important;
                 /* min-height: 350px; */
-                border: 3px dashed #e5e5e5;
+                border: 1px solid #e5e5e5;
                 .clear-both {
                     clear:both; 
                     height:0px;
@@ -238,6 +287,18 @@
             .iframe-section {
                 position: relative !important;
                 /* min-height: 350px; */
+            }
+            
+            .standart-section table th:hover,
+            .standart-section table td:hover
+            {
+                cursor: pointer;
+            }
+
+            .standart-section table th.active,
+            .standart-section table td.active
+            {
+                background-color: #2ca6df4a !important
             }
         }
     }

@@ -515,9 +515,21 @@ $(function() {
         var html = '<form>'+
             '<div class="col-md-12 xs-form">'+ 
                 '<div class="form-group row">'+
-                    '<label class="col-form-label col-md-2 text-right pr0" for="dmart_label_name"><span class="required">*</span>Чартын нэр:</label>'+
-                    '<div class="col-md-10">'+
+                    '<label class="col-form-label col-md-4 text-right pr0" for="dmart_label_name"><span class="required">*</span>Чартын нэр:</label>'+
+                    '<div class="col-md-8">'+
                         '<input type="text" name="chartTitle" class="form-control form-control-sm mt-0" placeholder="Чартын нэр" required="required" value="<?php echo issetParam($this->chartName); ?>"/>'+
+                    '</div>'+
+                '</div>'+
+                '<div class="form-group row">'+
+                    '<label class="col-form-label col-md-4 text-right pr0" for="dmart_iscreate_widget">Widget үүсгэх эсэх:</label>'+
+                    '<div class="col-md-8">'+
+                        '<input type="checkbox" class="booleanInit" name="dmart_iscreate_widget" value="1" saved_val="" id="dmart_iscreate_widget">'+
+                    '</div>'+
+                '</div>'+
+                '<div class="form-group row">'+
+                    '<label class="col-form-label col-md-4 text-right pr0" for="dmart_widget_file">Widget зураг:</label>'+
+                    '<div class="col-md-8">'+
+                        '<input type="file" id="dmart_widget_file" name="dmart_widget_file" value=""/>'+
                     '</div>'+
                 '</div>'+
             '</div>'+

@@ -9642,7 +9642,7 @@ class Mdwebservice extends Controller {
             $input['IS_THUMBNAIL'] = '1';
         }
         
-        if (in_array($fileExtension, array('jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff'))) {
+        if (in_array($fileExtension, array('jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'jfif'))) {
             
             Upload::$File = $fileAttr;
             Upload::$method = 0;

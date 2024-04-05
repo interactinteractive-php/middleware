@@ -4318,6 +4318,8 @@ class Mdform_Model extends Model {
                         KI.WINDOW_SIZE,
                         KI.RENDER_THEME, 
                         KI.ICON, 
+                        KI.SEARCH_TYPE, 
+                        KI.SEARCH_COLUMN_NUMBER, 
                         MW.CODE AS RELATION_WIDGET_CODE, 
                         (
                             SELECT 
@@ -7183,6 +7185,86 @@ class Mdform_Model extends Model {
                         <span class="filename" data-text="'.$noFileSelected.'" title="'.$fileNameTag.'">'.$fileNameTag.'</span>
                         '.$fileView.'
                         <button type="button" class="action btn btn-sm btn-light bp-file-choose-btn" onclick="bpFileChoose(this);">'.Lang::line('select_file_btn').'</button>
+                    </div>';
+            }   
+            break;
+        
+            case 'show_file':
+            {
+                $noFileSelected = 'No file selected';
+                $fileNameTag = $noFileSelected;
+                $fileView = '<i class="icon-plus3 big"></i>';
+                
+                $attrArray = [
+                    'name' => 'mvFile'.Mdform::$addonPathPrefix.Mdform::$pathPrefix.'['.$columnNamePath.']'.Mdform::$pathSuffix,
+                    'data-path' => $columnNamePath, 
+                    'data-col-path' => $code, 
+                    'class' => 'form-control form-control-uniform fileInit', 
+                    'autocomplete' => 'off', 
+                    'placeholder' => $placeholder, 
+                    'data-field-name' => $cellId, 
+                    'onchange' => 'onChangeAttachFIleIndicatorMode(this)', 
+                ] + $addAttrs;
+                
+                $hiddenAttrArray = ['name' => $controlName, 'value' => $value];
+                
+                $fileHidden = Form::hidden($hiddenAttrArray);
+                
+                if ($value && strpos($value, '.') !== false) {
+
+                    $fileName = $value;
+
+                    if (isset($attrArray['required'])) {
+                        unset($attrArray['required']);
+                    }
+
+                    $href = 'mdobject/downloadFile?fDownload=1&file=' . $fileName;
+                    $realFileName = '';
+
+                    if ($realFileName) {
+                        $href .= '&fileName=' . $realFileName;
+                        $fileNameTag = $realFileName;
+                    } else {
+                        $fileNameTag = basename($fileName);
+                    }
+
+                    $attrArray['title'] = $fileNameTag;
+
+                    $fileExtension = strtolower(substr($fileName, strrpos($fileName, '.') + 1));
+
+                    if ($fileExtension == 'pdf') {
+                        $fileIcon = 'icon-file-pdf';
+                    } elseif ($fileExtension == 'doc' || $fileExtension == 'docx') {
+                        $fileIcon = 'icon-file-word';
+                    } elseif ($fileExtension == 'xls' || $fileExtension == 'xlsx') {
+                        $fileIcon = 'icon-file-excel';
+                    } elseif ($fileExtension == 'png' || $fileExtension == 'jpg' || $fileExtension == 'jpeg' 
+                        || $fileExtension == 'gif' || $fileExtension == 'bmp' || $fileExtension == 'webp') {
+                        $fileIcon = 'icon-file-picture';
+                    } elseif ($fileExtension == 'zip' || $fileExtension == 'rar') {
+                        $fileIcon = 'icon-file-zip';
+                    } else {
+                        $fileIcon = 'icon-file-text2';
+                    }
+                    
+                    if ($fileIcon == 'icon-file-picture') {
+                        $fileView='<a href="javascript:;" id="' . getUID() . '" class="" data-rel="" style="height: 112px;width: 112px;">';
+                        $fileView.='<img style="height: 112px;width: 112px;object-fit: cover;" src="'.$fileName.'" id="' . getUID() . '"/>';
+                        $fileView.='</a>';                        
+                    } else {
+                        $fileView='<a href="javascript:;" title="" style="height: 112px;width: 112px;">';
+                        $fileView.='<img style="height: 112px;width: 112px;object-fit: cover;" src="assets/core/global/img/filetype/64/' . $fileExtension . '.png"/>';
+                        $fileView.='</a>';                        
+                    }
+
+                }
+                
+                $control = '<div class="uniform-uploader" data-section-path="' . $columnName . '">
+                        '.Form::file($attrArray).$fileHidden.'
+                        <span class="filename hidden" data-text="'.$noFileSelected.'" title="'.$fileNameTag.'">'.$fileNameTag.'</span>
+                        <div class="btn fileinput-button btn-xs bp-file-choose-btn mv-file-choose-btn" title="Файл нэмэх" onclick="bpFileChoose(this);" style="width: 112px;">
+                            '.$fileView.'
+                        </div>
                     </div>';
             }   
             break;
@@ -14135,47 +14217,54 @@ class Mdform_Model extends Model {
                             $mapFields       = $opts['mapFields'];
                             $selectedColumn  = $selectedInputName = '';
                             
-                            if ($mapFields) {
-                                $mapInputName = $column['MAP_INPUT_NAME'];
-                                foreach ($mapFields as $mapField) {
-                                    if ($mapField['TRG_COLUMN_NAME'] == $columnName && $mapField['INPUT_NAME'] == $mapInputName) {
-                                        $selectedColumn = $mapField['SRC_COLUMN_NAME'];
-                                        $selectedInputName = $mapInputName;
-                                        break;
+                            if (isset($mapFields['importManageAI'])) {
+                                
+                                $titleCombo = str_replace('value="'.$column['RELATED_INDICATOR_MAP_ID'].'"', 'selected value="'.$column['RELATED_INDICATOR_MAP_ID'].'"', $titleCombo);
+                                
+                            } else {
+                                
+                                if ($mapFields) {
+                                    $mapInputName = $column['MAP_INPUT_NAME'];
+                                    foreach ($mapFields as $mapField) {
+                                        if ($mapField['TRG_COLUMN_NAME'] == $columnName && $mapField['INPUT_NAME'] == $mapInputName) {
+                                            $selectedColumn = $mapField['SRC_COLUMN_NAME'];
+                                            $selectedInputName = $mapInputName;
+                                            break;
+                                        }
                                     }
                                 }
-                            }
-                            
-                            if ($selectedColumn == '') {
-                                $mainColumnsData = $opts['mainColumnsData'];
-                                
-                                foreach ($mainColumnsData as $mainCol) {
 
-                                    if ($AIkeyword = Str::lower($mainCol['AI_KEYWORD'])) {
+                                if ($selectedColumn == '') {
+                                    $mainColumnsData = $opts['mainColumnsData'];
 
-                                        $AIkeywordArr = explode(',', $AIkeyword);
+                                    foreach ($mainColumnsData as $mainCol) {
 
-                                        foreach ($AIkeywordArr as $AIkeywordVal) {
-                                            if ($labelNameLower == $AIkeywordVal) {
-                                                $selectedColumn = $mainCol['COLUMN_NAME'];
-                                                break 2;
+                                        if ($AIkeyword = Str::lower($mainCol['AI_KEYWORD'])) {
+
+                                            $AIkeywordArr = explode(',', $AIkeyword);
+
+                                            foreach ($AIkeywordArr as $AIkeywordVal) {
+                                                if ($labelNameLower == $AIkeywordVal) {
+                                                    $selectedColumn = $mainCol['COLUMN_NAME'];
+                                                    break 2;
+                                                }
                                             }
                                         }
                                     }
                                 }
-                            }
-                            
-                            if ($selectedColumn == '') {
-                                foreach ($mainColumnsData as $mainCol) {
-                                    if (Str::lower($mainCol['LABEL_NAME']) == $labelNameLower) {
-                                        $selectedColumn = $mainCol['COLUMN_NAME'];
-                                        break;
+
+                                if ($selectedColumn == '') {
+                                    foreach ($mainColumnsData as $mainCol) {
+                                        if (Str::lower($mainCol['LABEL_NAME']) == $labelNameLower) {
+                                            $selectedColumn = $mainCol['COLUMN_NAME'];
+                                            break;
+                                        }
                                     }
                                 }
-                            }
-                            
-                            if ($selectedColumn) {
-                                $titleCombo = str_replace('value="'.$selectedColumn.'-'.$selectedInputName, 'selected value="'.$selectedColumn.'-'.$selectedInputName, $titleCombo);
+
+                                if ($selectedColumn) {
+                                    $titleCombo = str_replace('value="'.$selectedColumn.'-'.$selectedInputName, 'selected value="'.$selectedColumn.'-'.$selectedInputName, $titleCombo);
+                                }
                             }
                             
                             $comboColumns[] = "{title: '$titleCombo', fixed: true, width: '$width', halign: 'center'},";
@@ -20235,6 +20324,7 @@ class Mdform_Model extends Model {
                         }
                     
                         $row['config'] = array(
+                            'columnName' => $realColumnName, 
                             'showType' => $showType, 
                             'labelName' => $labelName, 
                             'isPublish' => $headerData['IS_PUBLISH'], 
@@ -20328,6 +20418,7 @@ class Mdform_Model extends Model {
                     }
                     
                     $row['config'] = array(
+                        'columnName' => $realColumnName, 
                         'showType'       => $showType, 
                         'labelName'      => $labelName, 
                         'isPublish'      => $headerData['IS_PUBLISH'], 
@@ -20459,6 +20550,7 @@ class Mdform_Model extends Model {
                     }
                     
                     $row['config'] = array(
+                        'columnName' => $realColumnName, 
                         'showType'       => $showType, 
                         'labelName'      => $labelName, 
                         'filterIndicatorId' => $headerData['FILTER_INDICATOR_ID'], 
@@ -21970,6 +22062,39 @@ class Mdform_Model extends Model {
             $chartLineColumn = Input::post('chartLineColumn');
             $chartLineAggregate = Input::post('chartLineAggregate');
             $postData = Input::postData();
+            $fileData = Input::fileData();
+            $fileFullPath = '';
+
+            if (issetParam($postData['dmart_iscreate_widget']) === '1') {
+                if (!$fileData) {
+                    throw new Exception('Файл сонгоогүй байна!'); 
+                }
+                
+                $ext = strtolower(substr($fileData['dmart_widget_file']['name'], strrpos($fileData['dmart_widget_file']['name'], '.') + 1));
+
+                if ($ext == 'jpg' || $ext == 'jpeg' || $ext == 'png' || $ext == 'gif' || $ext == 'bmp') {
+                    $fileName   = 'chart_' . getUID().'.'.$ext;
+        
+                    $filePath = Mdwebservice::bpUploadGetPath();
+                    $fileFullPath = $filePath . $fileName;
+
+                    FileUpload::SetFileName($fileName);
+                    FileUpload::SetTempName($fileData['dmart_widget_file']['tmp_name']);
+                    FileUpload::SetUploadDirectory($filePath);
+                    FileUpload::SetValidExtensions(explode(',', Config::getFromCache('CONFIG_FILE_EXT')));
+                    FileUpload::SetMaximumFileSize(FileUpload::GetConfigFileMaxSize());
+                    $uploadResult  = FileUpload::UploadFile();
+
+                    if (!$uploadResult && !file_exists($fileFullPath)) {
+                        throw new Exception("Файл олдсонгүй!"); 
+                    }
+
+                } else {
+                    throw new Exception('Зураг сонгоогүй байна!'); 
+                }
+                
+            }
+
             $jsonConfig = array(
                 'chartConfig' => array(
                     'type' => Input::post('chartType'), 
@@ -21985,14 +22110,6 @@ class Mdform_Model extends Model {
                     'iconName' => Input::post('chartIconName')
                 )
             );
-
-            /* if (issetParam($postData['buildCharConfig']) !== '') {
-                $buildCharConfig = json_decode($postData['buildCharConfig'], true);
-                $buildCharConfig['isBuild'] = '1';
-                $buildCharConfig['cartType'] = 'echarts';
-
-                $jsonConfig['chartConfig'] = array_merge($jsonConfig['chartConfig'], $buildCharConfig);
-            } */
 
             if (issetParam($postData['chartMainType']) === 'echart') {
                 foreach($postData as $key => $row) {
@@ -22017,6 +22134,8 @@ class Mdform_Model extends Model {
             $param = array(
                 'name'            => Input::post('chartTitle'), 
                 'mainIndicatorId' => Input::numeric('indicatorId'), 
+                'filePath'        => $fileFullPath, 
+                'isCreateWidget'  => Input::post('dmart_iscreate_widget'), 
                 'jsonConfig'      => json_encode($jsonConfig, JSON_UNESCAPED_UNICODE)
             );
 
@@ -23493,40 +23612,53 @@ class Mdform_Model extends Model {
             if ($config['isImportManage']) {
                 
                 $mainIndicatorId = $config['mainIndicatorId'];
+                $isImportManageAI = issetParam($config['isImportManageAI']);
                 
-                $buttons[] = html_tag('a', [
-                        'class' => 'btn btn-info btn-circle btn-sm', 
-                        'onclick' => 'mvImportManageFieldsConfig(this, \''.$indicatorId.'\', \''.$mainIndicatorId.'\');', 
-                        'href' => 'javascript:;'
-                    ], 
-                    '<i class="far fa-cogs"></i> Талбарын тохиргоо', true
-                ); 
+                if ($isImportManageAI) {
+                    
+                    $buttons[] = html_tag('a', [
+                            'class' => 'btn btn-success btn-circle btn-sm', 
+                            'onclick' => 'mvImportManageAIDataCommit(this, \''.$indicatorId.'\', \''.$mainIndicatorId.'\');', 
+                            'href' => 'javascript:;'
+                        ], 
+                        '<i class="far fa-database"></i> Commit', true
+                    ); 
+                    
+                } else {
+                    $buttons[] = html_tag('a', [
+                            'class' => 'btn btn-info btn-circle btn-sm', 
+                            'onclick' => 'mvImportManageFieldsConfig(this, \''.$indicatorId.'\', \''.$mainIndicatorId.'\');', 
+                            'href' => 'javascript:;'
+                        ], 
+                        '<i class="far fa-cogs"></i> Талбарын тохиргоо', true
+                    ); 
 
-                $buttons[] = html_tag('a', [
-                        'class' => 'btn btn-warning btn-circle btn-sm', 
-                        'onclick' => 'mvImportManageDataCheck(this, \''.$indicatorId.'\', \''.$mainIndicatorId.'\');', 
-                        'href' => 'javascript:;'
-                    ], 
-                    '<i class="far fa-check"></i> Шалгах', true
-                ); 
+                    $buttons[] = html_tag('a', [
+                            'class' => 'btn btn-warning btn-circle btn-sm', 
+                            'onclick' => 'mvImportManageDataCheck(this, \''.$indicatorId.'\', \''.$mainIndicatorId.'\');', 
+                            'href' => 'javascript:;'
+                        ], 
+                        '<i class="far fa-check"></i> Шалгах', true
+                    ); 
 
-                $buttons[] = html_tag('a', [
-                        'class' => 'btn btn-success btn-circle btn-sm', 
-                        'onclick' => 'mvImportManageDataUpdate(this, \''.$indicatorId.'\', \''.$mainIndicatorId.'\');', 
-                        'href' => 'javascript:;'
-                    ], 
-                    '<i class="far fa-database"></i> Update', true
-                ); 
+                    $buttons[] = html_tag('a', [
+                            'class' => 'btn btn-success btn-circle btn-sm', 
+                            'onclick' => 'mvImportManageDataUpdate(this, \''.$indicatorId.'\', \''.$mainIndicatorId.'\');', 
+                            'href' => 'javascript:;'
+                        ], 
+                        '<i class="far fa-database"></i> Update', true
+                    ); 
 
-                $buttons[] = html_tag('a', [
-                        'class' => 'btn btn-success btn-circle btn-sm', 
-                        'onclick' => 'mvImportManageDataCommit(this, \''.$indicatorId.'\', \''.$mainIndicatorId.'\');', 
-                        'href' => 'javascript:;'
-                    ], 
-                    '<i class="far fa-database"></i> Commit', true
-                ); 
-                
-                $buttons[] = '<div class="mv-imp-manage-info d-inline-block ml-4"></div>';
+                    $buttons[] = html_tag('a', [
+                            'class' => 'btn btn-success btn-circle btn-sm', 
+                            'onclick' => 'mvImportManageDataCommit(this, \''.$indicatorId.'\', \''.$mainIndicatorId.'\');', 
+                            'href' => 'javascript:;'
+                        ], 
+                        '<i class="far fa-database"></i> Commit', true
+                    ); 
+
+                    $buttons[] = '<div class="mv-imp-manage-info d-inline-block ml-4"></div>';
+                }
             }
         }
         
@@ -27774,7 +27906,7 @@ class Mdform_Model extends Model {
             WHERE T0.SRC_INDICATOR_ID = ".$this->db->Param(0)." 
                 AND T0.SEMANTIC_TYPE_ID = 10000019 
             ORDER BY T0.ORDER_NUMBER ASC", 
-            array($mainIndicatorId)
+            [$mainIndicatorId]
         );
         
         return $data;
@@ -29739,7 +29871,57 @@ class Mdform_Model extends Model {
         }
     }     
     
-    public function getLayoutKpiIndicatorRowModel ($id) {
-        return $this->db->GetOne("SELECT LAYOUT_HTML FROM KPI_INDICATOR WHERE ID = " . $this->db->Param(0), $id);
+    public function getLayoutKpiIndicatorRowModel($id) {
+        return $this->db->GetOne("SELECT LAYOUT_HTML FROM KPI_INDICATOR WHERE ID = " . $this->db->Param(0), [$id]);
     }
+    
+    public function getAITaxanomyModel() {
+        try {
+            $data = $this->db->GetAll("SELECT ID, CODE, LABEL_NAME FROM AI_TAXANOMY ORDER BY ID ASC");
+        } catch (Exception $ex) {
+            $data = [];
+        }
+        return $data;
+    }
+    
+    public function importManageAIChangeColumnModel() {
+        try {
+            $indicatorId = Input::numeric('indicatorId');
+            $columnName = Input::post('columnName');
+            $mainColumnName = Input::numeric('mainColumnName');
+            
+            $this->db->AutoExecute('KPI_INDICATOR_INDICATOR_MAP', ['RELATED_INDICATOR_MAP_ID' => $mainColumnName], 'UPDATE', "MAIN_INDICATOR_ID = $indicatorId AND COLUMN_NAME = '".$columnName."'");
+            
+            $result = ['status' => 'success'];
+        } catch (Exception $ex) {
+            $result = ['status' => 'error', 'message' => $ex->getMessage()];
+        }
+        return $result;
+    }
+    
+    public function importManageAIDataCommitModel() {
+        try {
+            
+            $indicatorId = Input::numeric('indicatorId');
+            
+            if (DB_DRIVER == 'oci8') {
+                    
+                $procedure = $this->db->PrepareSP('BEGIN PRC_AI_DATA_IMPORT(:INDICATOR_ID); END;');
+                $this->db->InParameter($procedure, $indicatorId, 'INDICATOR_ID');
+
+            } else {
+                $procedure = "BEGIN PRC_AI_DATA_IMPORT($indicatorId); END;";
+            }
+
+            $this->db->Execute($procedure);
+            
+            $result = ['status' => 'success', 'message' => 'Successfully!'];
+                
+        } catch (Exception $ex) {
+            $result = ['status' => 'error', 'message' => $ex->getMessage()];
+        }
+        
+        return $result;
+    }
+    
 }

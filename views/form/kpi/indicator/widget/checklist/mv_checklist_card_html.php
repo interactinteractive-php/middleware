@@ -290,7 +290,7 @@
         font-size: 12px;
         color: #707579;
         margin: 0;
-        max-height: 47px;
+        max-height: 51px;
         margin-bottom: 16px;
     }
     .position-4 {

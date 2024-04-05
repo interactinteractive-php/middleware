@@ -80,25 +80,25 @@ var Builder = function() {
     };
 
     var remakeDraggable = function (mainId, el) {
-    
-        $(mainId).each(function() {
-            $(this).draggable({
-                helper: function() {
-                    return $('<div style="height: 100px; width: 300px; background: #F9FAFA; box-shadow: 5px 5px 1px rgba(0,0,0,0.1); text-align: center; line-height: 100px; font-size: 28px; color: #16A085"><span class="fa fa-list"></span></div>');
-                },
-                revert: 'invalid',
-                appendTo: 'body',
-                connectToSortable: el,
-                stop: function(event, ui){
-                    $(this).addClass('selected-item');
-                    pageEmpty(el);
-                    allEmpty(el);
-                },
-                start: function() {
-                    var mainSelector = $(this).closest('.build-page');
-                    mainSelector.find('.selected-item').removeClass('selected-item');
-                }
-            });
+        console.log(mainId);
+        console.log(el);
+
+        $(mainId).draggable({
+            helper: function() {
+                return $('<div style="height: 100px; width: 300px; background: #F9FAFA; box-shadow: 5px 5px 1px rgba(0,0,0,0.1); text-align: center; line-height: 100px; font-size: 28px; color: #16A085"><span class="fa fa-list"></span></div>');
+            },
+            revert: 'invalid',
+            appendTo: 'body',
+            connectToSortable: el,
+            stop: function(event, ui){
+                $(this).addClass('selected-item');
+                pageEmpty(el);
+                allEmpty(el);
+            },
+            start: function() {
+                var mainSelector = $(this).closest('.build-page');
+                mainSelector.find('.selected-item').removeClass('selected-item');
+            }
         });
     
     };
@@ -113,11 +113,14 @@ var Builder = function() {
                     rowData = itemSelector.attr('data-rowdata');
                 mainSelector.find('.selected-item').removeClass('selected-item');
                 
+                console.log(event, ui);
+
                 $(ui.item).removeAttr('style').addClass('row m-0').attr('data-src', itemSelector.attr('data-src'));
                 $(ui.item).find('.fa').remove();
 
                 var  frameUniqId = getUniqueId(1);
                 var __html = '';
+                
                 if ($(ui.item).children().length == 0) {
                     __html = mainHtml(frameUniqId, rowData, itemSelector);
                 } else {
@@ -277,6 +280,7 @@ var Builder = function() {
 
     var mainHtml = function (uniqId, rowData, itemSelector) {
         var __html = '';
+        console.log(itemSelector.attr('data-src'));
         switch (itemSelector.attr('data-src')) {
             case 'widget':
                 html += '<div class="col-md-12 zoomer-cover iframe-section" data-block-uniqid="'+ uniqId +'">';
@@ -295,29 +299,55 @@ var Builder = function() {
                     html +=  '<img src="'+itemSelector.attr('src') + '" class="w-auto pull-left h-100 mx-auto" style="max-height: 330px;"/>';
                 html+= '</div>';
                 break;
+
+            case 'table': 
+                __html += '<div class="col standart-section zoomer-cover" data-section="table" data-block-uniqid="'+ getUniqueId(1) +'">';
+                    __html += '<div class="table-responsive">';
+                        __html += '<table class="table">';
+                            __html += '<thead>';
+                                __html += '<tr>';
+                                    __html += '<th>Column 1</th>';
+                                    __html += '<th>Column 2</th>';
+                                __html += '</tr>';
+                            __html += '</thead>';
+                            __html += '<tbody>';
+                                __html += '<tr>';
+                                    __html += '<td>Cell 1</td>';
+                                    __html += '<td>Cell 2</td>';
+                                __html += '</tr>';
+                                __html += '<tr>';
+                                    __html += '<td>Cell 3</td>';
+                                    __html += '<td>Cell 4</td>';
+                                __html += '</tr>';
+                            __html += '</tbody>';
+                        __html += '</table>';
+                    __html += '</div>';
+                __html += '</div>';
+                break;
             case 'col2':
-                __html += '<div class="col standart-section zoomer-cover" data-position="1" data-block-uniqid="'+ getUniqueId(1) +'"></div>';
-                __html += '<div class="col standart-section zoomer-cover" data-position="2" data-block-uniqid="'+ getUniqueId(1) +'"></div>';
+                __html += '<div class="col standart-section zoomer-cover" data-section="column" data-block-uniqid="'+ getUniqueId(1) +'"></div>';
+                __html += '<div class="col standart-section zoomer-cover" data-section="column" data-block-uniqid="'+ getUniqueId(1) +'"></div>';
                 break;
             case 'col3':
-                __html += '<div class="col standart-section zoomer-cover" data-position="1" data-block-uniqid="'+ getUniqueId(1) +'"></div>';
-                __html += '<div class="col standart-section zoomer-cover" data-position="2" data-block-uniqid="'+ getUniqueId(1) +'"></div>';
-                __html += '<div class="col standart-section zoomer-cover" data-position="3" data-block-uniqid="'+ getUniqueId(1) +'"></div>';
+                __html += '<div class="col standart-section zoomer-cover" data-section="column" data-block-uniqid="'+ getUniqueId(1) +'"></div>';
+                __html += '<div class="col standart-section zoomer-cover" data-section="column" data-block-uniqid="'+ getUniqueId(1) +'"></div>';
+                __html += '<div class="col standart-section zoomer-cover" data-section="column" data-block-uniqid="'+ getUniqueId(1) +'"></div>';
                 break;
             case 'col4':
-                __html += '<div class="col standart-section zoomer-cover" data-position="1" data-block-uniqid="'+ getUniqueId(1) +'"></div>';
-                __html += '<div class="col standart-section zoomer-cover" data-position="2" data-block-uniqid="'+ getUniqueId(1) +'"></div>';
-                __html += '<div class="col standart-section zoomer-cover" data-position="3" data-block-uniqid="'+ getUniqueId(1) +'"></div>';
-                __html += '<div class="col standart-section zoomer-cover" data-position="4" data-block-uniqid="'+ getUniqueId(1) +'"></div>';
+                __html += '<div class="col standart-section zoomer-cover" data-section="column" data-block-uniqid="'+ getUniqueId(1) +'"></div>';
+                __html += '<div class="col standart-section zoomer-cover" data-section="column" data-block-uniqid="'+ getUniqueId(1) +'"></div>';
+                __html += '<div class="col standart-section zoomer-cover" data-section="column" data-block-uniqid="'+ getUniqueId(1) +'"></div>';
+                __html += '<div class="col standart-section zoomer-cover" data-section="column" data-block-uniqid="'+ getUniqueId(1) +'"></div>';
                 break;
             default:
-                __html += '<div class="col standart-section zoomer-cover" data-position="1" data-block-uniqid="'+ getUniqueId(1) +'"></div>';
+                __html += '<div class="col standart-section zoomer-cover" data-section="column" data-block-uniqid="'+ getUniqueId(1) +'"></div>';
                 break;
         }
         return __html;
     }
 
     var actionBtns = function () {
+        return '';
         var _btns = '<div class="action-btns position-absolute right-12 top-0">'
                 /* _btns += '<button type="button" class="btn btn-secondary resetBlock" title="'+ plang.get('refresh_btn') +'" data-type="block"><i class="fa fa-refresh"></i></button>' */
                 _btns += '<button type="button" class="btn btn-danger deleteBlock" title="'+ plang.get('delete_btn') +'" data-type="block"><span class="fa fa-trash"></span></button>'
@@ -561,6 +591,68 @@ var Builder = function() {
             __html += '</div>';
         __html += '</div>';
         return __html;
+    };
+
+    var initEditBlock = function (element, uniqId) {
+        
+        var _this = element,
+            pageScreen = _this.closest('#pageList'),
+            standartSection = _this.closest('.standart-section')
+            blockUniqId = standartSection.attr('data-block-uniqid');
+    
+        pageScreen.find('.standart-section.active').removeAttr('id');
+        pageScreen.find('.standart-section').removeClass('selected');
+        pageScreen.find('.standart-section').removeClass('active');
+
+        pageScreen.find('.standart-section .iframe-section').addClass('approved');
+        pageScreen.find('.standart-section.section-edit').removeClass('active').removeAttr('id');
+        pageScreen.find('.standart-section.section-edit').removeClass('ui-sortable');
+        pageScreen.find('.standart-section.section-edit').removeClass('section-edit');
+        
+        standartSection.addClass('active');
+        standartSection.addClass('section-edit');
+        standartSection.attr('id', 'itemDragin-'+blockUniqId);
+        
+        /* Builder.initRemoveDraggable('#layout-builder<?php echo $this->uniqId ?> ul#page<?php echo $this->uniqId ?>');
+        Builder.initRemoveSortable($('#layout-builder<?php echo $this->uniqId ?> ul#page<?php echo $this->uniqId ?>')); */
+
+        /* console.log('#layout-builder<?php echo $this->uniqId ?> #itemDragin-'+blockUniqId); */
+
+        /* Builder.initRemakeDraggable('#layout-builder<?php echo $this->uniqId ?> #itemDragin-'+blockUniqId )
+        Builder.initRemakeSortable($('#layout-builder<?php echo $this->uniqId ?> #itemDragin-'+blockUniqId));  */
+
+        /* Builder.initMakeSortable($(ui.item).find('div.standart-section')); */
+        /* Builder.initMakeDraggable( '.standart-section' ); */
+
+        window['layoutBuilder' + uniqId].find('.top-action-btns > .table-attr').hide();
+        window['layoutBuilder' + uniqId].find('.top-action-btns > .column-attr').hide();
+        switch (_this.data('section')) {
+            case 'table':
+                window['layoutBuilder' + uniqId].find('.top-action-btns > .table-attr').show();
+                break;
+            case 'column':
+            default:
+                window['layoutBuilder' + uniqId].find('.top-action-btns > .column-attr').show();
+                break;
+        }
+
+        window['layoutBuilder' + uniqId].find('.top-action-btns').show();
+        window['layoutBuilder' + uniqId].find('li[id="tab-item"]').show();
+        window['layoutBuilder' + uniqId].find('li[id="tab-item"] > a').trigger('click');
+        
+        var colIn = (typeof standartSection.attr('data-in-col') !== 'undefined' && standartSection.attr('data-in-col')) ? standartSection.attr('data-in-col') : '';
+        var __html =  renderIndicatorHtml(blockUniqId, window['kpiTypeIndicators' + uniqId], uniqId, window['configEditing' + uniqId]);
+        
+        var _itemFounder = window['layoutBuilder' + uniqId].find('.item-configration');
+        _itemFounder.find('.item-config').hide();
+
+        if (_itemFounder.find('div[data-item-cf="' + blockUniqId +'"]').length > 0) {
+            _itemFounder.find('div[data-item-cf="' + blockUniqId +'"]').show();
+        } else {
+            _itemFounder.append(__html).promise().done(function () {
+                _itemFounder.find('.item-config[data-item-cf="' + blockUniqId +'"]').show();
+            });
+        }
     }
 
     return {
@@ -605,6 +697,10 @@ var Builder = function() {
         },
         renderIndicatorHtml: function (blockUniqId, kpiIndicatorData, uniqId, configEditing) {
             return renderIndicatorHtml(blockUniqId, kpiIndicatorData, uniqId, configEditing);
+        },
+        initEditBlock: function (element, uniqId) {
+            return initEditBlock(element, uniqId);
         }
     };
+    
 } ();

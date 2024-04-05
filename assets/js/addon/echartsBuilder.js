@@ -51,7 +51,7 @@ var EchartBuilder = function() {
         if (typeof tmp[tmpObj[0]] === 'undefined') {
             tmp[tmpObj[0]] = {};
         }
-
+        
         if (tmpObj.length === 3 ) {
             if (typeof tmp[tmpObj[0]][tmpObj[1]] === 'undefined') {
                 tmp[tmpObj[0]][tmpObj[1]] = {};
@@ -70,10 +70,32 @@ var EchartBuilder = function() {
                     tmp[tmpObj[0]][tmpObj[1]][tmpObj[2]+'_main'] = value;
                 }
             } else {
-                tmp[tmpObj[0]][tmpObj[1]][tmpObj[2]] = value;
+                
+                switch (tmpObj[2]) {
+                    case 'radius':
+                    case 'data':
+                        tmp[tmpObj[0]][tmpObj[1]][tmpObj[2]] = JSON.parse(value);
+                        break;
+                
+                    default:
+                        tmp[tmpObj[0]][tmpObj[1]][tmpObj[2]] = value;
+                        break;
+                }
+                
             }
         } else {
-            tmp[tmpObj[0]][tmpObj[1]] = (tmpObj[1] === 'data') ? JSON.parse(value) : value;
+
+            switch (tmpObj[1]) {
+                case 'radius':
+                case 'data':
+                    tmp[tmpObj[0]][tmpObj[1]] = JSON.parse(value);
+                    break;
+            
+                default:
+                    tmp[tmpObj[0]][tmpObj[1]] = value;
+                    break;
+            }
+            
         }
     
         return tmp;

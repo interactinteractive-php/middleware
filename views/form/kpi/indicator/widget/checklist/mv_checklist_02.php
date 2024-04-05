@@ -1,7 +1,10 @@
-<div class="kpi-form-paper-portrait">
+<?php
+$renderType = $this->methodRow['RENDER_THEME'];
+?>
+<div class="kpi-form-paper-portrait <?php echo $renderType ?>">
     <div class="kpi-form-paper-portrait-child">    
-        <div class="d-flex justify-content-between">
-            <?php 
+        <div class="d-flex justify-content-between <?php echo $renderType == 'paper_main_window' ? 'hidden' : '' ?>">
+            <?php                 
                 $logoImage = 'assets/custom/img/new_veritech_black_logo.png';
 
                 if (isset($this->logoImage) && file_exists($this->logoImage)) {
@@ -10,7 +13,7 @@
             ?>            
             <img style="height: 24px" src="<?php echo $logoImage; ?>"/>
         </div>
-        <div class="d-flex justify-content-center">
+        <div class="d-flex justify-content-center <?php echo $renderType == 'paper_main_window' ? 'hidden' : '' ?>">
             <p class="mb-0 mt-1 ml-2" style="font-size: 20px;font-weight: bold;"><?php echo $this->title ?></p>
         </div>
         <div class="row mv-checklist-render-parent mv-checklist2-render-parent" id="mv-checklist-render-parent-<?php echo $this->uniqId; ?>">
@@ -80,7 +83,7 @@
                     foreach ($relationTabList as $tabName => $tabRow) {
                         if ($tabName != 'яяяrow') { 
                     ?>                    
-                        <div class="tab-pane <?php echo ($this->isIgnoreHeaderProcess ? ($tabId == 1 ? 'active' : '') : ''); ?> p-1" id="maintabcustom_<?php echo $this->uniqId; ?>_<?php echo $tabId; ?>" style="padding-bottom: 0 !important;padding-top: 0 !important;padding-right: 0 !important;">
+                        <div class="tab-pane <?php echo ($this->isIgnoreHeaderProcess ? ($tabId == 1 ? 'active' : '') : ''); ?>" id="maintabcustom_<?php echo $this->uniqId; ?>_<?php echo $tabId; ?>" style="padding-bottom: 0 !important;padding-top: 0 !important;padding-right: 0 !important;">
                             <div class="d-flex">
                                 <div class="sidebar sidebar-light sidebar-secondary sidebar-expand-md pr-2" style="width:280px">
                                     <div class="sidebar-content">
@@ -181,7 +184,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="w-100" style="background-color: #F9F9F9; max-width: 1200px">
+                                <div class="w-100 content-wrapper-<?php echo $renderType ?>" style="background-color: #F9F9F9; max-width: 1200px">
                                     <div>
                                         <div class="content-wrapper pt-2 pl-3 pr-3 mv-checklist-render">        
                                         </div>                
@@ -206,6 +209,10 @@
 
     if (isset($this->bgImage) && file_exists($this->bgImage)) {
         $bgImage = $this->bgImage;
+    }
+    
+    if ($renderType == 'paper_main_window') {
+        $bgImage = '';
     }
 ?>
 
@@ -418,7 +425,7 @@
 .mv-checklist2-render-parent .mv-checklist-menu {
     height: 70vh;
     padding: 0;
-    margin-left: -10px;
+    margin-left: -5px;
     margin-right: -10px;
     overflow: auto;
 }
@@ -479,6 +486,15 @@
     background: #FFF;
     padding: 20px;
     box-shadow: 0px 2px 6px 0 rgba(0,0,0,.5);
+}
+.kpi-form-paper-portrait.paper_main_window {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+.kpi-form-paper-portrait.paper_main_window .kpi-form-paper-portrait-child {
+    width: 100%;
+    box-shadow: none;
+    margin-top: 0;
 }
 .kpi-form-paper-portrait .kpi-form-paper-portrait-child .kpi-form-paper-title {
     margin-bottom: -14px;
@@ -701,6 +717,12 @@ input.kpi-notfocus-readonly-input::placeholder {
 .mv-checklist2-render-parent .mv-checklist-render div[data-meta-type="process"] .bp-header-param ul.bp-icon-selection {
     max-height: 360px;
 }
+.fileinput-button .big {
+    font-size: 70px;
+    line-height: 112px;
+    text-align: center;
+    color: #ddd;    
+}
 </style>
 
 <?php require getBasePath() . 'middleware/views/form/kpi/indicator/checklist/scripts.php'; ?>
@@ -714,8 +736,10 @@ $('#mv-checklist-render-parent-<?php echo $this->uniqId; ?>').on('shown.bs.tab',
     if ($selTbLength) {
         if ($selTbLength == 1) {
             $tabPane.find('> .d-flex > .sidebar').hide();
+            $tabPane.find('> .d-flex > .w-100').css('max-width', '');
         } else {
             $tabPane.find('> .d-flex > .sidebar').show();
+            $tabPane.find('> .d-flex > .w-100').css('max-width', '1200px');
         }
         
         $selTb.first().trigger('click');
@@ -726,6 +750,15 @@ if ($this->isIgnoreHeaderProcess) {
 ?>
 $(function() {
     $('#mv-checklist-render-parent-<?php echo $this->uniqId; ?>').find('.mv_checklist_02_sub.nav-link:eq(0)').trigger('click');
+});
+<?php
+}
+?>
+<?php
+if ($renderType == 'paper_main_window') {
+?>
+$(function() {
+    $('#mv-checklist-render-parent-<?php echo $this->uniqId; ?>').find('.content-wrapper-paper_main_window').css("max-width", $(window).width() - 385);
 });
 <?php
 }

@@ -1725,6 +1725,17 @@ class Mdupgrade_Model extends Model {
                                         'src' => 'ID', 
                                         'trg' => 'SRC_INDICATOR_MAP_ID'
                                     )
+                                ), 
+                                'child' => array(
+                                    array(
+                                        'table' => 'KPI_INDICATOR_INDICATOR_MAP', 
+                                        'link' => array(
+                                            array(
+                                                'src' => 'ID', 
+                                                'trg' => 'SRC_INDICATOR_MAP_ID'
+                                            )
+                                        )
+                                    )
                                 )
                             ), 
                             array(

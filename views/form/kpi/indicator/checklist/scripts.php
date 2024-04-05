@@ -41,104 +41,6 @@ $(function() {
         
         var metaDataId = jsonObj.metaDataId, metaTypeId = jsonObj.metaTypeId, 
             indicatorId = jsonObj.indicatorId, kpiTypeId = jsonObj.kpiTypeId;
-    
-        if (false && (metaDataId == null || metaDataId == '')) {
-              $.ajax({
-                type: "post",
-                url: "api/callDataview",
-                data: {
-                  dataviewId: "17085010097299",
-                  criteriaData: {
-                    id: [{
-                        operator: "=",
-                        operand: indicatorId,
-                    }]
-                  }
-                },
-                dataType: "json",
-                success: function (data) {            
-                    if (data.status === "success" && data.result[0]) {
-                        $.ajax({
-                            type: 'post',
-                            url: 'mdworkspace/renderWorkSpace',
-                            data: {metaDataId: "17085010237759", dmMetaDataId: "16424766176721", selectedRow: data.result[0]},
-                            beforeSend: function() {
-                                Core.blockUI({message: 'Loading...', boxed: true});
-                            },                
-                            dataType: 'json',
-                            success: function(data) {
-
-                                if ($("link[href='middleware/assets/theme/" + data.theme + "/css/main.css']").length == 0) {
-                                    $("head").append('<link rel="stylesheet" type="text/css" href="middleware/assets/theme/' + data.theme + '/css/main.css"/>');
-                                }
-
-                                if (data.theme == 'theme10') {
-                                    $.getScript("assets/custom/addon/plugins/jquery-easypiechart/jquery.easypiechart.min.js");
-                                    $.getScript("assets/custom/addon/plugins/jquery.sparkline.min.js");
-                                }
-                                
-//                                var $dialogName = "dialog-script-mv-config-show";
-//                                if (!$("#" + $dialogName).length) {
-//                                  $('<div id="' + $dialogName + '"></div>').appendTo("body");
-//                                }
-//                                var $dialog = $("#" + $dialogName);
-//
-//                                $dialog.empty().append(data.html);
-//                                
-//                                $dialog.dialog({
-//                                  cache: false,
-//                                  resizable: true,
-//                                  bgiframe: true,
-//                                  autoOpen: false,
-//                                  title: "Тохиргоо",
-//                                  width: 400,
-//                                  height: "auto",
-//                                  modal: true,
-//                                  open: function () {
-//                                  },
-//                                  close: function () {
-//                                    $dialog.empty().dialog("destroy").remove();
-//                                  },
-//                                  buttons: [{
-//                                      text: plang.get("close_btn"),
-//                                      class: "btn btn-sm blue-madison",
-//                                      click: function () {
-//                                        $dialog.dialog("close");
-//                                      }
-//                                    }
-//                                  ]
-//                                }).dialogExtend({
-//                                closable: true,
-//                                maximizable: true,
-//                                minimizable: true,
-//                                collapsable: true,
-//                                dblclick: "maximize",
-//                                minimizeLocation: "left",
-//                                icons: {
-//                                  close: "ui-icon-circle-close",
-//                                  maximize: "ui-icon-extlink",
-//                                  minimize: "ui-icon-minus",
-//                                  collapse: "ui-icon-triangle-1-s",
-//                                  restore: "ui-icon-newwin",
-//                                };
-//                                });
-//                                $dialog.dialog("open");                 
-//                                $dialog.dialogExtend("maximize");
-//
-//                                return;
-                                viewProcess_<?php echo $this->uniqId; ?>.empty().append(data.html).promise().done(function () {
-                                    Core.unblockUI();
-                                    viewProcess_<?php echo $this->uniqId; ?>.find('.close-btn').remove();
-                                    viewProcess_<?php echo $this->uniqId; ?>.find('ul.workspace-menu > li > a').css({"color":"#737373", "font-weight":"normal"});
-                                    Core.initAjax(viewProcess_<?php echo $this->uniqId; ?>);                        
-                                });
-                            }
-                        });  
-                    }
-                },
-              });                    
-            return;
-        }
         
         if (metaDataId != '' && metaDataId != null) {
             
@@ -450,6 +352,27 @@ $(function() {
                         var getRenderWidth = viewProcess_<?php echo $this->uniqId; ?>.width();
                         viewProcess_<?php echo $this->uniqId; ?>.empty().append(dataHtml).promise().done(function () {
                             viewProcess_<?php echo $this->uniqId; ?>.find('.freeze-overflow-xy-auto').removeClass('w-100').css('width', getRenderWidth);
+                            Core.initAjax(viewProcess_<?php echo $this->uniqId; ?>);
+                            Core.unblockUI();
+                        });
+                    }
+                });
+                
+            } else if (metaDataId == '1712204023134451') { //Data import
+                
+                var $parent = $this.closest('.mv-checklist-render-parent');
+                var listIndicatorId = $parent.find('input[data-path="listIndicatorId"]').val();
+        
+                $.ajax({
+                    type: 'post',
+                    url: 'mdform/importManageAI',
+                    data: {mainIndicatorId: listIndicatorId}, 
+                    dataType: 'html',
+                    beforeSend: function() {
+                        Core.blockUI({message: 'Loading...', boxed: true});
+                    },
+                    success: function (dataHtml) {
+                        viewProcess_<?php echo $this->uniqId; ?>.empty().append(dataHtml).promise().done(function () {
                             Core.initAjax(viewProcess_<?php echo $this->uniqId; ?>);
                             Core.unblockUI();
                         });

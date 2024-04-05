@@ -4,7 +4,7 @@
         <button 
             type="button" 
             class="btn btn-block green-meadow" 
-            onclick="createMvStructureFromFile(this, '', {isContextMenu: false, isImportManage: true, mainIndicatorId: <?php echo $this->mainIndicatorId; ?>});">
+            onclick="createMvStructureFromFile(this, '', {isContextMenu: false, isImportManage: true, mainIndicatorId: '<?php echo $this->mainIndicatorId; ?>'});">
             <i class="fa fa-plus"></i> Импорт хийх
         </button>
         

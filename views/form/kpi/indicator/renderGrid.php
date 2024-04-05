@@ -1,8 +1,18 @@
 <div class="center-sidebar overflow-hidden content mv-datalist-container<?php echo isset($this->row['gridOption']['theme']) ? ' '.$this->row['gridOption']['theme'] : ''; ?>">
-    <div class="row">
-        
+    <?php
+    if (!isset($this->isIgnoreFilter) && issetParam($this->row['SEARCH_TYPE']) === 'top') {
+    ?>
+        <div class="row">        
+            <div class="col pl-0 pr-0">
+                <div class="kpidv-data-top-filter-col pr-1"></div>
+            </div>
+        </div>
+    <?php
+    }
+    ?>  
+    <div class="row">        
         <?php
-        if (!isset($this->isIgnoreFilter)) {
+        if (!isset($this->isIgnoreFilter) && issetParam($this->row['SEARCH_TYPE']) !== 'top') {
         ?>
             <div class="col-md-auto pl-0 pr-0">
                 <div class="kpidv-data-filter-col pr-1"></div>
@@ -229,6 +239,19 @@
     background-color: transparent;
     box-shadow: none;
 }
+.filter-top-form-wrapper .list-group-item.active {
+    background-color: transparent;
+    color: #333;
+}
+.filter-top-form-wrapper .list-group-item {
+    padding-left: 0;
+    padding-right: 0;
+}
+.filter-top-form-wrapper .list-group-body {
+    max-height: 270px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
 </style>
 
 <script type="text/javascript">
@@ -239,6 +262,7 @@ var idField_<?php echo $this->indicatorId; ?> = '<?php echo $this->idField; ?>';
 var indicatorName_<?php echo $this->indicatorId; ?> = '<?php echo Str::nlTobr($this->title); ?>';
 var objectdatagrid_<?php echo $this->indicatorId; ?> = $('#objectdatagrid<?php echo (isset($this->isBasket) ? '_' : '-') . $this->indicatorId; ?>');
 var drillDownCriteria_<?php echo $this->indicatorId; ?> = '<?php echo $this->drillDownCriteria; ?>';
+var filterSearchType_<?php echo $this->indicatorId; ?> = '<?php echo issetParam($this->row['SEARCH_TYPE']); ?>';
 var dynamicHeight = 0;
 var _selectedRows_<?php echo $this->indicatorId; ?> = [];
 
@@ -662,16 +686,22 @@ function filterKpiIndicatorValueForm(indicatorId) {
     $.ajax({
         type: 'post',
         url: 'mdform/filterKpiIndicatorValueForm',
-        data: {indicatorId: indicatorId, drillDownCriteria: drillDownCriteria},
+        data: {indicatorId: indicatorId, drillDownCriteria: drillDownCriteria, filterPosition: '<?php echo issetParam($this->row['SEARCH_TYPE']); ?>', filterColumnCount: '<?php echo issetParam($this->row['SEARCH_COLUMN_NUMBER']); ?>'},
         dataType: 'json',
         success: function(data) {
-            
-            var $filterCol = $('#object-value-list-' + indicatorId + ' .kpidv-data-filter-col').last();
+                        
+            if (filterSearchType_<?php echo $this->indicatorId; ?> === 'top') {
+                var $filterCol = $('#object-value-list-' + indicatorId + ' .kpidv-data-top-filter-col').last();
+            } else {
+                var $filterCol = $('#object-value-list-' + indicatorId + ' .kpidv-data-filter-col').last();
+            }
             
             if (data.status == 'success' && data.html != '') {
                 
                 if ($filterCol.length) {
-                    $filterCol.css('height', dynamicHeight + 100);
+                    if (filterSearchType_<?php echo $this->indicatorId; ?> !== 'top') {
+                        $filterCol.css('height', dynamicHeight + 100);
+                    }
                                 
                     $filterCol.closest('.mv-datalist-container').addClass('mv-datalist-show-filter');
                     $filterCol.closest('.ws-page-content').removeClass('mt-2');

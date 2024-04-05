@@ -2213,9 +2213,37 @@ class Mdform extends Controller {
     
     public function filterKpiIndicatorValueForm() {
         
+        if (Input::post('filterPosition') === 'top') {
+            $this->filterKpiIndicatorValueTopForm();
+        } else {
+            $this->view->uniqId = Input::numeric('uniqId');
+            $this->view->indicatorId = Input::numeric('indicatorId');
+            $this->view->isChartList = Input::numeric('isChartList');
+
+            $filterData = $this->model->filterKpiIndicatorValueFormModel($this->view->indicatorId);
+
+            if ($filterData['status'] == 'success') {
+                $this->view->filterData = $filterData['data'];
+                $this->view->filterTreeData = $filterData['treeData'];
+
+                $response = array(
+                    'status' => 'success', 
+                    'html' => $this->view->renderPrint('kpi/indicator/filterForm', self::$viewPath)
+                );
+            } else {
+                $response = $filterData;
+            }
+
+            jsonResponse($response);
+        }
+    }
+    
+    public function filterKpiIndicatorValueTopForm() {
+        
         $this->view->uniqId = Input::numeric('uniqId');
         $this->view->indicatorId = Input::numeric('indicatorId');
         $this->view->isChartList = Input::numeric('isChartList');
+        $this->view->filterColumnCount = Input::numeric('filterColumnCount');
         
         $filterData = $this->model->filterKpiIndicatorValueFormModel($this->view->indicatorId);
         
@@ -2225,7 +2253,7 @@ class Mdform extends Controller {
             
             $response = array(
                 'status' => 'success', 
-                'html' => $this->view->renderPrint('kpi/indicator/filterForm', self::$viewPath)
+                'html' => $this->view->renderPrint('kpi/indicator/searchform/filterTopForm', self::$viewPath)
             );
         } else {
             $response = $filterData;
@@ -5910,8 +5938,10 @@ class Mdform extends Controller {
                 array_push($param['param']['pageindicatormap.mainRowCount'], '0');
             }
         }
-
-        $param['param'] = array_merge($param['param'], Arr::changeKeyLower($postData['param']));
+        
+        if (issetParam($postData['param'])) {
+            $param['param'] = array_merge($param['param'], Arr::changeKeyLower($postData['param']));
+        }
         unset($_POST);
         $_POST['param'] = $param['param'];
         $_POST['responseType'] = 'outputArray';
@@ -5973,7 +6003,7 @@ class Mdform extends Controller {
     public function importManage() {
         $selectedRow = Arr::decode(Input::post('selectedRow'));
         
-        $this->view->mainIndicatorId = $selectedRow['dataRow']['id'];
+        $this->view->mainIndicatorId = issetParam($selectedRow['dataRow']['id']);
         $this->view->renderChildDataSets = self::renderChildDataSets($this->view->mainIndicatorId, true);
         
         $this->view->render('kpi/indicator/importfile/importManage', self::$viewPath);
@@ -6048,6 +6078,7 @@ class Mdform extends Controller {
         $this->view->subgrid = null; 
         $this->view->isIgnoreFilter = true;
         $this->view->isImportManage = true;
+        $this->view->isImportManageAI = Input::numeric('isAIImport') ? true : false;
         
         $_POST['isIgnoreTitle'] = 1;
         $_POST['isIgnoreRightTools'] = 1;
@@ -6064,44 +6095,58 @@ class Mdform extends Controller {
             'isCallWebService' => $this->view->isCallWebService, 
             'isPrint' => $this->view->isPrint, 
             'isUseWorkflow' => $this->view->isUseWorkflow, 
-            'isImportManage' => isset($this->view->isImportManage) ? $this->view->isImportManage : false 
+            'isImportManage' => $this->view->isImportManage, 
+            'isImportManageAI' => $this->view->isImportManageAI
         ]);
         
-        $mainColumnsData = [];
-        
-        foreach ($this->view->mainColumnsData as $mainColumn) {
+        if ($this->view->isImportManageAI) {
             
-            if ($mainColumn['IS_UNIQUE'] == '1') {
-                $mainColumn['ICON_LABEL_NAME'] = '🔑 ' . $mainColumn['LABEL_NAME'];
-            } else {
-                $mainColumn['ICON_LABEL_NAME'] = $mainColumn['LABEL_NAME'];
+            $mainColumnsData = $this->model->getAITaxanomyModel();
+            
+            $mapFields = ['importManageAI' => true];
+            $headerCombo = Form::select([
+                'data'     => $mainColumnsData, 
+                'class'    => 'form-control form-control-sm select2', 
+                'op_value' => 'ID', 
+                'op_text'  => 'LABEL_NAME'
+            ]);
+            
+        } else {
+            
+            $mainColumnsData = [];
+            foreach ($this->view->mainColumnsData as $mainColumn) {
+            
+                if ($mainColumn['IS_UNIQUE'] == '1') {
+                    $mainColumn['ICON_LABEL_NAME'] = '🔑 ' . $mainColumn['LABEL_NAME'];
+                } else {
+                    $mainColumn['ICON_LABEL_NAME'] = $mainColumn['LABEL_NAME'];
+                }
+
+                if ($mainColumn['FILTER_INDICATOR_ID'] && ($mainColumn['SHOW_TYPE'] == 'combo' || $mainColumn['SHOW_TYPE'] == 'popup' || $mainColumn['SHOW_TYPE'] == 'radio')) {
+
+                    $lookupLabelName = $mainColumn['LABEL_NAME'];
+                    $mainColumn['ICON_LABEL_NAME'] = $lookupLabelName . ' код';
+                    $mainColumn['TEMP_INPUT_NAME'] = 'code';
+                    $mainColumnsData[] = $mainColumn;
+
+                    $mainColumn['ICON_LABEL_NAME'] = $lookupLabelName . ' нэр';
+                    $mainColumn['TEMP_INPUT_NAME'] = 'name';
+                    $mainColumnsData[] = $mainColumn;
+
+                } else {
+                    $mainColumn['TEMP_INPUT_NAME'] = null;
+                    $mainColumnsData[] = $mainColumn;
+                }
             }
             
-            if ($mainColumn['FILTER_INDICATOR_ID'] && ($mainColumn['SHOW_TYPE'] == 'combo' || $mainColumn['SHOW_TYPE'] == 'popup' || $mainColumn['SHOW_TYPE'] == 'radio')) {
-                
-                $lookupLabelName = $mainColumn['LABEL_NAME'];
-                $mainColumn['ICON_LABEL_NAME'] = $lookupLabelName . ' код';
-                $mainColumn['TEMP_INPUT_NAME'] = 'code';
-                $mainColumnsData[] = $mainColumn;
-                
-                $mainColumn['ICON_LABEL_NAME'] = $lookupLabelName . ' нэр';
-                $mainColumn['TEMP_INPUT_NAME'] = 'name';
-                $mainColumnsData[] = $mainColumn;
-                
-            } else {
-                $mainColumn['TEMP_INPUT_NAME'] = null;
-                $mainColumnsData[] = $mainColumn;
-            }
+            $mapFields = $this->model->importManageFieldsConfigModel($this->view->mainIndicatorId, $this->view->indicatorId);
+            $headerCombo = Form::select([
+                'data'     => $mainColumnsData, 
+                'class'    => 'form-control form-control-sm select2', 
+                'op_value' => 'COLUMN_NAME|-|TEMP_INPUT_NAME', 
+                'op_text'  => 'ICON_LABEL_NAME'
+            ]);
         }
-        
-        $mapFields = $this->model->importManageFieldsConfigModel($this->view->mainIndicatorId, $this->view->indicatorId);
-        
-        $headerCombo = Form::select([
-            'data'     => $mainColumnsData, 
-            'class'    => 'form-control form-control-sm select2', 
-            'op_value' => 'COLUMN_NAME|-|TEMP_INPUT_NAME', 
-            'op_text'  => 'ICON_LABEL_NAME'
-        ]);
         
         $this->model->mvGridStylerModel($this->view->indicatorId);
 
@@ -6378,11 +6423,13 @@ class Mdform extends Controller {
 
             $response = [
                 'status' => 'success', 
-                'html' => $this->view->renderPrint('kpi/indicator/checklist/index', self::$viewPath)
+                'html' => $this->view->renderPrint('kpi/indicator/checklist/index', self::$viewPath),
+                'renderType' => $this->view->methodRow['RENDER_THEME'],
+                'title' => $this->view->methodRow['NAME'],
             ];
         }
         
-        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+        convJson($response);
     }
     
     public function developerWorkspace() {
@@ -6695,11 +6742,12 @@ class Mdform extends Controller {
         $relationList = $this->model->getChildRenderStructureModel($indicatorId, [Mdform::$semanticTypes['normal'], Mdform::$semanticTypes['config']]);
         
         if ($relationList) {
+            $_POST['mainIndicatorId'] = $indicatorId;
             $_POST['methodIndicatorId'] = $indicatorId;
             $_POST['isIgnoreHeaderProcess'] = 1;
             self::mvNormalRelationRender($relationList);
         } else {
-            echo json_encode(['status' => 'no_config'], JSON_UNESCAPED_UNICODE);
+            convJson(['status' => 'no_config']);
         }
     }
     
@@ -6719,21 +6767,37 @@ class Mdform extends Controller {
         $selectedRow = Input::post('selectedRow');
         $this->view->selectedRow = Arr::changeKeyLower($selectedRow ? $selectedRow : []);        
         
-        jsonResponse(array(
-            'html'       => $this->view->renderPrint('kpi/indicator/widget/checklist/mv_checklist_card_html', self::$viewPath)
-        ));
+        convJson(['html' => $this->view->renderPrint('kpi/indicator/widget/checklist/mv_checklist_card_html', self::$viewPath)]);
     }    
     
     public function addRelationHtmlForm() {
         
         $this->view->uniqId = getUID();
         
-        jsonResponse(array(
-            'Title'      => 'Холбоос нэмэх', 
-            'Html'       => $this->view->renderPrint('kpi/indicator/relation/addRelationForm', self::$viewPath), 
-            'save_btn'   => $this->lang->line('save_btn'),
-            'close_btn'  => $this->lang->line('close_btn')
-        ));
+        convJson([
+            'Title'     => 'Холбоос нэмэх', 
+            'Html'      => $this->view->renderPrint('kpi/indicator/relation/addRelationForm', self::$viewPath), 
+            'save_btn'  => $this->lang->line('save_btn'),
+            'close_btn' => $this->lang->line('close_btn')
+        ]);
     }    
+    
+    public function importManageAI() {
+        
+        $this->view->mainIndicatorId = Input::numeric('mainIndicatorId');
+        $this->view->renderChildDataSets = self::renderChildDataSets($this->view->mainIndicatorId, true);
+        
+        $this->view->render('kpi/indicator/importfile/importManageAI', self::$viewPath);
+    }
+    
+    public function importManageAIChangeColumn() {
+        $response = $this->model->importManageAIChangeColumnModel();
+        convJson($response);
+    }
+    
+    public function importManageAIDataCommit() {
+        $response = $this->model->importManageAIDataCommitModel();
+        convJson($response);
+    }
     
 }

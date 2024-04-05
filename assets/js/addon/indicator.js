@@ -4313,7 +4313,8 @@ function getKpiIndicatorFilterData(elem, parent) {
         
     } else {
         
-        var $this = $(elem), $col = $this.closest('.list-group');
+        var $this = $(elem), 
+            $col = $this.closest('.list-group').length ? $this.closest('.list-group') : $this.closest('.filter-top-form-wrapper');
     
         if (!$this.hasClass('jstree-node')) {
             if ($this.hasClass('active')) {
@@ -6588,50 +6589,54 @@ function mvProductRender(elem, url, indicatorId) {
             
             if (data.status == 'success') {
                 
-                var $dialogName = 'dialog-valuemap-'+indicatorId;
-                if (!$("#" + $dialogName).length) {
-                    $('<div id="' + $dialogName + '"></div>').appendTo('body');
-                }
-                var $dialog = $('#' + $dialogName);
-                
-                $dialog.dialog({
-                    cache: false,
-                    resizable: true,
-                    bgiframe: true,
-                    autoOpen: false,
-                    title: '',
-                    width: 1000,
-                    height: 'auto',
-                    modal: true,
-                    open: function() {
-                        $dialog.append(data.html);
-                    },
-                    close: function() {
-                        $dialog.empty().dialog('destroy').remove();
-                    },
-                    buttons: [
-                        {text: plang.get('close_btn'), class: 'btn btn-sm blue-hoki bp-btn-close', click: function () {
-                            $dialog.dialog('close');
-                        }}
-                    ]
-                }).dialogExtend({
-                    "closable": true,
-                    "maximizable": true,
-                    "minimizable": true,
-                    "collapsable": true,
-                    "dblclick": "maximize",
-                    "minimizeLocation": "left",
-                    "icons": {
-                        "close": "ui-icon-circle-close",
-                        "maximize": "ui-icon-extlink",
-                        "minimize": "ui-icon-minus",
-                        "collapse": "ui-icon-triangle-1-s",
-                        "restore": "ui-icon-newwin"
+                if (data.renderType == 'paper_main_window') {
+                    appMultiTabByContent({ metaDataId: indicatorId, title: data.title, type: 'indicator', content: data.html });
+                } else {
+                    var $dialogName = 'dialog-valuemap-'+indicatorId;
+                    if (!$("#" + $dialogName).length) {
+                        $('<div id="' + $dialogName + '"></div>').appendTo('body');
                     }
-                });
-                
-                $dialog.dialogExtend('maximize');
-                $dialog.dialog('open');
+                    var $dialog = $('#' + $dialogName);
+
+                    $dialog.dialog({
+                        cache: false,
+                        resizable: true,
+                        bgiframe: true,
+                        autoOpen: false,
+                        title: '',
+                        width: 1000,
+                        height: 'auto',
+                        modal: true,
+                        open: function() {
+                            $dialog.append(data.html);
+                        },
+                        close: function() {
+                            $dialog.empty().dialog('destroy').remove();
+                        },
+                        buttons: [
+                            {text: plang.get('close_btn'), class: 'btn btn-sm blue-hoki bp-btn-close', click: function () {
+                                $dialog.dialog('close');
+                            }}
+                        ]
+                    }).dialogExtend({
+                        "closable": true,
+                        "maximizable": true,
+                        "minimizable": true,
+                        "collapsable": true,
+                        "dblclick": "maximize",
+                        "minimizeLocation": "left",
+                        "icons": {
+                            "close": "ui-icon-circle-close",
+                            "maximize": "ui-icon-extlink",
+                            "minimize": "ui-icon-minus",
+                            "collapse": "ui-icon-triangle-1-s",
+                            "restore": "ui-icon-newwin"
+                        }
+                    });
+
+                    $dialog.dialogExtend('maximize');
+                    $dialog.dialog('open');
+                }
                 
             } else if (url) {
                 window.location = url;
@@ -7346,6 +7351,96 @@ function mvDataViewSendMailBySelectionRowsInit(elem, processMetaDataId, dataView
     } else {
         mvDataViewSendMailBySelectionRows(elem, processMetaDataId, dataViewId, postParams, getParams);
     }
+}
+
+function onChangeAttachFIleIndicatorMode(input) {
+  if($(input).hasExtension(["png", "gif", "jpeg", "pjpeg", "jpg", "x-png", "bmp", "doc", "docx", "xls", "xlsx", "pdf", "ppt", "pptx",
+    "zip", "rar", "mp3", "mp4", "msg"])){
+    var ext=input.value.match(/\.([^\.]+)$/)[1],
+        i = 0;
+    if(typeof ext !== "undefined"){
+
+//      for(i; i < input.files.length; i++) {
+        ext=input.files[0].name.match(/\.([^\.]+)$/)[1];
+
+        var li='',
+            fileImgUniqId=Core.getUniqueID('file_img'),
+            fileAUniqId=Core.getUniqueID('file_a'),
+            extension=ext.toLowerCase();
+
+        if(extension == 'png' ||
+                extension == 'gif' ||
+                extension == 'jpeg' ||
+                extension == 'pjpeg' ||
+                extension == 'jpg' ||
+                extension == 'x-png' ||
+                extension == 'bmp') {
+          li='<a href="javascript:;" id="' + fileAUniqId + '" class="" data-rel="" style="height: 112px;width: 112px;">';
+          li+='<img style="height: 112px;width: 112px;object-fit: cover;" src="" id="' + fileImgUniqId + '"/>';
+          li+='</a>';
+        } else {
+          li='<a href="javascript:;" title="" style="height: 112px;width: 112px;">';
+          li+='<img style="height: 112px;width: 112px;object-fit: cover;" src="assets/core/global/img/filetype/64/' + (extension == 'msg' ? 'zip' : extension) + '.png"/>';
+          li+='</a>';
+        }
+        
+        var $listViewFile=$(input).closest('.mv-hdr-label-control-input').find('.mv-file-choose-btn');
+        setTimeout(function () {
+            $listViewFile.empty().append(li);        
+            //Core.initFancybox($listViewFile);
+
+            previewPhotoAddMVMode(input.files[i], $listViewFile.find('#' + fileImgUniqId), $listViewFile.find('#' + fileAUniqId));
+            initFileContentMenuMVAddMode();
+        }, 1);
+//      }
+
+    }
+  } else {
+    var $listViewFile=$(input).closest('.mv-hdr-label-control-input').find('.mv-file-choose-btn');
+    $listViewFile.empty().append('<i class="icon-plus3 big"></i>');    
+    $(input).val('');
+  }
+}
+
+function previewPhotoAddMVMode(input, $targetImg, $targetAnchor){
+  if(input){
+    var reader=new FileReader();
+    reader.onload=function(e){
+      $targetImg.attr('src', e.target.result);
+      $targetAnchor.attr('href', e.target.result);
+    };
+    reader.readAsDataURL(input);
+  }
+}
+
+function initFileContentMenuMVAddMode(){
+  $.contextMenu({
+    selector: '.mv-file-choose-btn a',
+    callback: function(key, opt){
+      if(key === 'delete'){
+          mvFileChoosedRemove(opt.$trigger);
+      }
+    },
+    items: {
+      "delete": {name: "Устгах", icon: "trash"}
+    }
+  });
+}
+
+function mvFileChoosedRemove(elem) {
+    var $parent = $(elem).closest('.uniform-uploader');
+    var $fileInput = $parent.find('input[type="file"]');
+    if (!$fileInput.is('[readonly]')) {
+        var $listViewFile=$(elem).closest('.mv-hdr-label-control-input').find('.mv-file-choose-btn');
+        $listViewFile.empty().append('<i class="icon-plus3 big"></i>');        
+        
+        var $fileName = $parent.find('.filename');
+        $fileInput.val('');
+        $parent.find('input[type="hidden"]').val('');
+        $fileName.text($fileName.attr('data-text')).attr('title', $fileName.attr('data-text'));
+        $parent.find('a').remove();
+    }
+    return;
 }
 
 $(function() {
