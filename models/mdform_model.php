@@ -11071,6 +11071,7 @@ class Mdform_Model extends Model {
                     'isUpdate'     => $isUpdate, 
                     'pkColumnName' => $pkColumnName, 
                     'pkId'         => $newId,
+                    'path'         => $parentColumnNamePath, 
                     'data'         => $saveData
                 ];
 
@@ -11260,6 +11261,7 @@ class Mdform_Model extends Model {
                         'isUpdate'     => $isUpdate, 
                         'pkColumnName' => $pkColumnName, 
                         'pkId'         => $newId,
+                        'path'         => $parentColumnNamePath, 
                         'data'         => $saveData
                     ];
 
@@ -11802,7 +11804,27 @@ class Mdform_Model extends Model {
                             if ($getPkColumnName == $trgPath) {
                                 Mdform::$mvDbParams['header']['isUpdate'] = true;
                             } else {
-                                Mdform::$mvDbParams['header']['data'][$trgPath] = $mapHiddenSelectedRow[$srcPath];
+                                
+                                $setSrcPathValue = $mapHiddenSelectedRow[$srcPath];
+                                
+                                if (strpos($trgPath, '.') !== false) {
+                                    
+                                    if (isset(Mdform::$mvDbParams['detail'][0])) {
+                                        
+                                        $trgPathArr = explode('.', $trgPath);
+                                        $trgGroupPath = $trgPathArr[0];
+                                        $trgPath = $trgPathArr[1];
+                                    
+                                        foreach (Mdform::$mvDbParams['detail'] as $t => $detailRow) {
+                                            if ($detailRow['path'] == $trgGroupPath) {
+                                                Mdform::$mvDbParams['detail'][$t]['data'][$trgPath] = $setSrcPathValue;
+                                            }
+                                        }
+                                    }
+                                    
+                                } else {
+                                    Mdform::$mvDbParams['header']['data'][$trgPath] = $setSrcPathValue;
+                                }
                             }
                         }
                     }
