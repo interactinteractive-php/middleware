@@ -953,13 +953,13 @@ class Mdstatement extends Controller {
         } else {
             
             ob_start('ob_html_compress'); 
-                $response = array(
+                $response = [
                     'status'     => $status, 
                     'message'    => $message, 
                     'freezeNumberOfColumn' => issetParam(self::$data['freezeNumberOfColumn']),
                     'childCount' => self::$childCount, 
                     'htmlData'   => '<div data-file-id="'.$fileId.'" data-count="'.self::$rowsCount.'"></div>'.$htmlData
-                );
+                ];
                 echo json_encode($response);
             ob_end_flush();
             
@@ -3271,7 +3271,7 @@ class Mdstatement extends Controller {
                     $exportServerAddress .= 'fileConverter/Converter.aspx';
                 }
                 
-                $checkHeaderStatus = @file_get_contents($exportServerAddress, false, stream_context_create(array('http' => array('timeout' => 2))));
+                $checkHeaderStatus = @file_get_contents($exportServerAddress, false, stream_context_create(['http' => ['timeout' => 2], 'ssl' => ['verify_peer' => false, 'verify_peer_name' => false]]));
                 
                 if ($checkHeaderStatus !== false) {
                         

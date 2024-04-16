@@ -28,7 +28,7 @@
         </div>
         
     </div>
-    <div class="col overflow-auto" id="mv-imp-imported-data">
+    <div class="col overflow-auto ml-1" id="mv-imp-imported-data">
         
     </div>
 </div>
@@ -36,7 +36,6 @@
 <style type="text/css">
 .imp-file-left-part {
     width: 300px;
-    height: 80vh;
     padding-top: 10px;
     background-color: #f2f2f2;
     border: 1px #ebeef2 solid;
@@ -119,6 +118,14 @@ $(function() {
             success: function(data) {}
         });
     });
+    
+    <?php
+    if (isset($this->isPopup) && $this->isPopup) {
+    ?>
+    $('.mv-imp-file-list').css('height', $(window).height() - 208);
+    <?php
+    }
+    ?>
 });
 
 $.contextMenu({

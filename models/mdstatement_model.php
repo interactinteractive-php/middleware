@@ -154,7 +154,7 @@ class Mdstatement_model extends Model {
                 FONT_FAMILY 
             FROM META_STATEMENT_LINK 
             WHERE ".(Mdstatement::$isKpiIndicator ? 'MAIN_INDICATOR_ID' : 'META_DATA_ID')." = " . $this->db->Param(0), 
-            array($metaDataId)
+            [$metaDataId]
         );
         
         $row['REPORT_HEADER'] = Str::cleanOut($row['REPORT_HEADER']);
@@ -164,7 +164,7 @@ class Mdstatement_model extends Model {
         
         if (!$row['REPORT_DETAIL'] && Mdstatement::$isKpiIndicator) {
             
-            $generateTbl = self::renderKpiIndicatorHeaderColumns(Input::numeric('indicatorId'), array('fontSize' => $row['FONT_SIZE'], 'fontFamily' => $row['FONT_FAMILY']));
+            $generateTbl = self::renderKpiIndicatorHeaderColumns(Input::numeric('indicatorId'), ['fontSize' => $row['FONT_SIZE'], 'fontFamily' => $row['FONT_FAMILY']]);
             
             $row['REPORT_DETAIL'] = $generateTbl['reportDetail'];
             
@@ -178,7 +178,7 @@ class Mdstatement_model extends Model {
         return $row;
     }
     
-    public function renderKpiIndicatorHeaderColumns($indicatorId, $attr = array()) {
+    public function renderKpiIndicatorHeaderColumns($indicatorId, $attr = []) {
         
         if (Mdstatement::$isPivotView) {
             
@@ -259,6 +259,19 @@ class Mdstatement_model extends Model {
             $orderBy = 'KIIM.ORDER_NUMBER ASC';
         }
         
+        $where = '';
+        
+        if (Mdform::$mvPivotColumnFilter) {
+            
+            $where = ' AND (KIIM.SIDEBAR_NAME IS NULL OR ';
+            
+            foreach (Mdform::$mvPivotColumnFilter as $filterColName => $filterColData) {
+                $where .= "KIIM.SIDEBAR_NAME IN ('".Arr::implode_r("','", $filterColData, true)."')";
+            }
+            
+            $where .= ')';
+        }
+        
         $data = $this->db->GetAll("
             SELECT 
                 LOWER(KIIM.COLUMN_NAME) AS COLUMN_NAME, 
@@ -287,6 +300,7 @@ class Mdstatement_model extends Model {
                 AND KIIM.SHOW_TYPE NOT IN ('row', 'rows') 
                 AND KIIM.COLUMN_NAME IS NOT NULL 
                 AND KIIM.COLUMN_NAME <> 'ID' 
+                $where 
             ORDER BY $orderBy", 
             [$indicatorId]
         );

@@ -2,6 +2,9 @@
     gap: 30px;
     background: #fff;
 }
+.postview-listtheme .card-img-actions {
+    height: 200px;
+}
 .postview-listtheme-row {    
     cursor: pointer;
     width: 445px;
@@ -17,7 +20,7 @@
 .postview-listtheme-row .card-img-actions img {
     max-height: 200px;
     width: 100%;
-    object-fit: cover;
+    object-fit: contain;
 }
 .postview-listtheme-row .bp-action-btns a, .postview-listtheme-row .bp-action-btns .dv-buttons-batch > .dropdown-toggle {    
     padding-right: 6px;

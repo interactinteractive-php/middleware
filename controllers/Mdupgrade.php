@@ -579,7 +579,7 @@ class Mdupgrade extends Controller {
         $_REQUEST = $jsonBody;
         
         $response = $this->model->childFolderSystemModel();
-        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+        convJson($response);
     }
     
     public function commonMetaDataGrid() {
@@ -602,7 +602,7 @@ class Mdupgrade extends Controller {
         $_POST = $jsonBody;
         
         $response = $this->model->commonMetaDataGridModel();
-        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+        convJson($response);
     }
     
     public function metaExportExternalServer() {
@@ -613,7 +613,7 @@ class Mdupgrade extends Controller {
         $_POST = $jsonBody;
         
         $response = $this->model->exportMetaModel();
-        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+        convJson($response);
     }
     
     public function metaImportExternalServer() {
@@ -627,17 +627,17 @@ class Mdupgrade extends Controller {
             $response = array('status' => 'error', 'message' => 'Unkhown error!');
         }
         
-        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+        convJson($response);
     }
     
     public function metaPatchRollback() {
         $response = $this->model->metaPatchRollbackModel();
-        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+        convJson($response);
     }
     
     public function metaPatchImport() {
         $response = $this->model->metaPatchImportModel();
-        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+        convJson($response);
     }
     
     public function metaImportCopy() {

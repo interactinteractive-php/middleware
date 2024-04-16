@@ -3206,8 +3206,28 @@ class Mdupgrade_Model extends Model {
                         $indexes = $this->db->MetaIndexes($createTableName, true, $tableOwner);
 
                         if ($indexes) {
+                            
+                            if (DB_DRIVER == 'oci8') {
+                                
+                                $primaryKeys = $this->db->MetaPrimaryKeys($createTableName, $tableOwner);
+                                
+                            } elseif (DB_DRIVER == 'postgres9') {
+                                
+                                $primaryKeys = [];
+                                $rs = $this->db->MetaColumns('public.' . $createTableName);
 
-                            $primaryKeys = $this->db->MetaPrimaryKeys($createTableName, $tableOwner);
+                                if (is_array($rs)) {
+                                    $fieldObjs = self::postgreArrayColumnsConvert($rs);
+                                } else {
+                                    $fieldObjs = self::postgreSqlColumnsConvert($rs->sql);
+                                }
+
+                                $keyRow = $this->db->GetRow(sprintf($this->db->metaKeySQL1, strtolower($createTableName)));
+
+                                if (isset($keyRow['COLUMN_NAME'])) {
+                                    $primaryKeys[0] = $keyRow['COLUMN_NAME'];
+                                }
+                            }
 
                             global $ADODB_FETCH_MODE;
 
@@ -3735,7 +3755,7 @@ class Mdupgrade_Model extends Model {
     
     public function postgreArrayColumnsConvert($data) {
 
-        $arr = array();
+        $arr = [];
             
         foreach ($data as $row) {
 

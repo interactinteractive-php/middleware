@@ -718,6 +718,12 @@ class Mdmeta_Model extends Model {
                         $menu .= '<i class="fas fa-cloud-download font-size-16"></i>';
                     $menu .= '</a>';
                     
+                } elseif ($row['metadataid'] === '1709258055034258') {
+                    
+                    $menu .= '<a href="mdlayout/v2/17091131987379" target="_blank" class="veri-app-engage-btn p-0" data-toggle="tooltip" data-placement="left" title="Developer workspace">';
+                        $menu .= '<i class="fas fa-window-restore font-size-16"></i>';
+                    $menu .= '</a>';
+                    
                 } elseif ($row['metadataid'] === '1680166503684224') { /*Зөрчил шалгах*/
                     
                     $countMetaData = '';

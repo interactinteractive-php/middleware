@@ -112,8 +112,6 @@ var Builder = function() {
                 var itemSelector = mainSelector.find('.selected-item img'),
                     rowData = itemSelector.attr('data-rowdata');
                 mainSelector.find('.selected-item').removeClass('selected-item');
-                
-                console.log(event, ui);
 
                 $(ui.item).removeAttr('style').addClass('row m-0').attr('data-src', itemSelector.attr('data-src'));
                 $(ui.item).find('.fa').remove();
@@ -280,7 +278,9 @@ var Builder = function() {
 
     var mainHtml = function (uniqId, rowData, itemSelector) {
         var __html = '';
-        console.log(itemSelector.attr('data-src'));
+        var _mainBuilderPage = itemSelector.closest('.layout-builder-v0'),
+            windowUniqId = _mainBuilderPage.data('uniqid');
+        var dataSrc = htmlentities(JSON.stringify(window['setDefaultRowData' + windowUniqId]), 'ENT_QUOTES', 'UTF-8');
         switch (itemSelector.attr('data-src')) {
             case 'widget':
                 html += '<div class="col-md-12 zoomer-cover iframe-section" data-block-uniqid="'+ uniqId +'">';
@@ -299,30 +299,47 @@ var Builder = function() {
                     html +=  '<img src="'+itemSelector.attr('src') + '" class="w-auto pull-left h-100 mx-auto" style="max-height: 330px;"/>';
                 html+= '</div>';
                 break;
-
+            case 'stats':
+                __html += '<div class="col standart-section zoomer-cover" data-section="stats" data-block-uniqid="'+ getUniqueId(1) +'">';
+                    __html += '<div class="row" data-tagname="col" data-itemcount="'+ window['setDefaultRowData' + windowUniqId].length +'" data-colcount="2" style="width: 100%">';
+                        $.each(window['setDefaultRowData' + windowUniqId], function (dataIndex, dataValue) {
+                            __html += '<div class="col">';
+                                __html += '<div class="text-center d-flex flex-column justify-content-center align-items-center py-3">';
+                                    __html += '<div class="bs-icon-xl bs-icon-circle bs-icon-primary d-flex flex-shrink-0 justify-content-center align-items-center d-inline-block mb-2 bs-icon lg">';
+                                        __html += '<i class="fa fa fa-brain"></i>';
+                                    __html += '</div>';
+                                    __html += '<div class="px-3">';
+                                        __html += '<h2 class="fw-bold mb-0">'+ dataValue['position1Value'] +'</h2>';
+                                        __html += '<p class="mb-0">'+ dataValue['position2Value'] +'</p>';
+                                    __html += '</div>';
+                                __html += '</div>';
+                            __html += '</div>';
+                        });
+                    __html += '</div>';
+                __html += '</div>';
+                break;
             case 'table': 
                 __html += '<div class="col standart-section zoomer-cover" data-section="table" data-block-uniqid="'+ getUniqueId(1) +'">';
                     __html += '<div class="table-responsive">';
                         __html += '<table class="table">';
                             __html += '<thead>';
                                 __html += '<tr>';
-                                    __html += '<th>Column 1</th>';
-                                    __html += '<th>Column 2</th>';
+                                    __html += '<th>Position1Value</th>';
+                                    __html += '<th>Position2Value</th>';
                                 __html += '</tr>';
                             __html += '</thead>';
-                            __html += '<tbody>';
+                            __html += '<tbody data-tagname="tbody" data-itemcount="'+ window['setDefaultRowData' + windowUniqId].length +'" data-colcount="2">';
+                            $.each(window['setDefaultRowData' + windowUniqId], function (dataIndex, dataValue) {
                                 __html += '<tr>';
-                                    __html += '<td>Cell 1</td>';
-                                    __html += '<td>Cell 2</td>';
+                                    __html += '<td>'+ dataValue['position1Value'] +'</td>';
+                                    __html += '<td>'+ dataValue['position2Value'] +'</td>';
                                 __html += '</tr>';
-                                __html += '<tr>';
-                                    __html += '<td>Cell 3</td>';
-                                    __html += '<td>Cell 4</td>';
-                                __html += '</tr>';
+                            });
                             __html += '</tbody>';
                         __html += '</table>';
                     __html += '</div>';
                 __html += '</div>';
+                
                 break;
             case 'col2':
                 __html += '<div class="col standart-section zoomer-cover" data-section="column" data-block-uniqid="'+ getUniqueId(1) +'"></div>';
@@ -560,18 +577,35 @@ var Builder = function() {
                                             __html += '</div>';
                                         __html += '</div>';
                                         break;
-                                
                                     default:
-                                        __html += '<div class="col-md-12">';
-                                            __html += '<div class="form-group row">';
-                                                __html += '<label class="col-form-label col-md-4 text-right pr-0 pt-1">'+ cRow +' :</label>';
-                                                __html += '<div class="col-md-8">';
-                                                    __html += '<div class="input-group">';
-                                                        __html += '<input type="text" class="form-control form-control-sm" name="'+ cRow +'" data-path="'+ cRow +'" id="'+ cRow +'" value="" >'
+                                        if (cRow === 'dataPosition') {
+                                            if (typeof window['setDefaultRowData' + uniqId] !== 'undefined' && typeof window['setDefaultRowData' + uniqId][0] !== 'undefined') {
+                                                __html += '<div class="col-md-12">';
+                                                    __html += '<div class="form-group row">';
+                                                        __html += '<label class="col-form-label col-md-4 text-right pr-0 pt-1">dataPosition:</label>';
+                                                        __html += '<div class="col-md-8">';
+                                                            __html += '<select class="form-control form-control-sm " name="dataPosition" data-path="dataPosition">';
+                                                                __html += '<option value="">- Сонгох -</option>';
+                                                                $.each(window['setDefaultRowData' + uniqId][0], function (dataIndex, dataValue) {
+                                                                    __html += '<option value="'+ dataIndex +'">'+ dataValue +'</option>';
+                                                                });
+                                                            __html += '</select>';
+                                                        __html += '</div>';
+                                                    __html += '</div>';
+                                                __html += '</div>';
+                                            }
+                                        } else {
+                                            __html += '<div class="col-md-12">';
+                                                __html += '<div class="form-group row">';
+                                                    __html += '<label class="col-form-label col-md-4 text-right pr-0 pt-1">'+ cRow +' :</label>';
+                                                    __html += '<div class="col-md-8">';
+                                                        __html += '<div class="input-group">';
+                                                            __html += '<input type="text" class="form-control form-control-sm" name="'+ cRow +'" data-path="'+ cRow +'" id="'+ cRow +'" value="" >'
+                                                        __html += '</div>';
                                                     __html += '</div>';
                                                 __html += '</div>';
                                             __html += '</div>';
-                                        __html += '</div>';
+                                        }
                                         break;
                                 }
                             });
@@ -594,7 +628,7 @@ var Builder = function() {
     };
 
     var initEditBlock = function (element, uniqId) {
-        
+
         var _this = element,
             pageScreen = _this.closest('#pageList'),
             standartSection = _this.closest('.standart-section')

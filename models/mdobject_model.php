@@ -1422,7 +1422,10 @@ class Mdobject_Model extends Model {
         $link_dialogWidth = Arr::implode_r(',', $array_dialogWidth, true);
         $link_linkcriteria = Arr::implode_r(',', $array_linkcriteria, true);
         $link_metatypecode = Arr::implode_r(',', $array_metatypecode, true);
-        $link_param = Arr::implode_r(",", $array_param, true);
+        $link_param = '';
+        foreach ($array_param as $a) {
+            $link_param .= strval($a) . ',';
+        }
 
         return array('LINK_METADATAID' => $link_linkmetadataid, 'DIALOG_HEIGHT' => $link_dialogHeight, 'DIALOG_WIDTH' => $link_dialogWidth, 'LINK_CRITERIA' => $link_linkcriteria, 'LINK_METATYPECODE' => $link_metatypecode, 'LINK_COUNT' => $clinkMetadataId, 'LINK_PARAM' => $link_param);
     }
@@ -1556,7 +1559,7 @@ class Mdobject_Model extends Model {
                 }
                 
                 if ($row['DRILLDOWN_COLUMN'] > 0) {
-                    $ddown = self::getDrillDownMetaDataModel($metaDataId, $row['FIELD_PATH']);             
+                    $ddown = self::getDrillDownMetaDataModel($metaDataId, $row['FIELD_PATH']);     
                 } else {
                     $ddown = null;
                 }
@@ -1570,7 +1573,7 @@ class Mdobject_Model extends Model {
                 if ($ddown) {
                     
                     $sizeDrillDownArray = count($ddown);
-
+                    
                     if ($sizeDrillDownArray > 1) {
                         
                         $linkDrillDown = self::drilldownParams($ddown);              
@@ -9988,10 +9991,10 @@ class Mdobject_Model extends Model {
             FROM META_GROUP_CONFIG  
             WHERE MAIN_META_DATA_ID = ".$this->db->Param(0)." 
                 AND PARENT_ID IS NULL", 
-            array($dataViewId)
+            [$dataViewId]
         );
 
-        $array = array();
+        $array = [];
 
         foreach ($data as $row) {
             $array[$row['FIELD_PATH']] = $row;

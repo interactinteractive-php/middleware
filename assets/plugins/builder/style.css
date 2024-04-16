@@ -1,5 +1,4 @@
 .build-page {
-    
             
     .top-action-btns {
         background: #333;
@@ -11,7 +10,7 @@
         right: 20%;
         top: 10px;
         display: inline-flex;
-        
+
         .span {
             margin-left: 1rem;
             display: inline-block;
@@ -121,6 +120,7 @@
     }
 
     .layout-left-side {
+
         .screen {
             margin: 15px auto 30px;
             width: 94%;
@@ -196,7 +196,7 @@
                 min-height: fit-content;
             }
     
-            .frameWrapper #pageList ul {
+            .frameWrapper #pageList > ul {
                 list-style: none;
                 list-style-type: none;
                 margin: 0px;
@@ -206,27 +206,27 @@
                 min-height: 300px;
             }
     
-            .frameWrapper #pageList ul.active {
+            .frameWrapper #pageList >  ul.active {
                 display: block;
             }
     
-            .frameWrapper #pageList ul li {
+            .frameWrapper #pageList  > ul  > li {
                 display: block;
                 overflow: hidden;
             }
     
-            .frameWrapper #pageList ul iframe {
+            .frameWrapper #pageList  > ul  > iframe {
                 border: 0px;
                 width: 100%;
             }
     
-            .frameWrapper #pageList ul li .zoomer-cover {
+            .frameWrapper #pageList  > ul  > li  > .zoomer-cover {
                 cursor: move;
                 overflow: hidden !important;
             }
     
-            .frameWrapper #pageList ul li .zoomer-small, 
-            .frameWrapper #pageList ul li .zoomer-small iframe {
+            .frameWrapper #pageList  > ul  > li > .zoomer-small, 
+            .frameWrapper #pageList  > ul  > li >  .zoomer-small  > iframe {
                 overflow: hidden !important;
                 overflow-y: hidden !important;
             }
@@ -280,6 +280,10 @@
                 border-color: #2ca6df77 !important;
             }
 
+            .standart-section .active-element {
+                border: 1px solid #9C27B0 !important;
+            }
+
             .standart-section.active {
                 border-color: #2ca6df !important;
             }
@@ -298,9 +302,11 @@
             .standart-section table th.active,
             .standart-section table td.active
             {
-                background-color: #2ca6df4a !important
+                background-color: #2ca6df4a;
             }
+
         }
+        
     }
     
     .form-control-custom {
@@ -315,4 +321,17 @@
     .ci-icon-2x {
         font-size: 32px !important;
     }
+
+    .elementHovered {
+        border: 1px solid #2196f3 !important;
+    }
+
+    .standart-section:hover {
+        cursor: pointer;
+    }
+
+    button.active-breadcrumbs {
+        background: #5c6bc0 !important;
+    }
+    
 }

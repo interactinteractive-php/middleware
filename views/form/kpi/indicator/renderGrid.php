@@ -4,7 +4,7 @@
     ?>
         <div class="row">        
             <div class="col pl-0 pr-0">
-                <div class="kpidv-data-top-filter-col pr-1"></div>
+                <div class="kpidv-data-top-filter-col pr-1 mt10"></div>
             </div>
         </div>
     <?php

@@ -191,6 +191,9 @@
                                 $required = '';
                             }
                             
+                            $value['input'] = str_replace('data-path="receivableKeyId"', 'data-path="receivableKeyId" readonly="readonly"', $value['input']);
+                            $value['input'] = str_replace('data-path="scheduleId"', 'data-path="scheduleId" readonly="readonly"', $value['input']);
+                            
                             if ($value['segmentId']) {
                                 
                                 echo '<tr data-cell-path="'.$value['path'].'" data-segment-row="1">';

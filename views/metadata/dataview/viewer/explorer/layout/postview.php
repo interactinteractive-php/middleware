@@ -88,13 +88,13 @@
                         <div class="card-body p-3">
                             <h6 class="card-title font-weight-bold"><?php echo issetParam($recordRow[$name2]) ?></h6>
                             <p class="card-text posi-name3"><?php echo issetParam($recordRow[$name3]) ?></p>
-                            <div class="postview-readmore">Цааш үзэх...</div>
+                            <div class="postview-readmore <?php echo issetParam($recordRow[$name3]) ? '' : 'hidden'; ?>">Цааш үзэх...</div>
                         </div>
 
                         <div class="card-footer bg-transparent d-flex justify-content-between border-top-0 pt-0">
                             <div class="d-flex">
                                 <div class="user-photo">
-                                    <img class="img-fluid usrphtimg" class="posi-userpicture" src="<?php echo $recordRow[$userpicture] ?>" alt="">
+                                    <img class="img-fluid usrphtimg" class="posi-userpicture" src="<?php echo issetParam($recordRow[$userpicture]) ?>" alt="">
                                 </div>
                                 <div class="ml10">
                                     <div class="user-name posi-name1"><?php echo issetParam($recordRow[$name1]) ?></div>
@@ -228,8 +228,8 @@
           width: 800,
           height: "auto",
           modal: true,
+          closeOnEscape: true,
           open: function () {
-              $('html, body').scrollTop(0);
           },
           close: function () {
             $dialog.empty().dialog("destroy").remove();

@@ -276,7 +276,7 @@ function mvFileToHtmlTable(isInputRead) {
                 
                 $.cachedScript('assets/custom/addon/plugins/sheetjs/xlsx.full.min.js?v=1', {async: false});
 
-                mvFileWorkbook = XLSX.read(mvFileReader.result, {type: 'binary', cellDates: true, raw: true, cellText: true, dense: true});
+                mvFileWorkbook = XLSX.read(mvFileReader.result, {type: 'binary', cellDates: true, raw: true, cellText: true, dense: true, dateNF: 'YYYY-MM-DD'});
                 var sheetNames = mvFileWorkbook.SheetNames;
                 var $sheetCombo = $form.find('select[name="sheetNames"]');
 

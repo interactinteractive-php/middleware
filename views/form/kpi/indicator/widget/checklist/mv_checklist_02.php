@@ -127,25 +127,30 @@ $renderType = $this->methodRow['RENDER_THEME'];
                                                                 $class = ' disabled';
                                                             }
 
-                                                            $rowJson = json_encode(array(
+                                                            $rowJson = json_encode([
                                                                 'mapId'          => $row['MAP_ID'], 
                                                                 'indicatorId'    => $row['ID'], 
                                                                 'strIndicatorId' => $row['STRUCTURE_INDICATOR_ID'],
                                                                 'kpiTypeId'      => $row['KPI_TYPE_ID'], 
+                                                                'typeCode'       => $row['TYPE_CODE'], 
                                                                 'metaDataId'     => $row['META_DATA_ID'], 
                                                                 'metaTypeId'     => $row['META_TYPE_ID'], 
-                                                            ));
+                                                            ]);
                                                             $rowJson = htmlentities($rowJson, ENT_QUOTES, 'UTF-8');
 
-                                                            $hiddenParams = json_encode(array(
+                                                            $hiddenParams = json_encode([
                                                                 'srcMapId'       => $row['MAP_ID'],
                                                                 'srcIndicatorId' => $this->strIndicatorId, 
                                                                 'srcRecordId'    => $this->recordId, 
                                                                 'trgIndicatorId' => $row['ID']
-                                                            ));
+                                                            ]);
                                                             $hiddenParams = htmlentities($hiddenParams, ENT_QUOTES, 'UTF-8');
 
                                                             $iconName = 'far fa-square';
+                                                            
+                                                            if ($renderType == 'paper_main_window') {
+                                                                $iconName = 'far '.$row['ICON'];
+                                                            }
 
                                                             if (isset($this->endToEndLogData['detailData'][$row['ID']]) && $this->endToEndLogData['detailData'][$row['ID']]['STATUS_CODE'] == 'done') {
                                                                 $iconName = 'fas fa-check-square';
@@ -217,9 +222,6 @@ $renderType = $this->methodRow['RENDER_THEME'];
 ?>
 
 <style type="text/css">
-/*.mv-checklist2-render-parent .mv-checklist-render {
-    max-width: 900px;
-}*/    
 .mv-checklist2-render-parent .mv-checklist-render-comment .media-body .p-2.pb3 {
     background-color: #eee !important;
 }   
@@ -241,26 +243,16 @@ $renderType = $this->methodRow['RENDER_THEME'];
     padding-top: 2px;
     padding-bottom: 2px;
     font-size: 12px;
-    /*font-weight: bold;*/
-}    
+}
 .nav-link.mv_checklist_02_sub i {
     color: #1B84FF !important;
     margin-top: 2px;
-    font-size: 18px;    
+    font-size: <?php echo $renderType == 'paper_main_window' ? '13px' : '18px'; ?>;    
     margin-right: 13px;
 }    
 .mv-checklist2-render-parent .jeasyuiTheme3 {
     padding-bottom: 15px;
 }
-/*.mv-checklist2-render-parent .mv-checklist-render .input-group-btn>.btn {
-    height: 20px;
-    min-height: 20px;
-}*/
-/*.mv-checklist2-render-parent .mv-checklist-render .quick-item-process.bp-add-ac-row {
-    position: absolute;
-    margin-top: -36px;
-    margin-left: 536px;
-}*/
 .mv-checklist2-render-parent .mv-checklist-render .quick-item-process.bp-add-ac-row .input-icon,
 .mv-checklist2-render-parent .mv-checklist-render .quick-item-process.bp-add-ac-row .input-group-btn:first-child {
     display: none;
@@ -295,9 +287,6 @@ $renderType = $this->methodRow['RENDER_THEME'];
 .mv-checklist2-render-parent .datagrid-pager {
     border-color: transparent;
 }
-/*.mv-checklist2-render-parent .datagrid .datagrid-pager {
-    display: none;
-}*/
 .mv-checklist2-render-parent .datagrid-row-alt:not(.datagrid-row-over) {
     background: transparent;
 }
@@ -529,9 +518,9 @@ $renderType = $this->methodRow['RENDER_THEME'];
 .kpi-form-paper-portrait .mv-main-tabs {
     margin-top: 1.25rem;
 }
-/*.kpi-form-paper-portrait .kpi-hdr-table .kpi-hdr-table-label {
-    background-color: #fbd9a5 !important;
-}*/
+.kpi-form-paper-portrait.paper_main_window .mv-main-tabs {
+    margin-top: -3px !important;
+}
 .kpi-form-paper-portrait table.kpi-dtl-table tbody td input::-webkit-input-placeholder {
     color: transparent !important;
 }
@@ -635,6 +624,10 @@ input.kpi-notfocus-readonly-input::placeholder {
     display: inline-block;
     padding-left: 10px;
 }
+.mv-checklist2-render-parent .mv-hdr-label-control-label, 
+.mv-checklist2-render-parent .mv-hdr-label-control-input {
+    max-width: 100%;
+}
 .mv-checklist2-render-parent .mv-hdr-label-control:not(.mv-hdr-right-label-control), 
 .mv-checklist2-render-parent .mv-hdr-label-control:not(.mv-hdr-right-label-control) .mv-hdr-label-control-row,
 .mv-checklist2-render-parent .mv-hdr-label-control:not(.mv-hdr-right-label-control) .mv-hdr-label-control-label, 
@@ -652,6 +645,7 @@ input.kpi-notfocus-readonly-input::placeholder {
 }
 .mv-checklist2-render-parent .mv-hdr-label-control:not(.mv-hdr-right-label-control) .mv-hdr-label-control-label {
     width: 100%!important;
+    padding-bottom: 8px;
 }
 .mv-checklist2-render-parent .mv-hdr-label-control-label {
     text-align: left;
@@ -676,13 +670,11 @@ input.kpi-notfocus-readonly-input::placeholder {
 .mv-checklist2-render-parent .mv-hdr-label-control-input input.form-control {
     height: 32px!important;
     min-height: 32px!important;
-    /*background-color: #fafafa;*/
     border-radius: 6px!important;
     border: 1px #eee solid;
     padding: 7px 10px!important;
 }
 .mv-checklist2-render-parent .mv-hdr-label-control-input textarea.form-control {
-    /*background-color: #fafafa;*/
     border-radius: 6px!important;
     border: 1px #eee solid;
     padding: 7px 10px!important;
@@ -696,10 +688,6 @@ input.kpi-notfocus-readonly-input::placeholder {
     border: 1px #eee solid;
     height: 32px;
     padding-top: 2px;
-    /*background-color: #fafafa;*/
-}
-.mv-checklist2-render-parent .mv-hdr-label-control-input .select2-container .select2-choice .select2-arrow {
-    /*background-color: #fafafa;*/
 }
 .mv-checklist2-render-parent .mv-checklist-render div[data-meta-type="process"] .table-scrollable>.table, 
 .mv-checklist2-render-parent .mv-checklist-render div[data-meta-type="process"] .tabbable-line>.tab-content {
@@ -717,11 +705,18 @@ input.kpi-notfocus-readonly-input::placeholder {
 .mv-checklist2-render-parent .mv-checklist-render div[data-meta-type="process"] .bp-header-param ul.bp-icon-selection {
     max-height: 360px;
 }
+.mv-checklist2-render-parent .row > .col-md-2 > .mv-hdr-label-control > .mv-hdr-label-control-input > .dateElement {
+    max-width: none!important;
+}
 .fileinput-button .big {
     font-size: 70px;
     line-height: 112px;
     text-align: center;
     color: #ddd;    
+}
+.new-vlogo-link-selector {
+    padding-top: 12px !important;
+    padding-bottom: 0 !important;    
 }
 </style>
 
@@ -758,7 +753,7 @@ $(function() {
 if ($renderType == 'paper_main_window') {
 ?>
 $(function() {
-    $('#mv-checklist-render-parent-<?php echo $this->uniqId; ?>').find('.content-wrapper-paper_main_window').css("max-width", $(window).width() - 385);
+    $('#mv-checklist-render-parent-<?php echo $this->uniqId; ?>').find('.content-wrapper-paper_main_window').css("max-width", $(window).width() - 300);
 });
 <?php
 }

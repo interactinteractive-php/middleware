@@ -396,13 +396,14 @@ $(function() {
             }
             
             if (kpiTypeId == '2008' || isMartRender > 0) { 
-        
+                
+                var typeCode = (jsonObj.typeCode).toLowerCase();
                 var postData = {
                     mainIndicatorId: jsonObj.mainIndicatorId, 
                     structureIndicatorId: strIndicatorId, 
                     trgIndicatorId: indicatorId, 
                     trgIndicatorKpiTypeId: kpiTypeId, 
-                    typeCode: '', 
+                    typeCode: typeCode, 
                     recordId: '', 
                     srcMapId: mapId, 
                     selectedRow: ''
@@ -513,7 +514,7 @@ $(function() {
                 
                 $.ajax({
                     type: 'post',
-                    url: 'mdform/showRelationCardHtml',
+                    url: 'mdform/renderKpiPackage',
                     data: postData,
                     dataType: 'json',
                     beforeSend: function() {
@@ -527,6 +528,85 @@ $(function() {
                         viewProcess_<?php echo $this->uniqId; ?>.empty().append(html.join('')).promise().done(function() {
                             Core.unblockUI();
                         });
+                    }
+                });            
+                
+            } else if (kpiTypeId == '2020') {
+            
+                var postData = {
+                    mainIndicatorId: jsonObj.mainIndicatorId, 
+                    structureIndicatorId: strIndicatorId, 
+                    trgIndicatorId: indicatorId, 
+                    trgIndicatorKpiTypeId: kpiTypeId, 
+                    uniqId: '<?php echo $this->uniqId; ?>', 
+                    typeCode: '', 
+                    recordId: '', 
+                    srcMapId: mapId, 
+                    selectedRow: ''
+                };
+
+                if ($headerParams.length) {
+                    postData.selectedRow = rowParse;
+                    postData.recordId = headerRecordId;
+                }
+                
+                $.ajax({
+                    url: "assets/custom/addon/plugins/echarts/echarts.js",
+                    dataType: "script",
+                    cache: true,
+                    async: false
+                });                
+                
+                $.ajax({
+                    url: "middleware/assets/js/addon/echartsBuilder.js",
+                    dataType: "script",
+                    cache: true,
+                    async: false
+                });                
+                
+                $.ajax({
+                    type: 'post',
+                    url: 'mdwidget/renderLayoutSection/' + indicatorId,
+                    data: postData,
+                    dataType: 'json',
+                    beforeSend: function() {
+                        Core.blockUI({message: 'Loading...', boxed: true});
+                    },
+                    success: function(dataHtml) {
+                        var html = [];
+                
+                        html.push(dataHtml.html);
+
+                        viewProcess_<?php echo $this->uniqId; ?>.empty().append(html.join('')).promise().done(function() {
+                            Core.unblockUI();
+                        });
+                        
+                        $.ajax({
+                            type: 'post',
+                            url: 'mdform/filterKpiIndicatorValueForm',
+                            data: {indicatorId: indicatorId, drillDownCriteria: '', filterPosition: 'top', filterColumnCount: '3'},
+                            dataType: 'json',
+                            success: function(data) {
+                                var $filterCol = viewProcess_<?php echo $this->uniqId; ?>.find('.kpipage-data-top-filter-col').last();
+
+                                if (data.status == 'success' && data.html != '') {
+
+                                    if ($filterCol.length) {
+
+                                        $filterCol.closest('.mv-datalist-container').addClass('mv-datalist-show-filter');
+                                        $filterCol.closest('.ws-page-content').removeClass('mt-2');
+
+                                        $filterCol.append(data.html).promise().done(function() {
+                                            Core.initNumberInput($filterCol);
+                                            Core.initLongInput($filterCol);
+                                            Core.initDateInput($filterCol);
+                                            Core.initSelect2($filterCol);         
+                                        });
+                                    }
+
+                                }
+                            }
+                        });                        
                     }
                 });            
                 
@@ -706,7 +786,7 @@ function checkListSaveKpiIndicatorForm(elem) {
         
         var $parent = $this.closest('.mv-checklist-render-parent');
         var $active = $parent.find('ul.nav-sidebar a.nav-link.active[data-json]');
-                
+        
         $form.ajaxSubmit({
             type: 'post',
             url: 'mdform/saveKpiDynamicDataByList',
@@ -759,9 +839,11 @@ function checkListSaveKpiIndicatorForm(elem) {
                             }
                         }
                     }
-                } 
-
-                Core.unblockUI();
+                    
+                    $active.trigger('click');
+                } else {
+                    Core.unblockUI();
+                }
             }
         });
     }

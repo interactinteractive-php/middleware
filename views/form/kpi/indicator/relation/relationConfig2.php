@@ -141,12 +141,13 @@
 <script type="text/javascript">
     <?php if ($this->isWs) { ?>
         var dynamicHeight = $(window).height() - $("#app").offset().top - 20;
+        dynamicHeight = 700; // tur
         $("#app").css('height', dynamicHeight - 20);
         $(".canvas").css('height', dynamicHeight - 20);
         
-        // $.cachedScript('http://localhost:8080/bundle.js').done(function() {
-       $.cachedScript('<?php echo autoVersion('assets/rappidjs/database/bundle.js'); ?>').done(function() {
-        });        
+//         $.cachedScript('http://localhost:8080/bundle.js').done(function() {
+        $.cachedScript('<?php echo autoVersion('assets/rappidjs/database/bundle.js'); ?>').done(function() {
+        });  
         
         function kpiDataMartAddObject2(elem) {
             dataViewSelectableGrid('nullmeta', '0', '16511984441409', 'multi', 'nullmeta', elem, 'kpiDataMartFillEditor2');

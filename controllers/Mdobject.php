@@ -1482,7 +1482,7 @@ class Mdobject extends Controller {
 
             if ($drillDownMetaData) {
                 
-                if (Input::post('isDrillMainMetaDataId') === '1') {                    
+                if (Input::post('isDrillMainMetaDataId') === '1') { 
                     
                     if (strpos($drillDownMetaData[0]['LINK_META_DATA_ID'], ',') !== false) {
                         
@@ -1934,7 +1934,7 @@ class Mdobject extends Controller {
         echo json_encode($response); exit;
     }
     
-    public function exportParamReplacer($content) {
+    public function exportParamReplacer($content, $metaDataId = null, $dvHeaders = null, $criteriaData = null) {
         
         $constantKeys = (new Mdstatement())->constantKeys();
         
@@ -1943,6 +1943,22 @@ class Mdobject extends Controller {
         }
         
         $content = Mdstatement::configValueReplacer($content);
+        
+        if ($criteriaData) {
+            
+            foreach ($criteriaData as $criteriaKey => $criteria) {
+                
+                $criteriaKeyLower = strtolower($criteriaKey);
+                
+                if (isset($dvHeaders[$criteriaKeyLower]) && stripos($content, '#'.$criteriaKeyLower.'#') !== false) {
+                    $pathRow = $dvHeaders[$criteriaKeyLower]; 
+                    $value = $this->model->getCriteriaValue($metaDataId, $criteriaKey, $criteria, $pathRow);
+                    $content = str_ireplace('#'.$criteriaKeyLower.'#', $value, $content);
+                }
+            }
+        }
+        
+        $content = preg_replace('/\#([A-Za-z0-9_.-]+)\#/s', '', $content);
         
         return $content;
     }
@@ -2094,8 +2110,9 @@ class Mdobject extends Controller {
         $exportHtml = $this->model->getDvExportTemplateHtml($metaDataId);
         
         if (isset($exportHtml['header'])) {
-
-            $headerHtml = self::exportParamReplacer($exportHtml['header']);
+            
+            $dvHeaders = $this->model->getOnlyHeaderFieldsByKey($metaDataId);
+            $headerHtml = self::exportParamReplacer($exportHtml['header'], $metaDataId, $dvHeaders, $exportData['criteria']);
             $headerHtml = str_replace('&nbsp;', '<font color="#ffffff">_</font>', $headerHtml);
             
             $htmlObj = new PHPExcel_Helper_HTML;
@@ -2489,7 +2506,8 @@ class Mdobject extends Controller {
         
         if (isset($exportHtml['footer'])) {
             
-            $footerHtml = self::exportParamReplacer($exportHtml['footer']);
+            $dvHeaders = isset($dvHeaders) ? $dvHeaders : $this->model->getOnlyHeaderFieldsByKey($metaDataId);
+            $footerHtml = self::exportParamReplacer($exportHtml['footer'], $metaDataId, $dvHeaders, $exportData['criteria']);
             $footerHtml = str_replace('&nbsp;', '<font color="#ffffff">_</font>', $footerHtml);
             
             $htmlObj = new PHPExcel_Helper_HTML;
@@ -2559,7 +2577,7 @@ class Mdobject extends Controller {
         
         if (count($exportData['criteria']) > 0) {
             
-            $dvHeaders = $this->model->getOnlyHeaderFieldsByKey($metaDataId);
+            $dvHeaders = isset($dvHeaders) ? $dvHeaders : $this->model->getOnlyHeaderFieldsByKey($metaDataId);
             
             $objPHPExcel->createSheet();
             $objPHPExcel->setActiveSheetIndex(1);

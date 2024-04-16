@@ -230,7 +230,7 @@
         
         if ($(".height-dynamic", windowId_<?php echo $this->metaDataId; ?>).length) {
             $(".height-dynamic", windowId_<?php echo $this->metaDataId; ?>).css({
-                'height': $(window).height() - $(".height-dynamic", windowId_<?php echo $this->metaDataId; ?>).offset().top - 20,
+                'height': $(window).height() - $(".height-dynamic", windowId_<?php echo $this->metaDataId; ?>).offset().top - 40,
                 'overflow-y': 'auto',
                 'padding-right': '8px'
             });

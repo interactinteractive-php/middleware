@@ -137,6 +137,8 @@ class Mdwidget extends Controller {
                 $widgetCode = 'mv_card_with_employeelist_widget';                
             }  elseif (isset($widgetCode['mv_card_status_widget'])) {
                 $widgetCode = 'mv_card_status_widget';                
+            }  elseif (isset($widgetCode['mv_tablelist_001'])) {
+                $widgetCode = 'mv_tablelist_001';                
             } elseif (isset($widgetCode['mv_tiny_card_with_list_widget'])) {
                 $widgetCode = 'mv_tiny_card_with_list_widget';                
             } else {
@@ -159,6 +161,11 @@ class Mdwidget extends Controller {
                 'topAddRow' => true, 
                 'topAddOneRow' => true,
                 'name' => 'mv_card_with_employeelist_widget'
+            ),
+            'mv_tablelist_001' => array(
+                'topAddRow' => true, 
+                'topAddOneRow' => true,
+                'name' => 'mv_tablelist_001'
             ),
             'mv_card_status_widget' => array(
                 'topAddRow' => true, 
@@ -3957,9 +3964,52 @@ class Mdwidget extends Controller {
         }        
     }
 
-    public function render ($widgetId = '') {
-        $pageJson = file_get_contents(self::$viewPath . '/render/data/page.json');
+    public function render ($widgetId = '17091929426169') {
+
         
+        $pageJson = file_get_contents(self::$viewPath . '/render/data/page.json');
+        $this->view->pageJson = $this->db->GetOne("SELECT JSON_CONFIG FROM kpi_indicator where id = " . $this->db->Param(0), array($widgetId));
+        if ($widgetId === '1') {
+            convJson(json_decode($this->view->pageJson, true));
+            die;
+        }
+
+        $this->view->title = $this->lang->line('WidgetRender');
+        $this->view->uniqId = getUID();
+        $this->view->isAjax = is_ajax_request();
+        $this->view->pageJson = json_decode($pageJson, true);
+        if ($widgetId === '1') {
+            convJson($this->view->pageJson);
+            die;
+        }
+
+        if ($this->view->isAjax == false) {
+            
+            $this->view->css = AssetNew::metaCss();
+            $this->view->js = AssetNew::metaOtherJs();
+            $this->view->fullUrlJs = AssetNew::amChartJs();
+            
+            $this->view->render('header');
+        } 
+
+        $this->view->render('/render/index', self::$viewPath);
+        
+        if ($this->view->isAjax == false) {
+            $this->view->render('footer');
+        }
+
+    }
+
+    public function render_old ($widgetId = '') {
+
+        
+        $pageJson = file_get_contents(self::$viewPath . '/render/data/page.json');
+        $this->view->pageJson = $this->db->GetOne("SELECT JSON_CONFIG FROM kpi_indicator where id = 17091929426169");
+        if ($widgetId === '2') {
+            convJson(json_decode($this->view->pageJson, true));
+            die;
+        }
+
         $this->view->title = $this->lang->line('WidgetRender');
         $this->view->uniqId = getUID();
         $this->view->isAjax = is_ajax_request();
@@ -4401,5 +4451,238 @@ class Mdwidget extends Controller {
         convJson($result);
         exit();
     }
+
+    public function renderWidgetFields ($body, $tagCode, $uniqId, $prefix = '', $parentRow = array(), $simpleData= array(), $isSimpleData='0') {
+        
+        (String) $pageHtml = $pageCss = '';
+        if (issetParamArray($body['children'])) {
+            foreach ($body['children'] as $key => $row) {
+
+                $pageHtml .= '<' . $row['tag'] . ' ';
+                    if (issetParam($row['data-section']) === 'table') {
+                        $isSimpleData = '1';
+                    }
+                    
+                    foreach ($row as $attrKey => $attrVal) {
+                        if ($attrKey !== 'html' && $attrKey !== 'children' && $attrKey !== 'tag' && !is_array($attrVal)) {
+                            $pageHtml .= $attrKey . '="' . $attrVal . '" ';
+                        }
+                    }
+
+                    $pageHtml .= '>';
+                    if (issetParam($row['html'])) {
+                        $pageHtml .= html_entity_decode($row['html'], ENT_QUOTES, 'UTF-8');
+                    }
+
+                    switch (issetParam($row['data-tagname'])) {
+                        case 'tbody':
+                            if (issetParam($row['data-colcount']) !== '') {
+                                foreach ($simpleData as $positionValue) {
+                                    $pageHtml .= '<tr>';
+                                    for ($i = 1; $i <= $row['data-colcount']; $i++) {
+                                        $pageHtml .= '<td>';
+                                            $pageHtml .= $positionValue['position' . $i . 'Value'];
+                                        $pageHtml .= '</td>';
+                                    }
+                                    $pageHtml .= '</tr>';
+                                }
+                            }
+                            break;
+                        
+                        default:
+                            if (issetParamArray($row['children'])) {
+                                $pageAttr = Mdwidget::renderWidgetFields($row, $row['tag'], $uniqId, $prefix . '_' . $key, $row, $simpleData, $isSimpleData);
+                                $pageHtml .= issetParam($pageAttr['html']);
+                                $pageCss .= issetParam($pageAttr['css']);
+                            }
+                            break;
+                    }
+
+                $pageHtml .= '</' . $row['tag'] . '>';
+
+            }
+        }
+
+        return array('html' => $pageHtml, 'css' => $pageCss);
+    }
     
+    public function renderLayoutSection ($indicatorId) {
+        $this->load->model('mdwidget', 'middleware/models/');
+        $pageConfig = $this->model->getIndicatorWidgetModel($indicatorId);
+//        pa($pageConfig);
+        
+        $layoutHtml = '<div class="row">        
+            <div class="col">
+                <div class="kpipage-data-top-filter-col my-2 mt0"></div>
+            </div>
+        </div>'.$pageConfig['layouthtml'];
+        
+        $layoutHtml = html_entity_decode($layoutHtml, ENT_QUOTES, 'UTF-8');      
+        
+        if ($pageConfig['pageindicatormap']) {
+            foreach ($pageConfig['pageindicatormap'] as $row) {
+                
+                if ($row['kpitypeid'] == '16641793815766') {
+                    $mdf = &getInstance();
+                    $mdf->load->model('mdform', 'middleware/models/');                    
+                    $_POST['relationComponents'] = $mdf->model->getKpiIndicatorMapWithBuilderModel($row['srcindicatorid'], '10000000,10000001,10000009', issetParam($row['metainfoindicatorid']));
+                    $_POST['isAjax'] = true;
+                    $listHtml = (new Mdform())->indicatorList(issetParam($row['metainfoindicatorid']), true);
+                    $layoutHtml = str_replace('{'. $row['trgindicatorid'] . '}', $listHtml['html'], $layoutHtml);        
+                    
+                } elseif ($row['widgetconfig']) {
+                                        
+                    $chartJson = json_decode($row['widgetconfig'], true);
+                    $mainIndicator = isset($chartJson['mainIndicatorId']) ? $chartJson['mainIndicatorId'] : '17126384673849';
+                    $getChart = (new Mdform)->indicatorChartList($mainIndicator, true);
+                    $layoutHtml = str_replace('{'. $row['trgindicatorid'] . '}', $getChart['html'], $layoutHtml); 
+                }
+            }
+        }
+        
+        convJson(['html' => $layoutHtml]);
+    }   
+    
+    public function renderLayoutSectionNew ($indicatorId) {
+        $this->load->model('mdwidget', 'middleware/models/');
+        $pageConfig = $this->model->getIndicatorWidgetModel($indicatorId);
+        
+        $layoutHtml = '<div class="row">        
+            <div class="col pl-0 pr-0">
+                <div class="kpipage-data-top-filter-col pr-1 mt10"></div>
+            </div>
+        </div>'.$pageConfig['layouthtml'];
+        $layoutHtml = html_entity_decode($layoutHtml, ENT_QUOTES, 'UTF-8');      
+        
+        if ($pageConfig['pageindicatormap']) {
+            foreach ($pageConfig['pageindicatormap'] as $row) {
+                
+                if ($row['kpitypeid'] == '16641793815766') {
+                    $mdf = &getInstance();
+                    $mdf->load->model('mdform', 'middleware/models/');                    
+                    $_POST['relationComponents'] = $mdf->model->getKpiIndicatorMapWithBuilderModel($row['srcindicatorid'], '10000000,10000001,10000009', issetParam($row['metainfoindicatorid']));
+                    $_POST['isAjax'] = true;
+                    $listHtml = (new Mdform())->indicatorList(issetParam($row['metainfoindicatorid']), true);
+                    $layoutHtml = str_replace('{'. $row['trgindicatorid'] . '}', $listHtml['html'], $layoutHtml);        
+                    
+                } elseif ($row['widgetconfig']) {
+                                        
+                    $chartJson = json_decode($row['widgetconfig'], true);
+                    $mainIndicator = isset($chartJson['mainIndicatorId']) ? $chartJson['mainIndicatorId'] : '17126384673849';
+                    $getChart = (new Mdform)->indicatorChartList($mainIndicator, true);
+                    $layoutHtml = str_replace('{'. $row['trgindicatorid'] . '}', $getChart['html'], $layoutHtml); 
+                }
+            }
+        }
+        
+        convJson(['html' => $layoutHtml]);
+    }    
+
+    public function builderAtomicWidget ($id = '', $returnType = '') {
+
+        $selectedRow = Arr::decode(Input::post('selectedRow'));
+        $this->view->indicatorId = issetParam($selectedRow['dataRow']['id']);
+        if ($this->view->indicatorId) {
+            $returnType = 'html';
+        } else {
+            $this->view->indicatorId = $id;
+        }
+
+        $this->view->uniqId = getUID();
+        
+        
+        $this->view->isAjax = is_ajax_request();
+
+        $this->view->mainData = $this->ws->runSerializeResponse(GF_SERVICE_ADDRESS, 'indicatorWidgetConfig_004', array('id' => $this->view->indicatorId));      
+        $this->view->pageJsonConfig = json_decode(html_entity_decode(issetParam($this->view->mainData['result']['widgetdtl']['widgetconfig']), ENT_QUOTES, 'UTF-8'), true);
+        $this->view->js = array_unique(array_merge(array('custom/addon/admin/pages/scripts/app.js'), AssetNew::metaOtherJs()));
+        $this->view->css = AssetNew::metaCss();
+
+        $this->view->fullUrlJs = array(
+            'middleware/assets/plugins/builder/dom-to-image.min.js',
+            'middleware/assets/plugins/builder/builder.js',
+        );
+        
+        $this->view->fullUrlJs = array_unique(array_merge($this->view->fullUrlJs, AssetNew::amChartJs()));
+
+        if (!$this->view->isAjax && $returnType === '') {
+            $this->view->render('header');
+            $this->view->render('/widget/index', "projects/views/contentui/build");
+            $this->view->render('footer');
+        } else {
+            switch ($returnType) {
+                case 'render':
+                    $this->view->render('/widget/render', "projects/views/contentui/build");
+                    break;
+                case 'html':
+                    $this->view->render('/widget/index', "projects/views/contentui/build");
+                    break;
+                default:
+                    $response = array(
+                        'Title' => '',
+                        'Width' => '700',
+                        'uniqId' => $this->view->uniqId,
+                        'Html' => $this->view->renderPrint('/widget/index', "projects/views/contentui/build"),
+                        'save_btn' => Lang::line('save_btn'),
+                        'close_btn' => Lang::line('close_btn')
+                    );
+        
+                    echo json_encode($response);
+                    break;
+            }
+        }
+    }
+
+    public function createAtomicWidget() {
+
+        $postData = Input::postData();
+        $jsonConfig = html_to_obj($postData['pageJson']);
+
+        $_POST = array (
+            'param' =>  array (
+                'id' => issetParam($postData['indicatorId']),
+                'name' => 'Widget : ' . Str::upper(Str::random_string('alpha', '4')),
+                'widgetDtl.id' =>  array (
+                    array (
+                        0 => issetParam($postData['widgetdtlId']),
+                    ),
+                ),
+                'widgetDtl.srcrecordid' =>  array (
+                    array (
+                        0 => issetParam($postData['indicatorId']),
+                    ),
+                ),
+                'widgetDtl.widgetConfig' =>  array (
+                    array (
+                    0 => json_encode(issetParam($jsonConfig), JSON_PRETTY_PRINT),
+                    ),
+                ),
+                'categoryMap.id' =>  array (
+                    array (
+                        0 => issetParam($postData['categoryMapId']),
+                    ),
+                ),
+            ),
+            'methodId' => Config::getFromCacheDefault('indicatorWidgetConfig_001', null, '17127155697729'),
+            'processSubType' => 'internal',
+            'create' => '1',
+            'nult' => true,
+            'responseType' => 'outputArray',
+            'wfmStatusParams' => '',
+            'wfmStringRowParams' => '',
+            'openParams' => '',
+            'isSystemProcess' => 'true',
+            'dmMetaDataId' => '',
+            'cyphertext' => '',
+            'plainText' => '',
+            'cacheId' => '',
+            'windowSessionId' => getUID(),
+        );
+
+        $response = (new Mdwebservice())->runProcess();
+        /* var_dump($response);
+        die; */
+        convJson($response);
+    }
+
 }

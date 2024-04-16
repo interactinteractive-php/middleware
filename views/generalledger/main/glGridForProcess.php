@@ -195,6 +195,7 @@
     var chooseAccountAfterBp = true;
     var glAmountScale = '<?php echo $this->amountScale; ?>';
     var glIncomeTaxDeduction_<?php echo $this->uniqId; ?> = '<?php echo Config::getFromCache('FIN_INCOMETAX_DEDUCTION'); ?>';
+    var glIsSchedule_<?php echo $this->uniqId; ?> = '<?php echo Config::getFromCache('IS_USE_SCHEDULE_GL'); ?>';
     var $glLoadWindow_<?php echo $this->uniqId; ?> = $(glBpMainWindow_<?php echo $this->uniqId; ?>);
     var isIgnoreUseDetail_<?php echo $this->uniqId; ?> = <?php echo (isset($this->isIgnoreUseDetail) && $this->isIgnoreUseDetail) ? 'true' : 'false'; ?>;
     var defaultValueDimensions_<?php echo $this->uniqId; ?> = <?php echo isset($this->defaultValueDimensions) ? json_encode($this->defaultValueDimensions, JSON_UNESCAPED_UNICODE) : '{}'; ?>;
@@ -2623,7 +2624,7 @@
             
             if (typeof row.currencycode !== 'undefined') {
                 var currencyCode = row.currencycode;
-                if (currencyCode.toLowerCase() == 'mnt' && row.isusedetailbook != '1') {
+                if (currencyCode !== null && currencyCode.toLowerCase() == 'mnt' && row.isusedetailbook != '1') {
                     currencyDropDown = '<?php echo Form::select(array('class' => 'form-control form-control-sm no-padding gl-row-currency', 'data' => $this->currencyList, 'text'=>'---', 'op_value' => 'CURRENCY_ID', 'op_text' => 'CURRENCY_CODE', 'style'=>'width:50px')); ?>';
                     baseReadonly = " readonly='readonly'";
                     rateReadonly = " readonly='readonly'";
@@ -2747,7 +2748,7 @@
     }
     function getAccountRate_<?php echo $this->uniqId; ?>(bookDate, accountId, currencyCode) {
         var rate = 1;
-        if (currencyCode !== '' && currencyCode.toLowerCase() !== 'mnt') {
+        if (currencyCode !== null && currencyCode !== '' && currencyCode.toLowerCase() !== 'mnt') {
             $.ajax({
                 type: 'post',
                 url: 'mdgl/getRate',
@@ -4155,6 +4156,97 @@
                                                 setCustomerDvData_<?php echo $this->uniqId; ?>(tr, responseParam.customerId);
                                                 calculateFooterSum_<?php echo $this->uniqId; ?>(tr);
                                             }
+                                            
+                                            if (responseParam.hasOwnProperty('receivableBookDtls') && responseParam.receivableBookDtls.length > 0) {
+                                                var glNewRowHtml = '';
+                                                var mainWindow = $rowElem.closest('form');
+                                                
+                                                for (var rbook = 0; rbook < responseParam.receivableBookDtls.length; rbook++) {
+                                                    var responseRecBook = objToChangeLowerKeys(responseParam.receivableBookDtls[rbook]);
+
+                                                    if (responseRecBook.rowstate != 'removed') {
+
+                                                        if (glIsSchedule_<?php echo $this->uniqId; ?> && typeof responseRecBook.conpaysch !== 'undefined' && Object.keys(responseRecBook.conpaysch).length) {
+                                                            
+                                                            if (typeof responseRecBook.rate !== 'undefined') {
+                                                                rate = responseRecBook.rate;
+                                                            }                                                            
+
+                                                            for (var rbook2 = 0; rbook2 < responseRecBook.conpaysch.length; rbook2++) {
+                                                                if (!rbook2) {
+                                                                    mainWindow.find('table#glDtl > tbody > tr[data-account-departmentid="'+responseRecBook.conpaysch[rbook2].receivableKeyId+'"]').remove();
+                                                                }
+                                                                if (responseRecBook.conpaysch[rbook2].creditAmount > 0) {
+                                                                    var rowMetaObj = {};
+                                                                    rowMetaObj['receivablekeyid'] = responseRecBook.conpaysch[rbook2].receivableKeyId;                                                                    
+                                                                    rowMetaObj['scheduleid'] = responseRecBook.conpaysch[rbook2].scheduleId;                                                                    
+                                                                    var accountCodeField = '<div class="input-group"><input type="hidden" name="gl_accountId[]" value="' + responseRecBook.conpaysch[rbook2].accountId + '"><input type="text" name="gl_accountCode[]" id="gl_accountCode" class="form-control form-control-sm text-center accountCodeMask" value="' + responseRecBook.conpaysch[rbook2].accountCode + '"><span class="input-group-btn"><button type="button" class="btn default btn-bordered form-control-sm mr0" onclick="dataViewCustomSelectableGrid(\'<?php echo Mdgl::$accountListDataViewCode; ?>\', \'single\', \'accountSelectabledGrid_<?php echo $this->uniqId; ?>\', \'\', this);"><i class="fa fa-search"></i></button></span></div>';
+                                                                    var customerField = '<div class="input-group double-between-input">\n\
+                                                                                            <input type="hidden" name="gl_customerId[]" value="'+responseParam.customerId+'">\n\
+                                                                                            <input type="text" id="gl_customerCode" name="gl_customerCode[]" value="'+responseParam.customerCode+'" class="form-control form-control-sm text-center" title="" placeholder="<?php echo $this->lang->line('code_search'); ?>" style="width:80px;max-width:80px;">\n\
+                                                                                            <span class="input-group-btn">\n\
+                                                                                                <button type="button" class="btn default btn-bordered form-control-sm mr0" onclick=\"dataViewCustomSelectableGrid(\'<?php echo Mdgl::$customerListDataViewCode; ?>\', \'single\', \'customerSelectabledGrid\', \'\', this);\"><i class="fa fa-search"></i></button>\n\
+                                                                                            </span>\n\
+                                                                                            <span class="input-group-btn">\n\
+                                                                                                <input type="text" id="gl_customerName" name="gl_customerName[]" value="'+responseParam.customerName+'" class="form-control form-control-sm text-center" placeholder="<?php echo $this->lang->line('name_search'); ?>">\n\
+                                                                                            </span>\n\
+                                                                                        </div>';                                                                    
+                                                                    var rowSubAttr = {
+                                                                        subId: subId, 
+                                                                        departmentid: responseRecBook.conpaysch[rbook2].receivableKeyId,
+                                                                        lastIndex: 1, 
+                                                                        accounttypeid: responseRecBook.conpaysch[rbook2].accountTypeId, 
+                                                                        objectid: '', 
+                                                                        accounttypecode: responseRecBook.conpaysch[rbook2].accountTypeCode, 
+                                                                        isusedetailbook: '', 
+                                                                        currencycode: responseRecBook.conpaysch[rbook2].currencyCode, 
+                                                                        accountCodeField: accountCodeField, 
+                                                                        accountname: responseRecBook.conpaysch[rbook2].accountName, 
+                                                                        customerField: customerField, 
+                                                                        expenseCenterField: '', 
+                                                                        bookDescription: responseRecBook.description ? responseRecBook.description : '', 
+                                                                        currencyDropDown: '', 
+                                                                        rate: rate, 
+                                                                        rateReadonly: '', 
+                                                                        dtAmtFcy: '', 
+                                                                        baseReadonly: '', 
+                                                                        dtAmt: '', 
+                                                                        ktAmtFcy: '', 
+                                                                        ktAmt: responseRecBook.conpaysch[rbook2].creditAmount, 
+                                                                        keyId: '', 
+                                                                        rowType: 'add', 
+                                                                        metas: JSON.stringify(rowMetaObj), 
+                                                                        actions: '', 
+                                                                        isdebit: '', 
+                                                                        ismetas: ''
+                                                                    };
+
+                                                                    glNewRowHtml += glRowAppend_<?php echo $this->uniqId; ?>(rowSubAttr);  
+                                                                }
+                                                            }
+                                                        }
+
+                                                    }
+                                                }            
+                                                $rowElem.after(glNewRowHtml);                                                
+                                                
+                                                mainWindow.find('table#glDtl > tbody > tr.gl-selected-row').removeClass('gl-selected-row');
+
+                                                var $addedRows = mainWindow.find('table#glDtl > tbody > tr.gl-new-row');
+
+                                                Core.initNumberInput($addedRows);
+                                                Core.initAccountCodeMask($addedRows);
+                                                checkRowDescriptionField_<?php echo $this->uniqId; ?>($rowElem);
+                                                checkIsUseBase_<?php echo $this->uniqId; ?>($rowElem);
+                                                checkIsUseGlDetail_<?php echo $this->uniqId; ?>();
+
+                                                mainWindow.find('table#glDtl > tbody > tr[data-sub-id]').each(function(i){
+                                                    $(this).attr('data-row-index', i);
+                                                });
+
+                                                glTableFreeze_<?php echo $this->uniqId; ?>();
+                                                bpSetGlMetaRowIndex(glBpMainWindow_<?php echo $this->uniqId; ?>);                          
+                                            }                                            
                                             
                                             var showMetaPayableReceievable = '<?php echo Config::getFromCache('isShowMetaPayableReceievable'); ?>';
                                             if (((responseParam.hasOwnProperty('receivableBookDtls') && responseParam.receivableBookDtls.length) 

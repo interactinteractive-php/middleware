@@ -6412,7 +6412,9 @@
                                 data: {metaDataId: dvId, headerId: parentId, dtlIds: dtlIds},
                                 dataType: 'json',
                                 success: function(data) {
-                                    console.log(data);
+                                    if (data.status === 'success') {
+                                        dataViewReload(<?php echo $this->metaDataId; ?>);
+                                    }
                                 }
                             });
                         }

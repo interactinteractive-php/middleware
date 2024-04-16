@@ -1253,6 +1253,43 @@ function exportExcelOneLineKpiIndicatorValue(elem, indicatorId) {
         return;
     }
 }
+function dataImportKpiIndicatorValue(elem, indicatorId) {
+    $.ajax({
+        type: 'post',
+        url: 'mdform/importManagePopup',
+        data: {mainIndicatorId: indicatorId},
+        dataType: 'html',
+        beforeSend: function() {
+            Core.blockUI({message: 'Loading...', boxed: true});
+        },
+        success: function(data) {
+            var dialogName = '#dialog-kpiindicator-dataimport';
+            if (!$(dialogName).length) {
+                $('<div id="' + dialogName.replace('#', '') + '"></div>').appendTo('body');
+            }
+            var $dialog = $(dialogName);
+
+            $dialog.empty().append(data);
+            $dialog.dialog({
+                cache: false,
+                resizable: true,
+                bgiframe: true,
+                autoOpen: false,
+                title: plang.get('Импорт'), 
+                width: $(window).width(),
+                height: $(window).height(),
+                modal: true,
+                buttons: [
+                    {text: plang.get('close_btn'), class: 'btn blue-madison btn-sm', click: function () {
+                        $dialog.dialog('close');
+                    }}
+                ]
+            });
+            $dialog.dialog('open');
+            Core.unblockUI();
+        }
+    });
+}
 function mvRecordRelationExcelExport(elem) {
     var $this = $(elem), $parentRow = $this.closest('tr');
     var $indicatorElem = $parentRow.find('input[name="metaDmRecordMaps[indicatorId][]"]');

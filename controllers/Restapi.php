@@ -288,7 +288,7 @@ class Restapi extends Controller {
                                 Mdform::$isGetTrgAliasName = true;
                             }
                             
-                            if (issetParam($parameters['isLookupRowData'])) {
+                            if (isset($parameters['isLookupRowData']) && $parameters['isLookupRowData']) {
                                 Mdform::$isGetLookupRowData = true;
                             }
                             

@@ -105,7 +105,7 @@ $sun = date("Y-m-d", strtotime(date("Y-m-d", $monday) . " +6 days"));
                                         <h6 class="mb-0 text-one-line" data-tpath="<?php echo $renderAtom->renderAtomPath("position3", $this->positionConfig); ?>" title="<?php echo $renderAtom->renderAtom($row, "position3", $this->positionConfig, '') ?>"><?php echo $renderAtom->renderAtom($row, "position3", $this->positionConfig, '') ?></h6>
                                         <div class="font-size-sm text-muted line-height-1 text-one-line" data-tpath="<?php echo $renderAtom->renderAtomPath("position4", $this->positionConfig); ?>" title="<?php echo $renderAtom->renderAtom($row, "position4", $this->positionConfig, 'Default value') ?>"><?php echo $renderAtom->renderAtom($row, "position4", $this->positionConfig, 'Default value') ?></div>
                                     </td>
-                                    <td class="w-120px text-center">
+                                    <td class="w-160px text-center">
                                         <span class="badge badge-flat border-primary text-primary-600 text-one-line" style="background-color: <?php echo $renderAtom->renderAtomPath("position7", $this->positionConfig); ?>; color: <?php echo $renderAtom->renderAtomPath("position8", $this->positionConfig); ?>; border: none"data-tpath="<?php echo $renderAtom->renderAtomPath("position5", $this->positionConfig); ?>" title="<?php echo $renderAtom->renderAtom($row, "position5", $this->positionConfig, 'Default value') ?>"><?php echo $renderAtom->renderAtom($row, "position5", $this->positionConfig, 'Default value') ?></span>
                                     </td>
                                     <td class="w-120px text-left">
@@ -160,6 +160,11 @@ $sun = date("Y-m-d", strtotime(date("Y-m-d", $monday) . " +6 days"));
             width: 120px !important;
             max-width: 120px !important;
             min-width: 120px !important;
+        }
+        .w-160px {
+            width: 160px !important;
+            max-width: 160px !important;
+            min-width: 160px !important;
         }
         .w-80px {
             width: 80px !important;

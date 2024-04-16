@@ -22,22 +22,6 @@
             if ($this->logoImage && !issetParam($this->additionalInfo['LOGO_FILE'])) {
                 $this->additionalInfo['LOGO_FILE'] = $this->logoImage;
             }
-
-//            if (isset($this->additionalInfo) && $this->additionalInfo) {
-//
-//                $headerTxt = issetParam($this->additionalInfo['HEADER_TEXT']);
-//                $logoFile = issetParam($this->additionalInfo['LOGO_FILE']);
-//
-//                if ($headerTxt) {
-//                    echo '<div class="kpi-form-paper-header-text">'.$headerTxt.'</div>';
-//                    $titleClass = 'kpi-form-paper-title';
-//                }
-//
-//                if ($logoFile && file_exists($logoFile)) {
-//                    echo '<img src="'.$logoFile.'" class="kpi-form-paper-logo">';
-//                    $titleClass = 'kpi-form-paper-title';
-//                }
-//            }
             ?>
             <div class="bp-tabs tabbable-line mv-main-tabs mv-checklist-tab w-100">
                 <ul class="nav nav-tabs">
@@ -55,14 +39,6 @@
                                     <div class="main-process-text">
                                         <div><?php echo $this->title; ?></div>                                        
                                     </div>
-                                    <div class="ml-auto hidden">
-                                        <button type="button" class="btn btn-sm btn-circle btn-success bp-btn-save" onclick="saveMvCheckListCheck(this);">
-                                            <i class="icon-checkmark-circle2"></i> Шалгах
-                                        </button>
-                                        <button type="button" class="ml-1 btn btn-sm btn-circle btn-success bp-btn-save" onclick="saveKpiIndicatorHeaderForm(this);">
-                                            <i class="icon-checkmark-circle2"></i> <?php echo $this->lang->line('save_btn'); ?>
-                                        </button>
-                                    </div>
                                 </div>
                                 <?php echo $this->form; ?>
                             </form>
@@ -71,8 +47,7 @@
                 </div>            
             </div>            
 
-            <?php             
-
+            <?php 
             $bgImage = 'middleware/assets/img/process/background/paperclip.png';
 
             if (file_exists($this->bgImage)) {
@@ -83,10 +58,7 @@
     </div>
 </div>
 
-<style type="text/css">
-/*.mv-checklist2-render-parent .mv-checklist-render {
-    max-width: 900px;
-}*/    
+<style type="text/css">    
 .mv-checklist2-render-parent .mv-checklist-render-comment .media-body .p-2.pb3 {
     background-color: #eee !important;
 }   
@@ -491,6 +463,10 @@ input.kpi-notfocus-readonly-input::placeholder {
     display: inline-block;
     padding-left: 10px;
 }
+.mv-checklist2-render-parent .mv-hdr-label-control-label, 
+.mv-checklist2-render-parent .mv-hdr-label-control-input {
+    max-width: 100%;
+}
 .mv-checklist2-render-parent .mv-hdr-label-control:not(.mv-hdr-right-label-control), 
 .mv-checklist2-render-parent .mv-hdr-label-control:not(.mv-hdr-right-label-control) .mv-hdr-label-control-row,
 .mv-checklist2-render-parent .mv-hdr-label-control:not(.mv-hdr-right-label-control) .mv-hdr-label-control-label, 
@@ -565,5 +541,8 @@ input.kpi-notfocus-readonly-input::placeholder {
     border: none;
     margin: 0px;
     background: transparent;
+}
+.mv-checklist2-render-parent .row > .col-md-2 > .mv-hdr-label-control > .mv-hdr-label-control-input > .dateElement {
+    max-width: none!important;
 }
 </style>

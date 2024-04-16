@@ -886,7 +886,7 @@ class Mdgl_Model extends Model {
                 $result = $this->db->GetAll($sql." AND ($accountAlias.ACCOUNT_ID = $accountId OR CONF.ACCOUNT_TYPE_ID = $accountTypeId) $groupBy ORDER BY CONF.ORDER_NUMBER ASC, MGC.DISPLAY_ORDER ASC");
             } else {
                 $result = $this->db->GetAll($sql." AND $accountAlias.ACCOUNT_ID = $accountId $groupBy ORDER BY CONF.ORDER_NUMBER ASC, MGC.DISPLAY_ORDER ASC");
-            }
+            }            
 
             if ($result) {
 
@@ -901,13 +901,14 @@ class Mdgl_Model extends Model {
                 }
             }
 
-            $result = $this->db->GetAll($sql." AND CONF.CO_A_GROUP_ID IN (SELECT CO_A_GROUP_ID FROM FIN_ACCOUNT_CO_A_GROUP_MAP WHERE ACCOUNT_ID = $accountId) ORDER BY CONF.ORDER_NUMBER ASC, MGC.DISPLAY_ORDER ASC");
+            $result = $this->db->GetAll($sql." AND CONF.CO_A_GROUP_ID IN (SELECT CO_A_GROUP_ID FROM FIN_ACCOUNT_CO_A_GROUP_MAP WHERE ACCOUNT_ID = $accountId) ORDER BY CONF.ORDER_NUMBER ASC, MGC.DISPLAY_ORDER ASC");            
 
             if ($result) {
                 return $result;
             }
             
         } catch(Exception $ex){      
+            pa($ex);
             return array();
         }
 
