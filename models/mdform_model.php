@@ -19985,7 +19985,9 @@ class Mdform_Model extends Model {
                         }
                     }
                     
-                    $response = ['status' => 'success', 'message' => 'Successfuly'];
+                    Mdform::clearCacheData($pivotIndicatorId);
+                    
+                    $response = ['status' => 'success', 'message' => 'Successfully'];
                 }
                 
             } else {

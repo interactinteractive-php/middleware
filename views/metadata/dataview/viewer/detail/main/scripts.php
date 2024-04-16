@@ -3717,100 +3717,126 @@
                 gantt.parse(response.responseText)
             });
         } else {
-            if ($("input[name='mandatoryNoSearch']", 'form.mandatory-criteria-form-<?php echo $this->metaDataId; ?>').is(':checked')) {
-                var defaultCriteriaData = $("div#object-value-list-<?php echo $this->metaDataId; ?> form#default-criteria-form").serialize();
+            if ($('#md-map-canvas-<?php echo $this->metaDataId; ?>').is(":visible")) {
+                $.ajax({ 
+                    type: 'post',
+                    url: 'mdobject/googleMapDataGrid',
+                    data: {
+                        metaDataId: '<?php echo $this->metaDataId; ?>', 
+                        defaultCriteriaData: $("form#default-criteria-form, form.mandatory-criteria-form-<?php echo $this->metaDataId; ?>", windowId_<?php echo $this->metaDataId; ?>).serialize(), 
+                        workSpaceId: '<?php echo $this->workSpaceId; ?>', 
+                        workSpaceParams: '<?php echo $this->workSpaceParams; ?>', 
+                        uriParams: '<?php echo $this->uriParams; ?>', 
+                        drillDownDefaultCriteria: '<?php echo isset($this->drillDownDefaultCriteria) ? $this->drillDownDefaultCriteria : ''; ?>',
+                        subQueryId: $('#subQueryId-<?php echo $this->metaDataId; ?>').val(),
+                        cardFilterData: fieldPath + '=' + fieldValue
+                    },
+                    dataType: 'json',
+                    beforeSend: function() {
+                        Core.blockUI({animate: true});
+                    },
+                    success: function(data) {
+                        googleMapInitialze({'result': data, 'metaDataId': '<?php echo $this->metaDataId; ?>'});
+                        Core.unblockUI();
+                    },
+                    error: function() { alert("Error"); }
+                });
             } else {
-                if (typeof elem !== 'undefined') {
-                    var $this = $(elem), $packageForm = $this.closest('form[class*="package-criteria-form-"]');
-                    if ($packageForm.length) {
-                        var defaultCriteriaData = $packageForm.serialize();
+                if ($("input[name='mandatoryNoSearch']", 'form.mandatory-criteria-form-<?php echo $this->metaDataId; ?>').is(':checked')) {
+                    var defaultCriteriaData = $("div#object-value-list-<?php echo $this->metaDataId; ?> form#default-criteria-form").serialize();
+                } else {
+                    if (typeof elem !== 'undefined') {
+                        var $this = $(elem), $packageForm = $this.closest('form[class*="package-criteria-form-"]');
+                        if ($packageForm.length) {
+                            var defaultCriteriaData = $packageForm.serialize();
+                        } else {
+                            var defaultCriteriaData = $("div#object-value-list-<?php echo $this->metaDataId; ?> form#default-criteria-form, form.mandatory-criteria-form-<?php echo $this->metaDataId; ?>").serialize();
+                        }
                     } else {
                         var defaultCriteriaData = $("div#object-value-list-<?php echo $this->metaDataId; ?> form#default-criteria-form, form.mandatory-criteria-form-<?php echo $this->metaDataId; ?>").serialize();
                     }
-                } else {
-                    var defaultCriteriaData = $("div#object-value-list-<?php echo $this->metaDataId; ?> form#default-criteria-form, form.mandatory-criteria-form-<?php echo $this->metaDataId; ?>").serialize();
-                }
-            }
-            
-            var $dataGrid = objectdatagrid_<?php echo $this->metaDataId; ?>, 
-                $op = $dataGrid.datagrid('options'); 
-            var dvSearchParam = {
-                metaDataId: '<?php echo $this->metaDataId; ?>',
-                defaultCriteriaData: defaultCriteriaData,
-                workSpaceId: '<?php echo $this->workSpaceId; ?>', 
-                workSpaceParams: '<?php echo $this->workSpaceParams; ?>', 
-                treeConfigs: '<?php echo $this->isTreeGridData; ?>'
-            };
-            
-            var $packageTab = $("div#object-value-list-<?php echo $this->metaDataId; ?>").closest('div.package-meta-tab');
-
-            if ($(".bp-icon-selection", "#object-value-list-<?php echo $this->metaDataId; ?>").length || $packageTab.length  > 0) {
-                var getPostData = $("div#object-value-list-<?php echo $this->metaDataId; ?> form#default-criteria-form, form.mandatory-criteria-form-<?php echo $this->metaDataId; ?>").serializeArray();
-                var $packageId = $packageTab.attr('data-realpack-id');
-                if ($packageTab.length > 0) {
-                    getPostData = $('#package-meta-' + $packageId).find("form.package-criteria-form-" + $packageId + '_<?php echo $this->metaDataId; ?>, form.mandatory-criteria-form-<?php echo $this->metaDataId; ?>').serializeArray();
-                }
-
-                var dvDefaultCriteria = {}, dvDefaultCriteriaCondition = {};       
-                if (getPostData) {
-                    for (var fdata = 0; fdata < getPostData.length; fdata++) {
-                        var mPath1 = /criteriaCondition\[([\w.]+)\]/g.exec(getPostData[fdata].name);                    
-                        if (mPath1 != null) {
-                            dvDefaultCriteriaCondition[mPath1[1]] = getPostData[fdata].value;
-                        }
-                    }        
-                    for (var fdata = 0; fdata < getPostData.length; fdata++) {
-                        var mPath = /param\[([\w.]+)\]/g.exec(getPostData[fdata].name);
-                        if(mPath === null) continue;                    
-
-                        dvDefaultCriteria[mPath[1]] = [{operator: dvDefaultCriteriaCondition[mPath[1]] ? dvDefaultCriteriaCondition[mPath[1]] : '=', operand:getPostData[fdata].value}];
-                    }        
-                }             
-                dvDefaultCriteria[fieldPath] = [{operator: '=', operand: fieldValue}];
-
-                var $iconWrapCombo = $(".bp-icon-selection", "#object-value-list-<?php echo $this->metaDataId; ?>");
-                if ($packageTab.length > 0) {
-                    $iconWrapCombo = $('#package-meta-' + $packageId).find(".<?php echo $this->metaDataId; ?>_default_criteria .bp-icon-selection");
                 }
                 
-                var lookUpMetaId = $iconWrapCombo.attr('data-metagroupid');
-                $.ajax({
-                    type: 'post',
-                    url: 'api/callDataview',
-                    data: {dataviewId: lookUpMetaId, criteriaData: dvDefaultCriteria}, 
-                    dataType: 'json',
-                    success: function(data) {
-                        if (data.status === 'success' && data.result[0]) {
-                            for (var ici = 0; ici < data.result.length; ici++) {
-                                $iconWrapCombo.find('> li[data-id="'+data.result[ici]['id']+'"]').find('span.badge-pill').attr('title', data.result[ici]['count']).text(data.result[ici]['count']);
+                var $dataGrid = objectdatagrid_<?php echo $this->metaDataId; ?>, 
+                    $op = $dataGrid.datagrid('options'); 
+                var dvSearchParam = {
+                    metaDataId: '<?php echo $this->metaDataId; ?>',
+                    defaultCriteriaData: defaultCriteriaData,
+                    workSpaceId: '<?php echo $this->workSpaceId; ?>', 
+                    workSpaceParams: '<?php echo $this->workSpaceParams; ?>', 
+                    treeConfigs: '<?php echo $this->isTreeGridData; ?>'
+                };
+                
+                var $packageTab = $("div#object-value-list-<?php echo $this->metaDataId; ?>").closest('div.package-meta-tab');
+    
+                if ($(".bp-icon-selection", "#object-value-list-<?php echo $this->metaDataId; ?>").length || $packageTab.length  > 0) {
+                    var getPostData = $("div#object-value-list-<?php echo $this->metaDataId; ?> form#default-criteria-form, form.mandatory-criteria-form-<?php echo $this->metaDataId; ?>").serializeArray();
+                    var $packageId = $packageTab.attr('data-realpack-id');
+                    if ($packageTab.length > 0) {
+                        getPostData = $('#package-meta-' + $packageId).find("form.package-criteria-form-" + $packageId + '_<?php echo $this->metaDataId; ?>, form.mandatory-criteria-form-<?php echo $this->metaDataId; ?>').serializeArray();
+                    }
+    
+                    var dvDefaultCriteria = {}, dvDefaultCriteriaCondition = {};       
+                    if (getPostData) {
+                        for (var fdata = 0; fdata < getPostData.length; fdata++) {
+                            var mPath1 = /criteriaCondition\[([\w.]+)\]/g.exec(getPostData[fdata].name);                    
+                            if (mPath1 != null) {
+                                dvDefaultCriteriaCondition[mPath1[1]] = getPostData[fdata].value;
+                            }
+                        }        
+                        for (var fdata = 0; fdata < getPostData.length; fdata++) {
+                            var mPath = /param\[([\w.]+)\]/g.exec(getPostData[fdata].name);
+                            if(mPath === null) continue;                    
+    
+                            dvDefaultCriteria[mPath[1]] = [{operator: dvDefaultCriteriaCondition[mPath[1]] ? dvDefaultCriteriaCondition[mPath[1]] : '=', operand:getPostData[fdata].value}];
+                        }        
+                    }             
+                    dvDefaultCriteria[fieldPath] = [{operator: '=', operand: fieldValue}];
+    
+                    var $iconWrapCombo = $(".bp-icon-selection", "#object-value-list-<?php echo $this->metaDataId; ?>");
+                    if ($packageTab.length > 0) {
+                        $iconWrapCombo = $('#package-meta-' + $packageId).find(".<?php echo $this->metaDataId; ?>_default_criteria .bp-icon-selection");
+                    }
+                    
+                    var lookUpMetaId = $iconWrapCombo.attr('data-metagroupid');
+                    $.ajax({
+                        type: 'post',
+                        url: 'api/callDataview',
+                        data: {dataviewId: lookUpMetaId, criteriaData: dvDefaultCriteria}, 
+                        dataType: 'json',
+                        success: function(data) {
+                            if (data.status === 'success' && data.result[0]) {
+                                for (var ici = 0; ici < data.result.length; ici++) {
+                                    $iconWrapCombo.find('> li[data-id="'+data.result[ici]['id']+'"]').find('span.badge-pill').attr('title', data.result[ici]['count']).text(data.result[ici]['count']);
+                                }
                             }
                         }
+                    });     
+                }            
+                    
+                if (fieldPath == 'all' && fieldValue == 'all') {
+                    
+                    if ($op.idField === null) {
+                        $dataGrid.datagrid('load', dvSearchParam);
+                    } else {
+                        $dataGrid.treegrid('load', dvSearchParam);
                     }
-                });     
-            }            
                 
-            if (fieldPath == 'all' && fieldValue == 'all') {
-                
-                if ($op.idField === null) {
-                    $dataGrid.datagrid('load', dvSearchParam);
+                    $("#object-value-list-<?php echo $this->metaDataId; ?>").find('input#cardViewerFieldPath, input#cardViewerValue').val('');
+                    
                 } else {
-                    $dataGrid.treegrid('load', dvSearchParam);
+                    
+                    dvSearchParam['cardFilterData'] = fieldPath + '=' + fieldValue;
+                    
+                    if ($op.idField === null) {
+                        $dataGrid.datagrid('load', dvSearchParam);
+                    } else {
+                        $dataGrid.treegrid('load', dvSearchParam);
+                    }
+                    
+                    $("input#cardViewerFieldPath", "#object-value-list-<?php echo $this->metaDataId; ?>").val(fieldPath);
+                    $("input#cardViewerValue", "#object-value-list-<?php echo $this->metaDataId; ?>").val(fieldValue);
                 }
-            
-                $("#object-value-list-<?php echo $this->metaDataId; ?>").find('input#cardViewerFieldPath, input#cardViewerValue').val('');
-                
-            } else {
-                
-                dvSearchParam['cardFilterData'] = fieldPath + '=' + fieldValue;
-                
-                if ($op.idField === null) {
-                    $dataGrid.datagrid('load', dvSearchParam);
-                } else {
-                    $dataGrid.treegrid('load', dvSearchParam);
-                }
-                
-                $("input#cardViewerFieldPath", "#object-value-list-<?php echo $this->metaDataId; ?>").val(fieldPath);
-                $("input#cardViewerValue", "#object-value-list-<?php echo $this->metaDataId; ?>").val(fieldValue);
             }
         }
     }
@@ -3987,6 +4013,7 @@
             });
         }, 100);
     }
+    
     function dataViewReportTemplateExport_<?php echo $this->metaDataId; ?>(buttonMode, $dialog, rows) {
         PNotify.removeAll();
         var numberOfCopies = $("#numberOfCopies").val(),
