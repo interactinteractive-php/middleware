@@ -256,7 +256,7 @@
             .standart-section {
                 position: relative !important;
                 /* min-height: 350px; */
-                border: 1px solid #e5e5e5;
+                border: 1px solid transparent;
                 .clear-both {
                     clear:both; 
                     height:0px;
@@ -334,4 +334,27 @@
         background: #5c6bc0 !important;
     }
     
+}
+
+
+div.progress_circle {
+    display: flex;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: conic-gradient(#2196F3 var(--progress), #e5e5e5 0deg);
+    font-size: 0;
+}
+  
+div.progress_circle::after {
+    content: attr(data-progress) '%';
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    width: 100%;
+    margin: 10px;
+    border-radius: 50%;
+    background: white;
+    font-size: 1rem;
+    text-align: center;
 }

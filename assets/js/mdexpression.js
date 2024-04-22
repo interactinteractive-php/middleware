@@ -10180,7 +10180,7 @@ function bpGetLookupFieldValue(mainSelector, elem, lookupfield, column) {
                 var rowData = $bpElem.attr('data-row-view-data');
             } else if ($bpElem.prop('tagName') == 'SELECT' && typeof $bpElem.find('option:selected').attr('data-row-data') !== 'undefined') {
                 
-                if ($bpElem.attr('name').indexOf('kpiTbl[') !== -1 && $bpElem.hasClass('mv-ind-combo')) {
+                if ($bpElem.attr('name').indexOf('mvParam[') !== -1 && $bpElem.hasClass('mv-ind-combo')) {
                     /*түр шийдэл*/
                     var lookupRowData = JSON.parse($bpElem.attr('data-row-data'));
                     var response = $.ajax({

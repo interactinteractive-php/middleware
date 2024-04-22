@@ -25,6 +25,7 @@ class Mdupgrade_Model extends Model {
     private static $metaFolderId = null;
     private static $insertDataFilter = null;
     private static $deleteScript = null;
+    private static $exportRecordId = null;
     private static $isIgnoreMetaFolder = false;
     private static $isIgnoreTranslate = false;
     private static $isIdReplace = false;
@@ -3046,12 +3047,13 @@ class Mdupgrade_Model extends Model {
                                 
                             foreach ($dataTableNames as $dataTableName) {
 
-                                if ($dataTableName == $tblName && $tblName == 'KPI_INDICATOR') {
+                                if ($dataTableName == $tblName && $tblName == 'KPI_INDICATOR' && self::$exportRecordId == $metaId) {
 
                                     self::$childCreateTable = array(
                                         array(
                                             'isCreateTable'   => true, 
                                             'isInsertData'    => true, 
+                                            'isDataCheck'     => true,
                                             'tableColumnName' => 'TABLE_NAME'
                                         )
                                     );
@@ -3072,7 +3074,10 @@ class Mdupgrade_Model extends Model {
                             $child        = issetParamArray($relRow['child']);
 
                             self::$fileColumn = issetParamArray($relRow['file']);
-                            self::$childCreateTable = issetParamArray($relRow['childCreateTable']);
+                            
+                            if ($childCreateTable = issetParamArray($relRow['childCreateTable'])) {
+                                self::$childCreateTable = array_merge(self::$childCreateTable, $childCreateTable);
+                            }
                             
                             $script .= self::generateDeleteInsertQuery($relTableName, $relTrg.'='.$metaId, $separator, $child);
                         } 
@@ -3137,16 +3142,16 @@ class Mdupgrade_Model extends Model {
             
             foreach (self::$exportCreateTables as $row) {
                 
-                if (self::$isInsertData && $row['mainTableName'] == 'KPI_INDICATOR' && $row['columnName'] == 'TABLE_NAME' && $row['recordId']) {
+                $createTableName = $row['tableName'];
+                
+                if (self::$isInsertData && !$row['isDataCheck'] && $row['mainTableName'] == 'KPI_INDICATOR' && $row['columnName'] == 'TABLE_NAME' && $row['recordId']) {
                     
                     $isDefaultDataset = $this->db->GetOne("SELECT IS_DEFAULT_DATASET FROM V_DATA_SET WHERE SRC_RECORD_ID = $srcRecordIdPh", array($row['recordId']));
-                   
+                    
                     if (!$isDefaultDataset) {
                         continue;
                     }
                 }
-                        
-                $createTableName = $row['tableName'];
                 
                 try {
                     
@@ -3532,7 +3537,8 @@ class Mdupgrade_Model extends Model {
                                         'mainTableName' => $tblName, 
                                         'columnName'    => $tableColumnName, 
                                         'tableName'     => $dataTableName, 
-                                        'recordId'      => $row[$primaryColumn]
+                                        'recordId'      => $row[$primaryColumn], 
+                                        'isDataCheck'   => isset($tblRow['isDataCheck']) ? $tblRow['isDataCheck'] : false
                                     );
                                 }
 
@@ -4691,6 +4697,8 @@ class Mdupgrade_Model extends Model {
         $objectXml = null;
         
         if (isset($objects) && $objects) {
+            
+            self::$exportRecordId = $ids;
             
             foreach ($objects as $object) {
                 

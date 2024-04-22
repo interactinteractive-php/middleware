@@ -2028,7 +2028,9 @@ class Mdform extends Controller {
 
         foreach ($headerDatas as $headerDataRow) {
             
-            if ($headerDataRow['IS_RENDER'] == '1') {
+            $headerDataRow['IS_HIDE_LIST'] = isset($headerDataRow['IS_HIDE_LIST']) ? $headerDataRow['IS_HIDE_LIST'] : 0;
+            
+            if (!$headerDataRow['IS_HIDE_LIST'] && $headerDataRow['IS_RENDER'] == '1') {
             
                 $headerTypeCode = $headerDataRow['SHOW_TYPE'];
                 $columnWidth    = $headerDataRow['COLUMN_WIDTH'];
@@ -2653,6 +2655,12 @@ class Mdform extends Controller {
 //            $resultSql = self::generateKpiDataMartByPost(true);
 //            $this->model->saveBuildQueryModel($resultSql, $response['id']);
 //        }
+        
+        jsonResponse($response);
+    }
+    
+    public function saveKpiDataMartRelationConfigTable() {
+        $response = $this->model->saveKpiDataMartRelationConfigModelTable();
         
         jsonResponse($response);
     }
@@ -5439,7 +5447,7 @@ class Mdform extends Controller {
     
     public function createMvStructureFromFile() {
         $response = $this->model->createMvStructureFromFileModel();
-        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+        convJson($response);
     }
     
     public function removeTempIndicator() {
@@ -6827,5 +6835,41 @@ class Mdform extends Controller {
         $response = $this->model->importManageAIDataCommitModel();
         convJson($response);
     }
+    
+    public function kpiDataMartRelationConfigTable() {
+        $this->view->id = Input::numeric('id');
+        $this->view->isWs = false;
+        
+        parse_str(Input::post('workSpaceParams'), $workSpaceParamArray);
+        
+        if (isset($workSpaceParamArray['workSpaceParam']['id'])) {
+            $this->view->id = Input::param($workSpaceParamArray['workSpaceParam']['id']);
+            $this->view->isWs = true;
+        }                
+        
+        if ($this->view->id) {
+            
+            $this->view->columns = $this->model->getKpiDataMartRelationColumnsModel($this->view->id);
+            $this->view->criterias = $this->model->getKpiDataMartRelationCriteriasModel($this->view->id);
+            
+            $this->load->model('mddatamodel', 'middleware/models/');
+            $objects = $this->model->getDataMartGetDataModel('data_dataModelGetDV_004', array('id' => $this->view->id));
+            
+            if ($this->view->isWs) {
+                echo $this->view->renderPrint('form/kpi/indicator/relation/relationConfigTable', 'middleware/views/');
+                exit;
+            }            
+            
+            $response = array(
+                'html'      => $this->view->renderPrint('form/kpi/indicator/relation/relationConfigTable', 'middleware/views/'), 
+                'status'    => 'success', 
+                'objects'   => $objects
+            );
+        } else {
+            $response = array('status' => 'error', 'message' => 'Invalid id!');
+        }
+        
+        jsonResponse($response);
+    }    
     
 }

@@ -5268,11 +5268,13 @@ class Mdform_Model extends Model {
                             if ($row['TABLE_NAME'] != '' || $row['QUERY_STRING'] != '') {
 
                                 $relationConfig = self::getMapData($row['ID'], 120);
+                                $sortConfig = self::getDetailSortConfigData($indicatorId, $row['ID']);
 
                                 self::$mvParams['detail'][$columnNamePath.'_relationconfig'] = $relationConfig;
+                                self::$mvParams['detail'][$columnNamePath.'_sortconfig'] = $sortConfig;
                             }
                     
-                            self::$mvParams['detail'][$columnNamePath] = self::getChildParams($row['ID'], $columnNamePath, $data);
+                            self::$mvParams['detail'][$columnNamePath] = self::getChildParams($indicatorId, $row['ID'], $columnNamePath, $data);
                         } 
                         
                         if ($row['TRG_ALIAS_NAME'] != '') {
@@ -5290,7 +5292,7 @@ class Mdform_Model extends Model {
         return $params;
     }
     
-    public function getChildParams($parentId, $parentColumnNamePath, $data) {
+    public function getChildParams($indicatorId, $parentId, $parentColumnNamePath, $data) {
         
         $params = [];
         
@@ -5318,11 +5320,13 @@ class Mdform_Model extends Model {
                     if ($row['TABLE_NAME'] != '' || $row['QUERY_STRING'] != '') {
                         
                         $relationConfig = self::getMapData($row['ID'], 120);
+                        $sortConfig = self::getDetailSortConfigData($indicatorId, $row['ID']);
                         
                         self::$mvParams['detail'][$columnNamePath.'_relationconfig'] = $relationConfig;
+                        self::$mvParams['detail'][$columnNamePath.'_sortconfig'] = $sortConfig;
                     }
                 
-                    self::$mvParams['detail'][$columnNamePath] = self::getChildParams($row['ID'], $columnNamePath, $data);
+                    self::$mvParams['detail'][$columnNamePath] = self::getChildParams($indicatorId, $row['ID'], $columnNamePath, $data);
                 } 
                 
                 if ($row['TRG_ALIAS_NAME'] != '') {
@@ -5346,6 +5350,26 @@ class Mdform_Model extends Model {
                 AND SEMANTIC_TYPE_ID = ".$db->Param(1), [$mapId, $semanticTypeId]);
         
         return $mapData;
+    }
+    
+    public function getDetailSortConfigData($indicatorId, $id) {
+        global $db;
+        
+        $sortData = $db->GetAll("
+            SELECT
+                COLUMN_NAME,
+                COLUMN_NAME_PATH,
+                SHOW_TYPE, 
+                SORT_TYPE,
+                SORT_ORDER
+            FROM KPI_INDICATOR_INDICATOR_MAP
+            WHERE MAIN_INDICATOR_ID = ".$db->Param(0)." 
+                AND PARENT_ID = ".$db->Param(1)."  
+                AND SORT_TYPE IS NOT NULL 
+                AND SORT_ORDER IS NOT NULL 
+            ORDER BY SORT_ORDER ASC", [$indicatorId, $id]);
+        
+        return $sortData;
     }
     
     public function getIndicatorRowsParamModel($indicatorId) {
@@ -5638,6 +5662,21 @@ class Mdform_Model extends Model {
                 }
                 
                 $selectQry = "SELECT T0.* FROM $tableName T0 $where";
+                
+                if ($parentShowType == 'rows') {
+                    $sortConfigs = issetParam(Mdform::$mvParamsConfig['detail'][$parentColumnNamePath.'_sortconfig']);
+                    
+                    if ($sortConfigs) {
+                        
+                        $orderBy = 'ORDER BY ';
+                        foreach ($sortConfigs as $sortConfig) {
+                            $orderBy .= 'T0.'.$sortConfig['COLUMN_NAME'].' '.$sortConfig['SORT_TYPE'] . ', ';
+                        }
+                        $orderBy = rtrim(trim($orderBy), ',');
+                        
+                        $selectQry .= ' ' . $orderBy;
+                    }
+                }
                 
                 try {
                     
@@ -6857,7 +6896,6 @@ class Mdform_Model extends Model {
             
             case 'popup':   
             {    
-                
                 if ($row['FILTER_INDICATOR_ID']) {
                     
                     $selectedValue = $selectedCode = $selectedName = $lookupRowData = '';
@@ -15017,6 +15055,10 @@ class Mdform_Model extends Model {
                         continue;
                     }
                     
+                    if ($isExportExcel && isset($colName['IS_HIDE_LIST']) && $colName['IS_HIDE_LIST'] == '1') {
+                        continue;
+                    }
+                    
                     $columnName = (!$isCheckSystemTable && ($colName['SHOW_TYPE'] == 'combo' || $colName['SHOW_TYPE'] == 'popup' || $colName['SHOW_TYPE'] == 'radio')) ? $colName['COLUMN_NAME'] . '_DESC' : $colName['COLUMN_NAME'];
                     
                     if (isset($dbColumns[$columnName]) && $columnName != $idColumnName) {
@@ -19569,7 +19611,7 @@ class Mdform_Model extends Model {
                             
                             $colName     = $pivotPrefix.$c;
                             $showType    = 'decimal';
-                            $columnWidth = '90px';
+                            $columnWidth = issetDefaultVal($fieldConfigs[$dataField]['columnWidth'], '90px');
                             
                             if ($dataGroupCount == 1) {
                                 $rowLabelName = $allRowAggregateMaskLabel;
@@ -20051,7 +20093,7 @@ class Mdform_Model extends Model {
         if ($parameters) {
             foreach ($parameters as $replaceColumn => $replaceVal) {
                 if (!is_array($replaceVal)) {
-                    $criteria = str_ireplace(':'.$replaceColumn, $replaceVal, $criteria);
+                    $criteria = str_ireplace(':'.$replaceColumn, ($replaceVal == '' ? 'NULL' : $replaceVal), $criteria);
                 }
             }
         }
@@ -20288,6 +20330,13 @@ class Mdform_Model extends Model {
                 $tableName = "($queryString)";
             }
             
+            foreach ($headerDatas as $headerData) {
+                if ($headerData['TRG_ALIAS_NAME'] != '') {
+                    $filterVal = ($headerData['DEFAULT_VALUE'] != '') ? "'".Mdmetadata::setDefaultValue($headerData['DEFAULT_VALUE'])."'" : "''";
+                    $tableName = str_ireplace(':'.$headerData['TRG_ALIAS_NAME'], $filterVal, $tableName);
+                }
+            }
+            
             $tblColumns = self::table_exists($this->db, $tableName);
             
             if ($permissionCriteria) {
@@ -20386,7 +20435,7 @@ class Mdform_Model extends Model {
                         $filterShowType = $col['SHOW_TYPE'];
                         $filterColName = $col['COLUMN_NAME'];
 
-                        if ($col['DEFAULT_VALUE']) {
+                        if ($col['DEFAULT_VALUE'] != '' && $filterColName != '') {
                             $defaultValue = Mdmetadata::setDefaultValue($col['DEFAULT_VALUE']);
 
                             if ($filterShowType == 'bigdecimal' || $filterShowType == 'decimal' || $filterShowType == 'number') {
@@ -21881,6 +21930,118 @@ class Mdform_Model extends Model {
 //                );
 //
 //                $this->ws->runSerializeResponse(self::$gfServiceAddress, 'data_IndicatorMapDV_HDR_002', $param);                                
+                
+                $this->db->UpdateClob("KPI_INDICATOR", "GRAPH_JSON", $position, 'ID = '.$id);
+                
+                $this->db->Execute("
+                    DELETE 
+                    FROM KPI_INDICATOR_INDICATOR_MAP 
+                    WHERE DATA_MART_MAIN_INDICATOR_ID = ".$this->db->Param(0), 
+                    array($id)
+                );                
+                
+                if ($columns) {
+                    $colmnsGroup = Arr::groupByArray($columns, 'trgIndicatorId');
+                    foreach ($colmnsGroup as $clmnKey => $clmnRow) {                        
+
+                        $data = array(
+                            'ID' => getUID(), 
+                            'SHOW_TYPE' => '', 
+                            'SEMANTIC_TYPE_ID' => '10000020', 
+                            'SRC_ALIAS_NAME' => 'T0', 
+                            'DATA_MART_MAIN_INDICATOR_ID' => $id, 
+                            'SRC_INDICATOR_ID' => $id, 
+                            'TRG_INDICATOR_ID' => $clmnKey, 
+                            'CREATED_DATE'    => Date::currentDate('Y-m-d H:i:s'),
+                            'CREATED_USER_ID' => Ue::sessionUserKeyId()
+                        );
+                        $this->db->AutoExecute('KPI_INDICATOR_INDICATOR_MAP', $data);                          
+
+                        $mapId = $data['ID'];
+                        $data = [];
+                        foreach ($clmnRow['rows'] as $rowKey => $row) {      
+                            $data = array(
+                                'ID' => getUIDAdd($rowKey), 
+                                'SHOW_TYPE' => '', 
+                                'DATA_MART_MAIN_INDICATOR_ID' => $id, 
+                                'SEMANTIC_TYPE_ID' => '10000021', 
+                                'TRG_ALIAS_NAME' => $row['trgAliasName'],
+                                'SRC_INDICATOR_MAP_ID' => $mapId, 
+                                'SRC_INDICATOR_PATH' => $row['srcLabelName'], 
+                                'TRG_INDICATOR_PATH' => $row['trgLabelName'],
+                                'TRG_INDICATOR_ID' => $row['trgIndicatorId'],
+                                'CREATED_DATE'    => Date::currentDate('Y-m-d H:i:s'),
+                                'CREATED_USER_ID' => Ue::sessionUserKeyId()                                
+                            );
+                            $this->db->AutoExecute('KPI_INDICATOR_INDICATOR_MAP', $data);   
+                        }                    
+                    }
+                }
+                
+                if ($connections) {
+                    foreach ($connections as $rowKey => $row) {
+                        $data = array(
+                            'ID' => getUIDAdd($rowKey), 
+                            'SHOW_TYPE' => $row['joinType'], 
+                            'SEMANTIC_TYPE_ID' => '10000020', 
+                            'DATA_MART_MAIN_INDICATOR_ID' => $id, 
+                            'SRC_ALIAS_NAME' => $row['srcAliasName'], 
+                            'SRC_INDICATOR_ID' => $row['srcIndicatorId'],
+                            'TRG_ALIAS_NAME' => $row['trgAliasName'],
+                            'TRG_INDICATOR_ID' => $row['trgIndicatorId'],
+                            'CREATED_DATE'    => Date::currentDate('Y-m-d H:i:s'),
+                            'CREATED_USER_ID' => Ue::sessionUserKeyId()
+                        );
+                        $this->db->AutoExecute('KPI_INDICATOR_INDICATOR_MAP', $data);            
+
+                        if ($row['KPI_DATAMODEL_MAP_KEY_DTL']) {
+                            $mapId = $data['ID'];
+                            $data = [];
+                            foreach ($row['KPI_DATAMODEL_MAP_KEY_DTL'] as $rowKeyMap => $rowMap) {
+                                $data = array(
+                                    'ID' => getUIDAdd($rowKeyMap), 
+                                    'SHOW_TYPE' => $rowMap['operatorname'], 
+                                    'DATA_MART_MAIN_INDICATOR_ID' => $id, 
+                                    'SEMANTIC_TYPE_ID' => '10000021', 
+                                    'SRC_INDICATOR_MAP_ID' => $mapId, 
+                                    'SRC_INDICATOR_PATH' => $rowMap['srclabelname'], 
+                                    'TRG_INDICATOR_PATH' => $rowMap['trglabelname'],
+                                    'CREATED_DATE'    => Date::currentDate('Y-m-d H:i:s'),
+                                    'CREATED_USER_ID' => Ue::sessionUserKeyId()                                
+                                );
+                                $this->db->AutoExecute('KPI_INDICATOR_INDICATOR_MAP', $data);                              
+                            }
+                        }
+                    }
+                }
+                
+                $response = array('status' => 'success', 'message' => $this->lang->line('msg_save_success'), 'id' => $id);
+                
+            } catch (Exception $ex) {
+                $response = array('status' => 'error', 'message' => $ex->getMessage());
+            }
+            
+        } else {
+            $response = array('status' => 'error', 'message' => 'Invalid id!');
+        }
+        
+        return $response;
+    }
+    
+    public function saveKpiDataMartRelationConfigModelTable() {
+
+        $id = Input::numeric('id');
+        $connections = Input::post('connections');
+        $objects = Input::post('objects');            
+        $position = Input::post('graphJson');
+        $columns = Input::post('columns');
+        $criterias = Input::post('criterias');
+        
+        if (is_numeric($id)) {
+            
+//            pa($columns);
+//            pa($connections);
+            try {                            
                 
                 $this->db->UpdateClob("KPI_INDICATOR", "GRAPH_JSON", $position, 'ID = '.$id);
                 
@@ -26436,6 +26597,7 @@ class Mdform_Model extends Model {
                             'SHOW_TYPE'         => $mapField['type'], 
                             'IS_RENDER'         => $mapField['isRender'], 
                             'IS_INPUT'          => 1, 
+                            'SEMANTIC_TYPE_ID'  => 10000000, 
                             'LABEL_NAME'        => $mapField['labelName'], 
                             'INPUT_NAME'        => $mapField['inputName'], 
                             'CREATED_DATE'      => Date::currentDate(), 
@@ -29081,6 +29243,7 @@ class Mdform_Model extends Model {
                         ) ELSE 0 END AS IS_DATAMART_RENDER 
                     FROM KPI_INDICATOR_INDICATOR_MAP T1 
                         LEFT JOIN KPI_INDICATOR T2 ON T2.ID = T1.TRG_INDICATOR_ID 
+                            AND T2.DELETED_USER_ID IS NULL 
                         LEFT JOIN META_DATA T3 ON T3.META_DATA_ID = T1.LOOKUP_META_DATA_ID 
                         LEFT JOIN META_GROUP_LINK T4 ON T4.META_DATA_ID = T3.META_DATA_ID  
                         LEFT JOIN META_BUSINESS_PROCESS_LINK T5 ON T5.META_DATA_ID = T3.META_DATA_ID  

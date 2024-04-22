@@ -215,7 +215,7 @@ $(function() {
             $.ajax({
                 type: 'post',
                 url: 'mdobject/dataview/1710143065561114/0/json',
-                data: {drillDownDefaultCriteria: 'filterindicatorid='+devIndicatorId}, 
+                data: {drillDownDefaultCriteria: 'filterindicatorid='+devIndicatorId, isIgnoreSetHeight: 1}, 
                 dataType: 'json',
                 beforeSend: function() {
                     Core.blockUI({message: 'Loading...', boxed: true});
@@ -230,9 +230,8 @@ $(function() {
                         $techDoc.removeClass('pl-3 pr-3');
                         $techDoc.empty().append(data.html).promise().done(function () {
                             
-                            setTimeout(function() {
-                                $techDoc.find('.dv-onecol-first-sidebar').css('height', $(window).height() - 90);
-                            }, 205);
+                            $techDoc.find('.dv-onecol-first-sidebar').css('height', $(window).height() - 90);
+                            $techDoc.find('[data-part="dv-twocol-first-list"]').css('max-height', $(window).height() - 140);
                             
                             Core.unblockUI();
                         });

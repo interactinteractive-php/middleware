@@ -206,8 +206,16 @@
 .mv-developer-workspace .package-tab > .row > .col-md-12 > .render-object-viewer > .row > .col-md-12 {
     padding: 0;
 }
-.mv-developer-workspace .package-tab > .row > .col-md-12 > .render-object-viewer > .row > .col-md-12 > .row > .center-sidebar > .row {
+.mv-developer-workspace .package-tab > .row > .col-md-12 > .render-object-viewer > .row > .col-md-12 > .row > .center-sidebar > .row, 
+.mv-developer-workspace .workspace-part .center-sidebar > div.row > div.content-wrapper > div.row {
     margin: 0;
+}
+.mv-developer-workspace .workspace-main > .ws-page-container > .ws-page-content-wrapper > .ws-page-content {
+    margin-top: 0!important;
+}
+.mv-developer-workspace .intranet .card-header.v2, 
+.mv-developer-workspace .intranet .card-header {
+    height: inherit;
 }
 .mv-developer-workspace .vr-workspace-theme32 .package-div.odd, 
 .mv-developer-workspace .vr-workspace-theme32 .package-div.odd .package-tab {

@@ -20,7 +20,7 @@
         <?php
         }
         ?>
-        <div class="col right-sidebar-content-for-resize content-wrapper pl-0 pr-0 overflow-hidden">
+        <div class="col right-sidebar-content-for-resize content-wrapper pl-2 pr-2 overflow-hidden">
             <div class="row">
                 <div class="col-md-12">
                     

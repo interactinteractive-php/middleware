@@ -29,7 +29,7 @@ if ($offset == '1') { ?>
                     $rowJson = htmlentities(json_encode($row), ENT_QUOTES, 'UTF-8');
                     $class = ' random-border-radius'.mt_rand(1,3);
                     if (issetParam($this->listConfig['id']) !== '17110769684419') {
-                        if ($index <= 19) { ?>                       
+                        if ($index <= 6) { ?>                       
                         <div style="width: 170px">
                             <div class="<?php echo $class ?> p-4 cloudcard-003-card-row cloud-call-indicator" style="padding-top: 80px !important; justify-self: flex-end; display: flex;height: 170px ;width: 170px;gap: 1.1rem; background-color: <?php echo $colorSet[array_rand($colorSet)] ?>; background-image: url('<?php echo $renderAtom->renderAtom($row, "position3", $this->positionConfig) ?>'); background-size: cover; background-repeat: no-repeat;" data-rowdata="<?php echo $rowJson ?>">
                                 <div class="row" style="overflow: hidden; display: flex">       

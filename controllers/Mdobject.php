@@ -3355,7 +3355,7 @@ class Mdobject extends Controller {
         
         if ($this->view->isSee != 'false') {
             
-            $this->view->isSentShowWorkflowLog = Config::getFromCache('isSentShowWorkflowLog');
+            $this->view->isSentShowWorkflowLog = '0'; //Config::getFromCache('isSentShowWorkflowLog');
             $this->view->isShowTimeSpent = Config::getFromCache('isShowTimeSpentWorkflowLog');
             $this->view->isIgnoreRuleCodeWorkflowLog = Config::getFromCache('isIgnoreRuleCodeWorkflowLog');
         

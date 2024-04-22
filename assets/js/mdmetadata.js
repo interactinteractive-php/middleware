@@ -2728,6 +2728,18 @@ function urlRedirectByDataView(elem, processMetaDataId, url, target, dataViewId,
                 kpiDataMartRelationConfig(elem, processMetaDataId, dataViewId, selectedRow, paramData);
             }                 
             return;
+        } else if (urlLower == 'pfkpidatamartrelationnew') {
+            if (typeof isKpiAddonScript === 'undefined') {
+                $("head").append('<link rel="stylesheet" type="text/css" href="assets/custom/addon/plugins/jsplumb/css/style.v2.css"/>');
+                $.getScript('assets/custom/addon/plugins/jsplumb/jsplumb.min.js').done(function() {
+                    $.getScript(URL_APP + 'middleware/assets/js/addon/kpinew.js').done(function() {
+                        kpiDataMartRelationConfigTable(elem, processMetaDataId, dataViewId, selectedRow, paramData);
+                    });
+                });
+            } else {
+                kpiDataMartRelationConfigTable(elem, processMetaDataId, dataViewId, selectedRow, paramData);
+            }                 
+            return;
         } else if (urlLower == "postalonreturncancel") {
             if (typeof posTalonReturnCancel === "undefined") {
                 window.location = "mdpos/returnCancel/" + selectedRow.id;
@@ -3009,6 +3021,15 @@ function urlRedirectByDataView(elem, processMetaDataId, url, target, dataViewId,
                 });
             } else {
                 posLockerUnilock(elem, processMetaDataId, dataViewId, selectedRow, paramData);
+            }            
+            return;
+        } else if (urlLower == 'readlockernew') {
+            if (typeof isPosAddonScript === 'undefined') {
+                $.getScript(URL_APP + 'middleware/assets/js/pos/addon.js').done(function() {
+                    posLockerUnilockNew(elem, processMetaDataId, dataViewId, selectedRow, paramData);
+                });
+            } else {
+                posLockerUnilockNew(elem, processMetaDataId, dataViewId, selectedRow, paramData);
             }            
             return;
         } else if (urlLower == 'printsettlement') {            

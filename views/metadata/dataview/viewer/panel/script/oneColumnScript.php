@@ -29,8 +29,19 @@ $(function () {
         dh = 120;
     }
     
+    <?php
+    if (Input::numeric('isIgnoreSetHeight')) {
+    ?>
+    panelDv_<?php echo $this->uniqId; ?>.find('.dv-onecol-first-sidebar').css({'overflow': 'auto'});
+    firstList_<?php echo $this->uniqId; ?>.css({'display': 'block', 'overflow': 'auto'});
+    <?php
+    } else {
+    ?>
     panelDv_<?php echo $this->uniqId; ?>.find('.dv-onecol-first-sidebar').css({'overflow': 'auto', 'height': dvOneFixHeight_<?php echo $this->uniqId; ?> + dh});
     firstList_<?php echo $this->uniqId; ?>.css({'display': 'block', 'overflow': 'auto', 'max-height': dvOneFirstListHeight_<?php echo $this->uniqId; ?>});
+    <?php
+    }
+    ?>
     
     panelDv_<?php echo $this->uniqId; ?>.on('click', 'a[data-listmetadataid]:not(.click-disabled)', function() {
 

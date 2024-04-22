@@ -66,6 +66,7 @@ var shapeOptions = {
     fillOpacity: fillOpacity,
     editable: true
 };       
+var sessionRole = '<?php echo Ue::sessionRoleCode(); ?>';
 var polygonZIndex = 1;
 window['kpiMarkerObject'] = [];
 

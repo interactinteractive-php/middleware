@@ -276,6 +276,17 @@ var Builder = function() {
         _layoutBuilder.find('input[name="widgetId['+ $trgSection.attr('data-block-uniqid') +']"]').val(rowData['id']);
     };
 
+    var selectHtml = function (uniqId, srcSection, trgSection) {
+        var itemSelector = srcSection.find('.widgetTypes');
+        var rowData = itemSelector.attr('data-rowdata');
+        console.log(uniqId, rowData, itemSelector);
+        var _html = mainHtml(uniqId, rowData, itemSelector);
+
+        trgSection.append(_html).promise().done(function () {
+            console.log('appended');
+        });
+    };  
+
     var mainHtml = function (uniqId, rowData, itemSelector) {
         var __html = '';
         var _mainBuilderPage = itemSelector.closest('.layout-builder-v0'),
@@ -315,6 +326,97 @@ var Builder = function() {
                                 __html += '</div>';
                             __html += '</div>';
                         });
+                    __html += '</div>';
+                __html += '</div>';
+                break;
+            case 'badge':
+                __html += '<div class="col standart-section zoomer-cover" data-section="badge" data-block-uniqid="'+ getUniqueId(1) +'">';
+                    __html += '<div class="row" data-tagname="col" data-itemcount="'+ window['setDefaultRowData' + windowUniqId].length +'" data-colcount="2" style="width: 100%">';
+                        __html += '<span class="badge badge-primary w-100">Primary</span>';
+                    __html += '</div>';
+                __html += '</div>';
+                break;
+            case 'alert':
+                __html += '<div class="col standart-section zoomer-cover" data-section="alert" data-block-uniqid="'+ getUniqueId(1) +'">';
+                    __html += '<div class="row" data-tagname="col" data-itemcount="'+ window['setDefaultRowData' + windowUniqId].length +'" data-colcount="2" style="width: 100%">';
+                            __html += '<div class="alert alert-primary border-0 alert-dismissible w-100">';
+                                __html += '<button type="button" class="close" data-dismiss="alert"><span>×</span></button>';
+                                __html += '<span class="font-weight-semibold">Morning!</span> We\'re glad to <a href="#" class="alert-link">see you again</a> and wish you a nice day.';
+                            __html += '</div>';
+                    __html += '</div>';
+                __html += '</div>';
+                break;
+            case 'progress':
+                __html += '<div class="col standart-section zoomer-cover" data-section="progress" data-block-uniqid="'+ getUniqueId(1) +'">';
+                    __html += '<div class="row" data-tagname="col" data-itemcount="'+ window['setDefaultRowData' + windowUniqId].length +'" data-colcount="2" style="width: 100%">';
+                        __html += '<div class="progress w-100">';
+                            __html += '<div class="progress-bar" style="width: 50%">';
+                                __html += '<span class="sr-only">50% Complete</span>';
+                            __html += '</div>';
+                        __html += '</div>';
+                    __html += '</div>';
+                __html += '</div>';
+                break;
+            case 'progress_circle':
+                __html += '<div class="col standart-section zoomer-cover" data-section="progress_circle" data-block-uniqid="'+ getUniqueId(1) +'">';
+                    __html += '<div class="row" data-tagname="col" data-itemcount="'+ window['setDefaultRowData' + windowUniqId].length +'" data-colcount="2" style="width: 100%">';
+                        __html += '<div class="w-100">';
+                            __html += '<div class="progress_circle" data-progress="36" style="--progress: 36deg;">36%</div>';
+                        __html += '</div>';
+                    __html += '</div>';
+                __html += '</div>';
+                break;
+            case 'button':
+                __html += '<div class="col standart-section zoomer-cover" data-section="button" data-block-uniqid="'+ getUniqueId(1) +'">';
+                    __html += '<div class="row" data-tagname="col" data-itemcount="'+ window['setDefaultRowData' + windowUniqId].length +'" data-colcount="2" style="width: 100%">';
+                        __html += '<button type="button" class="btn btn-outline-primary w-100">Hoverable</button>';
+                    __html += '</div>';
+                __html += '</div>';
+                break;
+            case 'logo':
+                __html += '<div class="col standart-section zoomer-cover" data-section="logo" data-block-uniqid="'+ getUniqueId(1) +'">';
+                    __html += '<div class="row" data-tagname="col" data-itemcount="'+ window['setDefaultRowData' + windowUniqId].length +'" data-colcount="2" style="width: 100%">';
+                        __html += '<img src="projects/assets/elements/logo.png" data-rowdata=""/>';
+                    __html += '</div>';
+                __html += '</div>';
+                break;
+            case 'accordion':
+                __html += '<div id="accordion-group">';
+                    __html += '<div class="card mb-0 rounded-bottom-0">';
+                        __html += '<div class="card-header">';
+                            __html += '<h6 class="card-title">';
+                                __html += '<a data-toggle="collapse" class="text-default" href="#accordion-item-group1" aria-expanded="true">Accordion Item #1</a>';
+                            __html += '</h6>';
+                        __html += '</div>';
+                        __html += '<div id="accordion-item-group1" class="collapse show" data-parent="#accordion-group" style="">';
+                            __html += '<div class="card-body">';
+                                __html += 'Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch.';
+                            __html += '</div>';
+                        __html += '</div>';
+                    __html += '</div>';
+                    __html += '<div class="card mb-0 rounded-0 border-y-0">';
+                        __html += '<div class="card-header">';
+                            __html += '<h6 class="card-title">';
+                                __html += '<a class="text-default collapsed" data-toggle="collapse" href="#accordion-item-group2" aria-expanded="false">Accordion Item #2</a>';
+                            __html += '</h6>';
+                        __html += '</div>';
+                        __html += '<div id="accordion-item-group2" class="collapse" data-parent="#accordion-group" style="">';
+                            __html += '<div class="card-body">';
+                                __html += 'Тon cupidatat skateboard dolor brunch. Тesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda.';
+                            __html += '</div>';
+                        __html += '</div>';
+                    __html += '</div>';
+                    __html += '<div class="card rounded-top-0">';
+                        __html += '<div class="card-header">';
+                            __html += '<h6 class="card-title">';
+                                __html += '<a class="text-default collapsed" data-toggle="collapse" href="#accordion-item-group3" aria-expanded="false">Accordion Item #3</a>';
+                            __html += '</h6>';
+                        __html += '</div>';
+                        __html += '<div id="accordion-item-group3" class="collapse" data-parent="#accordion-group" style="">';
+                            __html += '<div class="card-body">';
+                                __html += '3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it.';
+                            __html += '</div>';
+                        __html += '</div>';
                     __html += '</div>';
                 __html += '</div>';
                 break;
@@ -401,6 +503,30 @@ var Builder = function() {
             },
             items: {
                 "chooseWidget": {name: plang.get('Сонгох'), icon: 'check'}
+            }
+        });
+
+        $.contextMenu({
+            selector: '#layout-builder'+ uniqId +' .chooseHtml',
+            callback: function(key, opt) {
+                if (key === 'chooseHtml') {
+                    var _selectedSection = $('#layout-builder'+ uniqId).find('.standart-section.section-edit');
+                    if (_selectedSection.length < 1) {
+                        PNotify.removeAll();
+                        new PNotify({
+                            title: 'Санамж',
+                            text: 'Сонгосон <b>Section</b> олдсонгүй.',
+                            type: 'warning', 
+                            sticker: false
+                        });
+                        return false;
+                    } else {
+                        selectHtml(uniqId, opt.$trigger, _selectedSection);
+                    }
+                } 
+            },
+            items: {
+                "chooseHtml": {name: plang.get('Сонгох'), icon: 'check'}
             }
         });
     };

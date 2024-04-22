@@ -531,6 +531,76 @@ $(function() {
                     }
                 });            
                 
+            } else if (kpiTypeId == '2010') {
+            
+                var postData = {
+                    mainIndicatorId: jsonObj.mainIndicatorId, 
+                    structureIndicatorId: strIndicatorId, 
+                    trgIndicatorId: indicatorId, 
+                    trgIndicatorKpiTypeId: kpiTypeId, 
+                    uniqId: '<?php echo $this->uniqId; ?>', 
+                    typeCode: '', 
+                    recordId: '', 
+                    srcMapId: mapId, 
+                    selectedRow: ''
+                };
+
+                if ($headerParams.length) {
+                    postData.selectedRow = rowParse;
+                    postData.recordId = headerRecordId;
+                }
+                
+                $.ajax({
+                    type: 'post',
+                    url: 'mdform/indicatorStatement/'+indicatorId,
+                    data: postData,
+                    dataType: 'html',
+                    beforeSend: function() {
+                        Core.blockUI({message: 'Loading...', boxed: true});
+                    },
+                    success: function(dataHtml) {
+
+                        viewProcess_<?php echo $this->uniqId; ?>.empty().append(dataHtml).promise().done(function() {
+                            Core.unblockUI();
+                        });
+                    }
+                });            
+                
+            } else if (kpiTypeId == '1060') {
+            
+                var postData = {
+                    mainIndicatorId: jsonObj.mainIndicatorId, 
+                    structureIndicatorId: strIndicatorId, 
+                    trgIndicatorId: indicatorId, 
+                    trgIndicatorKpiTypeId: kpiTypeId, 
+                    uniqId: '<?php echo $this->uniqId; ?>', 
+                    typeCode: '', 
+                    recordId: '', 
+                    srcMapId: mapId, 
+                    selectedRow: ''
+                };
+
+                if ($headerParams.length) {
+                    postData.selectedRow = rowParse;
+                    postData.recordId = headerRecordId;
+                }
+                
+                $.ajax({
+                    type: 'post',
+                    url: 'mdform/indicatorDashboard/'+indicatorId,
+                    data: postData,
+                    dataType: 'html',
+                    beforeSend: function() {
+                        Core.blockUI({message: 'Loading...', boxed: true});
+                    },
+                    success: function(dataHtml) {
+
+                        viewProcess_<?php echo $this->uniqId; ?>.empty().append(dataHtml).promise().done(function() {
+                            Core.unblockUI();
+                        });
+                    }
+                });            
+                
             } else if (kpiTypeId == '2020') {
             
                 var postData = {

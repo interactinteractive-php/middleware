@@ -621,7 +621,7 @@ function developerWorkspace(mainIndicatorId, data) {
         close: function() {
             /* enableScrolling(); */
             $('body').removeClass("overflow-hidden");
-            $('html, body').scrollTop(0);
+            //$('html, body').scrollTop(0);
             $dialog.empty().dialog('destroy').remove();
             
         }
@@ -2374,6 +2374,7 @@ function kpiIndicatorGoogleMapViewLoad(indicatorId, data, map) {
         window['kpiMarkerObject'] = [];
     }
     
+    var roId = rows[0].hasOwnProperty('RULE_CODE') ? rows[0]['RULE_CODE'] : '';
     $.each(rows, function(index, row) {
         var coordinateVal = row[coordinateField];
         var polygonVal = row[polygonField];
@@ -2395,7 +2396,7 @@ function kpiIndicatorGoogleMapViewLoad(indicatorId, data, map) {
                 savedPolygonData.push('<div class="mb10 mr-3 cursor-pointer ml1 polygon-row" data-rowdata="'+encodeURIComponent(JSON.stringify(row))+'" style="border-left: 4px solid '+row.REGION_COLOR+';" data-id="'+row.SEGMENTATION_ID+'">\n\
                     <div class="d-flex justify-content-between pt-1">\n\
                         <div class="ml-1"><input type="checkbox" checked id="visible_polygon_btn_'+row.SEGMENTATION_ID+'" class="notuniform visible_polygon_btn"/> <label class="ml-1" for="visible_polygon_btn_'+row.SEGMENTATION_ID+'">'+row.SEGMENTATION_NAME+'</label></div> \n\
-                        <div><i class="show_polygon_marker_btn fa fa-map-marker" style="color:'+(row.REGION_COLOR ? row.REGION_COLOR : '#575757')+'" title="marker"></i> <i class="edit_polygon_btn fa fa-edit ml-1" style="color:'+(row.REGION_COLOR ? row.REGION_COLOR : '#575757')+'" title="засах"></i></div>\n\
+                        <div><i class="show_polygon_marker_btn fa fa-map-marker" style="color:'+(row.REGION_COLOR ? row.REGION_COLOR : '#575757')+'" title="marker"></i> '+(sessionRole == roId ? '<i class="edit_polygon_btn fa fa-edit ml-1" style="color:'+(row.REGION_COLOR ? row.REGION_COLOR : '#575757')+'" title="засах"></i>' : '')+'</div>\n\
                     </div>\n\
                 </div>');
                 indicatorPolygon.addListener('click', function(event) {

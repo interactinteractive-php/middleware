@@ -702,6 +702,9 @@ input.kpi-notfocus-readonly-input::placeholder {
 .mv-checklist2-render-parent .viewer-container > .center-sidebar > .row > .top-sidebar-content > .xs-form.row {
     margin: 0;
 }
+.mv-checklist2-render-parent .render-object-viewer > .row > .col-md-12 > .viewer-container > .mv-datalist-show-filter > .row {
+    margin-left: 0;
+}
 .mv-checklist2-render-parent .mv-checklist-render div[data-meta-type="process"] .bp-header-param ul.bp-icon-selection {
     max-height: 360px;
 }

@@ -71,8 +71,8 @@ $sun = date("Y-m-d", strtotime(date("Y-m-d", $monday) . " +6 days"));
         </div>
     </div>
     <div class="card-body d-md-flex align-items-md-center justify-content-md-between flex-md-wrap">
-        <div class="table-responsive">
-            <table class="table">
+        <div class="table-responsive datagrid-view">
+            <table class="table not-datagrid">
                 <tbody>
                     <?php 
                     if (issetParamArray($this->datasrc)) { ?>
@@ -96,7 +96,7 @@ $sun = date("Y-m-d", strtotime(date("Y-m-d", $monday) . " +6 days"));
                                                 </a>
                                             </div>
                                             <div>
-                                                <a href="javascript:;" class="text-one-line text-default font-weight-semibold letter-icon-title" data-tpath="<?php echo $renderAtom->renderAtomPath("position1", $this->positionConfig); ?>" title="<?php echo $renderAtom->renderAtom($row, "position1", $this->positionConfig, 'Default value') ?>"><?php echo $renderAtom->renderAtom($row, "position1", $this->positionConfig, 'Default value') ?></a>
+                                                <a href="javascript:;" class="text-one-line text-default font-weight-semibold letter-icon-title cloud-call-process-action" data-row="<?php echo $rowJson ?>" data-processid="<?php echo $renderAtom->renderAtomPath("position11", $this->positionConfig); ?>" data-tpath="<?php echo $renderAtom->renderAtomPath("position1", $this->positionConfig); ?>" title="<?php echo $renderAtom->renderAtom($row, "position1", $this->positionConfig, 'Default value') ?>"><?php echo $renderAtom->renderAtom($row, "position1", $this->positionConfig, 'Default value') ?></a>
                                                 <div class="text-one-line text-muted font-size-sm text-left text-less" data-tpath="<?php echo $renderAtom->renderAtomPath("position2", $this->positionConfig); ?>" title="<?php echo $renderAtom->renderAtom($row, "position2", $this->positionConfig, 'Default value') ?>"> <?php echo $renderAtom->renderAtom($row, "position2", $this->positionConfig, 'Default value') ?></div>
                                             </div>
                                         </div>
@@ -106,7 +106,7 @@ $sun = date("Y-m-d", strtotime(date("Y-m-d", $monday) . " +6 days"));
                                         <div class="font-size-sm text-muted line-height-1 text-one-line" data-tpath="<?php echo $renderAtom->renderAtomPath("position4", $this->positionConfig); ?>" title="<?php echo $renderAtom->renderAtom($row, "position4", $this->positionConfig, 'Default value') ?>"><?php echo $renderAtom->renderAtom($row, "position4", $this->positionConfig, 'Default value') ?></div>
                                     </td>
                                     <td class="w-160px text-center">
-                                        <span class="badge badge-flat border-primary text-primary-600 text-one-line" style="background-color: <?php echo $renderAtom->renderAtomPath("position7", $this->positionConfig); ?>; color: <?php echo $renderAtom->renderAtomPath("position8", $this->positionConfig); ?>; border: none"data-tpath="<?php echo $renderAtom->renderAtomPath("position5", $this->positionConfig); ?>" title="<?php echo $renderAtom->renderAtom($row, "position5", $this->positionConfig, 'Default value') ?>"><?php echo $renderAtom->renderAtom($row, "position5", $this->positionConfig, 'Default value') ?></span>
+                                        <span class="badge badge-flat border-primary text-primary-600 text-one-line hover-pointer"  data-rowdata="<?php echo $rowJson ?>"onclick="dataViewWfmStatusFlowViewer<?php echo $uid ?>(this, '<?php echo $renderAtom->renderAtom($row, 'position14', $this->positionConfig, ''); ?>', '<?php echo $renderAtom->renderAtom($row, 'position15', $this->positionConfig, ''); ?>', '<?php echo $renderAtom->renderAtom($row, 'position5', $this->positionConfig, ''); ?>', '<?php echo $renderAtom->renderAtom($row, 'position13', $this->positionConfig, ''); ?>', '<?php echo $renderAtom->renderAtom($row, 'position12', $this->positionConfig, ''); ?>', '<?php echo $renderAtom->renderAtom($row, 'position7', $this->positionConfig, ''); ?>');" style="background-color: <?php echo $renderAtom->renderAtom($row, "position7", $this->positionConfig, ''); ?>; color: <?php echo $renderAtom->renderAtom($row, "position8", $this->positionConfig, '#FFF !important;'); ?>; border: none" data-tpath="<?php echo $renderAtom->renderAtomPath("position5", $this->positionConfig); ?>" title="<?php echo $renderAtom->renderAtom($row, "position5", $this->positionConfig, 'Default value') ?>"><?php echo $renderAtom->renderAtom($row, "position5", $this->positionConfig, 'Default value') ?></span>
                                     </td>
                                     <td class="w-120px text-left">
                                         <h6 class="mb-0" data-tpath="<?php echo $renderAtom->renderAtomPath("position6", $this->positionConfig); ?>" title="<?php echo $renderAtom->renderAtom($row, "position6", $this->positionConfig, 'Default value') ?>"><?php echo $renderAtom->renderAtom($row, "position6", $this->positionConfig, 'Default value') ?></h6>
@@ -143,6 +143,10 @@ $sun = date("Y-m-d", strtotime(date("Y-m-d", $monday) . " +6 days"));
         .table td, .table th {
             border: none !important;
         }
+        .hover-pointer:hover {
+            cursor: pointer;
+        }
+
         .page-link {
             border-radius: 30px !important;
             display: grid;
@@ -183,9 +187,6 @@ $sun = date("Y-m-d", strtotime(date("Y-m-d", $monday) . " +6 days"));
         }
 
         .text-less {
-            /* font-family: Arial;
-            font-size: 12px;
-            line-height: 19px; */
             font-weight: 400;
             letter-spacing: 0em;
             text-align: center;
@@ -203,45 +204,25 @@ $sun = date("Y-m-d", strtotime(date("Y-m-d", $monday) . " +6 days"));
 </style>
 <script type="text/javascript">
     $('body').on('click', '.req_<?php echo $uid ?> .page-link[data-filterdate]', function () {
-        var _this = $(this),
-            filterDate = _this.attr('data-filterdate');
-
-        $.ajax({
-            type: 'post',
-            url: 'mdlayout/layoutBySection', 
-            data: {
-                filterDate: filterDate,
-                config: _this.closest('section[data-attr]').attr('data-attr'),
-            }, 
-            dataType: 'json',
-            beforeSend: function() {
-                Core.blockUI({message: 'Loading...', boxed: true});
-            },
-            success: function (data) {
-                _this.closest('section[data-attr]').empty().append(data.Html);
-                Core.unblockUI();
-            },
-            error: function(jqXHR, exception) {
-                Core.showErrorMessage(jqXHR, exception);
-                Core.unblockUI();
-            }
-        });
+        var _this = $(this);
+        reload_<?php echo $uid ?>(_this)
     });
 
     $('body').on('click', ".cloud-call-process-action", function(){
         var element = this,
             $this = $(element),
             $parentSection = $this.closest('section[data-metadataid]');
-        Core.blockUI({
-          message: "Loading...",
-          boxed: true,
-        });
+            
+            Core.blockUI({
+            message: "Loading...",
+            boxed: true,
+            });
 
         var metaDataId = $(this).data("processid");
         if (metaDataId) {
             var getCustomerItems = $.ajax({
                 type: "post",
-                url: "mdmetadata/getMetaDataDrill/"+metaDataId,
+                url: "mdmetadata/getMetaDataDrill/" + metaDataId,
                 dataType: "json",
                 async: false,
                 success: function (data) {
@@ -254,6 +235,42 @@ $sun = date("Y-m-d", strtotime(date("Y-m-d", $monday) . " +6 days"));
             } else {
                 gridDrillDownLink(this, getCustomerItems.responseJSON.META_DATA_CODE, getCustomerItems.responseJSON.META_TYPE_CODE.toLowerCase(), '1', '',  $parentSection.attr('data-metadataid'), '', metaDataId, '', false, true)
             }
+
+            /* setTimeout(() => {
+                var _thisFilterAttr = $('.req_<?php echo $uid ?> .active[data-filterdate]');
+                reload_<?php echo $uid ?>(_thisFilterAttr);
+            }, 5000); */
         }
     });
+
+    function reload_<?php echo $uid ?>(_this) {
+        var filterDate = _this.attr('data-filterdate');
+        $.ajax({
+            type: 'post',
+            url: 'mdlayout/layoutBySection', 
+            data: {
+                filterDate: filterDate,
+                config: _this.closest('section[data-attr]').attr('data-attr'),
+            }, 
+            dataType: 'json',
+            beforeSend: function () {
+                Core.blockUI({message: 'Loading...', boxed: true});
+            },
+            success: function (data) {
+                _this.closest('section[data-attr]').empty().append(data.Html);
+                Core.unblockUI();
+            },
+            error: function (jqXHR, exception) {
+                Core.showErrorMessage(jqXHR, exception);
+                Core.unblockUI();
+            }
+        });
+    }
+
+    function dataViewWfmStatusFlowViewer<?php echo $uid ?>(elem, rowId, wfmStatusId, wfmStatusName, dataViewId, refStructureId, wfmstatuscolor) {
+        var _this = $(elem);
+        _this.closest('table').find('.dv-twocol-f-selected').removeClass('dv-twocol-f-selected');
+        _this.addClass('dv-twocol-f-selected');
+        dataViewWfmStatusFlowViewer(elem, rowId, wfmStatusId, wfmStatusName, dataViewId, refStructureId, wfmstatuscolor);
+    };
 </script>
