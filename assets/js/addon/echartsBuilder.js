@@ -1048,6 +1048,11 @@ var EchartBuilder = function() {
 
                 switch (type) {
                     case 'treemap':
+                        series = {
+                            ...series,
+                            ...option.series,
+                        };
+
                         option = {
                             ...option,
                             series: series,

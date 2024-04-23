@@ -4,7 +4,7 @@
         <button 
             type="button" 
             class="btn btn-block green-meadow" 
-            onclick="createMvStructureFromFile(this, '', {isContextMenu: false, isImportManage: true, mainIndicatorId: '<?php echo $this->mainIndicatorId; ?>'});">
+            onclick="createMvStructureFromFile(this, '', {isContextMenu: false, isImportManage: true, isImportManageAI: true, mainIndicatorId: '<?php echo $this->mainIndicatorId; ?>'});">
             <i class="fa fa-plus"></i> Импорт хийх
         </button>
         
@@ -156,16 +156,15 @@ function mvImportManageAIDataCommit(elem, indicatorId, mainIndicatorId) {
         },
         success: function(data) {
             Core.unblockUI();
+            new PNotify({
+                title: data.status,
+                text: data.message,
+                type: data.status,
+                sticker: false, 
+                addclass: 'pnotify-center'
+            }); 
             if (data.status == 'success') {
                 dataViewReload(indicatorId);
-            } else {
-                new PNotify({
-                    title: data.status,
-                    text: data.message,
-                    type: data.status,
-                    sticker: false, 
-                    addclass: 'pnotify-center'
-                }); 
             }
         }
     });

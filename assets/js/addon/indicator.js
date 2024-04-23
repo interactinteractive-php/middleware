@@ -5932,6 +5932,7 @@ function createMvStructureFromFile(elem, dataViewId, opts) {
     var devIndicatorId = opts.hasOwnProperty('devIndicatorId') ? opts.devIndicatorId : null;
     var devAppType = opts.hasOwnProperty('devAppType') ? opts.devAppType : null;
     var parentMenuId = opts.hasOwnProperty('parentMenuId') ? opts.parentMenuId : null;
+    var isImportManageAI = opts.hasOwnProperty('isImportManageAI') ? opts.isImportManageAI : false;
     
     postData.isImportManage = isImportManage ? 1 : 0;
     
@@ -6069,6 +6070,10 @@ function createMvStructureFromFile(elem, dataViewId, opts) {
                                             createPostData.devIndicatorId = devIndicatorId; 
                                             createPostData.devAppType = devAppType;
                                             createPostData.parentMenuId = parentMenuId;
+                                        }
+                                        
+                                        if (isImportManageAI) {
+                                            createPostData.isImportManageAI = 1;
                                         }
 
                                         $.ajax({

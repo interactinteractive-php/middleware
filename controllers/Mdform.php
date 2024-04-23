@@ -6001,7 +6001,6 @@ class Mdform extends Controller {
             'Title' => '',
             'Width' => '700',
             'uniqId' => $this->view->uniqId,
-            'uniqId' => $this->view->uniqId,
             'Html' => $this->view->renderPrint('/layout/config', "projects/views/contentui/build"),
             'save_btn' => Lang::line('save_btn'),
             'close_btn' => Lang::line('close_btn')
@@ -6011,7 +6010,7 @@ class Mdform extends Controller {
     }
     
     public function runPivotDataMartTest() {
-        $rs = $this->model->runPivotDataMartModel('171231216820119');
+        $rs = $this->model->runPivotDataMartModel('17107591072459');
         var_dump($rs);
     }
     

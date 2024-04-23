@@ -26493,6 +26493,7 @@ class Mdform_Model extends Model {
             
             $indicatorId = Input::numeric('indicatorId');
             $isOnlyTableCreate = Input::numeric('isOnlyTableCreate');
+            $isImportManageAI = Input::numeric('isImportManageAI');
             $headerDatas = $_POST['headerData'];
             
             $configRow = self::getKpiIndicatorRowModel($indicatorId);
@@ -26535,6 +26536,10 @@ class Mdform_Model extends Model {
                 $dbField = $mapFields = $dbIndex = [];
                 $mapFields[] = ['type' => 'long', 'name' => 'ID', 'labelName' => 'id', 'inputName' => 'META_VALUE_ID', 'isRender' => 0];
                 
+                if ($isImportManageAI) {
+                    $aiKeywords = self::getAIKeywordsModel();
+                }
+                
                 foreach ($headerDatas as $c => $headerData) {
                     
                     $labelName = Input::param($headerData['labelName']);
@@ -26548,12 +26553,11 @@ class Mdform_Model extends Model {
                     if ($isTblCreated == false || ($isTblCreated && !isset($isTblCreated[$columnName]))) { 
                         
                         $showType = Input::param($headerData['showType']);
+                        $lowerLabelName = Str::lower($labelName);
                         
                         $rowField = ['type' => $showType, 'name' => $columnName, 'labelName' => $labelName, 'inputName' => null, 'isRender' => 1];
                         
                         if (isset($tplIndicatorParams) && $labelName) {
-                            
-                            $lowerLabelName = Str::lower($labelName);
                             
                             $arr = array_filter($tplIndicatorParams, function($ar) use($lowerLabelName) {
                                 return (Str::lower($ar['NAME']) == $lowerLabelName);
@@ -26577,6 +26581,18 @@ class Mdform_Model extends Model {
                                 
                                 if ($rowField['type'] == 'combo') {
                                     $dbField[] = ['type' => 'text', 'name' => $columnName.'_DESC', 'labelName' => $labelName, 'inputName' => null, 'isRender' => 1];
+                                }
+                            }
+                        }
+                        
+                        if ($isImportManageAI && $aiKeywords) {
+                            foreach ($aiKeywords as $aiKeywordRow) {
+                                $aiKeywordsArrs = explode(',', $aiKeywordRow['KEYWORDS']);
+                                foreach ($aiKeywordsArrs as $aiKeywordsArr) {
+                                    if (trim($aiKeywordsArr) == $lowerLabelName) {
+                                        $rowField['fields']['RELATED_INDICATOR_MAP_ID'] = $aiKeywordRow['ID'];
+                                        break 2;
+                                    }
                                 }
                             }
                         }
@@ -27050,6 +27066,15 @@ class Mdform_Model extends Model {
         }
         
         return $result;
+    }
+    
+    public function getAIKeywordsModel() {
+        try {
+            $aiKeywords = $this->db->GetAll("SELECT ID, LOWER(KEYWORDS) AS KEYWORDS FROM AI_TAXANOMY WHERE KEYWORDS IS NOT NULL");
+        } catch (Exception $ex) {
+            $aiKeywords = [];
+        }
+        return $aiKeywords;
     }
     
     public function standardHiddenFieldsModel() {
@@ -27728,7 +27753,7 @@ class Mdform_Model extends Model {
                         T1.PARENT_ID,
                         T1.SHOW_TYPE,
                         T1.ORDER_NUMBER,
-                        NVL(t1.JSON_CONFIG, t1.DEFAULT_VALUE) AS DEFAULT_VALUE,
+                        CASE WHEN LENGTH(TO_CLOB(t1.JSON_CONFIG)) > 0 THEN t1.JSON_CONFIG ELSE TO_CLOB(t1.DEFAULT_VALUE) END  AS DEFAULT_VALUE,
                         T1.LABEL_NAME
                     FROM KPI_TYPE T0 
                     INNER JOIN KPI_INDICATOR T2 ON T0.RELATED_INDICATOR_ID = T2.ID
@@ -30363,7 +30388,16 @@ class Mdform_Model extends Model {
             $result = ['status' => 'success', 'message' => 'Successfully!'];
                 
         } catch (Exception $ex) {
-            $result = ['status' => 'error', 'message' => $ex->getMessage()];
+            
+            $exceptionMsg = $ex->getMessage();
+            $result = ['status' => 'error', 'message' => $exceptionMsg];
+            
+            if (strpos($exceptionMsg, Mdcommon::$separator) !== false) {
+                preg_match('/♠([\w\W]*?)♠/i', $exceptionMsg, $exceptionMsgArr);
+                if (isset($exceptionMsgArr[1])) {
+                    $result = json_decode(trim($exceptionMsgArr[1]), true);
+                }
+            } 
         }
         
         return $result;
