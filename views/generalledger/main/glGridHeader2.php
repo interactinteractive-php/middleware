@@ -8,6 +8,9 @@
     <?php if (Config::getFromCache('isGLDescrEnglish')) { ?>
         <th style='min-width:180px;' rowspan='2' class='text-center glRowDescr2'><?php echo 'Transaction value'; ?></th>
     <?php } ?>    
+    <?php if (Config::getFromCache('ISSHOWGLDTLREFNUMBER')) { ?>
+        <th style='min-width:120px;' rowspan='2' class='text-center glRowRefNumber'><?php echo 'Гүйлгээний дугаар'; ?></th>
+    <?php } ?>    
     <th style='min-width:50px;' rowspan='2' class='text-center glRowCurrency'><i class="fa fa-money"></i></th>
     <th style='min-width:60px;max-width:60px;width:60px;' rowspan='2' class='text-center glRowRate'><?php echo Lang::lineDefault('rate', 'Ханш'); ?></th>
     <th style='min-width:172px;' colspan='2' class='text-center'><?php echo Lang::lineDefault('FIN_1007', 'Дебит'); ?></th>

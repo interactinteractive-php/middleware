@@ -1682,6 +1682,7 @@ function setBoxKpiDataMartRelationTable(elem) {
         html.push('<span class="iconText">');
 
         if (elem.type == 'rectangle') {
+            html.push('<div class="bp-code d-none">' + elem.code + '</div>');
             html.push('<div class="bp-name">' + elem.title + '</div>');
         }
 
@@ -2275,7 +2276,6 @@ function kpiDataMartNewRelationConnectTable(info, data, $editor) {
 
                         $editor.append('<textarea class="d-none" '+inputAttr+'>'+relationAttrsJsonStr+'</textarea>');
 
-                        console.log(info)
                         jsPlumb.connect({
                             source: info.sourceId,
                             target: info.targetId

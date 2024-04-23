@@ -157,6 +157,9 @@
                                 <?php if (Config::getFromCache('isGLDescrEnglish')) { ?>
                                     <td></td>
                                 <?php } ?>                                
+                                <?php if (Config::getFromCache('ISSHOWGLDTLREFNUMBER')) { ?>
+                                    <td></td>
+                                <?php } ?>                                
                                 <td class="glRowCurrency"></td>
                                 <td data-usebase="usebase" class="glRowRate"></td>
                                 <td data-usebase="usebase" class="foot-sum-debitamountbase bigdecimalInit text-right font-weight-bold">0.00</td>
@@ -2734,6 +2737,7 @@
             <td class='stretchInput middle text-center glRowExpenseCenter'>"+rowAttr.expenseCenterField+"</td>\n\
             <td class='stretchInput middle text-center glRowDescr'><input type='text' name='gl_rowdescription[]' value=\""+rowDescr+"\" id='gl_rowdescription' class='form-control form-control-sm'></td>\n\
             <td class='stretchInput middle text-center glRowDescr2<?php echo Config::getFromCache('isGLDescrEnglish') ? '' : ' hide' ?>'><input type='text' name='gl_rowdescription2[]' value=\"\" id='gl_rowdescription2' class='form-control form-control-sm'></td>\n\
+            <td class='stretchInput middle text-center glRowRefNumber<?php echo Config::getFromCache('ISSHOWGLDTLREFNUMBER') ? '' : ' hide' ?>'><input type='text' name='gl_rowrefnumber[]' value=\"\" id='gl_rowrefnumber' class='form-control form-control-sm'></td>\n\
             <td class='stretchInput middle text-center glRowCurrency'>"+rowAttr.currencyDropDown+"</td>\n\
             <td data-usebase='usebase' class='stretchInput middle text-center glRowRate'><input type='text' name='gl_rate[]' id='gl_visiblerate' value='" + rowAttr.rate + "' class='form-control form-control-sm bigdecimalInit text-right readonly-white-bg'"+rowAttr.rateReadonly+"></td>\n\
             <td data-usebase='usebase' class='stretchInput middle text-center'><input type='text' data-input-name='debitAmountBase' id='gl_debitAmountBase' class='form-control form-control-sm bigdecimalInit text-right readonly-white-bg' value='"+rowAttr.dtAmtFcy+"' data-v-min='0'"+rowAttr.baseReadonly+"><input type='hidden' name='gl_debitAmountBase[]' id='gl_debitAmountBase' value='"+rowAttr.dtAmtFcy+"'></td>\n\

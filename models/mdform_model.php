@@ -22028,6 +22028,56 @@ class Mdform_Model extends Model {
         return $response;
     }
     
+    public function getIndicatorStructureModel($indicatorId) {
+            $configs = $this->db->GetAll("
+                SELECT 
+                      M.ID, 
+                      M.CODE, 
+                      CASE WHEN NVL(M.IS_RENDER, 0)= 1 THEN '<B>' || NVL(M.LABEL_NAME, KI.NAME)|| '</B>' ELSE '<I>' || NVL(M.LABEL_NAME, KI.NAME)|| '</I>' END, 
+                      NVL(
+                        M.PARENT_ID, M.MAIN_INDICATOR_ID
+                      ) AS PARENT_ID, 
+                      M.TEMPLATE_TABLE_NAME, 
+                      NULL AS TABLE_NAME, 
+                      M.COLUMN_NAME, 
+                      M.COLUMN_NAME AS COLUMNNAME, 
+                      M.ID AS MAP_ID, 
+                      MST.NAME AS SEMANTIC_TYPE_NAME, 
+                      M.RENDER_TYPE, 
+                      M.SHOW_TYPE AS SHOWTYPE, 
+                      M.ORDER_NUMBER, 
+                      M.TRG_INDICATOR_ID, 
+                      M.LOOKUP_CRITERIA, 
+                      M.COLUMN_WIDTH, 
+                      M.GROUP_ORDER, 
+                      M.MERGE_TYPE, 
+                      M.IS_RENDER, 
+                      M.IS_PARENT, 
+                      M.EXPRESSION_STRING, 
+                      M.LABEL_NAME AS LABELNAME, 
+                      'KPI_INDICATOR_INDICATOR_MAP' AS ORDER_TABLE_NAME, 
+                      'ID' AS ORDER_ID_COLUMN, 
+                      'ORDER_NUMBER' AS ORDER_ORDER_COLUMN, 
+                      1 AS OPEN_TREE, 
+                      M.SEMANTIC_TYPE_ID, 
+                      'OPEN' AS ROW_STATE, 
+                      KI.NAME AS TRG_INDICATOR_NAME, 
+                      M.COLUMN_NAME_PATH,
+                      M.SEMANTIC_TYPE_ID
+                    FROM KPI_INDICATOR_INDICATOR_MAP M 
+                      LEFT JOIN META_SEMANTIC_TYPE MST ON M.SEMANTIC_TYPe_ID = MST.ID 
+                      LEFT JOIN KPI_INDICATOR KI ON M.TRG_INDICATOR_ID = KI.ID 
+                    WHERE 
+                      M.MAIN_INDICATOR_ID = ".$this->db->Param(0)."
+                      AND NVL(M.IS_INPUT, 0) = 1 
+                      AND M.PARENT_ID IS NULL 
+                      AND M.SHOW_TYPE != 'rows'", 
+                [$indicatorId]
+            );        
+            
+        return $configs;    
+    }
+    
     public function saveKpiDataMartRelationConfigModelTable() {
 
         $id = Input::numeric('id');
@@ -22036,11 +22086,10 @@ class Mdform_Model extends Model {
         $position = Input::post('graphJson');
         $columns = Input::post('columns');
         $criterias = Input::post('criterias');
+        $colIndexNumber = 1;
         
         if (is_numeric($id)) {
             
-//            pa($columns);
-//            pa($connections);
             try {                            
                 
                 $this->db->UpdateClob("KPI_INDICATOR", "GRAPH_JSON", $position, 'ID = '.$id);
@@ -22052,41 +22101,31 @@ class Mdform_Model extends Model {
                     array($id)
                 );                
                 
-                if ($columns) {
-                    $colmnsGroup = Arr::groupByArray($columns, 'trgIndicatorId');
-                    foreach ($colmnsGroup as $clmnKey => $clmnRow) {                        
+                if ($objects) {
+                    foreach ($objects as $clmnRow) {                      
+                        $getCols = self::getIndicatorStructureModel($clmnRow['trgIndicatorId']);
 
-                        $data = array(
-                            'ID' => getUID(), 
-                            'SHOW_TYPE' => '', 
-                            'SEMANTIC_TYPE_ID' => '10000020', 
-                            'SRC_ALIAS_NAME' => 'T0', 
-                            'DATA_MART_MAIN_INDICATOR_ID' => $id, 
-                            'SRC_INDICATOR_ID' => $id, 
-                            'TRG_INDICATOR_ID' => $clmnKey, 
-                            'CREATED_DATE'    => Date::currentDate('Y-m-d H:i:s'),
-                            'CREATED_USER_ID' => Ue::sessionUserKeyId()
-                        );
-                        $this->db->AutoExecute('KPI_INDICATOR_INDICATOR_MAP', $data);                          
-
-                        $mapId = $data['ID'];
-                        $data = [];
-                        foreach ($clmnRow['rows'] as $rowKey => $row) {      
-                            $data = array(
-                                'ID' => getUIDAdd($rowKey), 
-                                'SHOW_TYPE' => '', 
-                                'DATA_MART_MAIN_INDICATOR_ID' => $id, 
-                                'SEMANTIC_TYPE_ID' => '10000021', 
-                                'TRG_ALIAS_NAME' => $row['trgAliasName'],
-                                'SRC_INDICATOR_MAP_ID' => $mapId, 
-                                'SRC_INDICATOR_PATH' => $row['srcLabelName'], 
-                                'TRG_INDICATOR_PATH' => $row['trgLabelName'],
-                                'TRG_INDICATOR_ID' => $row['trgIndicatorId'],
-                                'CREATED_DATE'    => Date::currentDate('Y-m-d H:i:s'),
-                                'CREATED_USER_ID' => Ue::sessionUserKeyId()                                
-                            );
-                            $this->db->AutoExecute('KPI_INDICATOR_INDICATOR_MAP', $data);   
-                        }                    
+                        if ($getCols) {
+                            foreach ($getCols as $colKey => $colRow) {                      
+                                $data = array(
+                                    'ID' => getUIDAdd($colKey), 
+                                    'SHOW_TYPE' => $colRow['SHOWTYPE'], 
+                                    'SEMANTIC_TYPE_ID' => $colRow['SEMANTIC_TYPE_ID'], 
+                                    'COLUMN_NAME' => 'C'.$colIndexNumber, 
+                                    'COLUMN_NAME_PATH' => 'C'.$colIndexNumber, 
+                                    'LABEL_NAME' => $colRow['LABELNAME'], 
+                                    'SRC_ALIAS_NAME' => 'T0', 
+                                    'IS_INPUT' => '1', 
+                                    'DATA_MART_MAIN_INDICATOR_ID' => $id, 
+                                    'MAIN_INDICATOR_ID' => $id, 
+                                    'TRG_INDICATOR_PATH' => $colRow['COLUMN_NAME'], 
+                                    'CREATED_DATE'    => Date::currentDate('Y-m-d H:i:s'),
+                                    'CREATED_USER_ID' => Ue::sessionUserKeyId()
+                                );
+                                $colIndexNumber++;
+                                $this->db->AutoExecute('KPI_INDICATOR_INDICATOR_MAP', $data);                  
+                            }
+                        }
                     }
                 }
                 
@@ -22116,8 +22155,8 @@ class Mdform_Model extends Model {
                                     'DATA_MART_MAIN_INDICATOR_ID' => $id, 
                                     'SEMANTIC_TYPE_ID' => '10000021', 
                                     'SRC_INDICATOR_MAP_ID' => $mapId, 
-                                    'SRC_INDICATOR_PATH' => $rowMap['srclabelname'], 
-                                    'TRG_INDICATOR_PATH' => $rowMap['trglabelname'],
+                                    'SRC_INDICATOR_PATH' => $rowMap['srcindicatormapid'], 
+                                    'TRG_INDICATOR_PATH' => $rowMap['trgindicatormapid'],
                                     'CREATED_DATE'    => Date::currentDate('Y-m-d H:i:s'),
                                     'CREATED_USER_ID' => Ue::sessionUserKeyId()                                
                                 );

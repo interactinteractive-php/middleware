@@ -24,6 +24,7 @@ if (isset($params['generalledgerbookdtls']) && ($dtlCount = count($params['gener
     $glIncomeTaxDeduction = Config::getFromCache('FIN_INCOMETAX_DEDUCTION');
     $gisUseAccountType = Config::getFromCache('ISUSEACCOUNTTYPEUGLUPDATE');
     $isGLDescrEnglish = Config::getFromCache('isGLDescrEnglish');
+    $isGLRefNumber = Config::getFromCache('ISSHOWGLDTLREFNUMBER');
     
     if (isset($this->isGlRateDisabled)) {
         $rateAttr = array('readonly' => 'readonly');
@@ -312,6 +313,9 @@ if (isset($params['generalledgerbookdtls']) && ($dtlCount = count($params['gener
         $row .= "<td class='stretchInput middle text-center glRowDescr'>" . Form::text(array_merge(array('name' => 'gl_rowdescription[]', 'id' => 'gl_rowdescription', 'class' => 'form-control form-control-sm readonly-white-bg', 'value' => $glRow['description'], 'title' => $glRow['description']), $attrArray)) . "</td>";
         if ($isGLDescrEnglish) {
             $row .= "<td class='stretchInput middle text-center glRowDescr2'>" . Form::text(array_merge(array('name' => 'gl_rowdescription2[]', 'id' => 'gl_rowdescription2', 'class' => 'form-control form-control-sm readonly-white-bg', 'value' => issetParam($glRow['description2']), 'title' => issetParam($glRow['description2'])), $attrArray)) . "</td>";            
+        }
+        if ($isGLRefNumber) {
+            $row .= "<td class='stretchInput middle text-center glRowRefNumber'>" . Form::text(array_merge(array('name' => 'gl_rowrefnumber[]', 'id' => 'gl_rowrefnumber', 'class' => 'form-control form-control-sm readonly-white-bg', 'value' => issetParam($glRow['refnumber']), 'title' => issetParam($glRow['refnumber'])), $attrArray)) . "</td>";            
         }
         $row .= "<td class='stretchInput middle text-center glRowCurrency'>".$rowCurrencyDropDown."</td>";
         $row .= "<td data-usebase='usebase' class='stretchInput middle text-center glRowRate'>" . Form::text(array_merge(array('name' => 'gl_rate[]', 'class' => 'form-control form-control-sm bigdecimalInit readonly-white-bg', 'value' => $glRow['rate']), array_merge($attrArray, $rateAttr, $baseAmountAttr))) . "</td>";
