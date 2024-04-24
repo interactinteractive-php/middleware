@@ -65,7 +65,7 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                             <?php 
                                 $html = '';
                                 $html .= '<a href="javascript:;" data-starttime="" data-endtime="" class="go-video-startendtime">';
-                                    $html .= '<div class="detail_cart_slider_imagevideo" data-starttime="'. issetParam($tmparr['0']['position-starttime']) .'">';
+                                    $html .= '<div class="detail_cart_slider_imagevideo detail_cart_slider_mainvideo'. $this->uniqId .'" data-starttime="'. issetParam($tmparr['0']['position-starttime']) .'">';
                                         $html .= '<video width="100%" controls id="main_video_'. $this->uniqId .'">';
                                             $html .= '<source src="'. issetParam($tmparr['0']['position1']) .'" type="video/mp4" >';
                                             $html .= 'Your browser does not support HTML5 video.';
@@ -82,6 +82,7 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                                 <div class="media-component">
                                     <?php echo '<div class="detail_cart_slider_imagevideo'. $this->uniqId .'" style="height: 115px;" data-starttime="'. issetParam($row['position-starttime']) .'" data-endtime="'. issetParam($row['position-endtime']) .'" data-recordid="'. issetParam($row['position-recordid']) .'">'
                                                 . '<canvas id="canvas_'. $key . '_' . $this->uniqId .'" width="125" class="d-none" height="125"></canvas>'
+                                                . '<canvas id="canvaslg_'. $key . '_' . $this->uniqId .'" width="940" class="d-none" height="500"></canvas>'
                                                 . '<video width="100%" controls id="video_' . $key . '_' . $this->uniqId .'"  class="d-none" >'
                                                     . '<source src="'. issetParam($row['position1']) .'" type="video/mp4" data-id="' . $key . '_' . $this->uniqId .'" class="mx-auto videotoimg" height="110px"/>'
                                                 . '</video>'
@@ -108,7 +109,7 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
     var dc<?php echo $this->uniqId ?> = 0;
 
     $(function() {
-        $('#main_video_<?php echo $this->uniqId ?>').hide().parent().append('<h4>'+ plang.get('waiting_video_play') +'...</h4>');
+        $('#main_video_<?php echo $this->uniqId ?>').hide()/* .parent().append('<h4>'+ plang.get('waiting_video_play') +'...</h4>') */;
         videoToImageCheckInterval<?php echo $this->uniqId ?> = setInterval(function () {
             videoToImageFn<?php echo $this->uniqId ?>('#mv-checklist-render<?php echo $this->uniqId ?> .videotoimg:eq('+ dc<?php echo $this->uniqId ?> +')');          
         }, 800);        
@@ -126,17 +127,31 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
 
         setTimeout(function() {
             canvas = document.getElementById('canvas_' + dataId);
-            canvas.getContext('2d').drawImage(myvideo<?php echo $this->uniqId ?>, 0, 0, 125, 125);
-            var img = canvas.toDataURL('image/png');			
+            canvas.getContext('2d').drawImage(myvideo<?php echo $this->uniqId ?>, 0, 0, 125, 125);	
+            var img = canvas.toDataURL('image/png');
             $(param).closest('.detail_cart_slider_imagevideo<?php echo $this->uniqId ?>').css('background-image', "url('"+img+"')");
-            dc<?php echo $this->uniqId ?>++;
 
+            canvasLg = document.getElementById('canvaslg_' + dataId);
+            canvasLg.getContext('2d').drawImage(myvideo<?php echo $this->uniqId ?>, 0, 0, 940, 500);
+            var imgLg = canvasLg.toDataURL('image/png');		
+            			
+            if (dc<?php echo $this->uniqId ?> === 0) {
+                $('#main_video_<?php echo $this->uniqId ?>').closest('.detail_cart_slider_imagevideo').css('background-image', "url('"+imgLg+"')");
+            }
+
+            dc<?php echo $this->uniqId ?>++;
             if (dc<?php echo $this->uniqId ?> == dtlRowCount<?php echo $this->uniqId ?>) {            
                 clearInterval(videoToImageCheckInterval<?php echo $this->uniqId ?>);
                 myvideo<?php echo $this->uniqId ?>.currentTime = 0;
             }
         }, 500);
     }
+
+    $('body').on('click', '.detail_cart_slider_mainvideo<?php echo $this->uniqId ?>', function (e) {
+        if (typeof $('#main_video_<?php echo $this->uniqId ?>').attr('data-change') === 'undefined') {
+            $('.detail_cart_slider_imagevideo<?php echo $this->uniqId ?>:eq(0)').trigger('click');
+        }
+    });
 
     $('body').on('click', '.detail_cart_slider_imagevideo<?php echo $this->uniqId ?>', function (e) {
         var _this = $(this),
@@ -148,6 +163,7 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
             clearInterval(videoTimeToSaveInterval<?php echo $this->uniqId ?>);
             
         $('#main_video_<?php echo $this->uniqId ?>').show().parent().find('h4').remove();
+        $('#main_video_<?php echo $this->uniqId ?>').attr('data-change', '1');
 
         function checkTime() {
             if (mainVideo<?php echo $this->uniqId ?>.currentTime >= end) {

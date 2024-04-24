@@ -923,7 +923,11 @@ function filterKpiIndicatorValueForm(indicatorId) {
     $.ajax({
         type: 'post',
         url: 'mdform/filterKpiIndicatorValueForm',
-        data: {indicatorId: indicatorId, drillDownCriteria: drillDownCriteria},
+        data: {
+            indicatorId: indicatorId, 
+            isCalendar: '1', 
+            drillDownCriteria: drillDownCriteria
+        },
         dataType: 'json',
         success: function(data) {
             
@@ -1046,12 +1050,18 @@ function initFullCalendar_<?php echo $this->indicatorId; ?>() {
 
             filterStart<?php echo $this->indicatorId; ?> = moment(start).format('YYYY-MM-DD');
             filterEnd<?php echo $this->indicatorId; ?> = moment(end).format('YYYY-MM-DD');
-
+            
+            var $parentFilter = $('.list-group[data-indicatorid="<?php echo $this->indicatorId; ?>"]'), 
+                $this = $('.list-group[data-indicatorid="<?php echo $this->indicatorId; ?>"]').find('input:eq(0)');
+            
+            var getFilterData = getKpiIndicatorFilterData($this, $parentFilter);
+            
             var postParams = {
                 indicatorId: '<?php echo $this->indicatorId; ?>',  
                 postHiddenParams: '<?php echo issetParam($this->postHiddenParams); ?>', 
                 hiddenParams: '<?php echo issetParam($this->hiddenParams); ?>', 
-                filter: '<?php echo issetParam($this->filter); ?>'
+                filter: '<?php echo issetParam($this->filter); ?>',
+                filterData: getFilterData.filterData
             };
 
             $.ajax({
@@ -1296,7 +1306,10 @@ function initFullCalendar_<?php echo $this->indicatorId; ?>() {
             <?php if (issetParam($this->relationViewConfig['eventclicksidebar']) !== '') { ?>
                 manageKpiIndicatorValue(arg.el, '<?php echo $this->relationViewConfig['eventclicksidebar'] ?>', '<?php echo $this->indicatorId; ?>', true, {mode: 'view'}, 'indicatorSidebarView_<?php echo $this->indicatorId ?>', 'refetchEvents_<?php echo $this->indicatorId ?>');
                 mvCalendar_<?php echo $this->indicatorId; ?>.find('.calendar-bp-layout').show();
-            <?php }elseif (issetParam($this->relationViewConfig['eventclick']) !== '' && $eventClickProcess) { ?>
+            <?php } elseif (issetParam($eventClickProcess['widget_code']) !== '') { ?>
+                    /* $onClick = "mvWidgetRelationRender(this, '$kpiTypeId', '".$this->indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'update', widgetCode: '". $process['widget_code'] ."'});"; */
+                    mvWidgetRelationRender(arg.el, '<?php echo issetParam($kpiTypeId) ?>', '<?php echo $this->indicatorId ?>', , {methodIndicatorId: <?php echo $eventClickProcess['crudIndicatorId'] ?>, structureIndicatorId: <?php echo $eventClickProcess['srcIndicatorId'] ?>, mode: 'update', widgetCode: '<?php echo $eventClickProcess['widget_code'] ?>'});
+            <?php } elseif (issetParam($this->relationViewConfig['eventclick']) !== '' && $eventClickProcess) { ?>
                 manageKpiIndicatorValue(arg.el, '<?php echo $eventClickProcess['kpiTypeId']; ?>', '<?php echo $eventClickProcess['srcIndicatorId']; ?>', true, <?php echo $eventClickProcess['mode']; ?>, undefined, 'refetchEvents_<?php echo $this->indicatorId ?>', '<?php echo $this->indicatorId ?>');
             <?php } ?>
         },
@@ -1314,7 +1327,7 @@ function initFullCalendar_<?php echo $this->indicatorId; ?>() {
                 
                 var filterStartDate = dateStartGet.format('YYYY-MM-DD'); // HH:mm:ss
                 var filterEndDate = dateEndGet.format('YYYY-MM-') + (dateEndDay < 10 ? '0' + dateEndDay : dateEndDay); // HH:mm:ss
-
+                
                 manageKpiIndicatorValue(arg.el, '<?php echo $eventClickProcess['kpiTypeId']; ?>', '<?php echo $eventClickProcess['srcIndicatorId']; ?>', true, <?php echo $eventClickProcess['mode']; ?>, undefined, 'refetchEvents_<?php echo $this->indicatorId ?>', '<?php echo $this->indicatorId ?>');
             },
         <?php } ?>

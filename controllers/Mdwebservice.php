@@ -18234,14 +18234,12 @@ class Mdwebservice extends Controller {
     }
     
     public function widgetBpDetailRender($methodId, $uniqId, $row, $fillParamData) {
-        $result = (new Mdwidget())->runBpDetail(
-            array(
-                'methodId'      => $methodId, 
-                'uniqId'        => $uniqId, 
-                'row'           => $row, 
-                'fillParamData' => $fillParamData
-            )
-        );
+        $result = (new Mdwidget())->runBpDetail([
+            'methodId'      => $methodId, 
+            'uniqId'        => $uniqId, 
+            'row'           => $row, 
+            'fillParamData' => $fillParamData
+        ]);
         
         return $result;
     }
@@ -18403,11 +18401,7 @@ class Mdwebservice extends Controller {
             $gridBodyData = self::renderCustomDtlLoop($uniqId, $processMetaDataId, $dtlThemeCode, $row, $getDtlRowsPopup, $fillParamData[$lowerKey]);
         }
         
-        return array(
-            'gridBody' => '',
-            'gridBodyData' => $gridBodyData,
-            'isRowState' => !isset($isRowState) ? false : $isRowState
-        );
+        return ['gridBody' => '', 'gridBodyData' => $gridBodyData, 'isRowState' => !isset($isRowState) ? false : $isRowState];
     }
     
     public function renderCustomDtlLoop($uniqId, $processMetaDataId, $dtlThemeCode, $row, $getDtlRowsPopup, $fillParamData) {
@@ -18437,7 +18431,8 @@ class Mdwebservice extends Controller {
                 || $dtlThemeCode == 'detail_frame_paper_001' 
                 || $dtlThemeCode == 'detail_frame_paper_tree' 
                 || $dtlThemeCode == 'detail_calendar_sidebar' 
-                || $dtlThemeCode == 'detail_file_preview_001') {
+                || $dtlThemeCode == 'detail_file_preview_001' 
+                || $dtlThemeCode == 'detail_header_reverse') {
             
             $gridBodyData = self::widgetBpDetailRender($processMetaDataId, $uniqId, $row, $fillParamData);
         }

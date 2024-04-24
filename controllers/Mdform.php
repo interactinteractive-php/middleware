@@ -2175,6 +2175,8 @@ class Mdform extends Controller {
         
         if (Input::numeric('isSqlView') == 1) {
             $response = $this->model->generateKpiRelationDataMartModel($indicatorId);
+        } elseif (Input::numeric('isSqlResult') == 1) {
+            $response = $this->model->generateKpiRelationDataMartNewModel($indicatorId);
         } else {
             Mdform::$currentKpiTypeId = 1044;
             $data = $this->model->getKpiIndicatorTemplateModel($indicatorId);
@@ -2226,6 +2228,7 @@ class Mdform extends Controller {
             $this->view->uniqId = Input::numeric('uniqId');
             $this->view->indicatorId = Input::numeric('indicatorId');
             $this->view->isChartList = Input::numeric('isChartList');
+            $this->view->isCalendar = Input::numeric('isCalendar');
 
             $filterData = $this->model->filterKpiIndicatorValueFormModel($this->view->indicatorId);
 
@@ -2661,6 +2664,18 @@ class Mdform extends Controller {
     
     public function saveKpiDataMartRelationConfigTable() {
         $response = $this->model->saveKpiDataMartRelationConfigModelTable();
+        
+        jsonResponse($response);
+    }
+    
+    public function updateRowDataMartRelationConfigTable() {
+        $response = $this->model->updateRowDataMartRelationConfigTableModel(Input::numeric('mapId'));
+        
+        jsonResponse($response);
+    }
+    
+    public function updateRowDataMartRelationConfigAggregateTable() {
+        $response = $this->model->updateRowDataMartRelationConfigAggregateTableModel(Input::numeric('mapId'));
         
         jsonResponse($response);
     }
@@ -6182,7 +6197,8 @@ class Mdform extends Controller {
             'columnsData' => $this->view->columnsData, 
             'headerCombo' => $headerCombo, 
             'mainColumnsData' => $this->view->mainColumnsData, 
-            'mapFields' => $mapFields
+            'mapFields' => $mapFields, 
+            'isAIGrid' => true
         ]);
 
         $this->view->renderGrid = $this->view->renderPrint('kpi/indicator/renderGrid', self::$viewPath);
@@ -6851,8 +6867,10 @@ class Mdform extends Controller {
             $this->view->columns = $this->model->getKpiDataMartRelationColumnsModel($this->view->id);
             $this->view->criterias = $this->model->getKpiDataMartRelationCriteriasModel($this->view->id);
             
-            $this->load->model('mddatamodel', 'middleware/models/');
-            $objects = $this->model->getDataMartGetDataModel('data_dataModelGetDV_004', array('id' => $this->view->id));
+            //$this->load->model('mddatamodel', 'middleware/models/');
+            //$objects = $this->model->getDataMartGetDataModel('data_dataModelGetDV_004', array('id' => $this->view->id));
+            $_POST['mainIndicatorId'] = $this->view->id;
+            $objects = $this->model->getListKpiDataMartRelationConfigModel();
             
             if ($this->view->isWs) {
                 echo $this->view->renderPrint('form/kpi/indicator/relation/relationConfigTable', 'middleware/views/');

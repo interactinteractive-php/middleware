@@ -31,13 +31,11 @@ if ($row['widgetCode'] == 'pfprocessphotowidget') {
     $content = '<div data-section-path="' . $row['code'] . '" data-isclear="' . $row['isRefresh'] . '" class="row mb10">';
     $content .= '<div class="col-md-12" data-bp-detail-container="1">';
 
-    $addRowResult = (new Mdwidget())->bpDetailAddRow(
-        array(
-            'methodId' => $this->methodId, 
-            'uniqId'   => $this->uniqId, 
-            'row'      => $row
-        )
-    );
+    $addRowResult = (new Mdwidget())->bpDetailAddRow([
+        'methodId' => $this->methodId, 
+        'uniqId'   => $this->uniqId, 
+        'row'      => $row
+    ]);
 
     if ($addRow) {
 
@@ -46,7 +44,7 @@ if ($row['widgetCode'] == 'pfprocessphotowidget') {
                             <div class="col">';
 
         if ($row['isShowAdd'] == '1' && issetParam($availableWidgets['topAddOneRow'])) {
-            $content .= Form::button(array('data-action-path' => $row['code'], 'class' => 'btn btn-xs green-meadow float-left mr5 bp-add-one-row', 'value' => '<i class="icon-plus3 font-size-12"></i> ' . $this->lang->line('addRow'), 'onclick' => 'bpAddMainRow_' . $this->methodId . '(this, \''.$this->methodId.'\', \'' . $row['id'] . '\');'));
+            $content .= Form::button(['data-action-path' => $row['code'], 'class' => 'btn btn-xs green-meadow float-left mr5 bp-add-one-row', 'value' => '<i class="icon-plus3 font-size-12"></i> ' . $this->lang->line('addRow'), 'onclick' => 'bpAddMainRow_' . $this->methodId . '(this, \''.$this->methodId.'\', \'' . $row['id'] . '\');']);
             $isDtlTbl = true;
         }
 
@@ -99,15 +97,15 @@ if ($row['widgetCode'] == 'pfprocessphotowidget') {
     $bpDtlAddHtml = $this->cache->get('bpDtlAddDtl_'.$this->methodId.'_'.$row['id']);
 
     if ($bpDtlAddHtml == null) {
-        $gridBody = $ws->bpCustomDetail($this->methodId, $this->uniqId, $row, array(array('tempPath' => '')));
-        $bpDtlAddHtml = Str::remove_doublewhitespace(str_replace(array("\r\n", "\n", "\r"), '', $gridBody));
+        $gridBody = $ws->bpCustomDetail($this->methodId, $this->uniqId, $row, [['tempPath' => '']]);
+        $bpDtlAddHtml = Str::remove_doublewhitespace(str_replace(["\r\n", "\n", "\r"], '', $gridBody));
         $this->cache->set('bpDtlAddDtl_'.$this->methodId.'_'.$row['id'], $bpDtlAddHtml, Mdwebservice::$expressionCacheTime);
     }    
 
     $gridBodyData = '';
 
     if ($this->fillParamData) {
-        $fillRender = $ws->renderFirstLevelDivDtl($this->uniqId, $this->methodId, issetDefaultVal($row['widgetCode'], $row['dtlTheme']), $row, array(), $this->fillParamData);
+        $fillRender = $ws->renderFirstLevelDivDtl($this->uniqId, $this->methodId, issetDefaultVal($row['widgetCode'], $row['dtlTheme']), $row, [], $this->fillParamData);
         $gridBodyData = issetParam($fillRender['gridBodyData']);
     }
 

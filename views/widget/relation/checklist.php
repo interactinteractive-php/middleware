@@ -109,6 +109,7 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                                                         if (issetParamArray($this->rowData[$position1PathArr['0']])) {
                                                             $groupIndex = 1;
                                                             $position1GroupArray = Arr::groupByArrayOnlyRows($this->rowData[$position1PathArr['0']], $position1PathArr['1']);
+                                                            $number = 1;
                                                             foreach ($position1GroupArray as $position1Key => $position1Group) {
                                                                 ?>
                                                                 <li class="nav-item nav-item-submenu nav-group-sub-mv-opened">
@@ -141,7 +142,8 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                                                                         <li class="nav-item checklistmenu-item">
                                                                             <a href="javascript:;" class="mv_checklist_02_sub nav-link" onclick="checkMenuFnc<?php echo $this->uniqId ?>(this)" data-uniqid="<?php echo $this->uniqId; ?>" data-json="<?php echo $rowJson; ?>" data-paramhidden="<?php echo $hideRowJson; ?>" data-iscomment="1" data-stepid="<?php echo $this->uniqId . '_' . $groupIndex . '_' . $index++; ?>">
                                                                                 <i class="far icon-checkbox-unchecked2"></i>
-                                                                                <span class="pt1"><?php echo $position2Key; ?></span>
+                                                                                <span class="number"><?php echo $number++ . '. '; ?></span>
+                                                                                <span><?php echo $position2Key; ?></span>
                                                                             </a>
                                                                         </li>
                                                                     <?php
@@ -172,13 +174,13 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                                             if (issetParamArray($this->rowData[$position1PathArr['0']])) {
                                                 $groupIndex = 1;
                                                 $position1GroupArray = Arr::groupByArrayOnlyRows($this->rowData[$position1PathArr['0']], $position1PathArr['1']);
+                                                $questionIndex = 1;
                                                 foreach ($position1GroupArray as $position1Key => $position1Group) {
 
                                                     $position2PathArr = explode('.', $rowsArray['position-2']['src_indicator_path']);
                                                     $position2GroupArray = Arr::groupByArrayOnlyRows($position1Group, $position2PathArr['1']);
 
                                                     $index= $counter = 0;
-                                                    $questionIndex = 1;
                                                     foreach ($position2GroupArray as $position2Key =>  $position2Grp) { 
                                                         $position2Group = $position2Grp['0'];
                                                         $tmparr = $hideTmparr = array();
@@ -229,7 +231,14 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                                                         $hideRowJson = htmlentities(json_encode($hideTmparr), ENT_QUOTES, 'UTF-8');
                                                         ?>
                                                         <div class="mv-checklist-render-comment p-3" data-stepkey="<?php echo $this->uniqId . '_' . $groupIndex . '_' . $index; ?>" style="display: none">
-                                                            <p class="question-txt"><?php echo $questionIndex++ . '. ' . checkDefaultVal($tmparr[0]['position3'], '...') ?> :</p>
+                                                            <div class="d-flex">
+                                                                <span class="question-num"><?php echo $questionIndex++ . '. ' ?></span>
+                                                                <div class="d-grid">
+                                                                    <p class="question-txt"><?php echo checkDefaultVal($tmparr[0]['position3'], '...') ?> :</p>
+                                                                    <p class="question-desc"><?php echo checkDefaultVal($tmparr[0]['position5'], 'Тайлбаргүй') ?> :</p>
+                                                                </div>
+                                                            </div>
+                                                            
                                                             <?php if (issetParamArray($tmparr[0]['files'])) {
                                                                 if (issetParam($tmparr[0]['fileShowType']) === '1') {
                                                                     ?>
@@ -383,7 +392,10 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
             padding-top: 11px;
             background-size: cover;
             height: 100%;
-            
+            .number {
+                width: 25px;
+                min-width: 25px;
+            }
             /* @media (max-width: 576px) {
                 .wg-form {
                     max-width: 540px !important; 
@@ -573,6 +585,18 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                     
                     .mv-checklist-render-comment {
 
+                        .question-num {
+                            width: 40px;
+                            min-width: 40px;
+                            font-size: 18px;
+                            font-weight: 500;
+                            line-height: 21px;
+                            letter-spacing: 0px;
+                            text-align: left;
+                            color: #585858;
+                            margin-bottom: 5px;
+                        }
+
                         .question-txt {
                             font-size: 18px;
                             font-weight: 500;
@@ -580,6 +604,16 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                             letter-spacing: 0px;
                             text-align: left;
                             color: #585858;
+                            margin-bottom: 5px;
+                        }
+
+                        .question-desc {
+                            font-size: 12px;
+                            font-weight: 500;
+                            line-height: 14px;
+                            letter-spacing: 0px;
+                            text-align: left;
+                            color: #9E9E9E;
                             margin-bottom: 20px;
                         }
 

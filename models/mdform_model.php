@@ -13973,6 +13973,7 @@ class Mdform_Model extends Model {
                         KIIM.IS_USE_GROUP, 
                         KIIM.JSON_CONFIG, 
                         KIIM.SEMANTIC_TYPE_ID, 
+                        KIIM.COLOR, 
                         LOWER(KIIM.BODY_ALIGN) AS BODY_ALIGN, 
                         MST.NAME AS SEMANTIC_TYPE_NAME, 
                         KI.TABLE_NAME AS TRG_TABLE_NAME, 
@@ -14162,6 +14163,7 @@ class Mdform_Model extends Model {
         $columnsData = $opts['columnsData'];
         $headerCombo = issetParam($opts['headerCombo']);
         $isUseWorkflow = issetParam($opts['IS_USE_WORKFLOW']);
+        $isAIGrid = issetParam($opts['isAIGrid']);
         
         $dm = &getInstance();
         $dm->load->model('Mdobject', 'middleware/models/');  
@@ -14340,6 +14342,10 @@ class Mdform_Model extends Model {
 
                     if (isset(Mdform::$gridStyler['cell'][$column['COLUMN_NAME']])) {
                         $columns[] = 'styler:function cellStyler(value,row,index){ '.implode(' ', Mdform::$gridStyler['cell'][$column['COLUMN_NAME']]).' },';
+                    }
+                    
+                    if ($isAIGrid && $column['COLOR']) {
+                        $columns[] = 'styler:function cellStyler(value,row,index){ return \'background-color:'.$column['COLOR'].';\'; },';
                     }
 
                     $columns[] = '},';
@@ -15961,8 +15967,11 @@ class Mdform_Model extends Model {
                 }
             }
             
-            if ($isSystemTable == false) {
+            if ($isSystemTable || Config::getFromCache('PF_IS_MV_HARD_DELETE')) {
                 
+                $result = $this->db->Execute("DELETE FROM $tableName WHERE $idField IN ($ids)");
+                
+            } else {
                 $sessionValues = Session::get(SESSION_PREFIX . 'sessionValues');
                 $sessionName   = issetDefaultVal($sessionValues['sessionusername'], Ue::getSessionPersonWithLastName());
 
@@ -15973,9 +15982,6 @@ class Mdform_Model extends Model {
                 ];
 
                 $result = $this->db->AutoExecute($tableName, $updateData, 'UPDATE', "$idField IN ($ids)");
-                
-            } else {
-                $result = $this->db->Execute("DELETE FROM $tableName WHERE $idField IN ($ids)");
             }
             
             if ($result) {
@@ -17118,7 +17124,7 @@ class Mdform_Model extends Model {
                 KIIM.EXPRESSION_STRING, 
                 KI_TRG.TABLE_NAME AS TRG_TABLE_NAME, 
                 KIIM.TRG_ALIAS_NAME, 
-                UPPER(KIIM_TRG.COLUMN_NAME) AS TRG_COLUMN_NAME, 
+                KIIM.TRG_INDICATOR_PATH AS TRG_COLUMN_NAME, 
                 KIIM.SHOW_TYPE AS SRC_SHOW_TYPE, 
                 KIIM_TRG.SHOW_TYPE AS TRG_SHOW_TYPE, 
                 MST.NAME AS SEMANTIC_TYPE_NAME, 
@@ -17131,8 +17137,8 @@ class Mdform_Model extends Model {
                 LEFT JOIN KPI_INDICATOR_INDICATOR_MAP KIIM_TRG ON KIIM.TRG_INDICATOR_ID = KIIM_TRG.MAIN_INDICATOR_ID 
                     AND KIIM.TRG_INDICATOR_MAP_ID = KIIM_TRG.ID 
                 INNER JOIN META_SEMANTIC_TYPE MST ON KIIM.SEMANTIC_TYPE_ID = MST.ID 
-            WHERE KIIM.MAIN_INDICATOR_ID = $idPh1 
-                AND (KIIM_TRG.COLUMN_NAME IS NOT NULL OR KIIM.EXPRESSION_STRING IS NOT NULL) 
+            WHERE (KIIM.IS_INPUT = 1 OR KIIM.IS_OUTPUT = 1) AND KIIM.MAIN_INDICATOR_ID = $idPh1 
+                /*AND (KIIM_TRG.COLUMN_NAME IS NOT NULL OR KIIM.EXPRESSION_STRING IS NOT NULL)*/ 
             ORDER BY 
                 KIIM.ORDER_NUMBER ASC", array($mainIndicatorId));
         
@@ -17140,10 +17146,10 @@ class Mdform_Model extends Model {
             SELECT 
                 KI_SRC.TABLE_NAME AS SRC_TABLE_NAME, 
                 KI_SRC.QUERY_STRING AS SRC_QUERY_STRING, 
-                UPPER(D.SRC_INDICATOR_PATH) AS SRC_COLUMN_NAME, 
+                UPPER(D2.COLUMN_NAME) AS SRC_COLUMN_NAME, 
                 KI_TRG.TABLE_NAME AS TRG_TABLE_NAME, 
                 KI_TRG.QUERY_STRING AS TRG_QUERY_STRING, 
-                UPPER(D.TRG_INDICATOR_PATH) AS TRG_COLUMN_NAME, 
+                UPPER(D3.COLUMN_NAME) AS TRG_COLUMN_NAME, 
                 D.DEFAULT_VALUE,
                 K.SRC_ALIAS_NAME,
                 K.TRG_ALIAS_NAME,
@@ -17165,12 +17171,14 @@ class Mdform_Model extends Model {
                 LEFT JOIN KPI_INDICATOR KI_TRG_PARENT ON KI_TRG.PARENT_ID = KI_TRG_PARENT.ID 
                     AND K.SRC_INDICATOR_ID = KI_TRG_PARENT.ID 
                 LEFT JOIN KPI_INDICATOR_INDICATOR_MAP D ON K.ID = D.SRC_INDICATOR_MAP_ID 
+                LEFT JOIN KPI_INDICATOR_INDICATOR_MAP D2 ON D2.ID = D.SRC_INDICATOR_PATH 
+                LEFT JOIN KPI_INDICATOR_INDICATOR_MAP D3 ON D3.ID = D.TRG_INDICATOR_PATH 
                 /*LEFT JOIN KPI_INDICATOR_INDICATOR_MAP KIIM_SRC ON KI_SRC.ID = KIIM_SRC.SRC_INDICATOR_ID AND KIIM_SRC.SEMANTIC_TYPE_ID = 10000021
                 LEFT JOIN KPI_INDICATOR_INDICATOR_MAP KIIM_TRG ON KI_SRC.ID = KIIM_TRG.TRG_INDICATOR_ID AND KIIM_TRG.SEMANTIC_TYPE_ID = 10000021*/
             WHERE K.DATA_MART_MAIN_INDICATOR_ID = $idPh1
             ORDER BY 
-                K.ID ASC, 
-                D.ID ASC", array($mainIndicatorId));
+                K.TRG_ALIAS_NAME ASC, 
+                K.ID ASC", array($mainIndicatorId));
         
         $criteriaData = $this->db->GetAll("
             SELECT 
@@ -18190,7 +18198,7 @@ class Mdform_Model extends Model {
         try {
             
             $configData = self::getKpiDataMartRelationConfigNewModel($mainIndicatorId);
-            
+                        
             $columnConfig = $configData['column'];
             $relationConfig = $configData['relation'];
             $relationCriteria = $configData['criteria'];
@@ -18514,6 +18522,11 @@ class Mdform_Model extends Model {
                 
                 if (Input::numeric('isSqlView')) {
                     return array('status' => 'success', 'sql' => $mainSelectQry);
+                }
+                
+                if (Input::numeric('isSqlResult')) {
+                    $resSql = $this->db->GetAll($mainSelectQry);
+                    return array('status' => 'success', 'rows' => $resSql, 'total' => count($resSql));
                 }
                 
                 if ($isTblCreated == false) {
@@ -20074,9 +20087,8 @@ class Mdform_Model extends Model {
         $replaceParams = [
             ':sessionCompanyDepartmentId' => $sessionCompanyDepartmentId, 
             ':sessionDepartmentId'        => $sessionDepartmentId, 
-            ':sessionUserKeyDepartmentId' => $sessionDepartmentId, 
             ':sessionUserKeyId'           => $sessionUserKeyId, 
-            ':sessionUserId'              => $sessionUserId, 
+            ':sessionUserId'              => $sessionUserId,  
             ':sessionPositionKeyId'       => Ue::sessionPositionKeyId(), 
             ':sessionEmployeeId'          => Ue::sessionEmployeeId(), 
             ':sessionEmployeeKeyId'       => Ue::sessionEmployeeKeyId(), 
@@ -21726,8 +21738,8 @@ class Mdform_Model extends Model {
                         KIIM.SRC_INDICATOR_PATH AS SRCLABELNAME,
                         KIIM.TRG_INDICATOR_PATH AS TRGLABELNAME,
                         KIIM.SHOW_TYPE AS OPERATORNAME,
-                        KIIM.ID AS TRGINDICATORMAPID,
-                        KIIM.SRC_INDICATOR_MAP_ID AS SRCINDICATORMAPID
+                        KIIM.TRG_INDICATOR_PATH AS TRGINDICATORMAPID,
+                        KIIM.SRC_INDICATOR_PATH AS SRCINDICATORMAPID
                     FROM KPI_INDICATOR_INDICATOR_MAP KIIM 
                         LEFT JOIN KPI_INDICATOR KI2 ON KIIM.SRC_INDICATOR_ID = KI2.ID 
                         LEFT JOIN META_SEMANTIC_TYPE MST ON KIIM.SEMANTIC_TYPE_ID = MST.ID 
@@ -22087,6 +22099,7 @@ class Mdform_Model extends Model {
         $columns = Input::post('columns');
         $criterias = Input::post('criterias');
         $colIndexNumber = 1;
+        $savedIndicatorIds = [];
         
         if (is_numeric($id)) {
             
@@ -22097,39 +22110,82 @@ class Mdform_Model extends Model {
                 $this->db->Execute("
                     DELETE 
                     FROM KPI_INDICATOR_INDICATOR_MAP 
-                    WHERE DATA_MART_MAIN_INDICATOR_ID = ".$this->db->Param(0), 
+                    WHERE (IS_INPUT IS NULL OR IS_INPUT = 1) AND DATA_MART_MAIN_INDICATOR_ID = ".$this->db->Param(0), 
                     array($id)
                 );                
                 
-                if ($objects) {
-                    foreach ($objects as $clmnRow) {                      
-                        $getCols = self::getIndicatorStructureModel($clmnRow['trgIndicatorId']);
-
-                        if ($getCols) {
-                            foreach ($getCols as $colKey => $colRow) {                      
-                                $data = array(
-                                    'ID' => getUIDAdd($colKey), 
-                                    'SHOW_TYPE' => $colRow['SHOWTYPE'], 
-                                    'SEMANTIC_TYPE_ID' => $colRow['SEMANTIC_TYPE_ID'], 
-                                    'COLUMN_NAME' => 'C'.$colIndexNumber, 
-                                    'COLUMN_NAME_PATH' => 'C'.$colIndexNumber, 
-                                    'LABEL_NAME' => $colRow['LABELNAME'], 
-                                    'SRC_ALIAS_NAME' => 'T0', 
-                                    'IS_INPUT' => '1', 
-                                    'DATA_MART_MAIN_INDICATOR_ID' => $id, 
-                                    'MAIN_INDICATOR_ID' => $id, 
-                                    'TRG_INDICATOR_PATH' => $colRow['COLUMN_NAME'], 
-                                    'CREATED_DATE'    => Date::currentDate('Y-m-d H:i:s'),
-                                    'CREATED_USER_ID' => Ue::sessionUserKeyId()
-                                );
-                                $colIndexNumber++;
-                                $this->db->AutoExecute('KPI_INDICATOR_INDICATOR_MAP', $data);                  
-                            }
-                        }
-                    }
-                }
+                $dataHideMap = $this->db->GetAll("
+                    SELECT 
+                        KIIM.RELATED_INDICATOR_MAP_ID
+                    FROM KPI_INDICATOR_INDICATOR_MAP KIIM 
+                    WHERE KIIM.DATA_MART_MAIN_INDICATOR_ID = ".$this->db->Param(0)." 
+                        AND KIIM.IS_INPUT = 0", 
+                    array($id)
+                );                
+                $dataHideMap = Arr::groupByArray($dataHideMap, 'RELATED_INDICATOR_MAP_ID');
                 
                 if ($connections) {
+                    foreach ($connections as $clmnRow) {                      
+                        $getCols = self::getIndicatorStructureModel($clmnRow['srcIndicatorId']);                        
+
+                        if ($getCols && !array_key_exists($clmnRow['srcIndicatorId'], $savedIndicatorIds)) {
+                            foreach ($getCols as $colKey => $colRow) {   
+                                if (!array_key_exists($colRow['ID'], $dataHideMap)) {
+                                    $data = array(
+                                        'ID' => getUIDAdd($colKey), 
+                                        'SHOW_TYPE' => $colRow['SHOWTYPE'], 
+                                        'SEMANTIC_TYPE_ID' => $colRow['SEMANTIC_TYPE_ID'], 
+                                        'COLUMN_NAME' => 'C'.$colIndexNumber, 
+                                        'COLUMN_NAME_PATH' => 'C'.$colIndexNumber, 
+                                        'LABEL_NAME' => $colRow['LABELNAME'], 
+                                        'SRC_ALIAS_NAME' => 'T0', 
+                                        'TRG_ALIAS_NAME' => $clmnRow['srcAliasName'], 
+                                        'IS_INPUT' => '1', 
+                                        'DATA_MART_MAIN_INDICATOR_ID' => $id, 
+                                        'MAIN_INDICATOR_ID' => $id, 
+                                        'TRG_INDICATOR_PATH' => $colRow['COLUMN_NAME'], 
+                                        'RELATED_INDICATOR_MAP_ID' => $colRow['ID'], 
+                                        'CREATED_DATE'    => Date::currentDate('Y-m-d H:i:s'),
+                                        'CREATED_USER_ID' => Ue::sessionUserKeyId()
+                                    );
+                                    $colIndexNumber++;
+                                    $this->db->AutoExecute('KPI_INDICATOR_INDICATOR_MAP', $data);                  
+                                }
+                            }
+                        }
+                        $savedIndicatorIds[$clmnRow['srcIndicatorId']] = true;
+                        
+                        $getCols = self::getIndicatorStructureModel($clmnRow['trgIndicatorId']);                        
+
+                        if ($getCols && !array_key_exists($clmnRow['trgIndicatorId'], $savedIndicatorIds)) {
+                            foreach ($getCols as $colKey => $colRow) {                     
+                                if (!array_key_exists($colRow['ID'], $dataHideMap)) {
+                                    $data = array(
+                                        'ID' => getUIDAdd($colKey), 
+                                        'SHOW_TYPE' => $colRow['SHOWTYPE'], 
+                                        'SEMANTIC_TYPE_ID' => $colRow['SEMANTIC_TYPE_ID'], 
+                                        'COLUMN_NAME' => 'C'.$colIndexNumber, 
+                                        'COLUMN_NAME_PATH' => 'C'.$colIndexNumber, 
+                                        'LABEL_NAME' => $colRow['LABELNAME'], 
+                                        'SRC_ALIAS_NAME' => 'T0', 
+                                        'TRG_ALIAS_NAME' => $clmnRow['trgAliasName'], 
+                                        'IS_INPUT' => '1', 
+                                        'DATA_MART_MAIN_INDICATOR_ID' => $id, 
+                                        'MAIN_INDICATOR_ID' => $id, 
+                                        'TRG_INDICATOR_PATH' => $colRow['COLUMN_NAME'], 
+                                        'RELATED_INDICATOR_MAP_ID' => $colRow['ID'], 
+                                        'CREATED_DATE'    => Date::currentDate('Y-m-d H:i:s'),
+                                        'CREATED_USER_ID' => Ue::sessionUserKeyId()
+                                    );
+                                    $colIndexNumber++;
+                                    $this->db->AutoExecute('KPI_INDICATOR_INDICATOR_MAP', $data);     
+                                }
+                            }
+                        }                        
+                        $savedIndicatorIds[$clmnRow['trgIndicatorId']] = true;
+                        
+                    }                    
+                    
                     foreach ($connections as $rowKey => $row) {
                         $data = array(
                             'ID' => getUIDAdd($rowKey), 
@@ -23950,7 +24006,15 @@ class Mdform_Model extends Model {
                             'onclick' => 'mvImportManageAIDataCommit(this, \''.$indicatorId.'\', \''.$mainIndicatorId.'\');', 
                             'href' => 'javascript:;'
                         ], 
-                        '<i class="far fa-database"></i> Commit', true
+                        '<i class="fas fa-check-circle"></i> Commit', true
+                    ); 
+                    
+                    $buttons[] = html_tag('a', [
+                            'class' => 'btn btn-danger btn-circle btn-sm', 
+                            'onclick' => 'mvImportManageAIDataRollback(this, \''.$indicatorId.'\', \''.$mainIndicatorId.'\');', 
+                            'href' => 'javascript:;'
+                        ], 
+                        '<i class="far fa-undo"></i> Rollback', true
                     ); 
                     
                 } else {
@@ -26652,6 +26716,7 @@ class Mdform_Model extends Model {
                             'SHOW_TYPE'         => $mapField['type'], 
                             'IS_RENDER'         => $mapField['isRender'], 
                             'IS_INPUT'          => 1, 
+                            'IS_EXCEL_IMPORT'   => 1, 
                             'SEMANTIC_TYPE_ID'  => 10000000, 
                             'LABEL_NAME'        => $mapField['labelName'], 
                             'INPUT_NAME'        => $mapField['inputName'], 
@@ -28371,7 +28436,7 @@ class Mdform_Model extends Model {
                 INNER JOIN KPI_INDICATOR T1 ON T1.ID = T0.TRG_INDICATOR_ID 
             WHERE T0.SRC_INDICATOR_ID = ".$this->db->Param(0)." 
                 AND T0.SEMANTIC_TYPE_ID = 10000019 
-            ORDER BY T0.ORDER_NUMBER ASC", 
+            ORDER BY T1.CREATED_DATE DESC", 
             [$mainIndicatorId]
         );
         
@@ -28977,7 +29042,7 @@ class Mdform_Model extends Model {
                 $this->db->Execute($queryStr);
             }
             
-            $result = ['status' => 'success'];
+            $result = ['status' => 'success', 'message' => 'Successfully'];
             
         } catch (Exception $ex) {
             $result = ['status' => 'error', 'message' => $ex->getMessage()];
@@ -29178,7 +29243,7 @@ class Mdform_Model extends Model {
                 $this->db->Execute($queryStr);
             }
             
-            $result = ['status' => 'success'];
+            $result = ['status' => 'success', 'message' => 'Successfully'];
             
         } catch (Exception $ex) {
             $result = ['status' => 'error', 'message' => $ex->getMessage()];
@@ -30347,7 +30412,7 @@ class Mdform_Model extends Model {
     
     public function getAITaxanomyModel() {
         try {
-            $data = $this->db->GetAll("SELECT ID, CODE, LABEL_NAME FROM AI_TAXANOMY ORDER BY ID ASC");
+            $data = $this->db->GetAll("SELECT ID, BATCH_CODE AS CODE, LABEL_NAME FROM AI_TAXANOMY ORDER BY ID ASC");
         } catch (Exception $ex) {
             $data = [];
         }
@@ -30373,34 +30438,69 @@ class Mdform_Model extends Model {
         try {
             
             $indicatorId = Input::numeric('indicatorId');
+            $usageType = Input::numeric('usageType');
+            $sessionUserKeyId = Ue::sessionUserKeyId();
             
             if (DB_DRIVER == 'oci8') {
                     
-                $procedure = $this->db->PrepareSP('BEGIN PRC_AI_DATA_IMPORT(:INDICATOR_ID); END;');
+                $procedure = $this->db->PrepareSP('BEGIN PRC_AI_DATA_IMPORT(:INDICATOR_ID, :USAGE_TYPE, :USER_ID); END;');
                 $this->db->InParameter($procedure, $indicatorId, 'INDICATOR_ID');
+                $this->db->InParameter($procedure, $usageType, 'USAGE_TYPE');
+                $this->db->InParameter($procedure, $sessionUserKeyId, 'USER_ID');
 
             } else {
-                $procedure = "BEGIN PRC_AI_DATA_IMPORT($indicatorId); END;";
+                $procedure = "BEGIN PRC_AI_DATA_IMPORT($indicatorId, $usageType, $sessionUserKeyId); END;";
             }
 
             $this->db->Execute($procedure);
             
-            $result = ['status' => 'success', 'message' => 'Successfully!'];
+            $result = ['status' => 'success', 'message' => 'Successfully!', 'refresh' => 1];
                 
         } catch (Exception $ex) {
             
             $exceptionMsg = $ex->getMessage();
-            $result = ['status' => 'error', 'message' => $exceptionMsg];
+            $result = ['status' => 'error', 'message' => $exceptionMsg, 'refresh' => 0];
             
             if (strpos($exceptionMsg, Mdcommon::$separator) !== false) {
                 preg_match('/♠([\w\W]*?)♠/i', $exceptionMsg, $exceptionMsgArr);
                 if (isset($exceptionMsgArr[1])) {
                     $result = json_decode(trim($exceptionMsgArr[1]), true);
+                    $result['refresh'] = 1;
                 }
             } 
         }
         
         return $result;
     }
+    
+    public function updateRowDataMartRelationConfigTableModel($id) {
+        
+        try {
+            $updateData = array('IS_INPUT' => 0);
+            
+            $this->db->AutoExecute('KPI_INDICATOR_INDICATOR_MAP', $updateData, 'UPDATE', 'ID = '.$id);
+            $response = array('status' => 'success');
+            
+        } catch (Exception $ex) {
+            $response = array('status' => 'error', 'message' => $ex->getMessage());
+        }
+        
+        return $response;
+    }    
+    
+    public function updateRowDataMartRelationConfigAggregateTableModel($id) {
+        
+        try {
+            $updateData = array('AGGREGATE_FUNCTION' => Input::post('aggregate'));
+            
+            $this->db->AutoExecute('KPI_INDICATOR_INDICATOR_MAP', $updateData, 'UPDATE', 'ID = '.$id);
+            $response = array('status' => 'success');
+            
+        } catch (Exception $ex) {
+            $response = array('status' => 'error', 'message' => $ex->getMessage());
+        }
+        
+        return $response;
+    }    
     
 }

@@ -12,18 +12,18 @@
             </div>
         </div>
     </div>
-    <div class="row" style="border-top: 1px solid #ccc;">
+    <div class="row editor-bottom-layout" style="border-top: 1px solid #ccc;">
         <div class="col" style="flex: 0 0 500px;border-right: 1px solid #ccc;">    
             <div class="editor-table-settings-area">
             </div>    
         </div>           
-        <div class="col pl20">    
+        <div class="col pl10">    
             <div class="mt10 d-none reload-datamart-btn" style="margin-left: -10px;">
                 <button type="button" class="btn btn-sm green-meadow" onclick="refreshLoadDataListMart()">
                     <i class="far fa-database"></i> Датамарт шинэчлэх
                 </button>
             </div>
-            <div class="editor-table-datalist-area mt10">
+            <div class="editor-table-datalist-area">
             </div>    
         </div>    
     </div>    
@@ -57,36 +57,36 @@
         color: #19d119;
         font-weight: bold; 
     }
+    .editor-table-settings-area table tbody button {
+        display: none;
+    }
+    .editor-table-settings-area table tbody tr:hover button {
+        display: block;
+    }
+    .wfdmart.active {
+        border: 1px solid #333;
+    }
+    .editor-table-settings-area {
+        max-height: 315px;
+        overflow-y: auto;
+    }
+    #dialog-dmart-relationconfig-table {
+        overflow: hidden;
+    }
 </style>
 
 <script type="text/javascript">
-    if (!$("link[href='assets/custom/addon/plugins/jsplumb/css/style.v55.css']").length){
-        $("head").append('<link rel="stylesheet" type="text/css" href="assets/custom/addon/plugins/jsplumb/css/style.v55.css"/>');
-    }    
-    if (typeof isKpiAddonScript === 'undefined') {
-        $.getScript('assets/custom/addon/plugins/jsplumb/jsplumb.min.js').done(function() {
-            $.getScript(URL_APP + 'middleware/assets/js/addon/kpinew.js').done(function() {
-                var rows = [
-                    {id:17091927927909, name:'Борлуулалт'},
-                    {id:17091927924479, name:'Ажилтан'},
-                    {id:17091929841099, name:'Төлөвлөгөө'}
-                ];
-                kpiDataMartFillEditorTable('', '', '', '', rows);
-                setTimeout(function() {
-                    jsPlumb.connect({
-                        source: '17091927927909_T1',
-                        target: '17091927924479_T2'
-                    }, kpiDataMartConnectConfig);                
-                    jsPlumb.connect({
-                        source: '17091927924479_T2',
-                        target: '17091929841099_T3'
-                    }, kpiDataMartConnectConfig);                
-                }, 500);
-            });
-        });
-    }    
-    var setHeight = $(window).height() - 550;
-    var $editor = $('#datamart-editor');
-
-    $editor.css({'height': setHeight - 2, 'max-height': setHeight - 2});    
+//    if (!$("link[href='assets/custom/addon/plugins/jsplumb/css/style.v55.css']").length){
+//        $("head").append('<link rel="stylesheet" type="text/css" href="assets/custom/addon/plugins/jsplumb/css/style.v55.css"/>');
+//    }    
+//    if (typeof isKpiAddonScript === 'undefined') {
+//        $.getScript('assets/custom/addon/plugins/jsplumb/jsplumb.min.js').done(function() {
+//            $.getScript(URL_APP + 'middleware/assets/js/addon/kpinew.js').done(function() {
+//            });
+//        });
+//    }    
+//    var setHeight = $(window).height() - 550;
+//    var $editor = $('#datamart-editor');
+//
+//    $editor.css({'height': setHeight - 2, 'max-height': setHeight - 2});    
 </script>

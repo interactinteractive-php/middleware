@@ -149,7 +149,7 @@ function mvImportManageAIDataCommit(elem, indicatorId, mainIndicatorId) {
     $.ajax({
         type: 'post',
         url: 'mdform/importManageAIDataCommit',
-        data: {indicatorId: indicatorId, mainIndicatorId: mainIndicatorId}, 
+        data: {indicatorId: indicatorId, mainIndicatorId: mainIndicatorId, usageType: 1}, 
         dataType: 'json',
         beforeSend: function() {
             Core.blockUI({message: 'Loading...', boxed: true});
@@ -163,11 +163,93 @@ function mvImportManageAIDataCommit(elem, indicatorId, mainIndicatorId) {
                 sticker: false, 
                 addclass: 'pnotify-center'
             }); 
-            if (data.status == 'success') {
-                dataViewReload(indicatorId);
+            
+            if (data.refresh == 1) {
+                $('.mv-imp-file-list').find('.imp-file-item.selected').trigger('click');
             }
+            
+            /*if (data.status == 'success') {
+                
+                if (data.hasOwnProperty('colors')) {
+                    var colors = data.colors;
+                    var dg = window['objectdatagrid_' + indicatorId];
+                    if (colors.length) {
+                        for (var c in colors) {
+                            var col = dg.datagrid('getColumnOption', colors[c]['COLUMN_NAME']);
+                            if (colors[c]['COLOR'] != '' && colors[c]['COLOR'] != null) {
+                                col.styler = function() {
+                                    return 'background-color:#' + colors[c]['COLOR'];
+                                };
+                            } else {
+                                col.styler = function() {
+                                    return '';
+                                };
+                            }
+                        }
+                        dg.datagrid('refreshRow', 0);
+                    } else {
+                        var opts = dg.datagrid('getColumnFields');
+                    }
+                }
+                dataViewReload(indicatorId);
+            }*/
         }
     });
+}
+function mvImportManageAIDataRollback(elem, indicatorId, mainIndicatorId) {
+    PNotify.removeAll();
+    
+    var dialogName = '#dialog-import-rollback-confirm';
+    if (!$(dialogName).length) {
+        $('<div id="' + dialogName.replace('#', '') + '"></div>').appendTo('body');
+    }
+    var $dialog = $(dialogName);
+
+    $dialog.html(plang.get('Та итгэлтэй байна уу?'));
+    $dialog.dialog({
+        cache: false,
+        resizable: true,
+        bgiframe: true,
+        autoOpen: false,
+        title: plang.get('msg_title_confirm'), 
+        width: 300,
+        height: 'auto',
+        modal: true,
+        buttons: [
+            {text: plang.get('yes_btn'), class: 'btn green-meadow btn-sm', click: function() {
+                PNotify.removeAll();
+                
+                $.ajax({
+                    type: 'post',
+                    url: 'mdform/importManageAIDataCommit',
+                    data: {indicatorId: indicatorId, mainIndicatorId: mainIndicatorId, usageType: 2}, 
+                    dataType: 'json',
+                    beforeSend: function() {
+                        Core.blockUI({message: 'Loading...', boxed: true});
+                    },
+                    success: function(data) {
+                        Core.unblockUI();
+                        new PNotify({
+                            title: data.status,
+                            text: data.message,
+                            type: data.status,
+                            sticker: false, 
+                            addclass: 'pnotify-center'
+                        }); 
+                        $dialog.dialog('close');
+                        
+                        if (data.refresh == 1) {
+                            $('.mv-imp-file-list').find('.imp-file-item.selected').trigger('click');
+                        }
+                    }
+                });
+            }},
+            {text: plang.get('no_btn'), class: 'btn blue-madison btn-sm', click: function () {
+                $dialog.dialog('close');
+            }}
+        ]
+    });
+    $dialog.dialog('open');
 }
 function mvImportManageMatchColumn(indicatorId) {
     var $panelView = window['objectdatagrid_'+indicatorId].datagrid('getPanel').children('div.datagrid-view'), 

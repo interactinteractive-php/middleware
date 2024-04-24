@@ -1389,8 +1389,10 @@ function saveKpiDataMartRelationConfig(elem, $dialog) {
                 sticker: false
             });
             
-            if (data.status == 'success') {
+            if (data.status == 'success' && typeof $dialog !== 'undefined') {
                 $dialog.dialog('close');
+            } else if (data.status == 'success') {
+                loadDataListMart($('input[data-kpidatamart-id="1"]').val());
             }
 
             Core.unblockUI();
@@ -1517,7 +1519,8 @@ function setKpiDataMartVisualObjects($editor, objects, graphJson, isReadonly) {
             wfIconClass = 'wfIconRectangle', wfIconType = 'rectangle', 
             wfIconWidth = 160, wfIconHeight = 70, 
             wfIconAddPositionTop = 20, wfIconAddPostionLeft = 40, 
-            templateList = objects.dtls;
+            templateList = objects.dtls,
+            indicatorList = objects.indicator;
     
         if (graphJson) {
             
@@ -1530,60 +1533,58 @@ function setKpiDataMartVisualObjects($editor, objects, graphJson, isReadonly) {
             isSavedPosition = true;
         }
         
-        for (var k in templateList) {
+        for (var k in templateList) {            
+            var row = templateList[k];                
+            connections.push(row);
+        }
+        
+        for (var k in indicatorList) {
             
-            var row = templateList[k];
-            
-            if (row.typeid == '102') {
+            var row = indicatorList[k];
                 
-                connections.push(row);
-                
+            var id = row.id + '_' + row.aliasname;
+
+            if (!isSavedPosition || (isSavedPosition && typeof graphObj[id] === 'undefined')) {
+
+                var tempWidth = (parseInt($editor.width()) - 470) - parseInt(wfIconAddPostionLeft);
+
+                if (parseInt(tempWidth) < 0) {
+                    wfIconAddPositionTop = wfIconAddPositionTop + 120;
+                    wfIconAddPostionLeft = 40;
+                }
+
             } else {
-                
-                var id = row.id + '_' + row.aliasname;
-                
-                if (!isSavedPosition || (isSavedPosition && typeof graphObj[id] === 'undefined')) {
-                    
-                    var tempWidth = (parseInt($editor.width()) - 470) - parseInt(wfIconAddPostionLeft);
+                wfIconAddPositionTop = (graphObj[id]['top']).replace('px', '');
+                wfIconAddPostionLeft = (graphObj[id]['left']).replace('px', '');
+            }
 
-                    if (parseInt(tempWidth) < 0) {
-                        wfIconAddPositionTop = wfIconAddPositionTop + 120;
-                        wfIconAddPostionLeft = 40;
-                    }
-                    
-                } else {
-                    wfIconAddPositionTop = (graphObj[id]['top']).replace('px', '');
-                    wfIconAddPostionLeft = (graphObj[id]['left']).replace('px', '');
-                }
-                
-                var wfIconArray = {
-                    id: id,
-                    code: row.aliasname, 
-                    title: row.name,
-                    indicatorId: row.id, 
-                    type: wfIconType,
-                    class: wfIconClass,
-                    positionTop: wfIconAddPositionTop,
-                    positionLeft: wfIconAddPostionLeft,
-                    width: wfIconWidth,
-                    height: wfIconHeight, 
-                    colorCode: '', 
-                    isReadonly: isReadonly
-                };
+            var wfIconArray = {
+                id: id,
+                code: row.aliasname, 
+                title: row.name,
+                indicatorId: row.id, 
+                type: wfIconType,
+                class: wfIconClass,
+                positionTop: wfIconAddPositionTop,
+                positionLeft: wfIconAddPostionLeft,
+                width: wfIconWidth,
+                height: wfIconHeight, 
+                colorCode: '', 
+                isReadonly: isReadonly
+            };
 
-                $editor.append(setBoxKpiDataMartRelation(wfIconArray));
-                
-                if (!isSavedPosition) {
-                    wfIconAddPostionLeft = wfIconAddPostionLeft + 200;
-                }
+            $editor.append(setBoxKpiDataMartRelationTable(wfIconArray));
 
-                var $lastBox = $editor.find('.wfposition:last');
+            if (!isSavedPosition) {
+                wfIconAddPostionLeft = wfIconAddPostionLeft + 200;
+            }
 
-                setVisualKpiDataMartRelation($lastBox);
-                
-                if (!isReadonly) {
-                    kpiDataMartBoxDraggable($lastBox);
-                }
+            var $lastBox = $editor.find('.wfposition:last');
+
+            setVisualKpiDataMartRelation($lastBox);
+
+            if (!isReadonly) {
+                kpiDataMartBoxDraggable($lastBox);
             }
         }
         
@@ -1599,9 +1600,9 @@ function setKpiDataMartVisualObjects($editor, objects, graphJson, isReadonly) {
                     
                     var connectObj = {source: srcId, target: trgId};
                     
-                    if (cRow.name != '' && cRow.name != null) {
-                        connectObj.overlays = [['Label', {label: cRow.name}]];
-                    }
+//                    if (cRow.name != '' && cRow.name != null) {
+//                        connectObj.overlays = [['Label', {label: cRow.name}]];
+//                    }
                     
                     jsPlumb.connect(connectObj, kpiDataMartConnectConfig);
                     
@@ -1629,7 +1630,10 @@ function setKpiDataMartVisualObjects($editor, objects, graphJson, isReadonly) {
             }
         }
         
-        setKpiDataMartAliasCombo($editor);
+        //setKpiDataMartAliasCombo($editor);
+        getKpiIndicatorAttrsNew($('input[data-kpidatamart-id="1"]').val());
+        //$('.reload-datamart-btn').removeClass('d-none');
+        loadDataListMart($('input[data-kpidatamart-id="1"]').val());        
     }
     
     return;
@@ -2122,7 +2126,7 @@ function kpiDataMartNewRelationConnectTable(info, data, $editor) {
         '<option value="<="><=</option>'+
         '<option value=">=">>=</option></select>';
     var joinTypeComboOption = '<option value="INNER">INNER</option>'+
-        '<option value="LEFT">LEFT</option>';    
+        '<option value="LEFT">LEFT</option>';        
     
     for (var s in sourceAttrs) {        
         if (sourceAttrs[s]['parentid']) {
@@ -2138,11 +2142,14 @@ function kpiDataMartNewRelationConnectTable(info, data, $editor) {
     }
     targetRows += '</select>';
     
+    var trHtml = '<tr><td style="width:230px">'+sourceRows+'</td><td style="width:50px">'+operatorComboOption+'</td><td style="width:230px">'+targetRows+'</td><td style="width:40px"></td></tr>';
+    
     if (data.hasOwnProperty('isEdit') && data.isEdit) {
         
         var $linkInput = $editor.find('textarea[name="'+info.sourceId+'_'+info.targetId+'"]');
         var linkInputJsonStr = $linkInput.val();
         var relationObj = JSON.parse(linkInputJsonStr);
+        var editTrHtml = '';
         
         joinType = $linkInput.attr('data-jointype');
         relationOrder = $linkInput.attr('data-relation-order');
@@ -2158,27 +2165,33 @@ function kpiDataMartNewRelationConnectTable(info, data, $editor) {
                 relationRow.operatorComboOption = operatorComboOption;
                 
                 relationAttrs += setKpiDataMartRelationAttrs(relationRow);
+                
+                editTrHtml += trHtml.replace('value="'+relationRow.srcindicatormapid+'"', 'value="'+relationRow.srcindicatormapid+'" selected')
+                            .replace('value="'+relationRow.trgindicatormapid+'"', 'value="'+relationRow.trgindicatormapid+'" selected')
+                            .replace('value="'+(html_entity_decode(relationRow.operatorname, "ENT_QUOTES"))+'"', 'value="'+html_entity_decode(relationRow.operatorname, "ENT_QUOTES")+'" selected');
             }
             
             isEdit = true;
         }
+        
+        trHtml = editTrHtml;
     }
     
     var html = 
             '<div data-relation-header="1">'+
                 '<div class="row">'+
-                    '<div class="col-4 text-center cursor-pointer relation-jtype" onclick="changeJoinType(this, \'LEFT\')">'+
+                    '<div class="col-4 text-center cursor-pointer relation-jtype '+(joinType == 'LEFT' ? 'active' : '')+'" onclick="changeJoinType(this, \'LEFT\')">'+
                         '<img src="middleware/assets/img/relation-left.png" style="width:120px" />' + 
                         '<div style="font-weight: bold;margin-top: 5px;">LEFT</div>'+
                     '</div>'+
-                    '<div class="col-4 text-center cursor-pointer relation-jtype" onclick="changeJoinType(this, \'INNER\')">'+
+                    '<div class="col-4 text-center cursor-pointer relation-jtype '+(joinType == 'INNER' ? 'active' : '')+'" onclick="changeJoinType(this, \'INNER\')">'+
                         '<img src="middleware/assets/img/relation-inner.png" style="width:120px" />' + 
                         '<div style="font-weight: bold;margin-top: 5px;">INNER</div>'+
                     '</div>'+
-                    '<div class="col-4 text-center cursor-pointer relation-jtype" onclick="changeJoinType(this, \'RIGHT\')">'+
+                    '<div class="col-4 text-center cursor-pointer relation-jtype '+(joinType == 'RIGHT' ? 'active' : '')+'" onclick="changeJoinType(this, \'RIGHT\')">'+
                         '<img src="middleware/assets/img/relation-right.png" style="width:120px" />' + 
                         '<div style="font-weight: bold;margin-top: 5px;">RIGHT</div>'+
-                    '</div><input type="hidden" data-relation-type="jointype">'+
+                    '</div><input type="hidden" value="'+joinType+'" data-relation-type="jointype">'+
                 '</div>'+
             '</div>'+
             
@@ -2193,9 +2206,9 @@ function kpiDataMartNewRelationConnectTable(info, data, $editor) {
                                 '<th></th>'+
                             '</tr>'+
                         '</thead>'+
-                        '<tbody><tr><td style="width:230px">'+sourceRows+'</td><td style="width:50px">'+operatorComboOption+'</td><td style="width:230px">'+targetRows+'</td><td style="width:40px"></td></tr></tbody>'+
+                        '<tbody>'+trHtml+'</tbody>'+
                     '</table>'+
-                    '<div class="my-2 cursor-pointer" onclick="addJoinClause(this)">Холбоосын нөхцөл нэмэх</div>'+
+                    '<div class="my-2 cursor-pointer" style="color: #6b6b6b;" onclick="addJoinClause(this)">Холбоосын нөхцөл нэмэх</div>'+
                 '</div>'+
             '</div>';
     
@@ -2281,15 +2294,16 @@ function kpiDataMartNewRelationConnectTable(info, data, $editor) {
                             target: info.targetId
                         }, kpiDataMartConnectConfig);
 
-                        $dialog.dialog('close'); 
-                        
-                        $('.reload-datamart-btn').removeClass('d-none');
-                        loadDataListMart($('input[data-kpidatamart-id="1"]').val());
+                        $dialog.dialog('close');                         
 
                         setTimeout(function() {
                             setKpiDataMartAliasCombo($editor);
                         }, 1);
                     }
+                    
+                    setTimeout(function() {
+                        saveKpiDataMartRelationConfig();                            
+                    }, 300);                    
                     
                 } else {
                     new PNotify({
@@ -2410,7 +2424,21 @@ function setKpiDataMartRelationAttrs(relationRow) {
 }
 
 function getKpiIndicatorAttrs(indicatorId) {
+    return;
     var trgComboAttrs = [];
+    var trgComboAttrs2 = [];
+    
+    if (!$('.editor-table-settings-area').find('table').length) {
+        trgComboAttrs2.push('<table class="table table-hover table-bordered mt10">');
+        trgComboAttrs2.push('<thead>'+
+                            '<tr>'+
+                                '<th>Төрөл</th>'+
+                                '<th>Нэр</th>'+
+                                '<th></th>'+
+                            '</tr>'+
+                        '</thead>'+
+                        '<tbody>');        
+    }
                     
     trgComboAttrs.push('<option value="">- '+plang.get('select_btn')+' -</option>');
 
@@ -2425,14 +2453,73 @@ function getKpiIndicatorAttrs(indicatorId) {
             $.each(data, function(i, value) {
                 if (data[i]['parentid'] != '' && data[i]['parentid'] != null) {
                     trgComboAttrs.push('<option value="'+data[i]['id']+'">' + data[i]['columnname'] + ' - ' + data[i]['labelname'] + '</option>');
+                    trgComboAttrs2.push(settingsRow(data[i]));
                 }
             });
         }
     });
+
+    if (!$('.editor-table-settings-area').find('table').length) {
+        trgComboAttrs2.push('</tbody></table>');
+    }
+
+    if (!$('.editor-table-settings-area').find('table').length) {
+        $('.editor-table-settings-area').append(trgComboAttrs2.join(''));    
+    } else {
+        $('.editor-table-settings-area').find('table > tbody').append(trgComboAttrs2.join(''));    
+    }
+    
+    return trgComboAttrs.join('');
+}
+function getKpiIndicatorAttrsNew(indicatorId) {
+    var trgComboAttrs = [];
+    var trgComboAttrs2 = [];
+    
+    if (!$('.editor-table-settings-area').find('table').length) {
+        trgComboAttrs2.push('<table class="table table-hover table-bordered mt10">');
+        trgComboAttrs2.push('<thead>'+
+                            '<tr>'+
+                                '<th>Төрөл</th>'+
+                                '<th>Нэр</th>'+
+                                '<th></th>'+
+                            '</tr>'+
+                        '</thead>'+
+                        '<tbody>');        
+    }
+                    
+    trgComboAttrs.push('<option value="">- '+plang.get('select_btn')+' -</option>');
+
+    $.ajax({
+        type: 'post',
+        url: 'mdform/getKpiIndicatorAttrs',
+        data: {indicatorId: indicatorId}, 
+        dataType: 'json', 
+        async: false, 
+        success: function(data) {
+
+            $.each(data, function(i, value) {
+                if (data[i]['parentid'] != '' && data[i]['parentid'] != null) {
+                    trgComboAttrs.push('<option value="'+data[i]['id']+'">' + data[i]['columnname'] + ' - ' + data[i]['labelname'] + '</option>');
+                    trgComboAttrs2.push(settingsRow(data[i]));
+                }
+            });
+        }
+    });
+
+    if (!$('.editor-table-settings-area').find('table').length) {
+        trgComboAttrs2.push('</tbody></table>');
+    }
+
+    if (!$('.editor-table-settings-area').find('table').length) {
+        $('.editor-table-settings-area').append(trgComboAttrs2.join(''));    
+    } else {
+        $('.editor-table-settings-area').find('table > tbody').append(trgComboAttrs2.join(''));    
+    }
     
     return trgComboAttrs.join('');
 }
 function setKpiDataMartAliasCombo($editor) {
+    return;
     
     var $objects = $editor.find('.wfposition');
     var $columnsTbl = $('.kpi-datamart-columns-config > tbody > tr');
@@ -2567,7 +2654,6 @@ function removeJoinClause(elem) {
 }
 
 function editKpiDataMartConnection(connection) {
-    return;
     var $editor = $('#datamart-editor');
     var sourceIndicatorId = $editor.find('#' + connection.sourceId).attr('data-indicatorid');
     var targetIndicatorId = $editor.find('#' + connection.targetId).attr('data-indicatorid');
@@ -2582,7 +2668,7 @@ function editKpiDataMartConnection(connection) {
         },
         success: function(data) {
             data.isEdit = true;
-            kpiDataMartNewRelationConnect(connection, data, $editor);
+            kpiDataMartNewRelationConnectTable(connection, data, $editor);
         }
     });
 }
@@ -2598,17 +2684,70 @@ function loadDataListMart(id) {
         data: {
             isJson: 1,
             isHideCheckBox: 1, 
-            isIgnoreTitle: 1            
+            isIgnoreTitle: 1,
+            isSqlResult: 1
         },
         dataType: 'json', 
         success: function(content) {
-            $(".editor-table-datalist-area").append(content.html);
+            $(".editor-table-datalist-area").empty().append(content.html);
             setTimeout(function() {
                 $(".editor-table-datalist-area").find('.dv-process-buttons').closest('.table-toolbar').attr('style', 'display: none !important');
             }, 10);
         }
     });      
 }
+
+function settingsRow(row) {
+    return '<tr data-mapid="' + row['id'] + '"><td style="width:80px">' + row['showtype'] + '</td><td>' + row['labelname'] + '</td>'+
+        '<td style="width:50px;padding: 0;" class="pl3">'+
+            '<button type="button" style="padding: 2px 5px 0px 7px;" class="btn btn-sm green-meadow dropdown-toggle" data-toggle="dropdown" aria-expanded="true">'+
+                '<i class="fa fa-bars"></i>'+
+            '</button>'+
+            '<div class="dropdown-menu" style="">'+
+                '<div class="dropdown-submenu">'+
+                        '<a href="javascript:;" class="dropdown-item">Aggregate function</a>'+
+                        '<div class="dropdown-menu">'+
+                            '<a href="javascript:;" class="dropdown-item" onClick="addAggregateFunctionRow(this, \'SUM\')">SUM</a>'+
+                            '<a href="javascript:;" class="dropdown-item" onClick="addAggregateFunctionRow(this, \'MAX\')">MAX</a>'+
+                            '<a href="javascript:;" class="dropdown-item" onClick="addAggregateFunctionRow(this, \'MIN\')">MIN</a>'+
+                            '<a href="javascript:;" class="dropdown-item" onClick="addAggregateFunctionRow(this, \'COUNT\')">COUNT</a>'+
+                        '</div>'+
+                '</div>'+                
+                '<a class="removeStructureColumn dropdown-item" href="javascript:;">Нуух</a>'+
+            '</div>'+
+        '</td>'+
+    '</tr>';
+}
+
+function addAggregateFunctionRow(elem, aggfunction) {
+    var $this = $(elem);
+
+    $.ajax({
+        type: 'post',
+        url: 'mdform/updateRowDataMartRelationConfigAggregateTable',
+        data: {
+            mapId: $this.closest('tr').attr('data-mapid'),
+            aggregate: aggfunction
+        }, 
+        dataType: 'json', 
+        beforeSend: function () {
+            Core.blockUI({message: 'Түр хүлээнэ үү...', boxed: true});
+        },        
+        async: false, 
+        success: function(data) {
+            if (data.status == 'success') {
+                refreshLoadDataListMart();
+                new PNotify({
+                  title: 'Success',
+                  text: plang.get('msg_save_success'),
+                  type: 'success',
+                  sticker: false
+                });                    
+            }
+            Core.unblockUI();
+        }
+    });    
+} 
 
 $(function() {         
     
@@ -2887,6 +3026,8 @@ $(function() {
         var $this = $(this), 
             trgComboAttrs = [];
 
+        $this.parent().find('.active').removeClass('active');
+        $this.addClass('active');
         $('.editor-table-settings-area').empty().append('<div class="mt10">Түр хүлээнэ үү...</div>');
         
         trgComboAttrs.push('<table class="table table-hover table-bordered mt10">');
@@ -2894,6 +3035,7 @@ $(function() {
                             '<tr>'+
                                 '<th>Төрөл</th>'+
                                 '<th>Нэр</th>'+
+                                '<th></th>'+
                             '</tr>'+
                         '</thead>'+
                         '<tbody>');
@@ -2908,7 +3050,7 @@ $(function() {
 
                 $.each(data, function(i, value) {
                     if (data[i]['parentid'] != '' && data[i]['parentid'] != null) {
-                        trgComboAttrs.push('<tr><td style="width:80px">' + data[i]['showtype'] + '</td><td>' + data[i]['labelname'] + '</td></tr>');
+                        trgComboAttrs.push(settingsRow(data[i]));
                     }
                 });
             }
@@ -2916,6 +3058,34 @@ $(function() {
         trgComboAttrs.push('</tbody></table>');
 
         $('.editor-table-settings-area').empty().append(trgComboAttrs.join(''));
+    });
+    
+    $(document.body).on('click', '.removeStructureColumn', function() {
+        var $this = $(this);
+
+        $.ajax({
+            type: 'post',
+            url: 'mdform/updateRowDataMartRelationConfigTable',
+            data: {mapId: $this.closest('tr').attr('data-mapid')}, 
+            dataType: 'json', 
+            beforeSend: function () {
+                Core.blockUI({message: 'Түр хүлээнэ үү...', boxed: true});
+            },                    
+            async: false, 
+            success: function(data) {
+                if (data.status == 'success') {
+                    $this.closest('tr').remove();
+                    refreshLoadDataListMart();
+                    new PNotify({
+                      title: 'Success',
+                      text: plang.get('msg_save_success'),
+                      type: 'success',
+                      sticker: false
+                    });                    
+                }
+                Core.unblockUI();
+            }
+        });
     });
     
 });

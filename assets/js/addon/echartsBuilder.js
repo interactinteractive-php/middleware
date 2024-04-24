@@ -605,17 +605,19 @@ var EchartBuilder = function() {
                 break;
             case 'pie':
                 series['radius']= '50%';
-                series['emphasis']= {
+                series['emphasis'] = {
                     itemStyle: {
                         shadowBlur: 10,
                         shadowOffsetX: 0,
                         shadowColor: 'rgba(0, 0, 0, 0.5)'
                     }
                 };
+
                 series = {
                     ...series,
                     ...option.series
                 };
+                
                 option['series'] = series; 
                 break;
             case 'bar_polar':
@@ -665,7 +667,7 @@ var EchartBuilder = function() {
                         ...option.series
                     },
                 };
-                console.log(option);
+                
                 break;
             case 'stacked_column':
             case 'clustered_column':

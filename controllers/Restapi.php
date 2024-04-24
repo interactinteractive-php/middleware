@@ -297,7 +297,8 @@ class Restapi extends Controller {
                                 $row = $this->model->getKpiIndicatorProcessModel($kpiMainIndicatorId, $crudIndicatorId);
                                 $configRow = $row[0];
                                 
-                                if ($configRow['is_fill_relation']) {
+                                if ($configRow['is_fill_relation'] && isset($parameters['selectedRow'])) {
+                                    $_POST['fillSelectedRow'] = $parameters['selectedRow'];
                                     $result = $this->model->getDefaultFillDataModel($configRow['structure_indicator_id']);
                                 } else {
                                     $result = $this->model->getMetaVerseDataModel($configRow['structure_indicator_id'], ['recordId' => $recordId]);

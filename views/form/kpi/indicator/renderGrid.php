@@ -306,6 +306,7 @@ filterKpiIndicatorValueForm(<?php echo $this->indicatorId; ?>);
 
 $(function() {
     
+    var gridUrl = 'indicatorDataGrid';
     var queryParams = {
         indicatorId: '<?php echo $this->indicatorId; ?>', 
         treeConfigs: '<?php echo $this->isTreeGridData; ?>', 
@@ -313,8 +314,12 @@ $(function() {
         drillDownCriteria: drillDownCriteria_<?php echo $this->indicatorId; ?>, 
         postHiddenParams: '<?php echo $this->postHiddenParams; ?>', 
         hiddenParams: '<?php echo $this->hiddenParams; ?>', 
-        filter: '<?php echo $this->filter; ?>'
+        filter: '<?php echo $this->filter; ?>',
+        isSqlResult: '<?php echo Input::numeric('isSqlResult'); ?>'
     };
+    if (queryParams.isSqlResult) {
+        gridUrl = 'generateKpiDataMartByPostNew';
+    }
     
     var $checkListParent = objectdatagrid_<?php echo $this->indicatorId; ?>.closest('.mv-checklist-render-parent');
     
@@ -338,7 +343,7 @@ $(function() {
         <?php
         }
         ?>
-        url: 'mdform/indicatorDataGrid',
+        url: 'mdform/'+gridUrl,
         method: 'post',
         queryParams: queryParams, 
         <?php

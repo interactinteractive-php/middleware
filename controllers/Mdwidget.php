@@ -94,7 +94,11 @@ class Mdwidget extends Controller {
             'detail_calendar_sidebar' => array(
                 'topAddRow' => false, 
                 'topAddOneRow' => false
-            )            
+            ), 
+            'detail_header_reverse' => array(
+                'topAddRow' => false, 
+                'topAddOneRow' => false
+            )
         );
         
         if (isset($availableWidgets[$widgetCode])) {
@@ -186,7 +190,7 @@ class Mdwidget extends Controller {
         return null;
     }    
     
-    public function run($args = array()) {
+    public function run($args = []) {
         
         $this->view->uniqId = getUID();
         $this->view->configs = array('height' => '500px');
@@ -197,7 +201,7 @@ class Mdwidget extends Controller {
         return $this->view->renderPrint('sub/' . $widgetCode, self::$viewPath);
     }
     
-    public function runBpDetail($args = array()) {
+    public function runBpDetail($args = []) {
         
         $this->view->methodId = $args['methodId'];
         $this->view->uniqId = $args['uniqId'];
@@ -208,7 +212,7 @@ class Mdwidget extends Controller {
         return $this->view->renderPrint('sub/' . $widgetCode, self::$viewPath);
     }   
     
-    public function bpDetailAddRow($args = array()) {
+    public function bpDetailAddRow($args = []) {
         
         $this->view->methodId = $args['methodId'];
         $this->view->uniqId = $args['uniqId'];
