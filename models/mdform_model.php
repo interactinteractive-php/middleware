@@ -4320,8 +4320,9 @@ class Mdform_Model extends Model {
                         KI.ICON, 
                         KI.SEARCH_TYPE, 
                         KI.SEARCH_COLUMN_NUMBER, 
+                        KI.IS_DATA_DELETE_PERMANENTLY, 
                         MW.CODE AS RELATION_WIDGET_CODE, 
-                        MwW.CODE AS WIDGET_CODE, 
+                        MWW.CODE AS WIDGET_CODE, 
                         (
                             SELECT 
                                 COUNT(1) 
@@ -15967,11 +15968,14 @@ class Mdform_Model extends Model {
                 }
             }
             
-            if ($isSystemTable || Config::getFromCache('PF_IS_MV_HARD_DELETE')) {
+            $dataDeleteMode = Config::getFromCache('PF_MV_DATA_DELETE_MODE');
+            
+            if ($isSystemTable || $dataDeleteMode == '1' || ($dataDeleteMode == '2' && issetParam($row['IS_DATA_DELETE_PERMANENTLY']))) {
                 
                 $result = $this->db->Execute("DELETE FROM $tableName WHERE $idField IN ($ids)");
                 
             } else {
+                    
                 $sessionValues = Session::get(SESSION_PREFIX . 'sessionValues');
                 $sessionName   = issetDefaultVal($sessionValues['sessionusername'], Ue::getSessionPersonWithLastName());
 
@@ -15997,7 +16001,7 @@ class Mdform_Model extends Model {
         }
     }
     
-    public function checkMethodAccessModel($mainIndicatorId, $actionIndicatorId, $rows = array()) {
+    public function checkMethodAccessModel($mainIndicatorId, $actionIndicatorId, $rows = []) {
         
         if ($mainIndicatorId && $actionIndicatorId) {
             $criterias = self::getIndicatorActionCriteriaByPermission($mainIndicatorId, $actionIndicatorId);
@@ -16016,7 +16020,7 @@ class Mdform_Model extends Model {
                 
                 if ($rows) {
                     
-                    $selectedRows = !isset($rows[0]) ? array($rows) : $rows;
+                    $selectedRows = !isset($rows[0]) ? [$rows] : $rows;
                     
                     foreach ($selectedRows as $selectedRow) {
                     
@@ -28937,7 +28941,7 @@ class Mdform_Model extends Model {
                         
                         $joinFields = null;
                         
-                        if (stripos(' ', $lookupTblName) !== false && stripos('select', $lookupTblName) !== false && stripos('from', $lookupTblName) !== false) {
+                        if (stripos($lookupTblName, ' ') !== false && stripos($lookupTblName, 'select') !== false && stripos($lookupTblName, 'from') !== false) {
                             $lookupTblName = self::replaceNamedParameters('('.$lookupTblName.')'); 
                         }
 
