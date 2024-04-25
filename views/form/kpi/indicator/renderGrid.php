@@ -369,7 +369,7 @@ $(function() {
         selectOnCheck: true,
         pagePosition: 'bottom',
         pageNumber: 1,
-        pageSize: 50,
+        pageSize: queryParams.isSqlResult ? 100 : 50,
         pageList: [50,100,200,300,500], 
         remoteFilter: true,
         multiSort: false,

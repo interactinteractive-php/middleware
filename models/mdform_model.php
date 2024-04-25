@@ -18530,7 +18530,7 @@ class Mdform_Model extends Model {
                 
                 if (Input::numeric('isSqlResult')) {
                     $resSql = $this->db->GetAll($mainSelectQry);
-                    return array('status' => 'success', 'rows' => $resSql, 'total' => count($resSql));
+                    return array('status' => 'success', 'rows' => array_slice($resSql, 0, 100), 'total' => count($resSql));
                 }
                 
                 if ($isTblCreated == false) {

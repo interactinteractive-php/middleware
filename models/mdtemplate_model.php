@@ -866,13 +866,14 @@ class Mdtemplate_model extends Model {
     }
 
     public function savePrintConfigModel($dataViewId, $options) {
-
-        $userKeyId = Ue::sessionUserKeyId();
+        
+        $crmUserId = Session::get(SESSION_PREFIX . 'crmuserid');
+        $userKeyId = $crmUserId ? $crmUserId : Ue::sessionUserKeyId();
         
         if (!empty($userKeyId)) {
             $prevRow = self::getPrintConfigRowByUserModel($dataViewId, $userKeyId);
 
-            $configStr = $this->db->GetRow("SELECT ID, CONFIG_STR FROM META_GROUP_PRINT_USER WHERE DV_META_DATA_ID = ".$this->db->Param(0)." AND USER_ID = ".$this->db->Param(1), array($dataViewId, $userKeyId));
+            $configStr = $this->db->GetRow("SELECT ID, CONFIG_STR FROM META_GROUP_PRINT_USER WHERE DV_META_DATA_ID = ".$this->db->Param(0)." AND USER_ID = ".$this->db->Param(1), [$dataViewId, $userKeyId]);
             
             if (isset($options['templateMetaIds'])) {
                 $tempMetaIds = $options['templateMetaIds'];
@@ -883,7 +884,7 @@ class Mdtemplate_model extends Model {
                     $decodeTemplateConfig[$tempMetaIds] = $options;
                     $configJson = json_encode($decodeTemplateConfig);                    
                 } else {
-                    $configJson = json_encode(array($tempMetaIds => $options));
+                    $configJson = json_encode([$tempMetaIds => $options], true);
                 }
             } else {
                 $configJson = json_encode($options);
@@ -892,12 +893,12 @@ class Mdtemplate_model extends Model {
             if ($configStr) {      
                 $this->db->UpdateClob('META_GROUP_PRINT_USER', 'CONFIG_STR', $configJson, 'ID = '.$configStr['ID']);
             } else {
-                $data = array(
+                $data = [
                     'ID'                => getUID(), 
                     'DV_META_DATA_ID'   => $dataViewId, 
                     'USER_ID'           => $userKeyId, 
                     'PIVOT_TEMPLATE_ID' => issetParam($prevRow['PIVOT_TEMPLATE_ID'])
-                );
+                ];
                 $this->db->AutoExecute('META_GROUP_PRINT_USER', $data);
                 $this->db->UpdateClob('META_GROUP_PRINT_USER', 'CONFIG_STR', $configJson, 'ID = '.$data['ID']);
             }
@@ -908,7 +909,8 @@ class Mdtemplate_model extends Model {
 
     public function getPrintConfigByUserModel($dataViewId, $templates) {
         
-        $userKeyId = Ue::sessionUserKeyId();
+        $crmUserId = Session::get(SESSION_PREFIX . 'crmuserid');
+        $userKeyId = $crmUserId ? $crmUserId : Ue::sessionUserKeyId();
 
         $row = self::getPrintConfigRowByUserModel($dataViewId, $userKeyId);
         
@@ -2218,7 +2220,8 @@ class Mdtemplate_model extends Model {
     
     public function changeUserPrintOptionModel() {
         
-        $userKeyId = Ue::sessionUserKeyId();
+        $crmUserId = Session::get(SESSION_PREFIX . 'crmuserid');
+        $userKeyId = $crmUserId ? $crmUserId : Ue::sessionUserKeyId();
         
         if (!empty($userKeyId)) {
             

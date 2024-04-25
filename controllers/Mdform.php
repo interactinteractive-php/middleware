@@ -1685,7 +1685,7 @@ class Mdform extends Controller {
             }
 
         } else {
-            if (Input::numeric('isWorkFlow') == 1) {
+            if (Input::numeric('isWorkFlow') == 1 && $indicatorId == '') {
                 parse_str(Input::post('workSpaceParams'), $workSpaceParamArray);
                 if ($relatedindicatorid = issetVar($workSpaceParamArray['workSpaceParam']['relatedindicatorid'])) { 
                     $this->view->indicatorId = $relatedindicatorid;

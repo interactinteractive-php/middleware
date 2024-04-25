@@ -741,8 +741,9 @@ class Mdobject_Model extends Model {
         } elseif ($showType == 3) {
             $whereStr = ' AND GC.IS_SELECT = 1 ';
         }
-
-        $userId = Ue::sessionUserId();
+        
+        $crmUserId = Session::get(SESSION_PREFIX . 'crmuserid');
+        $userId = $crmUserId ? $crmUserId : Ue::sessionUserId();
 
         if ($isPopupWindow) {
             $basketDataCheck = self::getBasketDataViewGridHeaderModel($metaDataId, $condition);
@@ -925,7 +926,8 @@ class Mdobject_Model extends Model {
     public function getBasketDataViewGridHeaderModel($metaDataId, $condition = '1 = 1', $basketCondition = 'AND GC.IS_SHOW_BASKET = 1', $column = 'CASE WHEN CH.COUNTT > 0 THEN CK.IS_SHOW ELSE GC.IS_SHOW_BASKET END AS IS_SHOW,') {
         
         $dvConfig = self::getDataViewConfigRowModel($metaDataId); 
-        $userId = Ue::sessionUserId();
+        $crmUserId = Session::get(SESSION_PREFIX . 'crmuserid');
+        $userId = $crmUserId ? $crmUserId : Ue::sessionUserId();
         
         $metaDataIdPh = $this->db->Param(0);
         $userIdPh = $this->db->Param(1);
@@ -1064,6 +1066,9 @@ class Mdobject_Model extends Model {
         $metaDataIdPh = $this->db->Param(0);
         $userIdPh     = $this->db->Param(1);
         
+        $crmUserId = Session::get(SESSION_PREFIX . 'crmuserid');
+        $userId = $crmUserId ? $crmUserId : Ue::sessionUserId();
+        
         $data = $this->db->GetAll("
             SELECT 
                 T.* 
@@ -1119,7 +1124,7 @@ class Mdobject_Model extends Model {
                     AND ".$this->db->IfNull('DF.IS_SHOW', 'GC.IS_SHOW')." = 1 
                     AND GC.DATA_TYPE <> 'group' 
             ) T 
-            ORDER BY T.ORDER_NUM ASC", array($metaDataId, Ue::sessionUserId()));
+            ORDER BY T.ORDER_NUM ASC", array($metaDataId, $userId));
 
         return $data;
     }
@@ -1357,9 +1362,12 @@ class Mdobject_Model extends Model {
     }
 
     public function dataviewCustomerConfigModel($metaDataId) {
-        $userId = Ue::sessionUserId();
+
         $metaDataIdPh = $this->db->Param(0);
         $userIdPh = $this->db->Param(1);
+        
+        $crmUserId = Session::get(SESSION_PREFIX . 'crmuserid');
+        $userId = $crmUserId ? $crmUserId : Ue::sessionUserId();
         
         $row = $this->db->GetRow("
             SELECT 
@@ -8018,7 +8026,9 @@ class Mdobject_Model extends Model {
 
         $cache = phpFastCache();
 
-        $userId = Ue::sessionUserId();
+        $crmUserId = Session::get(SESSION_PREFIX . 'crmuserid');
+        $userId = $crmUserId ? $crmUserId : Ue::sessionUserId();
+        
         $data = $cache->get('dvHdrData_' . $dataViewId . '_' . $userId);
 
         if ($data == null) {
@@ -8367,7 +8377,8 @@ class Mdobject_Model extends Model {
         try {
         
             $metaDataId = Input::numeric('metaDataId');
-            $userId = Ue::sessionUserId();
+            $crmUserId = Session::get(SESSION_PREFIX . 'crmuserid');
+            $userId = $crmUserId ? $crmUserId : Ue::sessionUserId();
             $param = Input::postData();
             $ticket = false;
 
@@ -11853,7 +11864,8 @@ class Mdobject_Model extends Model {
             $whereStr = ' AND GC.IS_SELECT = 1 ';
         }
 
-        $userId = Ue::sessionUserId();
+        $crmUserId = Session::get(SESSION_PREFIX . 'crmuserid');
+        $userId = $crmUserId ? $crmUserId : Ue::sessionUserId();
 
         if ($isPopupWindow) {
             $basketDataCheck = self::getBasketDataViewGridHeaderModel($metaDataId, $condition);
