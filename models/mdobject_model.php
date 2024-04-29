@@ -357,18 +357,6 @@ class Mdobject_Model extends Model {
 
             $cache->set('dvConfig_'.$metaDataId, $row, Mdwebservice::$expressionCacheTime);
         }
-        
-        if (!array_key_exists('treeCategoryList', $row)) {
-
-            $tmp_dir = Mdcommon::getCacheDirectory();
-            $dvConfigFiles = glob($tmp_dir."/*/dv/dvConfig_".$metaDataId.".txt");
-            
-            foreach ($dvConfigFiles as $dvConfig) {
-                @unlink($dvConfig);
-            }
-            
-            $row = self::getDataViewConfigRowModel($metaDataId);
-        }
 
         return $row;
     }

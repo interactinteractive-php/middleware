@@ -1023,7 +1023,7 @@ class Mdworkspace_Model extends Model {
 
         if ($targetId != null) {
             
-            $bindVars = array($targetId, $workSpaceId);
+            $bindVars = [$targetId, $workSpaceId];
             
             $targetIdPh = $this->db->Param(0);
             $workSpaceIdPh = $this->db->Param(1);
@@ -1163,23 +1163,26 @@ class Mdworkspace_Model extends Model {
         }
         
         if ($dataViewId) {
-                
-            $sql = "SELECT REF_STRUCTURE_ID FROM META_GROUP_LINK WHERE META_DATA_ID = " . $dataViewId;
-            $row = $this->db->GetRow($sql);
+            
+            $this->load->model('mdobject', 'middleware/models/');
+            $row = $this->model->getDataViewConfigRowModel($dataViewId);
+            
+            $this->load->model('mdworkspace', 'middleware/models/');
 
             if ($row && !is_null($row['REF_STRUCTURE_ID']) && isset($selectedRow['id']) && !empty($selectedRow['id'])) {
-                $sqlTableName = "SELECT TABLE_NAME FROM META_GROUP_LINK WHERE META_DATA_ID = " . $row['REF_STRUCTURE_ID'];
-                $rowTableName = $this->db->GetRow($sqlTableName);
-                if (issetParam($rowTableName['TABLE_NAME']) !== '') {
+
+                $rowTableName = $this->db->GetRow("SELECT TABLE_NAME FROM META_GROUP_LINK WHERE META_DATA_ID = " .$this->db->Param(0), [$row['REF_STRUCTURE_ID']]);
+                
+                if (issetParam($rowTableName['TABLE_NAME']) !== '' && strlen($rowTableName['TABLE_NAME']) <= 30) {
                     $dmRecordSql = "SELECT 
                                         RM.ID,
                                         EC.PHYSICAL_PATH
                                     FROM META_DM_RECORD_MAP RM 
                                         INNER JOIN ECM_CONTENT EC ON RM.TRG_RECORD_ID = EC.CONTENT_ID
                                     WHERE RM.SRC_TABLE_NAME = '" . $rowTableName['TABLE_NAME'] . "'
-                                        AND RM.TRG_TABLE_NAME   = 'ECM_CONTENT' 
-                                        AND RM.SEMANTIC_VALUE   = '1' 
-                                        AND RM.SRC_RECORD_ID   = " . $selectedRow['id'] . "";
+                                        AND RM.TRG_TABLE_NAME = 'ECM_CONTENT' 
+                                        AND RM.SEMANTIC_VALUE = '1' 
+                                        AND RM.SRC_RECORD_ID = " . $selectedRow['id'];
 
                     $dmRecordResult = $this->db->GetRow($dmRecordSql);
 
@@ -1197,14 +1200,14 @@ class Mdworkspace_Model extends Model {
 
     public function getWorkSpaceHeaderPositions($workSpaceId, $dmMetaDataId, $selectedRow, $themeCode = null) {
 
-        $paramPosition = array();
+        $paramPosition = [];
 
         if ($selectedRow) {
             
             $getWorkSpaceParamMap = self::getWorkSpaceParamMap($workSpaceId, $dmMetaDataId);
             
             foreach ($selectedRow as $srow) {
-                $pPosition = array();
+                $pPosition = [];
 
                 foreach ($getWorkSpaceParamMap as $pmap) {
 
@@ -1242,8 +1245,8 @@ class Mdworkspace_Model extends Model {
 
     public function setLabelNameWorkSpaceModel($metaDataId, $targetMetaId, $html) {
         
-        if ($metaDataId && $targetMetaId) {
-            
+        if ($metaDataId && $targetMetaId && strpos($html, '-labelname}') !== false) {
+                
             $data = $this->db->GetAll("
                 SELECT 
                     PARAM_PATH, 
@@ -1253,7 +1256,7 @@ class Mdworkspace_Model extends Model {
                     AND TARGET_META_ID = ".$this->db->Param(1)." 
                     AND PARAM_PATH IS NOT NULL 
                     AND LABEL_NAME IS NOT NULL", 
-                array($metaDataId, $targetMetaId)
+                [$metaDataId, $targetMetaId]
             ); 
 
             if ($data) {
@@ -1275,11 +1278,11 @@ class Mdworkspace_Model extends Model {
                 LINK_META_DATA_ID, 
                 IS_IGNORE_TOOLBAR 
             FROM META_WORKSPACE_PARAM_MAP 
-            WHERE WORKSPACE_META_ID = $metaDataId 
+            WHERE WORKSPACE_META_ID = ".$this->db->Param(0)." 
                 AND FIELD_PATH IS NULL 
                 AND PARAM_PATH IS NOT NULL 
                 AND LINK_META_DATA_ID IS NOT NULL 
-                AND IS_TARGET = 0"); 
+                AND IS_TARGET = 0", [$metaDataId]); 
 
         if ($data) {
 			

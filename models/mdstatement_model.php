@@ -2294,7 +2294,7 @@ class Mdstatement_model extends Model {
                     INNER JOIN KPI_INDICATOR KI ON KI.ID = DD.LINK_INDICATOR_ID 
                 WHERE SL.MAIN_INDICATOR_ID = ".$this->db->Param(0)."  
                     AND LOWER(DD.MAIN_GROUP_LINK_PARAM) = ".$this->db->Param(1), 
-                array($statementId, $columnName)
+                [$statementId, $columnName]
             ); 
             
         } else {
@@ -2311,7 +2311,7 @@ class Mdstatement_model extends Model {
                     LEFT JOIN META_DATA MD ON MD.META_DATA_ID = DD.LINK_META_DATA_ID  
                 WHERE DD.STATEMENT_META_DATA_ID = ".$this->db->Param(0)." 
                     AND LOWER(DD.MAIN_GROUP_LINK_PARAM) = ".$this->db->Param(1), 
-                array($statementId, $columnName)
+                [$statementId, $columnName]
             ); 
         }
         
@@ -2319,17 +2319,17 @@ class Mdstatement_model extends Model {
 
             $linkParam = self::getDrillDownParamsModel($data[0]['ID'], $rowData, $drillParams);
 
-            return array(
+            return [
                 'typeId' => ($data[0]['META_TYPE_ID'] ? $data[0]['META_TYPE_ID'] : 'kpi'), 
                 'linkMetaId' => $data[0]['LINK_META_DATA_ID'], 
                 'linkIndicatorId' => $data[0]['LINK_INDICATOR_ID'], 
                 'kpiTypeId' => $data[0]['KPI_TYPE_ID'], 
                 'linkParam' => $linkParam
-            );
+            ];
 
         } else {
 
-            $response = array();
+            $response = [];
 
             foreach ($data as $row) {
 
@@ -2353,13 +2353,13 @@ class Mdstatement_model extends Model {
                     
                     $linkParam = self::getDrillDownParamsModel($row['ID'], $rowData, $drillParams);
                     
-                    $response = array(
+                    $response = [
                         'typeId' => ($row['META_TYPE_ID'] ? $row['META_TYPE_ID'] : 'kpi'), 
                         'linkMetaId' => $row['LINK_META_DATA_ID'], 
                         'linkIndicatorId' => $row['LINK_INDICATOR_ID'], 
                         'kpiTypeId' => $row['KPI_TYPE_ID'], 
                         'linkParam' => $linkParam
-                    );
+                    ];
                 }
             }
 

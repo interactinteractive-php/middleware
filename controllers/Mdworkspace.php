@@ -512,7 +512,7 @@ class Mdworkspace extends Controller {
     
     public function renderWorkSpace($workSpaceId = '') {     
         $response = self::workSpaceContent($workSpaceId);
-        echo json_encode($response); exit;
+        convJson($response);
     }
     
     public function workSpaceThemePositionList() {

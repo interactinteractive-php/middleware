@@ -4165,7 +4165,7 @@ class Mdstatement extends Controller {
                 $contentDecode['metaType'] = 'meta_group';
                 $contentDecode['linkMetaDataId'] = $linkMetaId;
                 
-                echo json_encode($contentDecode); exit;
+                echo json_encode($contentDecode, JSON_UNESCAPED_UNICODE); exit;
                 
             } elseif ($getTypeId == 'kpi') {
                 
@@ -4187,7 +4187,7 @@ class Mdstatement extends Controller {
                 $contentDecode['status'] = 'success';
                 $contentDecode['linkMetaDataId'] = $linkIndicatorId;
                 
-                echo json_encode($contentDecode); exit;
+                echo json_encode($contentDecode, JSON_UNESCAPED_UNICODE); exit;
             }
             
         } else {
