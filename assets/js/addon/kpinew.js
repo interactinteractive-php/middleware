@@ -1115,10 +1115,10 @@ function kpiDataMartRelationConfig(elem, processMetaDataId, dataViewId, selected
 
                         $dialog.empty().append(data.html).promise().done(function() {
 
-                            var setHeight = $(window).height() - 190;
+                            var setHeight = $(window).height() - 300;
                             var $editor = $('#datamart-editor');
                             
-                            $('.heigh-editor').css({'height': setHeight, 'max-height': setHeight});
+                            $('.heigh-editor-table').css({'height': setHeight, 'max-height': setHeight});
                             $editor.css({'height': setHeight - 2, 'max-height': setHeight - 2});
 
                             setKpiDataMartVisualObjects($editor, data.objects, data.objects.graphjson, false);
@@ -1194,7 +1194,7 @@ function kpiDataMartRelationConfigTable(elem, processMetaDataId, dataViewId, sel
 
                         $dialog.empty().append(data.html).promise().done(function() {
 
-                            var setHeight = $(window).height() - 450;
+                            var setHeight = $(window).height() - 550;
                             var $editor = $('#datamart-editor');
                             
                             $editor.css({'height': setHeight - 2, 'max-height': setHeight - 2});
@@ -1392,6 +1392,7 @@ function saveKpiDataMartRelationConfig(elem, $dialog) {
             if (data.status == 'success' && typeof $dialog !== 'undefined') {
                 $dialog.dialog('close');
             } else if (data.status == 'success') {
+                getKpiIndicatorAttrsNew($('input[data-kpidatamart-id="1"]').val());
                 loadDataListMart($('input[data-kpidatamart-id="1"]').val());
             }
 
@@ -2472,22 +2473,18 @@ function getKpiIndicatorAttrs(indicatorId) {
     return trgComboAttrs.join('');
 }
 function getKpiIndicatorAttrsNew(indicatorId) {
-    var trgComboAttrs = [];
-    var trgComboAttrs2 = [];
+    var trgComboAttrs2 = [],
+        colCount = 0;
     
-    if (!$('.editor-table-settings-area').find('table').length) {
-        trgComboAttrs2.push('<table class="table table-hover table-bordered mt10">');
-        trgComboAttrs2.push('<thead>'+
-                            '<tr>'+
-                                '<th>Төрөл</th>'+
-                                '<th>Нэр</th>'+
-                                '<th></th>'+
-                            '</tr>'+
-                        '</thead>'+
-                        '<tbody>');        
-    }
-                    
-    trgComboAttrs.push('<option value="">- '+plang.get('select_btn')+' -</option>');
+    trgComboAttrs2.push('<table class="table table-hover table-bordered mt10">');
+    trgComboAttrs2.push('<thead>'+
+                        '<tr>'+
+                            '<th>Төрөл</th>'+
+                            '<th>Нэр</th>'+
+                            '<th></th>'+
+                        '</tr>'+
+                    '</thead>'+
+                    '<tbody>');        
 
     $.ajax({
         type: 'post',
@@ -2499,24 +2496,16 @@ function getKpiIndicatorAttrsNew(indicatorId) {
 
             $.each(data, function(i, value) {
                 if (data[i]['parentid'] != '' && data[i]['parentid'] != null) {
-                    trgComboAttrs.push('<option value="'+data[i]['id']+'">' + data[i]['columnname'] + ' - ' + data[i]['labelname'] + '</option>');
                     trgComboAttrs2.push(settingsRow(data[i]));
+                    colCount++;
                 }
             });
         }
     });
 
-    if (!$('.editor-table-settings-area').find('table').length) {
-        trgComboAttrs2.push('</tbody></table>');
-    }
-
-    if (!$('.editor-table-settings-area').find('table').length) {
-        $('.editor-table-settings-area').append(trgComboAttrs2.join(''));    
-    } else {
-        $('.editor-table-settings-area').find('table > tbody').append(trgComboAttrs2.join(''));    
-    }
-    
-    return trgComboAttrs.join('');
+    trgComboAttrs2.push('</tbody></table>');
+    $('.editor-table-settings-area').empty().append(trgComboAttrs2.join(''));    
+    $('.show-indicator-column-count').text(colCount);
 }
 function setKpiDataMartAliasCombo($editor) {
     return;
@@ -2650,7 +2639,7 @@ function addJoinClause(elem) {
 }
 
 function removeJoinClause(elem) {
-    $(elem).closest('tr').remove();
+    $(elem).closest('tr').remove();    
 }
 
 function editKpiDataMartConnection(connection) {
@@ -2697,30 +2686,39 @@ function loadDataListMart(id) {
     });      
 }
 
-function settingsRow(row) {
+function settingsRow(row, single) {
     return '<tr data-mapid="' + row['id'] + '"><td style="width:80px">' + row['showtype'] + '</td><td>' + row['labelname'] + '</td>'+
         '<td style="width:50px;padding: 0;" class="pl3">'+
-            '<button type="button" style="padding: 2px 5px 0px 7px;" class="btn btn-sm green-meadow dropdown-toggle" data-toggle="dropdown" aria-expanded="true">'+
+            (typeof single === 'undefined' ? '<button type="button" style="padding: 2px 5px 0px 7px;" class="btn btn-sm green-meadow dropdown-toggle" data-toggle="dropdown" aria-expanded="true">'+
                 '<i class="fa fa-bars"></i>'+
             '</button>'+
             '<div class="dropdown-menu" style="">'+
                 '<div class="dropdown-submenu">'+
                         '<a href="javascript:;" class="dropdown-item">Aggregate function</a>'+
                         '<div class="dropdown-menu">'+
-                            '<a href="javascript:;" class="dropdown-item" onClick="addAggregateFunctionRow(this, \'SUM\')">SUM</a>'+
-                            '<a href="javascript:;" class="dropdown-item" onClick="addAggregateFunctionRow(this, \'MAX\')">MAX</a>'+
-                            '<a href="javascript:;" class="dropdown-item" onClick="addAggregateFunctionRow(this, \'MIN\')">MIN</a>'+
-                            '<a href="javascript:;" class="dropdown-item" onClick="addAggregateFunctionRow(this, \'COUNT\')">COUNT</a>'+
+                            '<a href="javascript:;" class="dropdown-item" onClick="addAggregateFunctionRow(this, \'SUM\')">SUM '+(row['aggregatefunction'] == 'SUM' ? '<i class="fa fa-check ml5" style="color: rgb(5 187 21);"></i>' : '')+'</a>'+
+                            '<a href="javascript:;" class="dropdown-item" onClick="addAggregateFunctionRow(this, \'MAX\')">MAX '+(row['aggregatefunction'] == 'MAX' ? '<i class="fa fa-check ml5" style="color: rgb(5 187 21);"></i>' : '')+'</a>'+
+                            '<a href="javascript:;" class="dropdown-item" onClick="addAggregateFunctionRow(this, \'MIN\')">MIN '+(row['aggregatefunction'] == 'MIN' ? '<i class="fa fa-check ml5" style="color: rgb(5 187 21);"></i>' : '')+'</a>'+
+                            '<a href="javascript:;" class="dropdown-item" onClick="addAggregateFunctionRow(this, \'COUNT\')">COUNT '+(row['aggregatefunction'] == 'COUNT' ? '<i class="fa fa-check ml5" style="color: rgb(5 187 21);"></i>' : '')+'</a>'+
                         '</div>'+
                 '</div>'+                
                 '<a class="removeStructureColumn dropdown-item" href="javascript:;">Нуух</a>'+
-            '</div>'+
+            '</div>' : '')+
         '</td>'+
+    '</tr>';
+}
+
+function settingsHideRow(row) {
+    return '<tr data-mapid="' + row['id'] + '"><td style="width:80px">' + row['showtype'] + '</td><td>' + row['labelname'] + '</td>'+
+        '<td style="width:50px;padding: 0;" class="pl15 pt4"><input type="checkbox" value="' + row['id'] + '"/></td>'+
     '</tr>';
 }
 
 function addAggregateFunctionRow(elem, aggfunction) {
     var $this = $(elem);
+    if ($this.find("i").length) {
+        aggfunction = "";
+    }
 
     $.ajax({
         type: 'post',
@@ -2737,6 +2735,7 @@ function addAggregateFunctionRow(elem, aggfunction) {
         success: function(data) {
             if (data.status == 'success') {
                 refreshLoadDataListMart();
+                getKpiIndicatorAttrsNew($('input[data-kpidatamart-id="1"]').val());
                 new PNotify({
                   title: 'Success',
                   text: plang.get('msg_save_success'),
@@ -2779,63 +2778,63 @@ $(function() {
         editKpiDataMartConnection(connection);
     });
     
-    jsPlumb.bind('contextmenu', function(connection, originalEvent) {
-        
-        $.contextMenu('destroy', '#kpiDataMartVisualConfigForm ._jsPlumb_connector');
-        
-        $.contextMenu({
-            selector: '#kpiDataMartVisualConfigForm ._jsPlumb_connector',
-            callback: function (key, opt) {
-
-                if (key == 'editConnect') { 
-                    
-                    editKpiDataMartConnection(connection);
-                    
-                } else if (key == 'removeConnect') {
-                    
-                    var dialogName = '#dialog-kpidmart-obj-confirm';
-                    if (!$(dialogName).length) {
-                        $('<div id="' + dialogName.replace('#', '') + '"></div>').appendTo('body');
-                    }
-                    var $dialog = $(dialogName);
-
-                    $dialog.html(plang.get('msg_delete_confirm'));
-                    $dialog.dialog({
-                        cache: false,
-                        resizable: true,
-                        bgiframe: true,
-                        autoOpen: false,
-                        title: plang.get('msg_title_confirm'), 
-                        width: 300,
-                        height: 'auto',
-                        modal: true,
-                        buttons: [
-                            {text: plang.get('yes_btn'), class: 'btn green-meadow btn-sm', click: function() {
-
-                                var $linkInput = $('#datamart-editor').find('textarea[name="'+connection.sourceId+'_'+connection.targetId+'"]');
-
-                                if ($linkInput.length) {
-                                    $linkInput.remove();
-                                }
-
-                                jsPlumb.select({source: connection.sourceId, target: connection.targetId}).detach();
-
-                                $dialog.dialog('close');
-                            }},
-                            {text: plang.get('no_btn'), class: 'btn blue-madison btn-sm', click: function () {
-                                $dialog.dialog('close');
-                            }}
-                        ]
-                    });
-                    $dialog.dialog('open');
-                }
-            },
-            items: {
-//                "editConnect": {name: plang.get('edit_btn'), icon: "edit"}, 
-                "removeConnect": {name: plang.get('delete_btn'), icon: "trash"}
-            }
-        });
-    });
+//    jsPlumb.bind('contextmenu', function(connection, originalEvent) {
+//        
+//        $.contextMenu('destroy', '#kpiDataMartVisualConfigForm ._jsPlumb_connector');
+//        
+//        $.contextMenu({
+//            selector: '#kpiDataMartVisualConfigForm ._jsPlumb_connector',
+//            callback: function (key, opt) {
+//
+//                if (key == 'editConnect') { 
+//                    
+//                    editKpiDataMartConnection(connection);
+//                    
+//                } else if (key == 'removeConnect') {
+//                    
+//                    var dialogName = '#dialog-kpidmart-obj-confirm';
+//                    if (!$(dialogName).length) {
+//                        $('<div id="' + dialogName.replace('#', '') + '"></div>').appendTo('body');
+//                    }
+//                    var $dialog = $(dialogName);
+//
+//                    $dialog.html(plang.get('msg_delete_confirm'));
+//                    $dialog.dialog({
+//                        cache: false,
+//                        resizable: true,
+//                        bgiframe: true,
+//                        autoOpen: false,
+//                        title: plang.get('msg_title_confirm'), 
+//                        width: 300,
+//                        height: 'auto',
+//                        modal: true,
+//                        buttons: [
+//                            {text: plang.get('yes_btn'), class: 'btn green-meadow btn-sm', click: function() {
+//
+//                                var $linkInput = $('#datamart-editor').find('textarea[name="'+connection.sourceId+'_'+connection.targetId+'"]');
+//
+//                                if ($linkInput.length) {
+//                                    $linkInput.remove();
+//                                }
+//
+//                                jsPlumb.select({source: connection.sourceId, target: connection.targetId}).detach();                                
+//
+//                                $dialog.dialog('close');
+//                            }},
+//                            {text: plang.get('no_btn'), class: 'btn blue-madison btn-sm', click: function () {
+//                                $dialog.dialog('close');
+//                            }}
+//                        ]
+//                    });
+//                    $dialog.dialog('open');
+//                }
+//            },
+//            items: {
+////                "editConnect": {name: plang.get('edit_btn'), icon: "edit"}, 
+//                "removeConnect": {name: plang.get('delete_btn'), icon: "trash"}
+//            }
+//        });
+//    });
     
     }
     
@@ -2883,6 +2882,7 @@ $(function() {
                             
                             setTimeout(function() {
                                 setKpiDataMartAliasCombo($editor);
+                                saveKpiDataMartRelationConfig();
                             }, 1);
                         }},
                         {text: plang.get('no_btn'), class: 'btn blue-madison btn-sm', click: function () {
@@ -3024,7 +3024,8 @@ $(function() {
     
     $(document.body).on('click', '.wfdmart', function() {
         var $this = $(this), 
-            trgComboAttrs = [];
+            trgComboAttrs = [],
+            colCount = 0;
 
         $this.parent().find('.active').removeClass('active');
         $this.addClass('active');
@@ -3050,13 +3051,57 @@ $(function() {
 
                 $.each(data, function(i, value) {
                     if (data[i]['parentid'] != '' && data[i]['parentid'] != null) {
-                        trgComboAttrs.push(settingsRow(data[i]));
+                        trgComboAttrs.push(settingsRow(data[i], true));
+                        colCount++;
                     }
                 });
             }
         });
         trgComboAttrs.push('</tbody></table>');
 
+        $('.show-indicator-column-count').text(colCount);
+        $('.editor-table-settings-area').empty().append(trgComboAttrs.join(''));
+    });
+    
+    $(document.body).on('click', '.css-editor', function(e) {
+        var $this = $(this), 
+            trgComboAttrs = [],
+            colCount = 0;
+            
+        if (e.target.className != 'css-editor') return;
+
+        $this.find('.active').removeClass('active');
+        $('.editor-table-settings-area').empty().append('<div class="mt10">Түр хүлээнэ үү...</div>');
+        
+        trgComboAttrs.push('<table class="table table-hover table-bordered mt10">');
+        trgComboAttrs.push('<thead>'+
+                            '<tr>'+
+                                '<th>Төрөл</th>'+
+                                '<th>Нэр</th>'+
+                                '<th></th>'+
+                            '</tr>'+
+                        '</thead>'+
+                        '<tbody>');
+
+        $.ajax({
+            type: 'post',
+            url: 'mdform/getKpiIndicatorAttrs',
+            data: {indicatorId: $('input[data-kpidatamart-id="1"]').val()}, 
+            dataType: 'json', 
+            async: false, 
+            success: function(data) {
+
+                $.each(data, function(i, value) {
+                    if (data[i]['parentid'] != '' && data[i]['parentid'] != null) {
+                        trgComboAttrs.push(settingsRow(data[i]));
+                        colCount++;
+                    }
+                });
+            }
+        });
+        trgComboAttrs.push('</tbody></table>');
+
+        $('.show-indicator-column-count').text(colCount);
         $('.editor-table-settings-area').empty().append(trgComboAttrs.join(''));
     });
     
@@ -3086,6 +3131,105 @@ $(function() {
                 Core.unblockUI();
             }
         });
+    });
+    
+    $(document.body).on('click', '.showHideStructureColumn', function() {
+        var $this = $(this);
+        var dialogName = '#dialog-kpidmart-hidecols';
+        if (!$(dialogName).length) {
+            $('<div id="' + dialogName.replace('#', '') + '"></div>').appendTo('body');
+        }
+        var $dialog = $(dialogName);        
+        var trgComboAttrs = [];
+        
+        trgComboAttrs.push('<table class="table table-hover table-bordered mt10">');
+        trgComboAttrs.push('<thead>'+
+                            '<tr>'+
+                                '<th>Төрөл</th>'+
+                                '<th>Нэр</th>'+
+                                '<th></th>'+
+                            '</tr>'+
+                        '</thead>'+
+                        '<tbody>');
+
+        $.ajax({
+            type: 'post',
+            url: 'mdform/getKpiIndicatorHideAttrs',
+            data: {mainIndicatorId: $('input[data-kpidatamart-id="1"]').val()}, 
+            dataType: 'json', 
+            async: false, 
+            success: function(data) {
+                
+                if (!Object.keys(data).length) {
+                    PNotify.removeAll();
+                    new PNotify({
+                        title: 'Info',
+                        text: 'Нуусан багана байхгүй байна',
+                        type: 'info',
+                        addclass: pnotifyPosition,
+                        sticker: false
+                    });    
+                } else {
+                    $.each(data, function(i, value) {
+                        trgComboAttrs.push(settingsHideRow(data[i]));
+                    });                    
+                    trgComboAttrs.push('</tbody></table>');
+                    $dialog.html(trgComboAttrs.join(''));
+                    $dialog.dialog({
+                        cache: false,
+                        resizable: true,
+                        bgiframe: true,
+                        autoOpen: false,
+                        title: 'Нуусан баганууд', 
+                        width: 450,
+                        height: 'auto',
+                        position: { my: "top", at: "top+100" },
+                        modal: true,
+                        buttons: [
+                            {text: "Харуулах", class: 'btn green-meadow btn-sm', click: function() {
+                                var $checkedVals = $dialog.find("input:checked");
+                                var checkValss = [];
+                                $.each($checkedVals, function(i, value) {
+                                    checkValss.push($(this).val());
+                                });
+                                console.log('checkValss', checkValss);                                
+                                $dialog.dialog('close');
+                                
+                                $.ajax({
+                                    type: 'post',
+                                    url: 'mdform/updateHideRowDataMartRelationConfigTable',
+                                    data: {
+                                        mapIds: checkValss
+                                    }, 
+                                    dataType: 'json', 
+                                    beforeSend: function () {
+                                        Core.blockUI({message: 'Түр хүлээнэ үү...', boxed: true});
+                                    },                    
+                                    async: false, 
+                                    success: function(data) {
+                                        if (data.status == 'success') {
+                                            refreshLoadDataListMart();
+                                            getKpiIndicatorAttrsNew($('input[data-kpidatamart-id="1"]').val());
+                                            new PNotify({
+                                              title: 'Success',
+                                              text: plang.get('msg_save_success'),
+                                              type: 'success',
+                                              sticker: false
+                                            });                    
+                                        }
+                                        Core.unblockUI();
+                                    }
+                                });                                
+                            }},
+                            {text: plang.get('close_btn'), class: 'btn blue-madison btn-sm', click: function () {
+                                $dialog.dialog('close');
+                            }}
+                        ]
+                    });
+                    $dialog.dialog('open');                    
+                }
+            }
+        });        
     });
     
 });

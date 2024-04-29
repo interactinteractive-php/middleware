@@ -1627,8 +1627,8 @@ class Mdintegration_model extends Model {
                             $data['AMOUNT']        = 0;
                         }
                         
-                        if ($related_Account = issetParam($trans['related_Account'])) {
-                            $data['RELATED_ACCOUNT'] = $related_Account;
+                        if ($relatedAccount = issetParam($trans['relatedAccount'])) {
+                            $data['RELATED_ACCOUNT'] = $relatedAccount;
                         }
 
                         $result = self::saveBilling($data);

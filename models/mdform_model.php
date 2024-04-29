@@ -14771,6 +14771,7 @@ class Mdform_Model extends Model {
             $isShowPivot   = Input::numeric('isShowPivot');
             $isGoogleMap   = Input::numeric('isGoogleMap');
             $isComboData   = Input::numeric('isComboData');
+            $workSpaceId   = Input::numeric('workSpaceId');
             
             $isUseWorkflow             = $row['IS_USE_WORKFLOW'];
             $isAddonPhoto              = $row['IS_ADDON_PHOTO'];
@@ -14903,6 +14904,23 @@ class Mdform_Model extends Model {
                     }
                 }
             }      
+            
+            if ($workSpaceId) {
+                $workSpaceParams = Input::post('workSpaceParams');
+                if ($workSpaceParams) {
+                    parse_str($workSpaceParams, $workSpaceParamArray);
+                    
+                    if (isset($workSpaceParamArray['workSpaceParam'])) {
+                        $workSpaceParamMap = self::getWorkSpaceParamMapModel($indicatorId, $workSpaceId);
+                        foreach ($workSpaceParamMap as $workSpaceParamMapRow) {
+                            $lowerKey = strtolower($workSpaceParamMapRow['FIELD_PATH']);
+                            if (isset($workSpaceParamArray['workSpaceParam'][$lowerKey])) {
+                                $mainCondition .= " AND ".$workSpaceParamMapRow['PARAM_PATH']." = '".self::fixFilterColValue($workSpaceParamArray['workSpaceParam'][$lowerKey])."'";
+                            }
+                        }
+                    }
+                }
+            }
             
             $idField = 'ID';
             
@@ -15089,6 +15107,8 @@ class Mdform_Model extends Model {
                         $fields .= 'T0.'.$colName . ', ';
                     }
                 }
+                
+                $columnName = $colName;
             }
             
             if ($sortColumns) {
@@ -15249,7 +15269,7 @@ class Mdform_Model extends Model {
                                 
                             } elseif ($filterShowType == 'datetime') {
                                 
-                                $subCondition .= " AND $filterColName BETWEEN ".$this->db->ToDate("'$filterColBeginVal'", 'YYYY-MM-DD HH24:MI:SS')." AND ".$this->db->ToDate("'$filterColEndVal'", 'YYYY-MM-DD HH24:MI:SS');
+                                $subCondition .= " AND $filterColName BETWEEN ".$this->db->ToDate("'$filterColBeginVal'", 'YYYY-MM-DD HH24:MI')." AND ".$this->db->ToDate("'$filterColEndVal'", 'YYYY-MM-DD HH24:MI');
                             }
                         }
                         
@@ -15762,6 +15782,27 @@ class Mdform_Model extends Model {
             }
         }
         return null;
+    }
+    
+    public function getWorkSpaceParamMapModel($dmMetaDataId, $workSpaceId) {
+        try {
+            $data = $this->db->GetAll("
+                SELECT 
+                    FIELD_PATH, 
+                    PARAM_PATH 
+                FROM META_WORKSPACE_PARAM_MAP 
+                WHERE WORKSPACE_META_ID = ".$this->db->Param(0)." 
+                    AND TARGET_INDICATOR_ID = ".$this->db->Param(1)." 
+                    AND IS_TARGET = 1 
+                    AND FIELD_PATH IS NOT NULL 
+                    AND PARAM_PATH IS NOT NULL", 
+                [$workSpaceId, $dmMetaDataId] 
+            );
+        } catch (Exception $ex) {
+            $data = [];
+        }
+
+        return $data;
     }
     
     public function getUmPermissionKeyModel($indicatorId) {
@@ -22109,14 +22150,7 @@ class Mdform_Model extends Model {
             
             try {                            
                 
-                $this->db->UpdateClob("KPI_INDICATOR", "GRAPH_JSON", $position, 'ID = '.$id);
-                
-                $this->db->Execute("
-                    DELETE 
-                    FROM KPI_INDICATOR_INDICATOR_MAP 
-                    WHERE (IS_INPUT IS NULL OR IS_INPUT = 1) AND DATA_MART_MAIN_INDICATOR_ID = ".$this->db->Param(0), 
-                    array($id)
-                );                
+                $this->db->UpdateClob("KPI_INDICATOR", "GRAPH_JSON", $position, 'ID = '.$id);                            
                 
                 $dataHideMap = $this->db->GetAll("
                     SELECT 
@@ -22127,6 +22161,24 @@ class Mdform_Model extends Model {
                     array($id)
                 );                
                 $dataHideMap = Arr::groupByArray($dataHideMap, 'RELATED_INDICATOR_MAP_ID');
+                
+                $dataAggr = $this->db->GetAll("
+                    SELECT 
+                        KIIM.RELATED_INDICATOR_MAP_ID,
+                        KIIM.AGGREGATE_FUNCTION
+                    FROM KPI_INDICATOR_INDICATOR_MAP KIIM 
+                    WHERE KIIM.DATA_MART_MAIN_INDICATOR_ID = ".$this->db->Param(0)." 
+                        AND KIIM.AGGREGATE_FUNCTION IS NOT NULL", 
+                    array($id)
+                );                
+                $dataAggr = Arr::groupByArray($dataAggr, 'RELATED_INDICATOR_MAP_ID');   
+                
+                $this->db->Execute("
+                    DELETE 
+                    FROM KPI_INDICATOR_INDICATOR_MAP 
+                    WHERE (IS_INPUT IS NULL OR IS_INPUT = 1) AND DATA_MART_MAIN_INDICATOR_ID = ".$this->db->Param(0), 
+                    array($id)
+                );                   
                 
                 if ($connections) {
                     foreach ($connections as $clmnRow) {                      
@@ -22144,6 +22196,7 @@ class Mdform_Model extends Model {
                                         'LABEL_NAME' => $colRow['LABELNAME'], 
                                         'SRC_ALIAS_NAME' => 'T0', 
                                         'TRG_ALIAS_NAME' => $clmnRow['srcAliasName'], 
+                                        'AGGREGATE_FUNCTION' => isset($dataAggr[$colRow['ID']]) ? $dataAggr[$colRow['ID']]['row']['AGGREGATE_FUNCTION'] : null, 
                                         'IS_INPUT' => '1', 
                                         'DATA_MART_MAIN_INDICATOR_ID' => $id, 
                                         'MAIN_INDICATOR_ID' => $id, 
@@ -22171,6 +22224,7 @@ class Mdform_Model extends Model {
                                         'COLUMN_NAME' => 'C'.$colIndexNumber, 
                                         'COLUMN_NAME_PATH' => 'C'.$colIndexNumber, 
                                         'LABEL_NAME' => $colRow['LABELNAME'], 
+                                        'AGGREGATE_FUNCTION' => isset($dataAggr[$colRow['ID']]) ? $dataAggr[$colRow['ID']]['row']['AGGREGATE_FUNCTION'] : null, 
                                         'SRC_ALIAS_NAME' => 'T0', 
                                         'TRG_ALIAS_NAME' => $clmnRow['trgAliasName'], 
                                         'IS_INPUT' => '1', 
@@ -28294,7 +28348,8 @@ class Mdform_Model extends Model {
                             KIIM.TRG_INDICATOR_ID, 
                             KIIM.META_INFO_INDICATOR_ID, 
                             KIIM.LOOKUP_META_DATA_ID, 
-                            KIIM.CODE 
+                            KIIM.CODE, 
+                            KIIM.ORDER_NUMBER 
                     ) T0 
                     LEFT JOIN KPI_INDICATOR T1 ON T1.ID = T0.TRG_INDICATOR_ID 
                         AND T1.DELETED_USER_ID IS NULL 
@@ -29305,7 +29360,7 @@ class Mdform_Model extends Model {
     public function getChildRenderStructureModel($mainIndicatorId, $typeId = null, $selectedRow = []) {
         try {
             
-            $where = '';
+            $where = $checkPermissionWithAs = $checkPermissionJoin = $checkPermissionWhere = '';
             $bindParams = [$mainIndicatorId];
             
             if ($typeId) {
@@ -29314,6 +29369,80 @@ class Mdform_Model extends Model {
                 } else {
                     $where = 'AND T1.SEMANTIC_TYPE_ID = '.$this->db->Param(1);
                     $bindParams[] = $typeId;
+                }
+            }
+            
+            if (Mdform::$isProductCheckPermission) {
+                
+                if (DB_DRIVER == 'postgres9') {
+                    
+                    $sessionUserKeyId = Ue::sessionUserKeyId();
+                    
+                    $checkPermissionWithAs = ' 
+                        WITH CTE_ROLES AS ( 
+                            WITH RECURSIVE CTE_ROLES_TMP AS (
+                                SELECT
+                                    ROLE_ID,
+                                    PARENT_ID
+                                FROM UM_ROLE
+                                WHERE ROLE_ID IN (
+                                    SELECT
+                                        ROLE_ID
+                                    FROM UM_USER_ROLE
+                                    WHERE USER_ID = :USERID
+                                ) 
+                                
+                                UNION 
+                                
+                                SELECT
+                                    CR.ROLE_ID,
+                                    CR.PARENT_ID
+                                FROM UM_ROLE UR
+                                    JOIN CTE_ROLES_TMP CR ON CR.PARENT_ID = UR.ROLE_ID
+                            )
+                            SELECT
+                                ROLE_ID
+                            FROM CTE_ROLES_TMP
+                        ),
+                        CTE_IS_ADMIN AS (
+                            SELECT
+                                CASE
+                                    WHEN COUNT(*) > 0 THEN 1
+                                    ELSE 0
+                                END AS IS_ADMIN
+                            FROM UM_USER UU
+                                INNER JOIN UM_USER_ROLE UUR ON UU.USER_ID = UUR.USER_ID
+                                INNER JOIN UM_ROLE UR ON UUR.ROLE_ID = UR.ROLE_ID
+                            WHERE UU.USER_ID = :USERID
+                                AND (UU.SYSTEM_USER_ID = 1 OR UR.IS_ADMIN = 1 OR UR.ROLE_ID = 1)
+                        ),
+                        CTE_KI_PERMISSION AS (
+                            SELECT 
+                                DISTINCT UPK.INDICATOR_ID
+                            FROM CTE_IS_ADMIN IA
+                                INNER JOIN UM_PERMISSION_KEY UPK ON 1 = 1
+                                LEFT JOIN CTE_ROLES CR ON UPK.ROLE_ID = CR.ROLE_ID
+                            WHERE IA.IS_ADMIN = 0
+                                AND (CR.ROLE_ID IS NOT NULL OR UPK.USER_ID = :USERID)
+                        ),
+                        CTE_META_PERMISSION AS (
+                            SELECT
+                                DISTINCT UMP.META_DATA_ID
+                            FROM CTE_IS_ADMIN IA
+                                INNER JOIN UM_META_PERMISSION UMP ON 1 = 1
+                                LEFT JOIN CTE_ROLES CR ON UMP.ROLE_ID = CR.ROLE_ID
+                            WHERE IA.IS_ADMIN = 0
+                                AND (CR.ROLE_ID IS NOT NULL OR UMP.USER_ID = :USERID)
+                        ) ';
+                    
+                    $checkPermissionJoin = ' 
+                        LEFT JOIN CTE_KI_PERMISSION CKP ON T2.ID = CKP.INDICATOR_ID 
+                        LEFT JOIN CTE_META_PERMISSION CMP ON T3.META_DATA_ID = CMP.META_DATA_ID 
+                        LEFT JOIN CTE_IS_ADMIN IA ON 1 = 1 '; 
+                    
+                    $checkPermissionWhere = ' AND IA.IS_ADMIN + NVL(CKP.INDICATOR_ID, 0) + NVL(CMP.META_DATA_ID, 0) > 0 ';
+                    
+                    $checkPermissionWithAs = str_ireplace(':userId', $sessionUserKeyId, $checkPermissionWithAs);
                 }
             }
 
@@ -29341,7 +29470,8 @@ class Mdform_Model extends Model {
                     T0.DESCRIPTION, 
                     T0.WIDGET_CODE, 
                     T0.IS_DATAMART_RENDER  
-                FROM (
+                FROM ( 
+                    $checkPermissionWithAs 
                     SELECT 
                         T2.ID, 
                         T2.PARENT_ID, 
@@ -29378,12 +29508,14 @@ class Mdform_Model extends Model {
                         LEFT JOIN KPI_INDICATOR T2 ON T2.ID = T1.TRG_INDICATOR_ID 
                             AND T2.DELETED_USER_ID IS NULL 
                         LEFT JOIN META_DATA T3 ON T3.META_DATA_ID = T1.LOOKUP_META_DATA_ID 
-                        LEFT JOIN META_GROUP_LINK T4 ON T4.META_DATA_ID = T3.META_DATA_ID  
-                        LEFT JOIN META_BUSINESS_PROCESS_LINK T5 ON T5.META_DATA_ID = T3.META_DATA_ID  
-                        LEFT JOIN META_WIDGET T6 ON T6.ID = T1.WIDGET_ID  
+                        LEFT JOIN META_GROUP_LINK T4 ON T4.META_DATA_ID = T3.META_DATA_ID 
+                        LEFT JOIN META_BUSINESS_PROCESS_LINK T5 ON T5.META_DATA_ID = T3.META_DATA_ID 
+                        LEFT JOIN META_WIDGET T6 ON T6.ID = T1.WIDGET_ID 
+                        $checkPermissionJoin 
                     WHERE T1.SRC_INDICATOR_ID = ".$this->db->Param(0)." 
                         AND (T2.ID IS NOT NULL OR T3.META_DATA_ID IS NOT NULL) 
                         $where 
+                        $checkPermissionWhere 
                     GROUP BY 
                         T2.ID, 
                         COALESCE(T2.LABEL_NAME, T2.NAME), 
@@ -30492,6 +30624,25 @@ class Mdform_Model extends Model {
         return $response;
     }    
     
+    public function updateHideRowDataMartRelationConfigTableModel($id) {
+        
+        try {
+            if ($id) {
+                foreach ($id as $row) {
+                    $updateData = array('IS_INPUT' => 1);
+
+                    $this->db->AutoExecute('KPI_INDICATOR_INDICATOR_MAP', $updateData, 'UPDATE', 'ID = '.$row);
+                }
+            }
+            $response = array('status' => 'success');
+            
+        } catch (Exception $ex) {
+            $response = array('status' => 'error', 'message' => $ex->getMessage());
+        }
+        
+        return $response;
+    }    
+    
     public function updateRowDataMartRelationConfigAggregateTableModel($id) {
         
         try {
@@ -30506,5 +30657,61 @@ class Mdform_Model extends Model {
         
         return $response;
     }    
+    
+    public function getListKpiDataMartRelationConfigHideColsModel() {
+
+        $mainIndicatorId = Input::post('mainIndicatorId');
+
+        $data = $this->db->GetAll("
+            SELECT DISTINCT * FROM (
+                SELECT T0.* FROM(
+                    SELECT 
+                      M.ID, 
+                      M.CODE, 
+                      CASE WHEN NVL(M.IS_RENDER, 0)= 1 THEN '<B>' || NVL(M.LABEL_NAME, KI.NAME)|| '</B>' ELSE '<I>' || NVL(M.LABEL_NAME, KI.NAME)|| '</I>' END, 
+                      NVL(
+                        M.PARENT_ID, M.MAIN_INDICATOR_ID
+                      ) AS PARENT_ID, 
+                      M.TEMPLATE_TABLE_NAME, 
+                      NULL AS TABLE_NAME, 
+                      M.COLUMN_NAME, 
+                      M.COLUMN_NAME AS COLUMNNAME, 
+                      M.ID AS MAP_ID, 
+                      MST.NAME AS SEMANTIC_TYPE_NAME, 
+                      M.RENDER_TYPE, 
+                      M.SHOW_TYPE AS SHOWTYPE, 
+                      M.ORDER_NUMBER, 
+                      M.TRG_INDICATOR_ID, 
+                      M.LOOKUP_CRITERIA, 
+                      M.COLUMN_WIDTH, 
+                      M.GROUP_ORDER, 
+                      M.MERGE_TYPE, 
+                      M.IS_RENDER, 
+                      M.IS_PARENT, 
+                      M.EXPRESSION_STRING, 
+                      M.LABEL_NAME AS LABELNAME, 
+                      'KPI_INDICATOR_INDICATOR_MAP' AS ORDER_TABLE_NAME, 
+                      'ID' AS ORDER_ID_COLUMN, 
+                      'ORDER_NUMBER' AS ORDER_ORDER_COLUMN, 
+                      1 AS OPEN_TREE, 
+                      M.SEMANTIC_TYPE_ID, 
+                      'OPEN' AS ROW_STATE, 
+                      KI.NAME AS TRG_INDICATOR_NAME, 
+                      M.COLUMN_NAME_PATH
+                    FROM KPI_INDICATOR_INDICATOR_MAP M 
+                      LEFT JOIN META_SEMANTIC_TYPE MST ON M.SEMANTIC_TYPE_ID = MST.ID 
+                      LEFT JOIN KPI_INDICATOR KI ON M.TRG_INDICATOR_ID = KI.ID 
+                    WHERE 
+                      M.MAIN_INDICATOR_ID = ".$this->db->Param(0)."
+                      AND NVL(M.IS_INPUT, 0) = 0 
+                      AND M.PARENT_ID IS NULL 
+                      AND M.SHOW_TYPE != 'rows' 
+              ) T0
+            )", 
+            array($mainIndicatorId)
+        );        
+        
+        return Arr::changeKeyLower($data);
+    }        
     
 }

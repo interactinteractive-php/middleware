@@ -4164,7 +4164,8 @@ class Mdprocessflow_model extends Model {
                     THEN 1 
                     ELSE 0 
                 END AS IS_COMPLEX_PROCESS, 
-                MPW.TASKFLOW_TYPE 
+                MPW.TASKFLOW_TYPE, 
+                MPW.DESCRIPTION 
             FROM META_PROCESS_WORKFLOW MPW 
                 INNER JOIN META_DATA MD ON MD.META_DATA_ID = MPW.DO_BP_ID
                 LEFT JOIN META_BUSINESS_PROCESS_LINK MBPL ON MBPL.META_DATA_ID = MD.META_DATA_ID 
@@ -4206,7 +4207,8 @@ class Mdprocessflow_model extends Model {
             'isScheduled' => '', 
             'scheduledDatePath' => '', 
             'taskflowType' => null, 
-            'metaTypeId' => null
+            'metaTypeId' => null, 
+            'description' => null
         ));
 
         if ($processWorkflowList) {
@@ -4229,7 +4231,8 @@ class Mdprocessflow_model extends Model {
                     'scheduledDatePath' => $row['SCHEDULED_DATE_PATH'], 
                     'isComplexProcess' => $row['IS_COMPLEX_PROCESS'], 
                     'taskflowType' => $row['TASKFLOW_TYPE'], 
-                    'metaTypeId' => $row['META_TYPE_ID']
+                    'metaTypeId' => $row['META_TYPE_ID'], 
+                    'description' => $row['DESCRIPTION']
                 ));
                 $positionLeft += 300;
             }
@@ -6072,6 +6075,34 @@ class Mdprocessflow_model extends Model {
         $metaData = $this->db->GetRow("SELECT TASKFLOW_TYPE FROM META_PROCESS_WORKFLOW WHERE MAIN_BP_ID = $idPh AND DO_BP_ID = $idPh", array($idPh2));
 
         return $metaData;
+    }
+    
+    public function getProcessflowDescriptionModel() {
+        $idPh1 = $this->db->Param(0);
+        $idPh2 = $this->db->Param(1);
+        
+        $mainBpId = Input::numeric('mainBpId');
+        $doBpId = Input::numeric('doBpId');
+        
+        $descr = $this->db->GetOne("SELECT DESCRIPTION FROM META_PROCESS_WORKFLOW WHERE MAIN_BP_ID = $idPh1 AND DO_BP_ID = $idPh2", [$mainBpId, $doBpId]);
+
+        return ['description' => $descr];
+    }
+    
+    public function updateProcessflowDescriptionModel() {
+        try {
+            
+            $mainBpId = Input::numeric('mainBpId');
+            $doBpId = Input::numeric('doBpId');
+            $description = Input::post('description');
+        
+            $this->db->AutoExecute('META_PROCESS_WORKFLOW', ['DESCRIPTION' => $description], 'UPDATE', "MAIN_BP_ID = $mainBpId AND DO_BP_ID = $doBpId");
+            $result = ['status' => 'success'];
+            
+        } catch (Exception $ex) {
+            $result = ['status' => 'error', 'message' => $ex->getMessage()];
+        }
+        return $result;
     }
     
 }

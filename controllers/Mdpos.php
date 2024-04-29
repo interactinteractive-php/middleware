@@ -3692,6 +3692,7 @@ class Mdpos extends Controller {
             'clientId' => Config::getFromCache('QPAY_V2_CLIENTID'),
             'clientSecret' => Config::getFromCache('QPAY_V2_CLIENTSECRET'),
             'amount' => Input::post('amount'),
+            'storeId' => $storeId,
             'invoice_code' => Config::getFromCache('QPAY_V2_INVOICECODE'),
             'sender_invoice_no' => $bill_no,
             'invoice_receiver_code' => $bill_no,
@@ -3718,10 +3719,13 @@ class Mdpos extends Controller {
     }    
     
     public function qpayCheckQrCode() {
+        $sPrefix        = SESSION_PREFIX;
+        $storeId        = Session::get($sPrefix.'storeId');        
         
         $params = [
             'clientId' => Config::getFromCache('QPAY_V2_CLIENTID'),
             'clientSecret' => Config::getFromCache('QPAY_V2_CLIENTSECRET'),
+            'storeId' => $storeId,
             'object_type' => 'INVOICE',
             'object_id' => Input::post('uuid')
         ];             

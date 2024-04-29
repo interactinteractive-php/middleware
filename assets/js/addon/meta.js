@@ -3898,7 +3898,7 @@ function workSpaceProcessList(metaDataId, groupMetaDataId) {
                 bgiframe: true,
                 autoOpen: false,
                 title: data.Title,
-                width: 800,
+                width: 900,
                 height: 655,
                 modal: true,
                 close: function() {

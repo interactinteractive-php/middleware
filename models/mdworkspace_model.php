@@ -876,15 +876,19 @@ class Mdworkspace_Model extends Model {
             SELECT 
                 MWPM.ID, 
                 MWPM.TARGET_META_ID,
+                MWPM.TARGET_INDICATOR_ID,
                 MD.META_DATA_NAME AS TARGET_META_NAME,
+                KP.NAME AS TARGET_INDICATOR_NAME,
                 MWPM.FIELD_PATH, 
                 MWPM.PARAM_PATH, 
                 MWPM.IS_TARGET 
             FROM META_WORKSPACE_PARAM_MAP MWPM 
-                INNER JOIN META_DATA MD ON MWPM.TARGET_META_ID = MD.META_DATA_ID 
+                LEFT JOIN META_DATA MD ON MWPM.TARGET_META_ID = MD.META_DATA_ID 
+                LEFT JOIN KPI_INDICATOR KP ON MWPM.TARGET_INDICATOR_ID = KP.ID  
             WHERE MWPM.WORKSPACE_META_ID = ".$this->db->Param(0)." 
                 AND MWPM.IS_TARGET = 1 
-            ORDER BY MWPM.TARGET_META_ID ASC", array($workSpaceMetaId));
+                AND (MD.META_DATA_ID IS NOT NULL OR KP.ID IS NOT NULL) 
+            ORDER BY MWPM.TARGET_META_ID ASC, MWPM.TARGET_INDICATOR_ID ASC", array($workSpaceMetaId));
 
         if (count($result) > 0) {
             foreach ($result as $k => $row) {
@@ -893,6 +897,7 @@ class Mdworkspace_Model extends Model {
                     $html .= '<td data-path="fieldPath">' . $row['FIELD_PATH'] . '</td>';
                     $html .= '<td data-path="paramPath" class="text-break">' . $row['PARAM_PATH'] . '</td>';
                     $html .= '<td data-path="targetMetaName">' . $row['TARGET_META_NAME'] . '</td>';
+                    $html .= '<td data-path="targetIndicatorName">' . $row['TARGET_INDICATOR_NAME'] . '</td>';
                     $html .= '<td>';
                         $html .= '<a href="javascript:;" class="btn blue btn-xs" onclick="editWorkSpaceProcess(this);"><i class="fa fa-edit"></i></a>';
                         $html .= '<a href="javascript:;" class="btn red btn-xs" onclick="deleteWorkSpaceProcess(this)"><i class="fa fa-trash"></i></a>';
@@ -909,16 +914,20 @@ class Mdworkspace_Model extends Model {
             SELECT 
                 MWPM.ID, 
                 MWPM.TARGET_META_ID,
+                MWPM.TARGET_INDICATOR_ID,
                 MD.META_DATA_CODE AS TARGET_META_CODE,
                 MD.META_DATA_NAME AS TARGET_META_NAME,
+                KP.CODE AS TARGET_INDICATOR_CODE,
+                KP.NAME AS TARGET_INDICATOR_NAME,
                 MWPM.FIELD_PATH, 
                 MWPM.PARAM_PATH, 
                 MWPM.IS_TARGET 
             FROM META_WORKSPACE_PARAM_MAP MWPM 
-                INNER JOIN META_DATA MD ON MWPM.TARGET_META_ID = MD.META_DATA_ID 
+                LEFT JOIN META_DATA MD ON MWPM.TARGET_META_ID = MD.META_DATA_ID 
+                LEFT JOIN KPI_INDICATOR KP ON MWPM.TARGET_INDICATOR_ID = KP.ID 
             WHERE MWPM.ID = ".$this->db->Param(0)." 
                 AND MWPM.IS_TARGET = 1 
-            ORDER BY MWPM.TARGET_META_ID ASC", array($rowId));
+            ORDER BY MWPM.TARGET_META_ID ASC, MWPM.TARGET_INDICATOR_ID ASC", array($rowId));
         
         return $row;
     }
@@ -932,7 +941,8 @@ class Mdworkspace_Model extends Model {
         $data = array(
             'ID' => getUID(),
             'WORKSPACE_META_ID' => $metaDataId,
-            'TARGET_META_ID' => Input::post('targetMetaId'),
+            'TARGET_META_ID' => Input::numeric('targetMetaId'),
+            'TARGET_INDICATOR_ID' => Input::numeric('targetIndicatorId'),
             'FIELD_PATH' => Input::post('fieldPath'),
             'PARAM_PATH' => Input::post('paramPath'),
             'IS_TARGET' => '1', 
@@ -955,6 +965,7 @@ class Mdworkspace_Model extends Model {
             
             $data = array(
                 'TARGET_META_ID' => Input::numeric('targetMetaId'),
+                'TARGET_INDICATOR_ID' => Input::numeric('targetIndicatorId'),
                 'FIELD_PATH'     => Input::post('fieldPath'),
                 'PARAM_PATH'     => Input::post('paramPath')
             );

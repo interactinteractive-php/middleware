@@ -375,7 +375,7 @@ class Mdprocessflow extends Controller {
         $object = $this->model->getObjectPositionListModel($mainBpId);
         if ($return) return $object;
         
-        echo json_encode($object, JSON_UNESCAPED_UNICODE);
+        convJson($object);
     }
 
     public function lastRunTaskFlow() {
@@ -1518,5 +1518,15 @@ class Mdprocessflow extends Controller {
         $response = $this->model->getTaskFlowTypeModel();
         jsonResponse($response);
     }    
+    
+    public function getProcessflowDescription() {
+        $response = $this->model->getProcessflowDescriptionModel();
+        convJson($response);
+    }
+    
+    public function updateProcessflowDescription() {
+        $response = $this->model->updateProcessflowDescriptionModel();
+        convJson($response);
+    }
     
 }

@@ -18,9 +18,10 @@
                 <thead>
                     <tr>
                         <th style="width: 29px; max-width: 29px;">#</th>
-                        <th style="width: 200px;">Field path</th>
-                        <th style="width: 200px;">Param path</th>
-                        <th style="width: 100%;">Target meta name</th>
+                        <th style="width: 180px;">Field path</th>
+                        <th style="width: 180px;">Param path</th>
+                        <th style="width: 50%;">Target meta name</th>
+                        <th style="width: 50%;">Target indicator name</th>
                         <th style="width: 80px;"></th>
                     </tr>
                     <tr class="bp-filter-row">
@@ -28,6 +29,7 @@
                         <th><input type="text" data-type-code="text" data-path-code="fieldPath"></th>
                         <th><input type="text" data-type-code="text" data-path-code="paramPath"></th>
                         <th><input type="text" data-type-code="text" data-path-code="targetMetaName"></th>
+                        <th><input type="text" data-type-code="text" data-path-code="targetIndicatorName"></th>
                         <th></th>
                     </tr>
                 </thead>

@@ -211,6 +211,35 @@ if ($this->filterData || $this->filterTreeData) {
 
                                 $html[] = '</div>
                                     </div>';
+                                
+                            } elseif ($showType == 'datetime') {
+
+                                $html[] = '<div class="col-md-6 pr-1">
+                                        <div class="form-group mb-1">';
+
+                                        $html[] = Form::text(array(
+                                            'class' => 'form-control dateminuteInit', 
+                                            'data-kpi-indicator-filter-between' => 'begin', 
+                                            'data-load-fnc' => $clickFnc, 
+                                            'placeholder' => 'min', 
+                                            'value' => $defaultValue
+                                        ));
+
+                                $html[] = '</div>
+                                    </div>    
+                                    <div class="col-md-6 pl-1">
+                                        <div class="form-group mb-1">';
+
+                                        $html[] = Form::text(array(
+                                            'class' => 'form-control dateminuteInit', 
+                                            'data-kpi-indicator-filter-between' => 'end', 
+                                            'data-load-fnc' => $clickFnc, 
+                                            'placeholder' => 'max', 
+                                            'value' => $defaultValue
+                                        ));
+
+                                $html[] = '</div>
+                                    </div>';
                             }
 
                             $html[] = '</div>';

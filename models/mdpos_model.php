@@ -1658,7 +1658,7 @@ class Mdpos_Model extends Model {
                 } else {
                     $unitVat = number_format($salePrice - $noVatPrice, 6, '.', '');
                 }*/
-                $unitVat = number_format($salePrice - $noVatPrice, 6, '.', '');
+                $unitVat = number_format($salePrice - $noVatPrice, 2, '.', '');
                 
             } elseif ($isVat == '1' && $isDiscount == '1') {
                 
@@ -1674,7 +1674,7 @@ class Mdpos_Model extends Model {
                     $unitVat = number_format($unitAmount - $noVatPrice, 6, '.', '');
                     
                 }*/
-                $unitVat = number_format($unitAmount - $noVatPrice, 6, '.', '');
+                $unitVat = number_format($unitAmount - $noVatPrice, 2, '.', '');
                 
                 $lineTotalAmount = $unitAmount * $itemQty;
                 $dtlUnitDiscount = $unitDiscount;
@@ -1891,7 +1891,7 @@ class Mdpos_Model extends Model {
             
             $sumVatAmount += $lineTotalVat;
             $sumCityTax += $lineTotalCityTaxAmount;
-            $lineTotalVat = number_format($lineTotalVat, 6, '.', '');
+            $lineTotalVat = number_format($lineTotalVat, 2, '.', '');
             
             $paramsDtl[$k] = array(
                 'itemId'                 => $itemId, 
@@ -7017,13 +7017,14 @@ class Mdpos_Model extends Model {
                     $response = array(
                         'status'          => 'success', 
                         'amount'          => $row['amount'], 
+                        'discountPercent' => $row['discountpercent'], 
                         'id'              => $row['id'], 
                         'typeId'          => $row['coupontypeid'], 
                         'beginamount'     => issetParamZero($row['beginamount']), 
                         'customername'    => issetParam($row['customername']), 
                         'lastname'        => issetParam($row['lastname']), 
                         'customerid'      => issetParam($row['customerid']), 
-                        'customercode'      => issetParam($row['customercode']), 
+                        'customercode'    => issetParam($row['customercode']), 
                         'stateregnumber'  => issetParam($row['stateregnumber'])
                     );
                     

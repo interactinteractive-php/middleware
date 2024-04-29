@@ -119,8 +119,8 @@ $sun = date("Y-m-d", strtotime(date("Y-m-d", $monday) . " +6 days"));
                                     <td class="w-120px text-right">
                                         <div class="list-icons">
                                             <div class="dropdown">
-                                                <a href="javascript:;" data-style="expand-right" data-spinner-color="#333" data-spinner-size="20" data-row="<?php echo $rowJson ?>" data-processid="<?php echo $renderAtom->renderAtomPath("position9", $this->positionConfig); ?>" class="cloud-call-process-action btn btn-light btn-ladda ladda-button btn-ladda-spinner btn-icon mr-1"><i class="icon-play4"></i></a>
-                                                <a href="javascript:;" data-style="expand-right" data-spinner-color="#333" data-spinner-size="20" data-row="<?php echo $rowJson ?>" data-processid="<?php echo $renderAtom->renderAtomPath("position10", $this->positionConfig); ?>" class="cloud-call-process-action btn btn-light btn-ladda ladda-button btn-ladda-spinner btn-icon"><i class="icon-stop2"></i></a>
+                                                <a href="javascript:;" data-style="expand-right" data-spinner-color="#333" data-spinner-size="20" data-row="<?php echo $rowJson ?>" data-processid="<?php echo $renderAtom->renderAtomPath("position9", $this->positionConfig); ?>" title="Хөгжүүлэлт эхлүүлэх" class="cloud-call-process-action btn btn-light btn-ladda ladda-button btn-ladda-spinner btn-icon mr-1"><i class="icon-play4"></i></a>
+                                                <a href="javascript:;" data-style="expand-right" data-spinner-color="#333" data-spinner-size="20" data-row="<?php echo $rowJson ?>" data-processid="<?php echo $renderAtom->renderAtomPath("position10", $this->positionConfig); ?>" title="Хөгжүүлэлт дуусгах" class="cloud-call-process-action btn btn-light btn-ladda ladda-button btn-ladda-spinner btn-icon"><i class="icon-stop2"></i></a>
                                             </div>
                                         </div>
                                     </td>

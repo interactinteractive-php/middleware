@@ -71,6 +71,9 @@ if (!$this->isAjax) {
     .wfcomplexbpWillWork .wfIcon {
         background: #e9e9e973 !important;
     }
+    .pflow-bp-descr {
+        color: orange;
+    }
 </style>
 
 <script type="text/javascript">

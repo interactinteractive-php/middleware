@@ -727,9 +727,9 @@ class Mdupgrade extends Controller {
     
     public function decryptFile() {
         includeLib('Compress/Compression');
-        $fileContent = Compression::gzinflate(file_get_contents('kpiindicator_169891009588310_20240207163249.txt'));
+        $fileContent = Compression::gzinflate(file_get_contents('kpiindicator_17122915297839_20240417200640.txt'));
         
-        file_put_contents('lms-decryptFile.txt', $fileContent);die;
+        file_put_contents('kpi-decryptFile.txt', $fileContent);die;
     }
     
     public function encryptFile() {

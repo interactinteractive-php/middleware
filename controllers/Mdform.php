@@ -65,6 +65,7 @@ class Mdform extends Controller {
     public static $isTrgAliasName = false;
     public static $isGetTrgAliasName = false;
     public static $isGetLookupRowData = false;
+    public static $isProductCheckPermission = false;
     public static $processParamData = [];
     public static $kpiDmDtlData = [];
     public static $kpiDmMart = [];
@@ -2236,15 +2237,15 @@ class Mdform extends Controller {
                 $this->view->filterData = $filterData['data'];
                 $this->view->filterTreeData = $filterData['treeData'];
 
-                $response = array(
+                $response = [
                     'status' => 'success', 
                     'html' => $this->view->renderPrint('kpi/indicator/filterForm', self::$viewPath)
-                );
+                ];
             } else {
                 $response = $filterData;
             }
 
-            jsonResponse($response);
+            convJson($response);
         }
     }
     
@@ -2612,6 +2613,13 @@ class Mdform extends Controller {
         echo json_encode($attrs, JSON_UNESCAPED_UNICODE);
     }
     
+    public function getKpiIndicatorHideAttrs() {
+        
+        $attrs = $this->model->getListKpiDataMartRelationConfigHideColsModel();
+        
+        echo json_encode($attrs, JSON_UNESCAPED_UNICODE);
+    }
+    
     public function getKpiDataMartRelationConfig() {
         $response = $this->model->getListKpiDataMartRelationConfigModel();
         
@@ -2670,6 +2678,12 @@ class Mdform extends Controller {
     
     public function updateRowDataMartRelationConfigTable() {
         $response = $this->model->updateRowDataMartRelationConfigTableModel(Input::numeric('mapId'));
+        
+        jsonResponse($response);
+    }
+    
+    public function updateHideRowDataMartRelationConfigTable() {
+        $response = $this->model->updateHideRowDataMartRelationConfigTableModel(Input::post('mapIds'));
         
         jsonResponse($response);
     }
@@ -6773,17 +6787,19 @@ class Mdform extends Controller {
         
         $content = self::indicatorList($this->view->indicatorDataId, true);
         
-        jsonResponse(array(
-            'Title'      => 'Сагсанд', 
-            'Html'       => $content['html'], 
-            'save_btn'   => $this->lang->line('save_btn'),
-            'close_btn'  => $this->lang->line('close_btn')
-        ));
+        convJson([
+            'Title'     => 'Сагсанд', 
+            'Html'      => $content['html'], 
+            'save_btn'  => $this->lang->line('save_btn'),
+            'close_btn' => $this->lang->line('close_btn')
+        ]);
     }
     
     public function mvProductRender() {
         
         $indicatorId = Input::numeric('indicatorId');
+        
+        Mdform::$isProductCheckPermission = true;
         $relationList = $this->model->getChildRenderStructureModel($indicatorId, [Mdform::$semanticTypes['normal'], Mdform::$semanticTypes['config']]);
         
         if ($relationList) {

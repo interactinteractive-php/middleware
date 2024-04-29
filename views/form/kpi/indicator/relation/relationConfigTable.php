@@ -8,11 +8,28 @@
                 </button>
             </div>
             <div class="heigh-editor-table">
-                <div class="css-editor" id="datamart-editor" style="height: 400px; position: relative;"></div>
+                <div class="css-editor" id="datamart-editor" style="height: 300px; position: relative;"></div>
             </div>
         </div>
     </div>
-    <div class="row editor-bottom-layout" style="border-top: 1px solid #ccc;">
+    <div class="row">
+        <div class="col">
+            <div class="d-flex justify-content-between" style="height: 35px;background-color: #F5F5F5;border-top: 1px solid #ccc;border-bottom: 1px solid #ccc;">
+                <div class="mt7 ml10" style="color:rgba(0,0,0,0.6)">
+                    <span class="show-indicator-column-count"></span> багана
+                </div>
+                <div>
+                    <button type="button" style="padding: 2px 5px 0px 7px;" class="btn dropdown-toggle mt5 mr10" data-toggle="dropdown" aria-expanded="true">
+                        <i class="fa fa-cog" style="color:rgba(0,0,0,0.6)"></i>
+                    </button>                                  
+                    <div class="dropdown-menu">              
+                        <a class="showHideStructureColumn dropdown-item" href="javascript:;">Нуусан багана харах</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row editor-bottom-layout">
         <div class="col" style="flex: 0 0 500px;border-right: 1px solid #ccc;">    
             <div class="editor-table-settings-area">
             </div>    
@@ -67,7 +84,7 @@
         border: 1px solid #333;
     }
     .editor-table-settings-area {
-        max-height: 315px;
+        max-height: 395px;
         overflow-y: auto;
     }
     #dialog-dmart-relationconfig-table {

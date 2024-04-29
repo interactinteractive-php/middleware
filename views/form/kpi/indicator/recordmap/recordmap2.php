@@ -36,7 +36,7 @@
 <style type="text/css">
 #kpi-component-<?php echo $this->componentUniqId; ?> .reldetail {
     margin-bottom: 8px;
-    height: 83px;
+    /*height: 83px;*/
     background-color: #f1f8e9; 
     border: 1px solid #e0e0e0;
 }

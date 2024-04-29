@@ -20934,6 +20934,7 @@ function appendItem(itemPostData, renderType, callback) {
 
         if (isConfigItemCheckDuplicate) {
           var $addedRow = $tbody.find('tr[data-item-code="' + concatItemName + '"]');
+          
           if (posTypeCode == "3") {
             $addedRow = $tbody.find(
               'tr[data-item-id-customer-id="' +
@@ -20944,7 +20945,8 @@ function appendItem(itemPostData, renderType, callback) {
             );
           }
 
-          if ($addedRow.length && itemPostData.hasOwnProperty("packageIdItem") && itemPostData.packageIdItem) {
+          //if ($addedRow.length && itemPostData.hasOwnProperty("packageIdItem") && itemPostData.packageIdItem) {
+          if ($addedRow.length) {
             var alreadyEndQty = isIgnoreEndQty ? 1000 : Number($addedRow.find('input[data-field-name="endQty"]').val());
             var qty = Number(
               $addedRow.find("input.pos-quantity-input").autoNumeric("get")

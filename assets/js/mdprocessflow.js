@@ -182,6 +182,91 @@ $(function() {
                 }
             }
             
+            contextMenuData.setDescription = {
+                name: 'Тайлбар', 
+                icon: 'sticky-note', 
+                callback: function(key, options) {
+                    
+                    $.ajax({
+                        type: 'post',
+                        url: 'mdprocessflow/getProcessflowDescription',
+                        data: {mainBpId: mainBpId, doBpId: doBpId}, 
+                        dataType: 'json',
+                        beforeSend: function () {
+                            Core.blockUI({message: 'Loading...', boxed: true});
+                        },
+                        success: function (data) {
+                            var $dialogName = 'dialog-bp-descr';
+                            if (!$("#" + $dialogName).length) {
+                                $('<div id="' + $dialogName + '"></div>').appendTo('body');
+                            }
+                            var $dialog = $('#' + $dialogName);
+                            var textarea = '<textarea class="form-control" rows="5" spellcheck="false">' + dvFieldValueShow(data.description) + '</textarea>';
+                            
+                            $dialog.html(textarea);
+                            $dialog.dialog({
+                                cache: false,
+                                resizable: true,
+                                bgiframe: true,
+                                autoOpen: false,
+                                title: plang.get('description'),
+                                width: '500',
+                                height: 'auto',
+                                modal: true,
+                                close: function () {
+                                    $dialog.empty().dialog('destroy').remove();
+                                },
+                                buttons: [
+                                    {text: plang.get('save_btn'), class: 'btn green-meadow btn-sm', click: function () {
+                                        
+                                        PNotify.removeAll();
+                                        var updateDescr = $dialog.find('textarea').val();
+                                        
+                                        $.ajax({
+                                            type: 'post',
+                                            url: 'mdprocessflow/updateProcessflowDescription',
+                                            data: {mainBpId: mainBpId, doBpId: doBpId, description: updateDescr}, 
+                                            dataType: 'json',
+                                            beforeSend: function () {
+                                                Core.blockUI({message: 'Loading...', boxed: true});
+                                            },
+                                            success: function (data) {
+                                                if (data.status == 'success') {
+                                                    if (updateDescr == '' || updateDescr == null) {
+                                                        $trigger.find('.pflow-bp-descr').remove();
+                                                    } else {
+                                                        if ($trigger.find('.pflow-bp-descr').length) {
+                                                            $trigger.find('.pflow-bp-descr').html(updateDescr);
+                                                        } else {
+                                                            $trigger.find('.iconText').after('<div class="pflow-bp-descr">'+updateDescr+'</div>');
+                                                        }
+                                                    }
+                                                } else {
+                                                    new PNotify({
+                                                        title: data.status,
+                                                        text: data.message,
+                                                        type: data.status,
+                                                        sticker: false
+                                                    });
+                                                }
+                                                Core.unblockUI();
+                                            }
+                                        });
+                                        
+                                        $dialog.dialog('close');
+                                    }},
+                                    {text: plang.get('close_btn'), class: 'btn blue-madison btn-sm', click: function () {
+                                        $dialog.dialog('close');
+                                    }}
+                                ]
+                            });
+                            $dialog.dialog('open');
+                            Core.unblockUI();
+                        }
+                    });
+                }
+            };
+            
             var options =  {
                 callback: function (key, opt) {
                     eval(key);
@@ -306,8 +391,12 @@ $(function() {
             html += '<div class="bp-code">' + (elem['type'] != 'circle' ? ' (' + elem['metaDataCode'] + ')' : '') + '</div>';
             html += '<div class="bp-name">' + elem['title'] + '</div>';
         }
-        
         html += '</span>';
+        
+        if (elem['description'] != '' && elem['description'] != null) {
+            html += '<div class="pflow-bp-descr">'+elem['description']+'</div>';
+        }
+        
         html += '<div class="connect"></div>' +
                 (elem['childProcess'] == '1' ? ' <div class="drill-down-icon"><i class="icon-plus3 font-size-12"></i></div>' : '') +
                 '<input type="hidden" data-boolentrueid="-1" data-boolenfalseid="-1" name="' + elem['id'] + '" id="metaDataBoolen' + elem['id'] + '">' +

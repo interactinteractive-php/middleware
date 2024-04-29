@@ -64,5 +64,22 @@ echo Form::hidden(array('name'=>'rowId', 'value'=>$this->rowId));
             </div>
         </div>
     </div>
+    <div class="form-group row fom-row">
+        <label class="col-md-2 col-form-label">Target indicator:</label>
+        <div class="col-md-10">
+            <div class="meta-autocomplete-wrap" data-section-path="targetIndicatorId">
+                <div class="input-group double-between-input">
+                    <input type="hidden" name="targetIndicatorId" value="<?php echo Arr::get($this->row, 'TARGET_INDICATOR_ID'); ?>" id="targetIndicatorId_valueField" data-path="targetIndicatorId" class="popupInit">
+                    <input type="text" name="targetIndicatorId_displayField" value="<?php echo Arr::get($this->row, 'TARGET_INDICATOR_CODE'); ?>" class="form-control form-control-sm meta-autocomplete lookup-code-autocomplete" data-field-name="targetIndicatorId" id="targetIndicatorId_displayField" data-processid="16424366405551" data-lookupid="16424911273171" placeholder="кодоор хайх" autocomplete="off">
+                    <span class="input-group-btn">
+                        <button type="button" class="btn default btn-bordered btn-xs mr-0" onclick="dataViewSelectableGrid('targetIndicatorId', '16424366405551', '16424911273171', 'single', 'targetIndicatorId', this);" tabindex="-1"><i class="far fa-search"></i></button>
+                    </span>
+                    <span class="input-group-btn">
+                        <input type="text" name="targetIndicatorId_nameField" value="<?php echo Arr::get($this->row, 'TARGET_INDICATOR_NAME'); ?>" class="form-control form-control-sm meta-name-autocomplete lookup-name-autocomplete" data-field-name="targetIndicatorId" id="targetIndicatorId_nameField" data-processid="16424366405551" data-lookupid="16424911273171" placeholder="нэрээр хайх">
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 <?php echo Form::close(); ?>

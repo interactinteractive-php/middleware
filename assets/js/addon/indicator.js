@@ -2400,7 +2400,11 @@ function kpiIndicatorGoogleMapViewLoad(indicatorId, data, map) {
                     </div>\n\
                 </div>');
                 indicatorPolygon.addListener('click', function(event) {
-                  $('div[data-id="'+row.SEGMENTATION_ID+'"]').find('.edit_polygon_btn').trigger('click');
+                    $('div[data-id="'+row.SEGMENTATION_ID+'"]').find('.edit_polygon_btn').trigger('click');                    
+                    var contentString = "name:" + row.SEGMENTATION_ID;
+                    infowindow.setContent(contentString);
+                    infowindow.setPosition(event.latLng);
+                    infowindow.open(map);                  
                 });                
             } catch(e) {}
         //}
@@ -4427,7 +4431,7 @@ function getKpiIndicatorFilterData(elem, parent) {
                     filterData[colName] = [{begin: beginNumber, end: endNumber}];
                 }
                 
-            } else if ($begin.hasClass('dateInit') && ($begin.val() != '' && $end.val() != '')) {
+            } else if (($begin.hasClass('dateInit') || $begin.hasClass('dateminuteInit')) && ($begin.val() != '' && $end.val() != '')) {
                 
                 var beginDate = $begin.val();
                 var endDate = $end.val();
@@ -7522,7 +7526,7 @@ $(function() {
         }
     });
     
-    $(document.body).on('changeDate', '[data-kpi-indicator-filter-between]', function() {
+    $(document.body).on('changeDate', '[data-kpi-indicator-filter-between]:not(.dateminuteInit)', function() {
         var _this = this, 
             $this = $(_this), 
             loadFunction = $this.attr('data-load-fnc');
@@ -7532,7 +7536,7 @@ $(function() {
         }
     });
     
-    $(document.body).on('change', 'div[data-named-param] input:not(.dateInit)', function() {
+    $(document.body).on('change', 'div[data-named-param] input:not(.dateInit, .dateminuteInit)', function() {
         var _this = this, 
             $this = $(_this), 
             loadFunction = $this.closest('[data-named-param]').attr('data-load-fnc');

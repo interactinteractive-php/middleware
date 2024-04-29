@@ -43,8 +43,9 @@ $(function () {
     }
     ?>
     
+    panelDv_<?php echo $this->uniqId; ?>.find('a[data-listmetadataid]:not(.click-disabled)').off('click');
     panelDv_<?php echo $this->uniqId; ?>.on('click', 'a[data-listmetadataid]:not(.click-disabled)', function() {
-
+        
         var $this         = $(this);
         var rowId         = $this.data('id');
         var $parent       = $this.parent();
@@ -92,7 +93,7 @@ $(function () {
         }
 
         if (isChild) {
-
+            
             if ($parent.hasClass('nav-item-open')) {
                 
                 $parent.removeClass('nav-item-open');
@@ -104,7 +105,9 @@ $(function () {
             }
 
             if ($parent.find('.nav-group-sub').length == 0) {
-
+                
+                console.log(7);
+                
                 $.ajax({
                     type: 'post',
                     url: 'mdobject/dvPanelChildDataList',
@@ -165,7 +168,7 @@ $(function () {
             } else {
 
                 $parent.addClass('nav-item-open');
-                $parent.find('> .nav-group-sub:eq(0)').show();
+                $parent.find('.nav-group-sub:eq(0)').show();
                 
                 $this.removeClass('click-disabled');
             }   

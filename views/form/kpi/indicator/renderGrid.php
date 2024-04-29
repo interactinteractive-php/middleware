@@ -330,6 +330,14 @@ $(function() {
         queryParams.mapSrcMapId = checkListRowJson.mapId;
         queryParams.mapSelectedRow = $checkListParent.find('input[data-path="headerParams"]').val();
     }
+    
+    var $workspaceParent = objectdatagrid_<?php echo $this->indicatorId; ?>.closest('div.ws-area');
+    
+    if ($workspaceParent.length) {
+        var workSpaceIdAttr = $workspaceParent.attr('id').split('-');
+        queryParams.workSpaceId = workSpaceIdAttr[2];
+        queryParams.workSpaceParams = decodeURIComponent($workspaceParent.find('div.ws-hidden-params input[type=hidden]').serialize());
+    }
         
     objectdatagrid_<?php echo $this->indicatorId; ?>.<?php echo $this->isGridType; ?>({
         <?php
