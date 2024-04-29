@@ -204,6 +204,7 @@ var mvFileReaderExtention = '';
 var mvFileWorkbook;
 var mvFileRowsData;
 var mvFileFirstRow;
+var mvFileFirstData;
 var mvFileIsImportManage = <?php echo $this->isImportManage; ?>;
     
 $(function() {
@@ -262,6 +263,7 @@ function mvFileToHtmlTable(isInputRead) {
     setTimeout(function() {
         
         var skipColumns = Number($form.find('input[name="skipColumns"]').val());
+        var skipRows = Number($form.find('input[name="skipRows"]').val());
         
         if (mvFileReaderExtention == 'txt') {
             
@@ -293,6 +295,8 @@ function mvFileToHtmlTable(isInputRead) {
             var getSheet = mvFileWorkbook.Sheets[$form.find('select[name="sheetNames"]').val()];
             var sheetRange = XLSX.utils.decode_range(getSheet['!ref']);
             
+            mvFileFirstData = getSheet['!data'][skipRows + 1];
+            
             sheetRange.s.r = 0; //start row
             sheetRange.s.c = skipColumns; //start column
             getSheet['!ref'] = XLSX.utils.encode_range(sheetRange);
@@ -306,7 +310,6 @@ function mvFileToHtmlTable(isInputRead) {
 
             var delimiter = $form.find('select[name="delimiter"]').val(), 
                 previewRowLimit = Number($form.find('input[name="previewRowLimit"]').val()),
-                skipRows = Number($form.find('input[name="skipRows"]').val()),
                 isHeader = $form.find('#headerCheckBox').is(':checked'), 
                 rowData, n = 1, htmlTbl = [], firstKey = 0;
                 

@@ -5990,7 +5990,8 @@ function createMvStructureFromFile(elem, dataViewId, opts) {
 
                                     var delimiter = $form.find('select[name="delimiter"]').val(), 
                                         isHeader = $form.find('#headerCheckBox').is(':checked'), 
-                                        skipRows = Number($form.find('input[name="skipRows"]').val());
+                                        skipRows = Number($form.find('input[name="skipRows"]').val()), 
+                                        skipColumns = Number($form.find('input[name="skipColumns"]').val());
 
                                     var rowsLength = mvFileRowsData.length;
 
@@ -6016,21 +6017,43 @@ function createMvStructureFromFile(elem, dataViewId, opts) {
                                                 var secondRow = (mvFileRowsData[0]).split(delimiter);
                                             } else {
                                                 var secondRow = mvFileRowsData[0];
+                                                var getTypesRow = mvFileFirstData;
                                             }
 
                                             for (var f in mvFileFirstRow) {
                                                 var cellValue = (secondRow.hasOwnProperty(f)) ? (secondRow[f]).trim() : '';
                                                 var showType = 'text';
                                                 
-                                                if (!isImportManage && cellValue != '') {
+                                                if (!isImportManage && mvFileReaderExtention == 'txt' && cellValue != '') {
                                                     if (moment(cellValue, 'YYYY-MM-DD', true).isValid()) {
                                                         showType = 'date';
                                                     } else if (Number(cellValue) >= 0 || Number(cellValue) < 0) {
                                                         showType = 'bigdecimal';
                                                     }
+                                                } else if (isContextMenu && (mvFileReaderExtention == 'xls' || mvFileReaderExtention == 'xlsx')) {
+                                                    
+                                                    if (skipColumns > 0) {
+                                                        var getCellType = getTypesRow[Number(f) + skipColumns];
+                                                    } else {
+                                                        var getCellType = getTypesRow[f];
+                                                    }
+                                                    
+                                                    var t = getCellType.t, w = getCellType.w;
+                                                    
+                                                    if (t == 'd') {
+                                                        showType = 'date';
+                                                    } else if (t == 's') {
+                                                        showType = 'text';
+                                                    } else if (t == 'n') {
+                                                        if (w.indexOf('.') !== -1) {
+                                                            showType = 'bigdecimal';
+                                                        } else {
+                                                            showType = 'number';
+                                                        }
+                                                    }
                                                 }
 
-                                                headerData.push({'labelName': mvFileFirstRow[f], 'showType': showType});
+                                                headerData.push({'labelName': (mvFileFirstRow[f]).trim(), 'showType': showType});
                                             }
 
                                         } else {
