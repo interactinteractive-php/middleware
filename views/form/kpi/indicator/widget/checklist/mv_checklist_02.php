@@ -267,7 +267,7 @@ $renderType = $this->methodRow['RENDER_THEME'];
     font-family: Arial, Helvetica, sans-serif;
 }
 .mv-checklist2-render-parent .jeasyuiTheme3 .datagrid-htable .datagrid-header-row:not(.datagrid-filter-row) {
-    height: 71px !important;
+    height: 35px !important;
 }
 .mv-checklist2-render-parent .jeasyuiTheme3 .datagrid-header .datagrid-cell span, 
 .mv-checklist2-render-parent .jeasyuiTheme3 .datagrid-view .datagrid-cell-group {
