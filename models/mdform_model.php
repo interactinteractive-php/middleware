@@ -18278,6 +18278,8 @@ class Mdform_Model extends Model {
                     $trgShowType       = $col['TRG_SHOW_TYPE'];
                     $semanticTypeName  = $col['SEMANTIC_TYPE_NAME'];
                     
+                    if ($srcColumnName == 'ID') continue;
+                    
                     if (!$expressionString && $trgAliasName && $trgColumnName) {
 
                         if ($aggregateFunction) {
@@ -22259,7 +22261,7 @@ class Mdform_Model extends Model {
                         );
                         $this->db->AutoExecute('KPI_INDICATOR_INDICATOR_MAP', $data);            
 
-                        if ($row['KPI_DATAMODEL_MAP_KEY_DTL']) {
+                        if (issetParam($row['KPI_DATAMODEL_MAP_KEY_DTL'])) {
                             $mapId = $data['ID'];
                             $data = [];
                             foreach ($row['KPI_DATAMODEL_MAP_KEY_DTL'] as $rowKeyMap => $rowMap) {

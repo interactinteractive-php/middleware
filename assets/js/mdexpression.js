@@ -5647,10 +5647,19 @@ function setLookupPopupValue(element, valId) {
             $parent.find("input[id*='_displayField']").val('').attr('title', '');
             return;
         }
+        
+        var lookupUrl = 'mdobject/autoCompleteById';
+        var $valueField = $parent.find("input[id*='_valueField']");
+        var isMvLookup = false;
+
+        if ($valueField.attr('name').indexOf('mvParam[') !== -1) {    
+            lookupUrl = 'mdform/autoCompleteById';
+            isMvLookup = true;
+        }
 
         $.ajax({
             type: 'post',
-            url: 'mdobject/autoCompleteById',
+            url: lookupUrl,
             data: {
                 processMetaDataId: _processId,
                 lookupId: _lookupId,
@@ -5706,9 +5715,14 @@ function setLookupPopupValue(element, valId) {
                 }
 
                 if (data.META_VALUE_ID !== '') {
+                    if (isMvLookup) {
+                        rowData = Object.fromEntries(
+                            Object.entries(rowData).map(([key, val]) => [key.toLowerCase(), val])
+                        );
+                    }
                     var jsonStr = JSON.stringify(rowData).replace(/&quot;/g, '\\&quot;');
-                    $parent.find("input[id*='_valueField']").val(data.META_VALUE_ID).attr('data-row-data', jsonStr);                    
-                    if ($this.hasClass('combogridInit')) {                        
+                    $valueField.val(data.META_VALUE_ID).attr('data-row-data', jsonStr);                    
+                    if ($this.hasClass('combogridInit')) { 
                         $parent.find("input[id*='_displayField']").val(data.META_VALUE_NAME).attr('title', data.META_VALUE_NAME);
                     } else {
                         $parent.find("input[id*='_displayField']").val(data.META_VALUE_CODE).attr('title', data.META_VALUE_CODE);
@@ -5716,7 +5730,7 @@ function setLookupPopupValue(element, valId) {
                     }
                 } else {
                     $parent.find("input[id*='_valueField']:not(:eq(0))").remove();
-                    $parent.find("input[id*='_valueField']").val('');
+                    $valueField.val('');
                     $parent.find("input[id*='_nameField']").val('').attr('title', '');
                     $parent.find("input[id*='_displayField']").val('').attr('title', '');
                 }

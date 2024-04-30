@@ -1452,7 +1452,7 @@ function kpiDataMartFillEditor(metaDataCode, processMetaDataId, chooseType, elem
     }
     
     if ($editor.find('.wfposition').length == 1) {
-        setKpiDataMartAliasCombo($editor);
+        setKpiDataMartAliasCombo($editor);        
     }
 }
 function kpiDataMartAddObjectTable(elem) {
@@ -1508,6 +1508,7 @@ function kpiDataMartFillEditorTable(metaDataCode, processMetaDataId, chooseType,
     
     if ($editor.find('.wfposition').length == 1) {
         setKpiDataMartAliasCombo($editor);
+        saveKpiDataMartRelationConfig();
     }
 }
 function setKpiDataMartVisualObjects($editor, objects, graphJson, isReadonly) {

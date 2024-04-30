@@ -1756,1501 +1756,1507 @@ class Mdmetadata_Model extends Model {
     }
     
     public function updateMetaSystemModuleModel() {
-
-        $metaDataId = Input::numeric('metaDataId');
         
-        if (!$metaDataId) {
-            return array('status' => 'error', 'message' => 'Invalid id!');
-        }
+        try {
         
-        $sessionUserId = Ue::sessionUserId();
-        $metaTypeId = Input::numeric('META_TYPE_ID', Input::numeric('meta_type_id'));
+            $metaDataId = Input::numeric('metaDataId');
         
-        $checkLock = self::checkMetaLock($metaDataId, $sessionUserId, $metaTypeId);
-
-        if ($checkLock) {
-            return $checkLock;
-        }
-
-        if (Input::postCheck('metaDataCode')) {
-            
-            $metaDataCode = Input::post('metaDataCode');
-
-            if (self::checkMetaDataCodeByUpdateModel($metaDataId, $metaDataCode)) {
-                return array('status' => 'error', 'message' => 'Үзүүлэлтийн код давхардаж байна.', 'fieldName' => 'metaDataCode');
+            if (!$metaDataId) {
+                return array('status' => 'error', 'message' => 'Invalid id!');
             }
-            
-        } else {
-            return array('status' => 'error', 'message' => 'Буруу хандалт байна.');
-        }
-        
-        if ($metaTypeId == Mdmetadata::$businessProcessMetaTypeId) {
-            
-            $methodName = Input::post('methodName');
-            $oldMethodName = Input::post('oldMethodName');
-            
-            if (!in_array(strtolower($oldMethodName), Mdmetadata::$ignoreMethodNames) && in_array(strtolower($methodName), Mdmetadata::$ignoreMethodNames) && $sessionUserId != '144617860666271' && $sessionUserId != '1453998999913') {
-                return array('status' => 'error', 'message' => 'Засах боломжгүй процесс байна! Та бүтээгдэхүүн хөгжүүлэлтийн хэлтэсийн захиралд хандана уу.');
+
+            $sessionUserId = Ue::sessionUserId();
+            $metaTypeId = Input::numeric('META_TYPE_ID', Input::numeric('meta_type_id'));
+
+            $checkLock = self::checkMetaLock($metaDataId, $sessionUserId, $metaTypeId);
+
+            if ($checkLock) {
+                return $checkLock;
             }
-        }
-        
-        if (!self::checkIgnoreMetaTypeModel($metaTypeId, $metaDataId)) {
-            return array('status' => 'error', 'message' => 'Танд эрх олгогдоогүй байна.');
-        }
 
-        $data = array(
-            'META_DATA_NAME' => Input::post('META_DATA_NAME'),
-            'DESCRIPTION' => Input::post('DESCRIPTION'),
-            'META_TYPE_ID' => $metaTypeId,
-            'META_ICON_ID' => Input::post('metaIconId'),
-            'ICON_NAME' => Input::post('metaIconName'),
-            'MODIFIED_USER_ID' => $sessionUserId,
-            'MODIFIED_DATE' => Date::currentDate('Y-m-d H:i:s')
-        );
+            if (Input::postCheck('metaDataCode')) {
 
-        if (isset($metaDataCode)) {
-            $data['META_DATA_CODE'] = $metaDataCode;
-        }
+                $metaDataCode = Input::post('metaDataCode');
 
-        $result = $this->db->AutoExecute('META_DATA', $data, 'UPDATE', 'META_DATA_ID = ' . $metaDataId);
-
-        if ($result) {
-            
-            $oldMetaTypeId = Input::numeric('oldMetaTypeId', $metaTypeId);
-            $folderId = null;
-            
-            if (Input::post('isFolderManage') == '1') {
-                
-                self::clearMetaFolderMap($metaDataId);
-
-                if (Input::postCheck('folderId')) {
-                    foreach ($_POST['folderId'] as $folderId) {
-                        if (!empty($folderId)) {
-                            $dataFolder = array(
-                                'ID' => getUID(),
-                                'FOLDER_ID' => Input::param($folderId),
-                                'META_DATA_ID' => $metaDataId
-                            );
-                            $this->db->AutoExecute('META_DATA_FOLDER_MAP', $dataFolder);
-                        }
-                    }
+                if (self::checkMetaDataCodeByUpdateModel($metaDataId, $metaDataCode)) {
+                    return array('status' => 'error', 'message' => 'Үзүүлэлтийн код давхардаж байна.', 'fieldName' => 'metaDataCode');
                 }
-                
-            } elseif (Input::postCheck('folderId')) {
-                $folderIds = Input::post('folderId');
-                $folderId = end($folderIds);
+
+            } else {
+                return array('status' => 'error', 'message' => 'Буруу хандалт байна.');
             }
-            
-            if (Input::post('isTagsManage') == '1') {
-                
-                self::clearMetaTagMap($metaDataId);
-
-                if (Input::postCheck('tagId')) {
-                    foreach ($_POST['tagId'] as $tagId) {
-                        if (!empty($tagId)) {
-                            $dataTag = array(
-                                'ID' => getUID(),
-                                'TAG_ID' => Input::param($tagId),
-                                'META_DATA_ID' => $metaDataId
-                            );
-                            $this->db->AutoExecute('META_TAG_MAP', $dataTag);
-                        }
-                    }
-                }
-            }
-            
-            if (Input::post('isChildMetaManage') == '1') {
-                
-                self::clearMetaMetaMap($metaDataId);
-
-                if (Input::postCheck('childMetaDataId')) {
-                    $childMetaDatas = Input::post('childMetaDataId');
-
-                    foreach ($childMetaDatas as $ck => $childMetaDataId) {
-                        if (!empty($childMetaDataId)) {
-
-                            $dataChildData = array(
-                                'ID' => getUID(),
-                                'SRC_META_DATA_ID' => $metaDataId,
-                                'TRG_META_DATA_ID' => $childMetaDataId,
-                                'ORDER_NUM' => ($ck + 1),
-                                'PARAM_CODE' => $childMetaDataId
-                            );
-
-                            if (isset($_POST['mapSecondOrderNum'][$ck])) {
-                                $dataChildData['SECOND_ORDER_NUM'] = Input::param($_POST['mapSecondOrderNum'][$ck]);
-                            }
-
-                            $this->db->AutoExecute('META_META_MAP', $dataChildData);
-                        }
-                    }
-                }
-            }
-            
-            if (Input::post('isMetaBugFixManage') == '1') {
-                
-                self::clearMetaBugFixDtl($metaDataId);
-
-                if (Input::postCheck('childMetaBugFixId')) {
-                    $childMetaBugFixIds = Input::post('childMetaBugFixId');
-
-                    foreach ($childMetaBugFixIds as $bf => $childMetaBugFixId) {
-                        if (!empty($childMetaBugFixId)) {
-
-                            $dataBugFix = array(
-                                'ID' => getUIDAdd($bf),
-                                'META_BUG_FIXING_ID' => $childMetaBugFixId,
-                                'META_DATA_ID' => $metaDataId, 
-                                'TYPE_ID' => 1
-                            );
-
-                            $this->db->AutoExecute('META_BUG_FIXING_DTL', $dataBugFix);
-                        }
-                    }
-                }
-            }
-                
-            if ($metaTypeId == Mdmetadata::$proxyMetaTypeId) {
-                
-                self::clearMetaProxyMap($metaDataId);
-
-                if (Input::postCheck('proxyChildMetaDataId')) {
-                    
-                    $proxyChildMetaDatas = Input::post('proxyChildMetaDataId');
-                    $isDefaultMap = Input::post('isDefaultMap');
-                    
-                    foreach ($proxyChildMetaDatas as $ck => $proxyChildMetaDataId) {
-                        if (!empty($proxyChildMetaDataId)) {
-                            $dataChildData = array(
-                                'ID' => getUID(),
-                                'SRC_META_DATA_ID' => $metaDataId,
-                                'TRG_META_DATA_ID' => $proxyChildMetaDataId, 
-                                'IS_DEFAULT' => ($proxyChildMetaDataId == $isDefaultMap) ? 1 : 0, 
-                                'ORDER_NUM' => ($ck + 1)
-                            );
-                            $this->db->AutoExecute('META_PROXY_MAP', $dataChildData);
-                        }
-                    }
-                }
-            } 
-
-            if ($metaTypeId == Mdmetadata::$bookmarkMetaTypeId) {
-                $dataObject = array(
-                    'META_BOOKMARK_LINK_ID' => getUID(),
-                    'META_DATA_ID' => $metaDataId,
-                    'BOOKMARK_URL' => Input::post('SYS_BOOKMARK_NAME'),
-                    'TARGET' => Input::post('SYS_BOOKMARK_TARGET')
-                );
-                if (self::isExistsMetaLink('META_BOOKMARK_LINKS', 'META_DATA_ID', $metaDataId, 'META_BOOKMARK_LINK_ID')) {
-                    unset($dataObject['META_BOOKMARK_LINK_ID']);
-                    $this->db->AutoExecute('META_BOOKMARK_LINKS', $dataObject, 'UPDATE', 'META_DATA_ID = ' . $metaDataId);
-                } else {
-                    $this->db->AutoExecute('META_BOOKMARK_LINKS', $dataObject);
-                }
-            } 
 
             if ($metaTypeId == Mdmetadata::$businessProcessMetaTypeId) {
 
-                $inputMetaDataId = Input::post('inputMetaDataId');
-                
-                $dataBusinessProcess = array(
-                    'ID' => $metaDataId,
-                    'META_DATA_ID' => $metaDataId,
-                    'CLASS_NAME' => Input::post('className'),
-                    'METHOD_NAME' => $methodName,
-                    'INPUT_META_DATA_ID' => $inputMetaDataId,
-                    'OUTPUT_META_DATA_ID' => Input::post('outputMetaDataId'),
-                    'SERVICE_LANGUAGE_ID' => Input::post('serviceLanguageId'),
-                    'WS_URL' => Input::post('wsUrl'),
-                    'SUB_TYPE' => Input::post('bp_process_type')
-                );
+                $methodName = Input::post('methodName');
+                $oldMethodName = Input::post('oldMethodName');
 
-                if (Input::post('bp_process_type') == 'external') {
-                    $dataBusinessProcess['ACTION_TYPE'] = Input::post('external_action_type');
-                } else {
-
-                    $action_type = Input::post('action_type');
-                    $action_type = ($action_type == 'duplicate' ? 'get' : $action_type);
-                    
-                    $dataBusinessProcess['ACTION_TYPE'] = $action_type;
-                    $dataBusinessProcess['SYSTEM_META_GROUP_ID'] = Input::post('systemMetaGroupId');
+                if (!in_array(strtolower($oldMethodName), Mdmetadata::$ignoreMethodNames) && in_array(strtolower($methodName), Mdmetadata::$ignoreMethodNames) && $sessionUserId != '144617860666271' && $sessionUserId != '1453998999913') {
+                    return array('status' => 'error', 'message' => 'Засах боломжгүй процесс байна! Та бүтээгдэхүүн хөгжүүлэлтийн хэлтэсийн захиралд хандана уу.');
                 }
-                
-                $dataBusinessProcess['THEME'] = Input::post('groupTheme');
-                $dataBusinessProcess['PROCESS_NAME'] = Input::post('processName');
-                $dataBusinessProcess['ACTION_BTN'] = Input::post('methodActionBtn');
-                $dataBusinessProcess['COLUMN_COUNT'] = Input::post('columnCount');
-                $dataBusinessProcess['TAB_COLUMN_COUNT'] = Input::post('tabColumnCount');
-                $dataBusinessProcess['LABEL_WIDTH'] = Input::post('labelWidth');
-                $dataBusinessProcess['WINDOW_HEIGHT'] = Input::post('windowHeight');
-                $dataBusinessProcess['WINDOW_SIZE'] = Input::post('windowSize');
-                $dataBusinessProcess['WINDOW_TYPE'] = Input::post('windowType');
-                $dataBusinessProcess['WINDOW_WIDTH'] = Input::post('windowWidth');
-                $dataBusinessProcess['IS_TREEVIEW'] = Input::postCheck('isTreeview') ? 1 : null;
-                $dataBusinessProcess['IS_ADDON_PHOTO'] = Input::postCheck('isAddOnPhotoRequired') ? 2 : (Input::postCheck('isAddOnPhoto') ? 1 : null);
-                $dataBusinessProcess['IS_ADDON_FILE'] = Input::postCheck('isAddOnFileRequired') ? 2 : (Input::postCheck('isAddOnFile') ? 1 : null);
-                $dataBusinessProcess['IS_ADDON_COMMENT'] = Input::postCheck('isAddOnCommentRequired') ? 2 : (Input::postCheck('isAddOnComment') ? 1 : null);
-                $dataBusinessProcess['IS_ADDON_COMMENT_TYPE'] = Input::post('isAddOnCommentType');
-                $dataBusinessProcess['IS_ADDON_LOG'] = Input::postCheck('isAddOnLogRequired') ? 2 : (Input::postCheck('isAddOnLog') ? 1 : null);
-                $dataBusinessProcess['IS_ADDON_RELATION'] = Input::postCheck('isAddonRelationRequired') ? 2 : (Input::postCheck('isAddonRelation') ? 1 : null);
-                $dataBusinessProcess['IS_ADDON_MV_RELATION'] = Input::postCheck('isAddonMvRelationRequired') ? 2 : (Input::postCheck('isAddonMvRelation') ? 1 : null);
-                $dataBusinessProcess['IS_ADDON_WFM_LOG'] = Input::postCheck('isAddonWfmLog') ? 1 : null;
-                $dataBusinessProcess['IS_ADDON_WFM_LOG_TYPE'] = Input::post('isAddonWfmLogType');
-                $dataBusinessProcess['REF_META_GROUP_ID'] = Input::post('refMetaGroupId');
-                $dataBusinessProcess['GETDATA_PROCESS_ID'] = Input::post('getDataProcessId');
-                $dataBusinessProcess['THEME_CODE'] = Input::post('themeCode');
-                $dataBusinessProcess['SKIN'] = Input::post('skin');
-                $dataBusinessProcess['RUN_MODE'] = Input::post('runMode');
-                $dataBusinessProcess['HELP_CONTENT_ID'] = Input::post('helpContentId');
-                $dataBusinessProcess['IS_SHOW_PREVNEXT'] = Input::postCheck('isShowPrevNext') ? 1 : null;
-                $dataBusinessProcess['IS_WIDGET'] = Input::postCheck('isWidget') ? 1 : null;
-                $dataBusinessProcess['IS_TOOLS_BTN'] = Input::postCheck('isToolsBtn') ? 1 : null;
-                $dataBusinessProcess['IS_BPMN_TOOL'] = Input::postCheck('isBpmnTool') ? 1 : null;
-                $dataBusinessProcess['IS_SAVE_VIEW_LOG'] = Input::postCheck('isSaveViewLog') ? 1 : null;
-                $dataBusinessProcess['MOBILE_THEME'] = Input::post('mobileTheme');
-                $dataBusinessProcess['WORKIN_TYPE'] = Input::post('workinType');
-                $dataBusinessProcess['IS_RULE'] = Input::post('isRule');
-                $dataBusinessProcess['IS_OFFLINE_MODE'] = Input::post('isOfflineMode');
-                $dataBusinessProcess['JSON_CONFIG'] = Input::post('jsonConfig');
+            }
 
-                if (self::isExistsMetaLink('META_BUSINESS_PROCESS_LINK', 'META_DATA_ID', $metaDataId)) {
-                    unset($dataBusinessProcess['ID']);
-                    $processLinkResult = $this->db->AutoExecute('META_BUSINESS_PROCESS_LINK', $dataBusinessProcess, 'UPDATE', 'META_DATA_ID = ' . $metaDataId);
-                } else {
-                    $processLinkResult = $this->db->AutoExecute('META_BUSINESS_PROCESS_LINK', $dataBusinessProcess);
-                }
+            if (!self::checkIgnoreMetaTypeModel($metaTypeId, $metaDataId)) {
+                return array('status' => 'error', 'message' => 'Танд эрх олгогдоогүй байна.');
+            }
 
-                if (Input::postCheck('fullExpressionString_set')) {
-                    $expressionConfig = $this->getBPFullExpressionDefaultVersionModel($metaDataId);
+            $data = array(
+                'META_DATA_NAME' => Input::post('META_DATA_NAME'),
+                'DESCRIPTION' => Input::post('DESCRIPTION'),
+                'META_TYPE_ID' => $metaTypeId,
+                'META_ICON_ID' => Input::post('metaIconId'),
+                'ICON_NAME' => Input::post('metaIconName'),
+                'MODIFIED_USER_ID' => $sessionUserId,
+                'MODIFIED_DATE' => Date::currentDate('Y-m-d H:i:s')
+            );
 
-                    if ($expressionConfig) {
+            if (isset($metaDataCode)) {
+                $data['META_DATA_CODE'] = $metaDataCode;
+            }
 
-                        $this->db->UpdateClob('META_BP_EXPRESSION_DTL', 'EVENT_EXPRESSION_STRING', Input::paramWithDoubleSpace($_POST['fullExpressionString_set']), 'ID = ' . $expressionConfig['CONFIG_ID']); 
-                        $this->db->UpdateClob('META_BP_EXPRESSION_DTL', 'LOAD_EXPRESSION_STRING', Input::paramWithDoubleSpace($_POST['fullExpressionOpenCriteria_set']), 'ID = ' . $expressionConfig['CONFIG_ID']); 
-                        $this->db->UpdateClob('META_BP_EXPRESSION_DTL', 'VAR_FNC_EXPRESSION_STRING', Input::paramWithDoubleSpace($_POST['fullExpressionStringVarFnc_set']), 'ID = ' . $expressionConfig['CONFIG_ID']); 
+            $result = $this->db->AutoExecute('META_DATA', $data, 'UPDATE', 'META_DATA_ID = ' . $metaDataId);
 
-                        $afterSave = '';
+            if ($result) {
 
-                        if (!empty($_POST['fullExpressionStringAfterSave_set'])) {
-                            $afterSave = "\n".'startAfterSave '.Input::paramWithDoubleSpace($_POST['fullExpressionStringAfterSave_set']).' endAfterSave';
+                $oldMetaTypeId = Input::numeric('oldMetaTypeId', $metaTypeId);
+                $folderId = null;
+
+                if (Input::post('isFolderManage') == '1') {
+
+                    self::clearMetaFolderMap($metaDataId);
+
+                    if (Input::postCheck('folderId')) {
+                        foreach ($_POST['folderId'] as $folderId) {
+                            if (!empty($folderId)) {
+                                $dataFolder = array(
+                                    'ID' => getUID(),
+                                    'FOLDER_ID' => Input::param($folderId),
+                                    'META_DATA_ID' => $metaDataId
+                                );
+                                $this->db->AutoExecute('META_DATA_FOLDER_MAP', $dataFolder);
+                            }
                         }
+                    }
 
-                        $this->db->UpdateClob('META_BP_EXPRESSION_DTL', 'SAVE_EXPRESSION_STRING', Input::paramWithDoubleSpace($_POST['fullExpressionStringSave_set']).$afterSave, 'ID = ' . $expressionConfig['CONFIG_ID']); 
-                        
-                        $cacheExpTableName = 'META_BP_EXP_CACHE_VERSION';
-                        
+                } elseif (Input::postCheck('folderId')) {
+                    $folderIds = Input::post('folderId');
+                    $folderId = end($folderIds);
+                }
+
+                if (Input::post('isTagsManage') == '1') {
+
+                    self::clearMetaTagMap($metaDataId);
+
+                    if (Input::postCheck('tagId')) {
+                        foreach ($_POST['tagId'] as $tagId) {
+                            if (!empty($tagId)) {
+                                $dataTag = array(
+                                    'ID' => getUID(),
+                                    'TAG_ID' => Input::param($tagId),
+                                    'META_DATA_ID' => $metaDataId
+                                );
+                                $this->db->AutoExecute('META_TAG_MAP', $dataTag);
+                            }
+                        }
+                    }
+                }
+
+                if (Input::post('isChildMetaManage') == '1') {
+
+                    self::clearMetaMetaMap($metaDataId);
+
+                    if (Input::postCheck('childMetaDataId')) {
+                        $childMetaDatas = Input::post('childMetaDataId');
+
+                        foreach ($childMetaDatas as $ck => $childMetaDataId) {
+                            if (!empty($childMetaDataId)) {
+
+                                $dataChildData = array(
+                                    'ID' => getUID(),
+                                    'SRC_META_DATA_ID' => $metaDataId,
+                                    'TRG_META_DATA_ID' => $childMetaDataId,
+                                    'ORDER_NUM' => ($ck + 1),
+                                    'PARAM_CODE' => $childMetaDataId
+                                );
+
+                                if (isset($_POST['mapSecondOrderNum'][$ck])) {
+                                    $dataChildData['SECOND_ORDER_NUM'] = Input::param($_POST['mapSecondOrderNum'][$ck]);
+                                }
+
+                                $this->db->AutoExecute('META_META_MAP', $dataChildData);
+                            }
+                        }
+                    }
+                }
+
+                if (Input::post('isMetaBugFixManage') == '1') {
+
+                    self::clearMetaBugFixDtl($metaDataId);
+
+                    if (Input::postCheck('childMetaBugFixId')) {
+                        $childMetaBugFixIds = Input::post('childMetaBugFixId');
+
+                        foreach ($childMetaBugFixIds as $bf => $childMetaBugFixId) {
+                            if (!empty($childMetaBugFixId)) {
+
+                                $dataBugFix = array(
+                                    'ID' => getUIDAdd($bf),
+                                    'META_BUG_FIXING_ID' => $childMetaBugFixId,
+                                    'META_DATA_ID' => $metaDataId, 
+                                    'TYPE_ID' => 1
+                                );
+
+                                $this->db->AutoExecute('META_BUG_FIXING_DTL', $dataBugFix);
+                            }
+                        }
+                    }
+                }
+
+                if ($metaTypeId == Mdmetadata::$proxyMetaTypeId) {
+
+                    self::clearMetaProxyMap($metaDataId);
+
+                    if (Input::postCheck('proxyChildMetaDataId')) {
+
+                        $proxyChildMetaDatas = Input::post('proxyChildMetaDataId');
+                        $isDefaultMap = Input::post('isDefaultMap');
+
+                        foreach ($proxyChildMetaDatas as $ck => $proxyChildMetaDataId) {
+                            if (!empty($proxyChildMetaDataId)) {
+                                $dataChildData = array(
+                                    'ID' => getUID(),
+                                    'SRC_META_DATA_ID' => $metaDataId,
+                                    'TRG_META_DATA_ID' => $proxyChildMetaDataId, 
+                                    'IS_DEFAULT' => ($proxyChildMetaDataId == $isDefaultMap) ? 1 : 0, 
+                                    'ORDER_NUM' => ($ck + 1)
+                                );
+                                $this->db->AutoExecute('META_PROXY_MAP', $dataChildData);
+                            }
+                        }
+                    }
+                } 
+
+                if ($metaTypeId == Mdmetadata::$bookmarkMetaTypeId) {
+                    $dataObject = array(
+                        'META_BOOKMARK_LINK_ID' => getUID(),
+                        'META_DATA_ID' => $metaDataId,
+                        'BOOKMARK_URL' => Input::post('SYS_BOOKMARK_NAME'),
+                        'TARGET' => Input::post('SYS_BOOKMARK_TARGET')
+                    );
+                    if (self::isExistsMetaLink('META_BOOKMARK_LINKS', 'META_DATA_ID', $metaDataId, 'META_BOOKMARK_LINK_ID')) {
+                        unset($dataObject['META_BOOKMARK_LINK_ID']);
+                        $this->db->AutoExecute('META_BOOKMARK_LINKS', $dataObject, 'UPDATE', 'META_DATA_ID = ' . $metaDataId);
+                    } else {
+                        $this->db->AutoExecute('META_BOOKMARK_LINKS', $dataObject);
+                    }
+                } 
+
+                if ($metaTypeId == Mdmetadata::$businessProcessMetaTypeId) {
+
+                    $inputMetaDataId = Input::post('inputMetaDataId');
+
+                    $dataBusinessProcess = array(
+                        'ID' => $metaDataId,
+                        'META_DATA_ID' => $metaDataId,
+                        'CLASS_NAME' => Input::post('className'),
+                        'METHOD_NAME' => $methodName,
+                        'INPUT_META_DATA_ID' => $inputMetaDataId,
+                        'OUTPUT_META_DATA_ID' => Input::post('outputMetaDataId'),
+                        'SERVICE_LANGUAGE_ID' => Input::post('serviceLanguageId'),
+                        'WS_URL' => Input::post('wsUrl'),
+                        'SUB_TYPE' => Input::post('bp_process_type')
+                    );
+
+                    if (Input::post('bp_process_type') == 'external') {
+                        $dataBusinessProcess['ACTION_TYPE'] = Input::post('external_action_type');
                     } else {
 
-                        $this->db->UpdateClob('META_BUSINESS_PROCESS_LINK', 'EVENT_EXPRESSION_STRING', Input::paramWithDoubleSpace($_POST['fullExpressionString_set']), 'META_DATA_ID = ' . $metaDataId); 
-                        $this->db->UpdateClob('META_BUSINESS_PROCESS_LINK', 'LOAD_EXPRESSION_STRING', Input::paramWithDoubleSpace($_POST['fullExpressionOpenCriteria_set']), 'META_DATA_ID = ' . $metaDataId); 
-                        $this->db->UpdateClob('META_BUSINESS_PROCESS_LINK', 'VAR_FNC_EXPRESSION_STRING', Input::paramWithDoubleSpace($_POST['fullExpressionStringVarFnc_set']), 'META_DATA_ID = ' . $metaDataId); 
-    
-                        $afterSave = '';
-    
-                        if (!empty($_POST['fullExpressionStringAfterSave_set'])) {
-                            $afterSave = "\n".'startAfterSave '.Input::paramWithDoubleSpace($_POST['fullExpressionStringAfterSave_set']).' endAfterSave';
-                        }
-    
-                        $this->db->UpdateClob('META_BUSINESS_PROCESS_LINK', 'SAVE_EXPRESSION_STRING', Input::paramWithDoubleSpace($_POST['fullExpressionStringSave_set']).$afterSave, 'META_DATA_ID = ' . $metaDataId);                         
-                        
-                        $cacheExpTableName = 'META_BP_EXP_CACHE';
+                        $action_type = Input::post('action_type');
+                        $action_type = ($action_type == 'duplicate' ? 'get' : $action_type);
+
+                        $dataBusinessProcess['ACTION_TYPE'] = $action_type;
+                        $dataBusinessProcess['SYSTEM_META_GROUP_ID'] = Input::post('systemMetaGroupId');
                     }
-                    
-                    if (Input::postCheck('cacheId')) {
-                        
-                        $cacheIdData = $_POST['cacheId'];
-                        $currentDate = Date::currentDate('Y-m-d H:i:s');
-                        $sessionUserKeyId = Ue::sessionUserKeyId();
-                        
-                        if ($cacheExpTableName == 'META_BP_EXP_CACHE') {
-                            $bpLinkId = $this->db->GetOne("SELECT ID FROM META_BUSINESS_PROCESS_LINK WHERE META_DATA_ID = ".$metaDataId);
+
+                    $dataBusinessProcess['THEME'] = Input::post('groupTheme');
+                    $dataBusinessProcess['PROCESS_NAME'] = Input::post('processName');
+                    $dataBusinessProcess['ACTION_BTN'] = Input::post('methodActionBtn');
+                    $dataBusinessProcess['COLUMN_COUNT'] = Input::post('columnCount');
+                    $dataBusinessProcess['TAB_COLUMN_COUNT'] = Input::post('tabColumnCount');
+                    $dataBusinessProcess['LABEL_WIDTH'] = Input::post('labelWidth');
+                    $dataBusinessProcess['WINDOW_HEIGHT'] = Input::post('windowHeight');
+                    $dataBusinessProcess['WINDOW_SIZE'] = Input::post('windowSize');
+                    $dataBusinessProcess['WINDOW_TYPE'] = Input::post('windowType');
+                    $dataBusinessProcess['WINDOW_WIDTH'] = Input::post('windowWidth');
+                    $dataBusinessProcess['IS_TREEVIEW'] = Input::postCheck('isTreeview') ? 1 : null;
+                    $dataBusinessProcess['IS_ADDON_PHOTO'] = Input::postCheck('isAddOnPhotoRequired') ? 2 : (Input::postCheck('isAddOnPhoto') ? 1 : null);
+                    $dataBusinessProcess['IS_ADDON_FILE'] = Input::postCheck('isAddOnFileRequired') ? 2 : (Input::postCheck('isAddOnFile') ? 1 : null);
+                    $dataBusinessProcess['IS_ADDON_COMMENT'] = Input::postCheck('isAddOnCommentRequired') ? 2 : (Input::postCheck('isAddOnComment') ? 1 : null);
+                    $dataBusinessProcess['IS_ADDON_COMMENT_TYPE'] = Input::post('isAddOnCommentType');
+                    $dataBusinessProcess['IS_ADDON_LOG'] = Input::postCheck('isAddOnLogRequired') ? 2 : (Input::postCheck('isAddOnLog') ? 1 : null);
+                    $dataBusinessProcess['IS_ADDON_RELATION'] = Input::postCheck('isAddonRelationRequired') ? 2 : (Input::postCheck('isAddonRelation') ? 1 : null);
+                    $dataBusinessProcess['IS_ADDON_MV_RELATION'] = Input::postCheck('isAddonMvRelationRequired') ? 2 : (Input::postCheck('isAddonMvRelation') ? 1 : null);
+                    $dataBusinessProcess['IS_ADDON_WFM_LOG'] = Input::postCheck('isAddonWfmLog') ? 1 : null;
+                    $dataBusinessProcess['IS_ADDON_WFM_LOG_TYPE'] = Input::post('isAddonWfmLogType');
+                    $dataBusinessProcess['REF_META_GROUP_ID'] = Input::post('refMetaGroupId');
+                    $dataBusinessProcess['GETDATA_PROCESS_ID'] = Input::post('getDataProcessId');
+                    $dataBusinessProcess['THEME_CODE'] = Input::post('themeCode');
+                    $dataBusinessProcess['SKIN'] = Input::post('skin');
+                    $dataBusinessProcess['RUN_MODE'] = Input::post('runMode');
+                    $dataBusinessProcess['HELP_CONTENT_ID'] = Input::post('helpContentId');
+                    $dataBusinessProcess['IS_SHOW_PREVNEXT'] = Input::postCheck('isShowPrevNext') ? 1 : null;
+                    $dataBusinessProcess['IS_WIDGET'] = Input::postCheck('isWidget') ? 1 : null;
+                    $dataBusinessProcess['IS_TOOLS_BTN'] = Input::postCheck('isToolsBtn') ? 1 : null;
+                    $dataBusinessProcess['IS_BPMN_TOOL'] = Input::postCheck('isBpmnTool') ? 1 : null;
+                    $dataBusinessProcess['IS_SAVE_VIEW_LOG'] = Input::postCheck('isSaveViewLog') ? 1 : null;
+                    $dataBusinessProcess['MOBILE_THEME'] = Input::post('mobileTheme');
+                    $dataBusinessProcess['WORKIN_TYPE'] = Input::post('workinType');
+                    $dataBusinessProcess['IS_RULE'] = Input::post('isRule');
+                    $dataBusinessProcess['IS_OFFLINE_MODE'] = Input::post('isOfflineMode');
+                    $dataBusinessProcess['JSON_CONFIG'] = Input::post('jsonConfig');
+
+                    if (self::isExistsMetaLink('META_BUSINESS_PROCESS_LINK', 'META_DATA_ID', $metaDataId)) {
+                        unset($dataBusinessProcess['ID']);
+                        $processLinkResult = $this->db->AutoExecute('META_BUSINESS_PROCESS_LINK', $dataBusinessProcess, 'UPDATE', 'META_DATA_ID = ' . $metaDataId);
+                    } else {
+                        $processLinkResult = $this->db->AutoExecute('META_BUSINESS_PROCESS_LINK', $dataBusinessProcess);
+                    }
+
+                    if (Input::postCheck('fullExpressionString_set')) {
+                        $expressionConfig = $this->getBPFullExpressionDefaultVersionModel($metaDataId);
+
+                        if ($expressionConfig) {
+
+                            $this->db->UpdateClob('META_BP_EXPRESSION_DTL', 'EVENT_EXPRESSION_STRING', Input::paramWithDoubleSpace($_POST['fullExpressionString_set']), 'ID = ' . $expressionConfig['CONFIG_ID']); 
+                            $this->db->UpdateClob('META_BP_EXPRESSION_DTL', 'LOAD_EXPRESSION_STRING', Input::paramWithDoubleSpace($_POST['fullExpressionOpenCriteria_set']), 'ID = ' . $expressionConfig['CONFIG_ID']); 
+                            $this->db->UpdateClob('META_BP_EXPRESSION_DTL', 'VAR_FNC_EXPRESSION_STRING', Input::paramWithDoubleSpace($_POST['fullExpressionStringVarFnc_set']), 'ID = ' . $expressionConfig['CONFIG_ID']); 
+
+                            $afterSave = '';
+
+                            if (!empty($_POST['fullExpressionStringAfterSave_set'])) {
+                                $afterSave = "\n".'startAfterSave '.Input::paramWithDoubleSpace($_POST['fullExpressionStringAfterSave_set']).' endAfterSave';
+                            }
+
+                            $this->db->UpdateClob('META_BP_EXPRESSION_DTL', 'SAVE_EXPRESSION_STRING', Input::paramWithDoubleSpace($_POST['fullExpressionStringSave_set']).$afterSave, 'ID = ' . $expressionConfig['CONFIG_ID']); 
+
+                            $cacheExpTableName = 'META_BP_EXP_CACHE_VERSION';
+
+                        } else {
+
+                            $this->db->UpdateClob('META_BUSINESS_PROCESS_LINK', 'EVENT_EXPRESSION_STRING', Input::paramWithDoubleSpace($_POST['fullExpressionString_set']), 'META_DATA_ID = ' . $metaDataId); 
+                            $this->db->UpdateClob('META_BUSINESS_PROCESS_LINK', 'LOAD_EXPRESSION_STRING', Input::paramWithDoubleSpace($_POST['fullExpressionOpenCriteria_set']), 'META_DATA_ID = ' . $metaDataId); 
+                            $this->db->UpdateClob('META_BUSINESS_PROCESS_LINK', 'VAR_FNC_EXPRESSION_STRING', Input::paramWithDoubleSpace($_POST['fullExpressionStringVarFnc_set']), 'META_DATA_ID = ' . $metaDataId); 
+
+                            $afterSave = '';
+
+                            if (!empty($_POST['fullExpressionStringAfterSave_set'])) {
+                                $afterSave = "\n".'startAfterSave '.Input::paramWithDoubleSpace($_POST['fullExpressionStringAfterSave_set']).' endAfterSave';
+                            }
+
+                            $this->db->UpdateClob('META_BUSINESS_PROCESS_LINK', 'SAVE_EXPRESSION_STRING', Input::paramWithDoubleSpace($_POST['fullExpressionStringSave_set']).$afterSave, 'META_DATA_ID = ' . $metaDataId);                         
+
+                            $cacheExpTableName = 'META_BP_EXP_CACHE';
                         }
-                        
-                        foreach ($cacheIdData as $k => $v) {
-                            
-                            if ($v == '') {
-                                
-                                $cacheId = getUID();
-                                $cacheData = array(
-                                    'ID' => $cacheId, 
-                                    'RUN_MODE' => Input::param($_POST['cacheRunMode'][$k]), 
-                                    'GROUP_PATH' => Input::param($_POST['cacheGroupPath'][$k]), 
-                                    'CODE' => Input::param($_POST['cacheCode'][$k]), 
-                                    'DESCRIPTION' => Input::param($_POST['cacheDescr'][$k]),  
-                                    'CREATED_USER_ID' => $sessionUserKeyId, 
-                                    'CREATED_DATE' => $currentDate
-                                );
-                                if ($cacheExpTableName == 'META_BP_EXP_CACHE') {
-                                    $cacheData['BP_LINK_ID'] = $bpLinkId;
-                                } else {
-                                    $cacheData['VERSION_ID'] = $expressionConfig['CONFIG_ID'];
-                                }
-                                $cacheResult = $this->db->AutoExecute($cacheExpTableName, $cacheData);
-                                
-                            } else {
-                                
-                                $cacheId = $v;
-                                
-                                if (Input::param($_POST['cacheRowDelete'][$k]) == 'deleted') {
-                                    
-                                    $this->db->Execute("DELETE FROM $cacheExpTableName WHERE ID = $cacheId");
-                                    $cacheResult = false;
-                                    
-                                } else {
-                                    
+
+                        if (Input::postCheck('cacheId')) {
+
+                            $cacheIdData = $_POST['cacheId'];
+                            $currentDate = Date::currentDate('Y-m-d H:i:s');
+                            $sessionUserKeyId = Ue::sessionUserKeyId();
+
+                            if ($cacheExpTableName == 'META_BP_EXP_CACHE') {
+                                $bpLinkId = $this->db->GetOne("SELECT ID FROM META_BUSINESS_PROCESS_LINK WHERE META_DATA_ID = ".$metaDataId);
+                            }
+
+                            foreach ($cacheIdData as $k => $v) {
+
+                                if ($v == '') {
+
+                                    $cacheId = getUID();
                                     $cacheData = array(
+                                        'ID' => $cacheId, 
                                         'RUN_MODE' => Input::param($_POST['cacheRunMode'][$k]), 
                                         'GROUP_PATH' => Input::param($_POST['cacheGroupPath'][$k]), 
                                         'CODE' => Input::param($_POST['cacheCode'][$k]), 
-                                        'DESCRIPTION' => Input::param($_POST['cacheDescr'][$k])
+                                        'DESCRIPTION' => Input::param($_POST['cacheDescr'][$k]),  
+                                        'CREATED_USER_ID' => $sessionUserKeyId, 
+                                        'CREATED_DATE' => $currentDate
                                     );
-                                    
-                                    $cacheResult = $this->db->AutoExecute($cacheExpTableName, $cacheData, 'UPDATE', 'ID = '.$cacheId);
+                                    if ($cacheExpTableName == 'META_BP_EXP_CACHE') {
+                                        $cacheData['BP_LINK_ID'] = $bpLinkId;
+                                    } else {
+                                        $cacheData['VERSION_ID'] = $expressionConfig['CONFIG_ID'];
+                                    }
+                                    $cacheResult = $this->db->AutoExecute($cacheExpTableName, $cacheData);
+
+                                } else {
+
+                                    $cacheId = $v;
+
+                                    if (Input::param($_POST['cacheRowDelete'][$k]) == 'deleted') {
+
+                                        $this->db->Execute("DELETE FROM $cacheExpTableName WHERE ID = $cacheId");
+                                        $cacheResult = false;
+
+                                    } else {
+
+                                        $cacheData = array(
+                                            'RUN_MODE' => Input::param($_POST['cacheRunMode'][$k]), 
+                                            'GROUP_PATH' => Input::param($_POST['cacheGroupPath'][$k]), 
+                                            'CODE' => Input::param($_POST['cacheCode'][$k]), 
+                                            'DESCRIPTION' => Input::param($_POST['cacheDescr'][$k])
+                                        );
+
+                                        $cacheResult = $this->db->AutoExecute($cacheExpTableName, $cacheData, 'UPDATE', 'ID = '.$cacheId);
+                                    }
+                                }
+
+                                if ($cacheResult) {
+                                    $this->db->UpdateClob($cacheExpTableName, 'EXPRESSION_STRING', Input::paramWithDoubleSpace($_POST['cacheExpression'][$k]), 'ID = ' . $cacheId); 
                                 }
                             }
-                            
-                            if ($cacheResult) {
-                                $this->db->UpdateClob($cacheExpTableName, 'EXPRESSION_STRING', Input::paramWithDoubleSpace($_POST['cacheExpression'][$k]), 'ID = ' . $cacheId); 
+                        }
+
+                        (new Mdmeta())->bpFullExpressionUseProcess($metaDataId);
+                    }
+
+                    if ($processLinkResult) {
+
+                        self::saveBpInputParamsModel($metaDataId);
+                        self::saveBpOutputParamsModel($metaDataId);
+
+                        if (Input::postCheck('saveGetDataProcessParam')) {
+                            self::clearMetaBusinessProcessDefaultGetProcessMap($metaDataId);
+
+                            if (Input::postCheck('getDataProcessParamCode')) {
+                                $getDataProcessParamData = Input::post('getDataProcessParamCode');
+                                foreach ($getDataProcessParamData as $dgv => $dgRow) {
+                                    $dataProcessDefaultGetLink = array(
+                                        'ID' => getUIDAdd($dgv),
+                                        'PROCESS_META_DATA_ID' => $metaDataId,
+                                        'GETDATA_PROCESS_ID' => $dataBusinessProcess['GETDATA_PROCESS_ID'],
+                                        'PARAM_CODE' => Input::param($dgRow),
+                                        'DEFAULT_VALUE' => Input::param($_POST['getDataProcessDefaultValue'][$dgv])
+                                    );
+                                    $this->db->AutoExecute('META_PROCESS_DEFAULT_GET', $dataProcessDefaultGetLink);
+                                }
                             }
                         }
                     }
 
-                    (new Mdmeta())->bpFullExpressionUseProcess($metaDataId);
+                    (new Mdmeta())->bpParamsClearCache($metaDataId, (isset($metaDataCode) ? $metaDataCode : self::getMetaDataCodeModel($metaDataId)), true); 
+                } 
+
+                if ($metaTypeId == Mdmetadata::$taskFlowMetaTypeId) {
+
+                    $dataTaskFlow = array(
+                        'ID' => $metaDataId,
+                        'META_DATA_ID' => $metaDataId
+                    );
+
+                    if (self::isExistsMetaLink('META_BUSINESS_PROCESS_LINK', 'META_DATA_ID', $metaDataId)) {
+                        unset($dataTaskFlow['ID']);
+                        $bpLinkResult = $this->db->AutoExecute('META_BUSINESS_PROCESS_LINK', $dataTaskFlow, 'UPDATE', 'META_DATA_ID = ' . $metaDataId);
+                    } else {
+                        $bpLinkResult = $this->db->AutoExecute('META_BUSINESS_PROCESS_LINK', $dataTaskFlow);
+                    }
+
+                    if ($bpLinkResult) {
+                        self::saveBpInputParamsModel($metaDataId);
+                        self::saveBpOutputParamsModel($metaDataId);
+                    }
                 }
 
-                if ($processLinkResult) {
-
-                    self::saveBpInputParamsModel($metaDataId);
-                    self::saveBpOutputParamsModel($metaDataId);
-
-                    if (Input::postCheck('saveGetDataProcessParam')) {
-                        self::clearMetaBusinessProcessDefaultGetProcessMap($metaDataId);
-
-                        if (Input::postCheck('getDataProcessParamCode')) {
-                            $getDataProcessParamData = Input::post('getDataProcessParamCode');
-                            foreach ($getDataProcessParamData as $dgv => $dgRow) {
-                                $dataProcessDefaultGetLink = array(
-                                    'ID' => getUIDAdd($dgv),
-                                    'PROCESS_META_DATA_ID' => $metaDataId,
-                                    'GETDATA_PROCESS_ID' => $dataBusinessProcess['GETDATA_PROCESS_ID'],
-                                    'PARAM_CODE' => Input::param($dgRow),
-                                    'DEFAULT_VALUE' => Input::param($_POST['getDataProcessDefaultValue'][$dgv])
-                                );
-                                $this->db->AutoExecute('META_PROCESS_DEFAULT_GET', $dataProcessDefaultGetLink);
-                            }
+                if ($metaTypeId == Mdmetadata::$dashboardMetaTypeId) {
+                    if (Input::isEmpty('chartId') == false) {
+                        $dataDashboardLink = array(
+                            'ID' => getUID(),
+                            'META_DATA_ID' => $metaDataId,
+                            'CHART_ID' => Input::post('chartId')
+                        );
+                        if (self::isExistsMetaLink('META_DASHBOARD_LINK', 'META_DATA_ID', $metaDataId)) {
+                            unset($dataDashboardLink['ID']);
+                            $this->db->AutoExecute('META_DASHBOARD_LINK', $dataDashboardLink, 'UPDATE', 'META_DATA_ID = ' . $metaDataId);
+                        } else {
+                            $this->db->AutoExecute('META_DASHBOARD_LINK', $dataDashboardLink);
                         }
                     }
-                }
+                } 
 
-                (new Mdmeta())->bpParamsClearCache($metaDataId, (isset($metaDataCode) ? $metaDataCode : self::getMetaDataCodeModel($metaDataId)), true); 
-            } 
-            
-            if ($metaTypeId == Mdmetadata::$taskFlowMetaTypeId) {
-                
-                $dataTaskFlow = array(
-                    'ID' => $metaDataId,
-                    'META_DATA_ID' => $metaDataId
-                );
-                
-                if (self::isExistsMetaLink('META_BUSINESS_PROCESS_LINK', 'META_DATA_ID', $metaDataId)) {
-                    unset($dataTaskFlow['ID']);
-                    $bpLinkResult = $this->db->AutoExecute('META_BUSINESS_PROCESS_LINK', $dataTaskFlow, 'UPDATE', 'META_DATA_ID = ' . $metaDataId);
-                } else {
-                    $bpLinkResult = $this->db->AutoExecute('META_BUSINESS_PROCESS_LINK', $dataTaskFlow);
-                }
-                
-                if ($bpLinkResult) {
-                    self::saveBpInputParamsModel($metaDataId);
-                    self::saveBpOutputParamsModel($metaDataId);
-                }
-            }
+                if ($metaTypeId == Mdmetadata::$reportMetaTypeId) {
 
-            if ($metaTypeId == Mdmetadata::$dashboardMetaTypeId) {
-                if (Input::isEmpty('chartId') == false) {
-                    $dataDashboardLink = array(
-                        'ID' => getUID(),
-                        'META_DATA_ID' => $metaDataId,
-                        'CHART_ID' => Input::post('chartId')
-                    );
-                    if (self::isExistsMetaLink('META_DASHBOARD_LINK', 'META_DATA_ID', $metaDataId)) {
-                        unset($dataDashboardLink['ID']);
-                        $this->db->AutoExecute('META_DASHBOARD_LINK', $dataDashboardLink, 'UPDATE', 'META_DATA_ID = ' . $metaDataId);
-                    } else {
-                        $this->db->AutoExecute('META_DASHBOARD_LINK', $dataDashboardLink);
-                    }
-                }
-            } 
-
-            if ($metaTypeId == Mdmetadata::$reportMetaTypeId) {
-
-                if (Input::isEmpty('REPORT_MODEL_ID') == false) {
-                    $dataReportLink = array(
-                        'ID' => getUID(),
-                        'META_DATA_ID' => $metaDataId,
-                        'REPORT_MODEL_ID' => Input::post('REPORT_MODEL_ID')
-                    );
-                    if (self::isExistsMetaLink('META_REPORT_LINK', 'META_DATA_ID', $metaDataId)) {
-                        unset($dataReportLink['ID']);
-                        $this->db->AutoExecute('META_REPORT_LINK', $dataReportLink, 'UPDATE', 'META_DATA_ID = ' . $metaDataId);
-                    } else {
-                        $this->db->AutoExecute('META_REPORT_LINK', $dataReportLink);
-                    }
-                }
-            } 
-
-            if ($metaTypeId == Mdmetadata::$fieldMetaTypeId) {
-
-                if (Input::isEmpty('dataType') == false) {
-                    
-                    $dataFieldLink = array(
-                        'ID' => getUID(),
-                        'META_DATA_ID' => $metaDataId,
-                        'DATA_TYPE' => Input::post('dataType'),
-                        'IS_SHOW' => ((Input::postCheck('isShow')) ? 1 : 0),
-                        'IS_REQUIRED' => ((Input::postCheck('isRequired')) ? 1 : 0),
-                        'MIN_VALUE' => (($_POST['minValue'] == '0') ? '0' : Input::post('minValue')),
-                        'MAX_VALUE' => Input::post('maxValue'),
-                        'DEFAULT_VALUE' => (($_POST['defaultValue'] == '0') ? '0' : Input::post('defaultValue')),
-                        'PATTERN_ID' => Input::post('patternId'),
-                        'FILE_EXTENSION' => Input::post('fieldFileExtension')
-                    );
-                    
-                    if (Input::isEmpty('lookupType') == false) {
-                        $dataFieldLink['LOOKUP_META_DATA_ID'] = Input::post('lookupMetaDataId');
-                        $dataFieldLink['LOOKUP_TYPE'] = Input::post('lookupType');
-                        $dataFieldLink['DISPLAY_FIELD'] = Input::post('displayField');
-                        $dataFieldLink['VALUE_FIELD'] = Input::post('valueField');
-                        $dataFieldLink['CHOOSE_TYPE'] = Input::post('chooseType');
-                    }
-
-                    if (self::isExistsMetaLink('META_FIELD_LINK', 'META_DATA_ID', $metaDataId)) {
-                        unset($dataFieldLink['ID']);
-                        $this->db->AutoExecute('META_FIELD_LINK', $dataFieldLink, 'UPDATE', 'META_DATA_ID = ' . $metaDataId);
-                    } else {
-                        $this->db->AutoExecute('META_FIELD_LINK', $dataFieldLink);
-                    }
-                }
-            } 
-
-            if ($metaTypeId == Mdmetadata::$menuMetaTypeId) {
-
-                $dataMenuLink = array(
-                    'ID' => getUID(),
-                    'META_DATA_ID' => $metaDataId,
-                    'MENU_POSITION' => Input::post('menuPosition'),
-                    'MENU_ALIGN' => Input::post('menuAlign'),
-                    'MENU_THEME' => Input::post('menuTheme'),
-                    'MENU_TOOLTIP' => Input::post('menuTooltip'),
-                    'ACTION_META_DATA_ID' => Input::post('menuActionMetaDataId'),
-                    'VIEW_META_DATA_ID' => Input::post('viewMetaDataId'),
-                    'COUNT_META_DATA_ID' => Input::post('menuCountMetaDataId'),
-                    'WEB_URL' => Input::post('webUrl'),
-                    'URL_TARGET' => Input::post('urlTarget'),
-                    'ICON_NAME' => Input::post('menuIconName'),
-                    'PHOTO_NAME' => Input::post('oldMenuPhotoName'),
-                    'BG_PHOTO_NAME' => Input::post('oldMenuBgPhotoName'),
-                    'MENU_COLOR' => Input::post('menuColor'),
-                    'VIEW_TYPE' => Input::post('viewType'),
-                    'IS_SHOW_CARD' => Input::post('isShowCard'),
-                    'IS_MONPASS_KEY' => Input::post('isMonpassKey'),
-                    'IS_CONTENT_UI' => Input::post('isContentUi'),
-                    'IS_MODULE_SIDEBAR' => Input::post('isModuleSidebar'),
-                    'IS_DEFAULT_OPEN' => Input::post('isDefaultOpen'),
-                    'IS_OFFLINE_MODE' => Input::post('isOfflineMode'),
-                    'GLOBE_CODE' => Input::post('globeCode'),
-                    'MENU_CODE' => Input::post('menuCode')
-                );
-
-                if (isset($_FILES['menuPhotoName']) && $_FILES["menuPhotoName"]['name'] != '') {
-
-                    $newMenuPhotoName = 'metamenu_' . $metaDataId . '_' . getUID();
-                    $menuPhotoExtension = strtolower(substr($_FILES['menuPhotoName']['name'], strrpos($_FILES['menuPhotoName']['name'], '.') + 1));
-                    $menuPhotoName = $newMenuPhotoName . '.' . $menuPhotoExtension;
-                    FileUpload::SetFileName($menuPhotoName);
-                    FileUpload::SetTempName($_FILES['menuPhotoName']['tmp_name']);
-                    FileUpload::SetUploadDirectory(UPLOADPATH . 'meta/menu/');
-                    FileUpload::SetValidExtensions(explode(',', Config::getFromCache('CONFIG_IMG_EXT')));
-                    FileUpload::SetMaximumFileSize(10485760); //10mb
-                    $menuPhotoUploadResult = FileUpload::UploadFile();
-
-                    if ($menuPhotoUploadResult) {
-                        $dataMenuLink['PHOTO_NAME'] = UPLOADPATH . 'meta/menu/' . $menuPhotoName;
-                    }
-                }
-
-                if (isset($_FILES['menuBgPhotoName']) && $_FILES["menuBgPhotoName"]['name'] != '') {
-
-                    $newMenuPhotoName = 'metamenu_' . $metaDataId . '_' . getUID();
-                    $menuPhotoExtension = strtolower(substr($_FILES['menuBgPhotoName']['name'], strrpos($_FILES['menuBgPhotoName']['name'], '.') + 1));
-                    $menuPhotoName = $newMenuPhotoName . '.' . $menuPhotoExtension;
-                    FileUpload::SetFileName($menuPhotoName);
-                    FileUpload::SetTempName($_FILES['menuBgPhotoName']['tmp_name']);
-                    FileUpload::SetUploadDirectory(UPLOADPATH . 'meta/menu/');
-                    FileUpload::SetValidExtensions(explode(',', Config::getFromCache('CONFIG_IMG_EXT')));
-                    FileUpload::SetMaximumFileSize(10485760); //10mb
-                    $menuPhotoUploadResult = FileUpload::UploadFile();
-
-                    if ($menuPhotoUploadResult) {
-                        $dataMenuLink['BG_PHOTO_NAME'] = UPLOADPATH . 'meta/menu/' . $menuPhotoName;
-                    }
-                }
-                        
-                if (self::isExistsMetaLink('META_MENU_LINK', 'META_DATA_ID', $metaDataId, 'META_DATA_ID')) {
-                    unset($dataMenuLink['ID']);
-                    $this->db->AutoExecute('META_MENU_LINK', $dataMenuLink, 'UPDATE', 'META_DATA_ID = ' . $metaDataId);
-                } else {
-                    $this->db->AutoExecute('META_MENU_LINK', $dataMenuLink);
-                }
-            } 
-
-            if ($metaTypeId == Mdmetadata::$calendarMetaTypeId) {
-                $dataCalendarLink = array(                        
-                    'META_DATA_ID' => $metaDataId,
-                    'TRG_META_DATA_ID' => Input::post('targetMetaDataId'),
-                    'LINK_META_DATA_ID' => Input::post('linkMetaDataId'),
-                    'TITLE' => Input::post('calendarTitle'),
-                    'WIDTH' => Input::post('calendarWidth'),
-                    'HEIGHT' => Input::post('calendarHeight'),
-                    'TEXT_FONT_SIZE' => Input::post('textFontSize'),
-                    'COLUMN_PARAM_PATH' => Input::post('columnParamPath'),
-                    'START_PARAM_PATH' => Input::post('startDatePath'),
-                    'END_PARAM_PATH' => Input::post('endDatePath'),     
-                    'COLOR_PARAM_PATH' => Input::post('colorPath'),
-                    'FILTER_GROUP_PARAM_PATH' => Input::post('filterGroupPath'),
-                    'DEFAULT_INTERVAL_ID' => Input::post('defaultIntervalId'),                        
-                );
-                if (self::isExistsMetaLink('META_CALENDAR_LINK', 'META_DATA_ID', $metaDataId)) {
-                    $dataCalendarLink = array_merge($dataCalendarLink, array(
-                        'MODIFIED_DATE' => Date::currentDate(),
-                        'MODIFIED_USER_ID' => Ue::sessionUserKeyId(),
-                    ));
-                    $this->db->AutoExecute('META_CALENDAR_LINK', $dataCalendarLink, 'UPDATE', 'META_DATA_ID = ' . $metaDataId);
-                } else {
-                    $dataCalendarLink = array_merge($dataCalendarLink, array(
-                        'ID' => getUID(),
-                        'CREATED_DATE' => Date::currentDate(),
-                        'CREATED_USER_ID' => Ue::sessionUserKeyId(),
-                    ));
-                    $this->db->AutoExecute('META_CALENDAR_LINK', $dataCalendarLink);
-                }
-            } 
-
-            if ($metaTypeId == Mdmetadata::$contentMetaTypeId) {
-
-                if (Input::isEmpty('layoutId') == false) {
-                    $layoutId = Input::post('layoutId');
-
-                    if (isset($_POST['contentCellId'])) {
-                        self::clearContentMapLinkMap($metaDataId);
-                        $cellData = $_POST['contentCellId'];
-                        foreach ($cellData as $c => $v) {
-                            if (!empty($v[0])) {
-                                $dataContentMap = array(
-                                    'MAP_ID' => getUID(),
-                                    'META_DATA_ID' => $v[0],
-                                    'CELL_ID' => $c,
-                                    'LAYOUT_ID' => $layoutId,
-                                    'SRC_META_DATA_ID' => $metaDataId
-                                );
-                                $this->db->AutoExecute('META_CONTENT_MAP', $dataContentMap);
-                            }
+                    if (Input::isEmpty('REPORT_MODEL_ID') == false) {
+                        $dataReportLink = array(
+                            'ID' => getUID(),
+                            'META_DATA_ID' => $metaDataId,
+                            'REPORT_MODEL_ID' => Input::post('REPORT_MODEL_ID')
+                        );
+                        if (self::isExistsMetaLink('META_REPORT_LINK', 'META_DATA_ID', $metaDataId)) {
+                            unset($dataReportLink['ID']);
+                            $this->db->AutoExecute('META_REPORT_LINK', $dataReportLink, 'UPDATE', 'META_DATA_ID = ' . $metaDataId);
+                        } else {
+                            $this->db->AutoExecute('META_REPORT_LINK', $dataReportLink);
                         }
                     }
-                    $dataContentLink = array(
-                        'ID' => getUID(),
-                        'META_DATA_ID' => $metaDataId,
-                        'LAYOUT_ID' => $layoutId,
-                        'IS_DEFAULT' => 1
-                    );
-                    if (self::isExistsMetaLink('META_CONTENT_LINK', 'META_DATA_ID', $metaDataId)) {
-                        unset($dataContentLink['ID']);
-                        $this->db->AutoExecute('META_CONTENT_LINK', $dataContentLink, 'UPDATE', 'META_DATA_ID = ' . $metaDataId);
-                    } else {
-                        $this->db->AutoExecute('META_CONTENT_LINK', $dataContentLink);
-                    }
-                }
-            } 
+                } 
 
-            if ($metaTypeId == Mdmetadata::$donutMetaTypeId) {
-                $processId = Input::post('processId');
-                $dataDonutLink = array(
-                    'DONUT_ID' => getUID(),
-                    'META_DATA_ID' => $metaDataId,
-                    'INFO' => Input::post('META_DATA_NAME'),
-                    'TEXT' => Input::post('text'),
-                    'URL' => Input::post('url'),
-                    'DIMENSION' => Input::post('dimension'),
-                    'FONTSIZE' => Input::post('fontsize'),
-                    'WIDTH' => Input::post('width'),
-                    'FGCOLOR' => Input::post('fgcolor'),
-                    'BGCOLOR' => Input::post('bgcolor'),
-                    'FILL' => Input::post('fill'),
-                    'META_BUSINESS_PROCESS_LINK_ID' => $processId
-                );
-                if (self::isExistsMetaLink('META_DONUT', 'META_DATA_ID', $metaDataId)) {
-                    unset($dataDonutLink['DONUT_ID']);
-                    $this->db->AutoExecute('META_DONUT', $dataDonutLink, 'UPDATE', 'META_DATA_ID = ' . $metaDataId);
-                } else {
-                    $this->db->AutoExecute('META_DONUT', $dataDonutLink);
-                }
-            } 
+                if ($metaTypeId == Mdmetadata::$fieldMetaTypeId) {
 
-            if ($metaTypeId == Mdmetadata::$cardMetaTypeId) {
-                $processId = Input::post('processId');
-                $dataCardLink = array(
-                    'CARD_ID' => getUID(),
-                    'META_DATA_ID' => $metaDataId,
-                    'TEXT' => Input::post('text'),
-                    'TEXT_ALIGN' => Input::post('textAlign'),
-                    'URL' => Input::post('url'),
-                    'IS_SHOW_URL' => Input::post('isShowUrl'),
-                    'TEXT_CSS' => Input::post('textCss'),
-                    'WIDTH' => Input::post('width'),
-                    'HEIGHT' => Input::post('height'),
-                    'BGCOLOR' => Input::post('bgcolor'),
-                    'ADDCLASS' => Input::post('addclass'),
-                    'FONT_ICON' => Input::post('fontIcon'),
-                    'IS_SEE' => Input::post('isSee'),
-                    'DATA_VIEW_ID' => Input::post('dataViewId'),
-                    'VIEW_NAME' => Input::post('viewName'),
-                    'PROCESS_META_DATA_ID' => $processId,
-                    'CHART_DATA_VIEW_ID' => Input::post('chartDataViewId'),
-                    'CHART_TYPE' => Input::post('chartType'),
-                    'COLUMN_NAME'     => Input::post('dataViewColumnName'),
-                    'AGGREGATE_NAME'  => Input::post('setColumnAggregate'),
-                );
-                if (self::isExistsMetaLink('META_CARD', 'META_DATA_ID', $metaDataId, 'CARD_ID')) {
-                    unset($dataCardLink['CARD_ID']);
-                    $this->db->AutoExecute('META_CARD', $dataCardLink, 'UPDATE', 'META_DATA_ID = ' . $metaDataId);
-                } else {
-                    $this->db->AutoExecute('META_CARD', $dataCardLink);
-                }
-            } 
+                    if (Input::isEmpty('dataType') == false) {
 
-            if ($metaTypeId == Mdmetadata::$reportTemplateMetaTypeId) {
-                $reportTemplate = array(
-                    'ID' => getUID(),
-                    'META_DATA_ID' => $metaDataId, 
-                    'DATA_MODEL_ID' => Input::post('metaGroupId'), 
-                    'GET_MODE' => Input::post('getMode'), 
-                    'DIRECTORY_ID' => Input::post('directoryId'),
-                    'PAGING_CONFIG' => Input::post('pagingConfig'), 
-                    'PAGE_MARGIN_TOP' => Str::remove_whitespace(Input::post('pageMarginTop')),
-                    'PAGE_MARGIN_LEFT' => Str::remove_whitespace(Input::post('pageMarginLeft')),
-                    'PAGE_MARGIN_RIGHT' => Str::remove_whitespace(Input::post('pageMarginRight')),
-                    'PAGE_MARGIN_BOTTOM' => Str::remove_whitespace(Input::post('pageMarginBottom')), 
-                    'ARCHIVE_WFM_STATUS_CODE' => Input::post('archiveWfmStatusCode'), 
-                    'IS_REPORT' => Input::postCheck('isReport') ? 1 : null, 
-                    'IS_ARCHIVE' => Input::postCheck('isArchive') ? 1 : null, 
-                    'IS_AUTO_ARCHIVE' => Input::postCheck('isAutoArchive') ? 1 : null, 
-                    'IS_EMAIL' => Input::postCheck('isEmail') ? 1 : null, 
-                    'IS_TABLE_LAYOUT_FIXED' => Input::postCheck('isTableLayoutFixed') ? 1 : null, 
-                    'IS_IGNORE_PRINT' => Input::postCheck('isIgnorePrint') ? 1 : null,
-                    'IS_IGNORE_EXCEL' => Input::postCheck('isIgnoreExcel') ? 1 : null,
-                    'IS_IGNORE_PDF' => Input::postCheck('isIgnorePdf') ? 1 : null,
-                    'IS_IGNORE_WORD' => Input::postCheck('isIgnoreWord') ? 1 : null, 
-                    'IS_BLOCKCHAIN_VERIFY' => Input::postCheck('isBlockChainVerify') ? 1 : null
-                );
+                        $dataFieldLink = array(
+                            'ID' => getUID(),
+                            'META_DATA_ID' => $metaDataId,
+                            'DATA_TYPE' => Input::post('dataType'),
+                            'IS_SHOW' => ((Input::postCheck('isShow')) ? 1 : 0),
+                            'IS_REQUIRED' => ((Input::postCheck('isRequired')) ? 1 : 0),
+                            'MIN_VALUE' => (($_POST['minValue'] == '0') ? '0' : Input::post('minValue')),
+                            'MAX_VALUE' => Input::post('maxValue'),
+                            'DEFAULT_VALUE' => (($_POST['defaultValue'] == '0') ? '0' : Input::post('defaultValue')),
+                            'PATTERN_ID' => Input::post('patternId'),
+                            'FILE_EXTENSION' => Input::post('fieldFileExtension')
+                        );
 
-                if (Input::postCheck('htmlContent')) {
-                    $htmlFilePath = UPLOADPATH . 'report_template/' . $metaDataId . '.html';
-                    if (file_put_contents($htmlFilePath, Input::postNonTags('htmlContent'))) {
-                        $reportTemplate['HTML_FILE_PATH'] = $htmlFilePath;
-                    }
-                }
+                        if (Input::isEmpty('lookupType') == false) {
+                            $dataFieldLink['LOOKUP_META_DATA_ID'] = Input::post('lookupMetaDataId');
+                            $dataFieldLink['LOOKUP_TYPE'] = Input::post('lookupType');
+                            $dataFieldLink['DISPLAY_FIELD'] = Input::post('displayField');
+                            $dataFieldLink['VALUE_FIELD'] = Input::post('valueField');
+                            $dataFieldLink['CHOOSE_TYPE'] = Input::post('chooseType');
+                        }
 
-                if (self::isExistsMetaLink('META_REPORT_TEMPLATE_LINK', 'META_DATA_ID', $metaDataId)) {
-                    unset($reportTemplate['ID']);
-                    $result = $this->db->AutoExecute('META_REPORT_TEMPLATE_LINK', $reportTemplate, 'UPDATE', 'META_DATA_ID = ' . $metaDataId);              
-                    if ($result) {
-                        $this->db->UpdateClob('META_REPORT_TEMPLATE_LINK', 'CONFIG_STR', Input::post('configStr'), 'META_DATA_ID = '.$metaDataId);
-                    }                          
-                } else {
-                    $result = $this->db->AutoExecute('META_REPORT_TEMPLATE_LINK', $reportTemplate);
-                    if ($result) {
-                        $this->db->UpdateClob('META_REPORT_TEMPLATE_LINK', 'CONFIG_STR', Input::post('configStr'), 'ID = '.$reportTemplate['ID']);
-                    } 
-                }
-                
-                if (Input::postCheck('htmlHeaderContent')) {
-                    $this->db->UpdateClob('META_REPORT_TEMPLATE_LINK', 'HTML_HEADER_CONTENT', Input::postWithDoubleSpace('htmlHeaderContent'), 'META_DATA_ID = '.$metaDataId);
-                }
-                if (Input::postCheck('htmlFooterContent')) {
-                    $this->db->UpdateClob('META_REPORT_TEMPLATE_LINK', 'HTML_FOOTER_CONTENT', Input::postWithDoubleSpace('htmlFooterContent'), 'META_DATA_ID = '.$metaDataId);                
-                }
-                if (Input::postCheck('reportTemplateUIExpression')) {
-                    $this->db->UpdateClob('META_REPORT_TEMPLATE_LINK', 'UI_EXPRESSION', Input::paramWithDoubleSpace($_POST['reportTemplateUIExpression']), 'META_DATA_ID = '.$metaDataId);                
-                }  
-            } 
-
-            if ($metaTypeId == Mdmetadata::$diagramMetaTypeId) {
-                $this->updateDiagramSettings($metaDataId);
-            } 
-
-            if ($metaTypeId == Mdmetadata::$metaGroupMetaTypeId) {
-                if (Input::isEmpty('groupType') == false) {
-                    
-                    $isCustom = Input::postCheck('isCustom');
-                    
-                    $dataGroupLink = array(
-                        'ID' => getUID(),
-                        'META_DATA_ID' => $metaDataId,
-                        'LABEL_POSITION' => Input::post('labelPosition'),
-                        'COLUMN_COUNT' => Input::post('columnCount'),
-                        'LABEL_WIDTH' => Input::post('labelWidth'),
-                        'SEARCH_TYPE' => Input::post('searchType'),
-                        'GROUP_TYPE' => Input::post('groupType'),
-                        'IS_TREEVIEW' => (Input::postCheck('isTreeview')) ? 1 : null,
-                        'WINDOW_TYPE' => Input::post('windowType'),
-                        'WINDOW_SIZE' => Input::post('windowSize'),
-                        'WINDOW_WIDTH' => Input::post('windowWidth'),
-                        'WINDOW_HEIGHT' => Input::post('windowHeight'),
-                        'REF_META_GROUP_ID' => Input::post('repMetaGroupId'),
-                        'REF_STRUCTURE_ID' => Input::post('repStructureId'),
-                        'IS_ENTITY' => (Input::postCheck('isEntity')) ? 1 : null,
-                        'LIST_NAME' => Input::post('listName'),                        
-                        'IS_SKIP_UNIQUE_ERROR' => Input::post('isSkipUniqueError'), 
-                        'IS_NOT_GROUPBY' => (Input::postCheck('isNotGroupBy')) ? 1 : null, 
-                        'IS_ALL_NOT_SEARCH' => (Input::postCheck('isAllNotSearch')) ? 1 : null,
-                        'IS_USE_RT_CONFIG' => (Input::postCheck('isUseRtConfig')) ? 1 : null,
-                        'IS_USE_WFM_CONFIG' => (Input::postCheck('isUseWorkFlow')) ? 1 : null,
-                        'IS_USE_SIDEBAR' => (Input::postCheck('isUseSidebar')) ? 1 : null, 
-                        'IS_USE_QUICKSEARCH' => (Input::postCheck('isUseQuickSearch')) ? 1 : null, 
-                        'IS_USE_RESULT' => (Input::postCheck('isUseResult')) ? 1 : null, 
-                        'IS_EXPORT_TEXT' => (Input::postCheck('isExportText')) ? 1 : null, 
-                        'BUTTON_BAR_STYLE' => Input::post('buttonBarStyle'), 
-                        'REFRESH_TIMER' => Input::post('refreshTimer'), 
-                        'M_CRITERIA_COL_COUNT' => Input::post('criteriaColCount'), 
-                        'M_GROUP_CRITERIA_COL_COUNT' => Input::post('criteriaGroupColCount'),
-                        'USE_BASKET' => (Input::postCheck('useBasket')) ? 1 : null, 
-                        'IS_COUNTCARD_OPEN' => (Input::postCheck('isCountCartOpen')) ? 1 : null, 
-                        'CALCULATE_PROCESS_ID' => Input::numeric('calculateProcessId'), 
-                        'QS_META_DATA_ID' => Input::numeric('quickSearchDvId'), 
-                        'DATA_LEGEND_DV_ID' => Input::numeric('legendDvId'), 
-                        'LAYOUT_META_DATA_ID' => Input::numeric('layoutMetaId'),
-                        'RULE_PROCESS_ID' => Input::numeric('ruleProcessId'), 
-                        'IS_IGNORE_EXCEL_EXPORT' => (Input::postCheck('isIgnoreExcelExport')) ? 1 : null, 
-                        'IS_USE_DATAMART' => (Input::postCheck('isUseDataMart')) ? 1 : null, 
-                        'IS_CRITERIA_ALWAYS_OPEN' => (Input::postCheck('isCriteriaAlwaysOpen')) ? 1 : null, 
-                        'IS_ENTER_FILTER' => (Input::postCheck('isEnterFilter')) ? 1 : null, 
-                        'IS_FILTER_LOG' => (Input::postCheck('isFilterLog')) ? 1 : null,
-                        'IS_IGNORE_SORTING' => (Input::postCheck('isIgnoreSorting')) ? 1 : null,
-                        'IS_IGNORE_WFM_HISTORY' => (Input::postCheck('isIgnoreWfmHistory')) ? 1 : null,
-                        'IS_DIRECT_PRINT' => (Input::postCheck('isDirectPrint')) ? 1 : null,
-                        'IS_CLEAR_DRILL_CRITERIA' => (Input::postCheck('isClearDrillCriteria')) ? 1 : null,
-                        'LIST_MENU_NAME' => Input::post('listMenuName'),
-                        'SHOW_POSITION' => Input::post('showPosition'),
-                        'IS_LOOKUP_BY_THEME' => (Input::postCheck('lookupTheme')) ? 1 : null, 
-                        'EXTERNAL_META_DATA_ID' => Input::post('externalMetaDataId'), 
-                        'WS_URL' => Input::post('wsUrl'), 
-                        'PANEL_TYPE' => Input::post('panelType'), 
-                        'IS_PARENT_FILTER' => Input::postCheck('isParentFilter') ? 1 : null, 
-                        'IS_USE_SEMANTIC' => Input::postCheck('isUseSemantic') ? 1 : null,
-                        'IS_USE_BUTTON_MAP' => Input::postCheck('isUseButtonMap') ? 1 : null, 
-                        'IS_GMAP_USERLOCATION' => Input::postCheck('isGmapUserLocation') ? 1 : null, 
-                        'IS_USE_COMPANY_DEPARTMENT_ID' => Input::postCheck('isUseCompanyDepartmentId') ? 1 : null, 
-                        'IS_SHOW_FILTER_TEMPLATE' => Input::postCheck('isShowFilterTemplate') ? 1 : null, 
-                        'IS_IGNORE_CLEAR_FILTER' => Input::postCheck('isIgnoreClearFilter') ? 1 : null, 
-                        'IS_FIRST_COL_FILTER' => Input::postCheck('isFirstColFilter') ? 1 : null, 
-                        'IS_CUSTOM' => $isCustom ? 1 : null, 
-                        'CLASS_NAME' => $isCustom ? Input::post('className') : null, 
-                        'METHOD_NAME' => $isCustom ? Input::post('methodName') : null, 
-                        'FORM_CONTROL' => Input::post('formControl'),
-                        'COLOR_SCHEMA' => Input::post('colorSchema'), 
-                        'DRAG_ROWS_RUN_PROCESS_ID' => Input::numeric('dragRowsRunProcessId')
-                    );
-
-                    if (self::isExistsMetaLink('META_GROUP_LINK', 'META_DATA_ID', $metaDataId)) {
-                        unset($dataGroupLink['ID']);
-                        $groupLinkResult = $this->db->AutoExecute('META_GROUP_LINK', $dataGroupLink, 'UPDATE', 'META_DATA_ID = ' . $metaDataId);
-                    } else {
-                        $groupLinkResult = $this->db->AutoExecute('META_GROUP_LINK', $dataGroupLink);
-                    }
-
-                    $this->db->UpdateClob('META_GROUP_LINK', 'TABLE_NAME', (new Mdmetadata())->objectNameCompress(Str::htmlCharToDoubleQuote($_POST['tableName'])), 'META_DATA_ID = '.$metaDataId);
-                    $this->db->UpdateClob('META_GROUP_LINK', 'POSTGRE_SQL', (new Mdmetadata())->objectNameCompress(Str::htmlCharToDoubleQuote($_POST['postgreSql'])), 'META_DATA_ID = '.$metaDataId);
-                    $this->db->UpdateClob('META_GROUP_LINK', 'MS_SQL', (new Mdmetadata())->objectNameCompress(Str::htmlCharToDoubleQuote($_POST['msSql'])), 'META_DATA_ID = '.$metaDataId);
-                    
-                    if (Input::isEmpty('dvSubQueryLoad') == false) {
-                        $groupLinkId = Input::post('groupLinkId');
-                        
-                        self::clearGroupSubQueryByLinkId($groupLinkId);
-
-                        if (Input::postCheck('dvSubSqlTitle')) {
-                            $dvSubSqlTitleData = Input::post('dvSubSqlTitle');
-
-                            foreach ($dvSubSqlTitleData as $sgr => $dvSubSqlTitle) {
-
-                                $subQueryLinkId = getUID();
-
-                                $dvSubQueryData = array(
-                                    'ID' => $subQueryLinkId,
-                                    'CODE' => Input::param($_POST['dvSubSqlCode'][$sgr]),
-                                    'GLOBE_CODE' => Input::param($dvSubSqlTitle),
-                                    'DESCRIPTION' => Input::param($_POST['dvSubSqlDescr'][$sgr]),
-                                    'META_GROUP_LINK_ID' => $groupLinkId
-                                );
-                                $this->db->AutoExecute('META_GROUP_SUB_QUERY', $dvSubQueryData);
-
-                                $this->db->UpdateClob('META_GROUP_SUB_QUERY', 'TABLE_NAME', (new Mdmetadata())->objectNameCompress(Str::htmlCharToDoubleQuote($_POST['dvSubSqlTableName'][$sgr])), 'ID = '.$subQueryLinkId);
-                            }
+                        if (self::isExistsMetaLink('META_FIELD_LINK', 'META_DATA_ID', $metaDataId)) {
+                            unset($dataFieldLink['ID']);
+                            $this->db->AutoExecute('META_FIELD_LINK', $dataFieldLink, 'UPDATE', 'META_DATA_ID = ' . $metaDataId);
+                        } else {
+                            $this->db->AutoExecute('META_FIELD_LINK', $dataFieldLink);
                         }
                     }
-                    
-                }
-                
-                if ($groupLinkResult) {
-                    self::saveGroupParamsModel($metaDataId);
-                }
+                } 
 
-                if (Input::postCheck('saveDataModelProcessDtl')) {
-                    
-                    self::clearGroupProcessDetailMap($metaDataId);
-                    self::clearDataViewProcessBatch($metaDataId);
+                if ($metaTypeId == Mdmetadata::$menuMetaTypeId) {
 
-                    if (Input::postCheck('groupProcessDtlMetaId')) {
-                        $groupProcessDtlMetaIdData = $_POST['groupProcessDtlMetaId'];
+                    $dataMenuLink = array(
+                        'ID' => getUID(),
+                        'META_DATA_ID' => $metaDataId,
+                        'MENU_POSITION' => Input::post('menuPosition'),
+                        'MENU_ALIGN' => Input::post('menuAlign'),
+                        'MENU_THEME' => Input::post('menuTheme'),
+                        'MENU_TOOLTIP' => Input::post('menuTooltip'),
+                        'ACTION_META_DATA_ID' => Input::post('menuActionMetaDataId'),
+                        'VIEW_META_DATA_ID' => Input::post('viewMetaDataId'),
+                        'COUNT_META_DATA_ID' => Input::post('menuCountMetaDataId'),
+                        'WEB_URL' => Input::post('webUrl'),
+                        'URL_TARGET' => Input::post('urlTarget'),
+                        'ICON_NAME' => Input::post('menuIconName'),
+                        'PHOTO_NAME' => Input::post('oldMenuPhotoName'),
+                        'BG_PHOTO_NAME' => Input::post('oldMenuBgPhotoName'),
+                        'MENU_COLOR' => Input::post('menuColor'),
+                        'VIEW_TYPE' => Input::post('viewType'),
+                        'IS_SHOW_CARD' => Input::post('isShowCard'),
+                        'IS_MONPASS_KEY' => Input::post('isMonpassKey'),
+                        'IS_CONTENT_UI' => Input::post('isContentUi'),
+                        'IS_MODULE_SIDEBAR' => Input::post('isModuleSidebar'),
+                        'IS_DEFAULT_OPEN' => Input::post('isDefaultOpen'),
+                        'IS_OFFLINE_MODE' => Input::post('isOfflineMode'),
+                        'GLOBE_CODE' => Input::post('globeCode'),
+                        'MENU_CODE' => Input::post('menuCode')
+                    );
 
-                        foreach ($groupProcessDtlMetaIdData as $pdk => $pdkRow) {
-                            
-                            if (empty($pdkRow)) { continue; }
-                            
-                            $groupProcessDtlCriteria = Str::htmltotext(
-                                Str::htmlCharToDoubleQuote(
-                                    Str::removeBr(
-                                        Str::remove_doublewhitespace(
-                                            Str::nlToSpace(
-                                                Str::cp1251_utf8(
-                                                    $_POST['groupProcessDtlCriteria'][$pdk][0]
+                    if (isset($_FILES['menuPhotoName']) && $_FILES["menuPhotoName"]['name'] != '') {
+
+                        $newMenuPhotoName = 'metamenu_' . $metaDataId . '_' . getUID();
+                        $menuPhotoExtension = strtolower(substr($_FILES['menuPhotoName']['name'], strrpos($_FILES['menuPhotoName']['name'], '.') + 1));
+                        $menuPhotoName = $newMenuPhotoName . '.' . $menuPhotoExtension;
+                        FileUpload::SetFileName($menuPhotoName);
+                        FileUpload::SetTempName($_FILES['menuPhotoName']['tmp_name']);
+                        FileUpload::SetUploadDirectory(UPLOADPATH . 'meta/menu/');
+                        FileUpload::SetValidExtensions(explode(',', Config::getFromCache('CONFIG_IMG_EXT')));
+                        FileUpload::SetMaximumFileSize(10485760); //10mb
+                        $menuPhotoUploadResult = FileUpload::UploadFile();
+
+                        if ($menuPhotoUploadResult) {
+                            $dataMenuLink['PHOTO_NAME'] = UPLOADPATH . 'meta/menu/' . $menuPhotoName;
+                        }
+                    }
+
+                    if (isset($_FILES['menuBgPhotoName']) && $_FILES["menuBgPhotoName"]['name'] != '') {
+
+                        $newMenuPhotoName = 'metamenu_' . $metaDataId . '_' . getUID();
+                        $menuPhotoExtension = strtolower(substr($_FILES['menuBgPhotoName']['name'], strrpos($_FILES['menuBgPhotoName']['name'], '.') + 1));
+                        $menuPhotoName = $newMenuPhotoName . '.' . $menuPhotoExtension;
+                        FileUpload::SetFileName($menuPhotoName);
+                        FileUpload::SetTempName($_FILES['menuBgPhotoName']['tmp_name']);
+                        FileUpload::SetUploadDirectory(UPLOADPATH . 'meta/menu/');
+                        FileUpload::SetValidExtensions(explode(',', Config::getFromCache('CONFIG_IMG_EXT')));
+                        FileUpload::SetMaximumFileSize(10485760); //10mb
+                        $menuPhotoUploadResult = FileUpload::UploadFile();
+
+                        if ($menuPhotoUploadResult) {
+                            $dataMenuLink['BG_PHOTO_NAME'] = UPLOADPATH . 'meta/menu/' . $menuPhotoName;
+                        }
+                    }
+
+                    if (self::isExistsMetaLink('META_MENU_LINK', 'META_DATA_ID', $metaDataId, 'META_DATA_ID')) {
+                        unset($dataMenuLink['ID']);
+                        $this->db->AutoExecute('META_MENU_LINK', $dataMenuLink, 'UPDATE', 'META_DATA_ID = ' . $metaDataId);
+                    } else {
+                        $this->db->AutoExecute('META_MENU_LINK', $dataMenuLink);
+                    }
+                } 
+
+                if ($metaTypeId == Mdmetadata::$calendarMetaTypeId) {
+                    $dataCalendarLink = array(                        
+                        'META_DATA_ID' => $metaDataId,
+                        'TRG_META_DATA_ID' => Input::post('targetMetaDataId'),
+                        'LINK_META_DATA_ID' => Input::post('linkMetaDataId'),
+                        'TITLE' => Input::post('calendarTitle'),
+                        'WIDTH' => Input::post('calendarWidth'),
+                        'HEIGHT' => Input::post('calendarHeight'),
+                        'TEXT_FONT_SIZE' => Input::post('textFontSize'),
+                        'COLUMN_PARAM_PATH' => Input::post('columnParamPath'),
+                        'START_PARAM_PATH' => Input::post('startDatePath'),
+                        'END_PARAM_PATH' => Input::post('endDatePath'),     
+                        'COLOR_PARAM_PATH' => Input::post('colorPath'),
+                        'FILTER_GROUP_PARAM_PATH' => Input::post('filterGroupPath'),
+                        'DEFAULT_INTERVAL_ID' => Input::post('defaultIntervalId'),                        
+                    );
+                    if (self::isExistsMetaLink('META_CALENDAR_LINK', 'META_DATA_ID', $metaDataId)) {
+                        $dataCalendarLink = array_merge($dataCalendarLink, array(
+                            'MODIFIED_DATE' => Date::currentDate(),
+                            'MODIFIED_USER_ID' => Ue::sessionUserKeyId(),
+                        ));
+                        $this->db->AutoExecute('META_CALENDAR_LINK', $dataCalendarLink, 'UPDATE', 'META_DATA_ID = ' . $metaDataId);
+                    } else {
+                        $dataCalendarLink = array_merge($dataCalendarLink, array(
+                            'ID' => getUID(),
+                            'CREATED_DATE' => Date::currentDate(),
+                            'CREATED_USER_ID' => Ue::sessionUserKeyId(),
+                        ));
+                        $this->db->AutoExecute('META_CALENDAR_LINK', $dataCalendarLink);
+                    }
+                } 
+
+                if ($metaTypeId == Mdmetadata::$contentMetaTypeId) {
+
+                    if (Input::isEmpty('layoutId') == false) {
+                        $layoutId = Input::post('layoutId');
+
+                        if (isset($_POST['contentCellId'])) {
+                            self::clearContentMapLinkMap($metaDataId);
+                            $cellData = $_POST['contentCellId'];
+                            foreach ($cellData as $c => $v) {
+                                if (!empty($v[0])) {
+                                    $dataContentMap = array(
+                                        'MAP_ID' => getUID(),
+                                        'META_DATA_ID' => $v[0],
+                                        'CELL_ID' => $c,
+                                        'LAYOUT_ID' => $layoutId,
+                                        'SRC_META_DATA_ID' => $metaDataId
+                                    );
+                                    $this->db->AutoExecute('META_CONTENT_MAP', $dataContentMap);
+                                }
+                            }
+                        }
+                        $dataContentLink = array(
+                            'ID' => getUID(),
+                            'META_DATA_ID' => $metaDataId,
+                            'LAYOUT_ID' => $layoutId,
+                            'IS_DEFAULT' => 1
+                        );
+                        if (self::isExistsMetaLink('META_CONTENT_LINK', 'META_DATA_ID', $metaDataId)) {
+                            unset($dataContentLink['ID']);
+                            $this->db->AutoExecute('META_CONTENT_LINK', $dataContentLink, 'UPDATE', 'META_DATA_ID = ' . $metaDataId);
+                        } else {
+                            $this->db->AutoExecute('META_CONTENT_LINK', $dataContentLink);
+                        }
+                    }
+                } 
+
+                if ($metaTypeId == Mdmetadata::$donutMetaTypeId) {
+                    $processId = Input::post('processId');
+                    $dataDonutLink = array(
+                        'DONUT_ID' => getUID(),
+                        'META_DATA_ID' => $metaDataId,
+                        'INFO' => Input::post('META_DATA_NAME'),
+                        'TEXT' => Input::post('text'),
+                        'URL' => Input::post('url'),
+                        'DIMENSION' => Input::post('dimension'),
+                        'FONTSIZE' => Input::post('fontsize'),
+                        'WIDTH' => Input::post('width'),
+                        'FGCOLOR' => Input::post('fgcolor'),
+                        'BGCOLOR' => Input::post('bgcolor'),
+                        'FILL' => Input::post('fill'),
+                        'META_BUSINESS_PROCESS_LINK_ID' => $processId
+                    );
+                    if (self::isExistsMetaLink('META_DONUT', 'META_DATA_ID', $metaDataId)) {
+                        unset($dataDonutLink['DONUT_ID']);
+                        $this->db->AutoExecute('META_DONUT', $dataDonutLink, 'UPDATE', 'META_DATA_ID = ' . $metaDataId);
+                    } else {
+                        $this->db->AutoExecute('META_DONUT', $dataDonutLink);
+                    }
+                } 
+
+                if ($metaTypeId == Mdmetadata::$cardMetaTypeId) {
+                    $processId = Input::post('processId');
+                    $dataCardLink = array(
+                        'CARD_ID' => getUID(),
+                        'META_DATA_ID' => $metaDataId,
+                        'TEXT' => Input::post('text'),
+                        'TEXT_ALIGN' => Input::post('textAlign'),
+                        'URL' => Input::post('url'),
+                        'IS_SHOW_URL' => Input::post('isShowUrl'),
+                        'TEXT_CSS' => Input::post('textCss'),
+                        'WIDTH' => Input::post('width'),
+                        'HEIGHT' => Input::post('height'),
+                        'BGCOLOR' => Input::post('bgcolor'),
+                        'ADDCLASS' => Input::post('addclass'),
+                        'FONT_ICON' => Input::post('fontIcon'),
+                        'IS_SEE' => Input::post('isSee'),
+                        'DATA_VIEW_ID' => Input::post('dataViewId'),
+                        'VIEW_NAME' => Input::post('viewName'),
+                        'PROCESS_META_DATA_ID' => $processId,
+                        'CHART_DATA_VIEW_ID' => Input::post('chartDataViewId'),
+                        'CHART_TYPE' => Input::post('chartType'),
+                        'COLUMN_NAME'     => Input::post('dataViewColumnName'),
+                        'AGGREGATE_NAME'  => Input::post('setColumnAggregate'),
+                    );
+                    if (self::isExistsMetaLink('META_CARD', 'META_DATA_ID', $metaDataId, 'CARD_ID')) {
+                        unset($dataCardLink['CARD_ID']);
+                        $this->db->AutoExecute('META_CARD', $dataCardLink, 'UPDATE', 'META_DATA_ID = ' . $metaDataId);
+                    } else {
+                        $this->db->AutoExecute('META_CARD', $dataCardLink);
+                    }
+                } 
+
+                if ($metaTypeId == Mdmetadata::$reportTemplateMetaTypeId) {
+                    $reportTemplate = array(
+                        'ID' => getUID(),
+                        'META_DATA_ID' => $metaDataId, 
+                        'DATA_MODEL_ID' => Input::post('metaGroupId'), 
+                        'GET_MODE' => Input::post('getMode'), 
+                        'DIRECTORY_ID' => Input::post('directoryId'),
+                        'PAGING_CONFIG' => Input::post('pagingConfig'), 
+                        'PAGE_MARGIN_TOP' => Str::remove_whitespace(Input::post('pageMarginTop')),
+                        'PAGE_MARGIN_LEFT' => Str::remove_whitespace(Input::post('pageMarginLeft')),
+                        'PAGE_MARGIN_RIGHT' => Str::remove_whitespace(Input::post('pageMarginRight')),
+                        'PAGE_MARGIN_BOTTOM' => Str::remove_whitespace(Input::post('pageMarginBottom')), 
+                        'ARCHIVE_WFM_STATUS_CODE' => Input::post('archiveWfmStatusCode'), 
+                        'IS_REPORT' => Input::postCheck('isReport') ? 1 : null, 
+                        'IS_ARCHIVE' => Input::postCheck('isArchive') ? 1 : null, 
+                        'IS_AUTO_ARCHIVE' => Input::postCheck('isAutoArchive') ? 1 : null, 
+                        'IS_EMAIL' => Input::postCheck('isEmail') ? 1 : null, 
+                        'IS_TABLE_LAYOUT_FIXED' => Input::postCheck('isTableLayoutFixed') ? 1 : null, 
+                        'IS_IGNORE_PRINT' => Input::postCheck('isIgnorePrint') ? 1 : null,
+                        'IS_IGNORE_EXCEL' => Input::postCheck('isIgnoreExcel') ? 1 : null,
+                        'IS_IGNORE_PDF' => Input::postCheck('isIgnorePdf') ? 1 : null,
+                        'IS_IGNORE_WORD' => Input::postCheck('isIgnoreWord') ? 1 : null, 
+                        'IS_BLOCKCHAIN_VERIFY' => Input::postCheck('isBlockChainVerify') ? 1 : null
+                    );
+
+                    if (Input::postCheck('htmlContent')) {
+                        $htmlFilePath = UPLOADPATH . 'report_template/' . $metaDataId . '.html';
+                        if (file_put_contents($htmlFilePath, Input::postNonTags('htmlContent'))) {
+                            $reportTemplate['HTML_FILE_PATH'] = $htmlFilePath;
+                        }
+                    }
+
+                    if (self::isExistsMetaLink('META_REPORT_TEMPLATE_LINK', 'META_DATA_ID', $metaDataId)) {
+                        unset($reportTemplate['ID']);
+                        $result = $this->db->AutoExecute('META_REPORT_TEMPLATE_LINK', $reportTemplate, 'UPDATE', 'META_DATA_ID = ' . $metaDataId);              
+                        if ($result) {
+                            $this->db->UpdateClob('META_REPORT_TEMPLATE_LINK', 'CONFIG_STR', Input::post('configStr'), 'META_DATA_ID = '.$metaDataId);
+                        }                          
+                    } else {
+                        $result = $this->db->AutoExecute('META_REPORT_TEMPLATE_LINK', $reportTemplate);
+                        if ($result) {
+                            $this->db->UpdateClob('META_REPORT_TEMPLATE_LINK', 'CONFIG_STR', Input::post('configStr'), 'ID = '.$reportTemplate['ID']);
+                        } 
+                    }
+
+                    if (Input::postCheck('htmlHeaderContent')) {
+                        $this->db->UpdateClob('META_REPORT_TEMPLATE_LINK', 'HTML_HEADER_CONTENT', Input::postWithDoubleSpace('htmlHeaderContent'), 'META_DATA_ID = '.$metaDataId);
+                    }
+                    if (Input::postCheck('htmlFooterContent')) {
+                        $this->db->UpdateClob('META_REPORT_TEMPLATE_LINK', 'HTML_FOOTER_CONTENT', Input::postWithDoubleSpace('htmlFooterContent'), 'META_DATA_ID = '.$metaDataId);                
+                    }
+                    if (Input::postCheck('reportTemplateUIExpression')) {
+                        $this->db->UpdateClob('META_REPORT_TEMPLATE_LINK', 'UI_EXPRESSION', Input::paramWithDoubleSpace($_POST['reportTemplateUIExpression']), 'META_DATA_ID = '.$metaDataId);                
+                    }  
+                } 
+
+                if ($metaTypeId == Mdmetadata::$diagramMetaTypeId) {
+                    $this->updateDiagramSettings($metaDataId);
+                } 
+
+                if ($metaTypeId == Mdmetadata::$metaGroupMetaTypeId) {
+                    if (Input::isEmpty('groupType') == false) {
+
+                        $isCustom = Input::postCheck('isCustom');
+
+                        $dataGroupLink = array(
+                            'ID' => getUID(),
+                            'META_DATA_ID' => $metaDataId,
+                            'LABEL_POSITION' => Input::post('labelPosition'),
+                            'COLUMN_COUNT' => Input::post('columnCount'),
+                            'LABEL_WIDTH' => Input::post('labelWidth'),
+                            'SEARCH_TYPE' => Input::post('searchType'),
+                            'GROUP_TYPE' => Input::post('groupType'),
+                            'IS_TREEVIEW' => (Input::postCheck('isTreeview')) ? 1 : null,
+                            'WINDOW_TYPE' => Input::post('windowType'),
+                            'WINDOW_SIZE' => Input::post('windowSize'),
+                            'WINDOW_WIDTH' => Input::post('windowWidth'),
+                            'WINDOW_HEIGHT' => Input::post('windowHeight'),
+                            'REF_META_GROUP_ID' => Input::post('repMetaGroupId'),
+                            'REF_STRUCTURE_ID' => Input::post('repStructureId'),
+                            'IS_ENTITY' => (Input::postCheck('isEntity')) ? 1 : null,
+                            'LIST_NAME' => Input::post('listName'),                        
+                            'IS_SKIP_UNIQUE_ERROR' => Input::post('isSkipUniqueError'), 
+                            'IS_NOT_GROUPBY' => (Input::postCheck('isNotGroupBy')) ? 1 : null, 
+                            'IS_ALL_NOT_SEARCH' => (Input::postCheck('isAllNotSearch')) ? 1 : null,
+                            'IS_USE_RT_CONFIG' => (Input::postCheck('isUseRtConfig')) ? 1 : null,
+                            'IS_USE_WFM_CONFIG' => (Input::postCheck('isUseWorkFlow')) ? 1 : null,
+                            'IS_USE_SIDEBAR' => (Input::postCheck('isUseSidebar')) ? 1 : null, 
+                            'IS_USE_QUICKSEARCH' => (Input::postCheck('isUseQuickSearch')) ? 1 : null, 
+                            'IS_USE_RESULT' => (Input::postCheck('isUseResult')) ? 1 : null, 
+                            'IS_EXPORT_TEXT' => (Input::postCheck('isExportText')) ? 1 : null, 
+                            'BUTTON_BAR_STYLE' => Input::post('buttonBarStyle'), 
+                            'REFRESH_TIMER' => Input::post('refreshTimer'), 
+                            'M_CRITERIA_COL_COUNT' => Input::post('criteriaColCount'), 
+                            'M_GROUP_CRITERIA_COL_COUNT' => Input::post('criteriaGroupColCount'),
+                            'USE_BASKET' => (Input::postCheck('useBasket')) ? 1 : null, 
+                            'IS_COUNTCARD_OPEN' => (Input::postCheck('isCountCartOpen')) ? 1 : null, 
+                            'CALCULATE_PROCESS_ID' => Input::numeric('calculateProcessId'), 
+                            'QS_META_DATA_ID' => Input::numeric('quickSearchDvId'), 
+                            'DATA_LEGEND_DV_ID' => Input::numeric('legendDvId'), 
+                            'LAYOUT_META_DATA_ID' => Input::numeric('layoutMetaId'),
+                            'RULE_PROCESS_ID' => Input::numeric('ruleProcessId'), 
+                            'IS_IGNORE_EXCEL_EXPORT' => (Input::postCheck('isIgnoreExcelExport')) ? 1 : null, 
+                            'IS_USE_DATAMART' => (Input::postCheck('isUseDataMart')) ? 1 : null, 
+                            'IS_CRITERIA_ALWAYS_OPEN' => (Input::postCheck('isCriteriaAlwaysOpen')) ? 1 : null, 
+                            'IS_ENTER_FILTER' => (Input::postCheck('isEnterFilter')) ? 1 : null, 
+                            'IS_FILTER_LOG' => (Input::postCheck('isFilterLog')) ? 1 : null,
+                            'IS_IGNORE_SORTING' => (Input::postCheck('isIgnoreSorting')) ? 1 : null,
+                            'IS_IGNORE_WFM_HISTORY' => (Input::postCheck('isIgnoreWfmHistory')) ? 1 : null,
+                            'IS_DIRECT_PRINT' => (Input::postCheck('isDirectPrint')) ? 1 : null,
+                            'IS_CLEAR_DRILL_CRITERIA' => (Input::postCheck('isClearDrillCriteria')) ? 1 : null,
+                            'LIST_MENU_NAME' => Input::post('listMenuName'),
+                            'SHOW_POSITION' => Input::post('showPosition'),
+                            'IS_LOOKUP_BY_THEME' => (Input::postCheck('lookupTheme')) ? 1 : null, 
+                            'EXTERNAL_META_DATA_ID' => Input::post('externalMetaDataId'), 
+                            'WS_URL' => Input::post('wsUrl'), 
+                            'PANEL_TYPE' => Input::post('panelType'), 
+                            'IS_PARENT_FILTER' => Input::postCheck('isParentFilter') ? 1 : null, 
+                            'IS_USE_SEMANTIC' => Input::postCheck('isUseSemantic') ? 1 : null,
+                            'IS_USE_BUTTON_MAP' => Input::postCheck('isUseButtonMap') ? 1 : null, 
+                            'IS_GMAP_USERLOCATION' => Input::postCheck('isGmapUserLocation') ? 1 : null, 
+                            'IS_USE_COMPANY_DEPARTMENT_ID' => Input::postCheck('isUseCompanyDepartmentId') ? 1 : null, 
+                            'IS_SHOW_FILTER_TEMPLATE' => Input::postCheck('isShowFilterTemplate') ? 1 : null, 
+                            'IS_IGNORE_CLEAR_FILTER' => Input::postCheck('isIgnoreClearFilter') ? 1 : null, 
+                            'IS_FIRST_COL_FILTER' => Input::postCheck('isFirstColFilter') ? 1 : null, 
+                            'IS_CUSTOM' => $isCustom ? 1 : null, 
+                            'CLASS_NAME' => $isCustom ? Input::post('className') : null, 
+                            'METHOD_NAME' => $isCustom ? Input::post('methodName') : null, 
+                            'FORM_CONTROL' => Input::post('formControl'),
+                            'COLOR_SCHEMA' => Input::post('colorSchema'), 
+                            'DRAG_ROWS_RUN_PROCESS_ID' => Input::numeric('dragRowsRunProcessId')
+                        );
+
+                        if (self::isExistsMetaLink('META_GROUP_LINK', 'META_DATA_ID', $metaDataId)) {
+                            unset($dataGroupLink['ID']);
+                            $groupLinkResult = $this->db->AutoExecute('META_GROUP_LINK', $dataGroupLink, 'UPDATE', 'META_DATA_ID = ' . $metaDataId);
+                        } else {
+                            $groupLinkResult = $this->db->AutoExecute('META_GROUP_LINK', $dataGroupLink);
+                        }
+
+                        $this->db->UpdateClob('META_GROUP_LINK', 'TABLE_NAME', (new Mdmetadata())->objectNameCompress(Str::htmlCharToDoubleQuote($_POST['tableName'])), 'META_DATA_ID = '.$metaDataId);
+                        $this->db->UpdateClob('META_GROUP_LINK', 'POSTGRE_SQL', (new Mdmetadata())->objectNameCompress(Str::htmlCharToDoubleQuote($_POST['postgreSql'])), 'META_DATA_ID = '.$metaDataId);
+                        $this->db->UpdateClob('META_GROUP_LINK', 'MS_SQL', (new Mdmetadata())->objectNameCompress(Str::htmlCharToDoubleQuote($_POST['msSql'])), 'META_DATA_ID = '.$metaDataId);
+
+                        if (Input::isEmpty('dvSubQueryLoad') == false) {
+                            $groupLinkId = Input::post('groupLinkId');
+
+                            self::clearGroupSubQueryByLinkId($groupLinkId);
+
+                            if (Input::postCheck('dvSubSqlTitle')) {
+                                $dvSubSqlTitleData = Input::post('dvSubSqlTitle');
+
+                                foreach ($dvSubSqlTitleData as $sgr => $dvSubSqlTitle) {
+
+                                    $subQueryLinkId = getUID();
+
+                                    $dvSubQueryData = array(
+                                        'ID' => $subQueryLinkId,
+                                        'CODE' => Input::param($_POST['dvSubSqlCode'][$sgr]),
+                                        'GLOBE_CODE' => Input::param($dvSubSqlTitle),
+                                        'DESCRIPTION' => Input::param($_POST['dvSubSqlDescr'][$sgr]),
+                                        'META_GROUP_LINK_ID' => $groupLinkId
+                                    );
+                                    $this->db->AutoExecute('META_GROUP_SUB_QUERY', $dvSubQueryData);
+
+                                    $this->db->UpdateClob('META_GROUP_SUB_QUERY', 'TABLE_NAME', (new Mdmetadata())->objectNameCompress(Str::htmlCharToDoubleQuote($_POST['dvSubSqlTableName'][$sgr])), 'ID = '.$subQueryLinkId);
+                                }
+                            }
+                        }
+
+                    }
+
+                    if ($groupLinkResult) {
+                        self::saveGroupParamsModel($metaDataId);
+                    }
+
+                    if (Input::postCheck('saveDataModelProcessDtl')) {
+
+                        self::clearGroupProcessDetailMap($metaDataId);
+                        self::clearDataViewProcessBatch($metaDataId);
+
+                        if (Input::postCheck('groupProcessDtlMetaId')) {
+                            $groupProcessDtlMetaIdData = $_POST['groupProcessDtlMetaId'];
+
+                            foreach ($groupProcessDtlMetaIdData as $pdk => $pdkRow) {
+
+                                if (empty($pdkRow)) { continue; }
+
+                                $groupProcessDtlCriteria = Str::htmltotext(
+                                    Str::htmlCharToDoubleQuote(
+                                        Str::removeBr(
+                                            Str::remove_doublewhitespace(
+                                                Str::nlToSpace(
+                                                    Str::cp1251_utf8(
+                                                        $_POST['groupProcessDtlCriteria'][$pdk][0]
+                                                    )
                                                 )
                                             )
                                         )
                                     )
-                                )
-                            );
-                            $groupProcessDtlAdvancedCriteria = Str::htmltotext(
-                                Str::htmlCharToDoubleQuote(
-                                    Str::removeBr(
-                                        Str::remove_doublewhitespace(
-                                            Str::nlToSpace(
-                                                Str::cp1251_utf8(
-                                                    $_POST['groupProcessDtlAdvancedCriteria'][$pdk][0]
+                                );
+                                $groupProcessDtlAdvancedCriteria = Str::htmltotext(
+                                    Str::htmlCharToDoubleQuote(
+                                        Str::removeBr(
+                                            Str::remove_doublewhitespace(
+                                                Str::nlToSpace(
+                                                    Str::cp1251_utf8(
+                                                        $_POST['groupProcessDtlAdvancedCriteria'][$pdk][0]
+                                                    )
                                                 )
                                             )
                                         )
                                     )
-                                )
-                            );
-                            $groupProcessDtlConfirmMsg = Str::cp1251_utf8($_POST['groupProcessDtlConfirmMsg'][$pdk][0]);
-                            
-                            $dataProcessDtl = array(
-                                'ID' => getUID(),
-                                'MAIN_META_DATA_ID' => $metaDataId,
-                                'PROCESS_META_DATA_ID' => $pdk,
-                                'IS_MULTI' => ((isset($_POST['groupProcessDtlIsMulti'][$pdk])) ? 1 : 0),
-                                'PROCESS_NAME' => Input::param($_POST['groupProcessDtlProcessName'][$pdk][0]),
-                                'ICON_NAME' => Input::param($_POST['groupProcessDtlIconName'][$pdk][0]),
-                                'ORDER_NUM' => Input::param($_POST['groupProcessDtlOrderNum'][$pdk][0]),
-                                'IS_CONFIRM' => ((isset($_POST['groupProcessDtlIsConfirm'][$pdk])) ? 1 : 0),
-                                'BATCH_NUMBER' => Input::param($_POST['groupProcessDtlBatchNum'][$pdk][0]),
-                                'IS_SHOW_POPUP' => ((isset($_POST['groupProcessDtlIsShowPopup'][$pdk])) ? 1 : 0),
-                                'IS_WORKFLOW' => ((isset($_POST['groupProcessDtlIsWorkFlow'][$pdk])) ? 1 : 0),
-                                'IS_MAIN' => ((isset($_POST['groupProcessDtlIsMain'][$pdk])) ? 1 : 0),
-                                'IS_SHOW_BASKET' => ((isset($_POST['groupProcessDtlIsBasket'][$pdk])) ? 1 : 0),
-                                'BUTTON_STYLE' => ((isset($_POST['groupProcessDtlColor'][$pdk])) ? Input::param($_POST['groupProcessDtlColor'][$pdk][0]) : null),
-                                'CRITERIA' => $groupProcessDtlCriteria,
-                                'ADVANCED_CRITERIA' => $groupProcessDtlAdvancedCriteria,
-                                'CONFIRM_MESSAGE' => $groupProcessDtlConfirmMsg,
-                                'PASSWORD_PATH' => issetVar($_POST['groupProcessDtlPasswordPath'][$pdk][0]), 
-                                'IS_BP_OPEN' => issetVar($_POST['groupProcessDtlOpenBP'][$pdk][0]), 
-                                'IS_BP_OPEN_DEFAULT' => issetVar($_POST['groupProcessDtlOpenBPdefault'][$pdk][0]), 
-                                'ICON_COLOR' => issetVar($_POST['groupProcessDtlIconColor'][$pdk][0]), 
-                                'SHOW_POSITION' => issetVar($_POST['groupProcessShowPosition'][$pdk][0]), 
-                                'POST_PARAM' => Input::param($_POST['groupProcessDtlPostParam'][$pdk][0]),
-                                'GET_PARAM' => Input::param($_POST['groupProcessDtlGetParam'][$pdk][0]), 
-                                'IS_ROW_UPDATE' => isset($_POST['groupProcessDtlIsRowUpdate'][$pdk]) ? 1 : null, 
-                                'IS_SHOW_ROWSELECT' => isset($_POST['groupProcessDtlIsShowRowSelect'][$pdk]) ? Input::param($_POST['groupProcessDtlIsShowRowSelect'][$pdk][0]) : null, 
-                                'IS_USE_PROCESS_TOOLBAR' => isset($_POST['groupProcessDtlUseProcessToolbar'][$pdk]) ? Input::param($_POST['groupProcessDtlUseProcessToolbar'][$pdk][0]) : null, 
-                                'IS_PROCESS_TOOLBAR' => isset($_POST['groupProcessDtlProcessToolbar'][$pdk]) ? Input::param($_POST['groupProcessDtlProcessToolbar'][$pdk][0]) : null, 
-                                'IS_CONTEXT_MENU' => isset($_POST['groupProcessDtlIsContextMenu'][$pdk]) ? Input::param($_POST['groupProcessDtlIsContextMenu'][$pdk][0]) : null, 
-                                'IS_RUN_LOOP' => isset($_POST['groupProcessDtlIsRunLoop'][$pdk]) ? Input::param($_POST['groupProcessDtlIsRunLoop'][$pdk][0]) : null 
-                            );
-                            
-                            if (isset($_POST['groupProcessDtlTransferAutoMapValue'][$pdk][0])) {
-                                $dataProcessDtl['IS_AUTO_MAP'] = Input::param($_POST['groupProcessDtlTransferAutoMapValue'][$pdk][0]);
-                                $dataProcessDtl['AUTO_MAP_SRC'] = Input::param($_POST['groupProcessDtlTransferAutoMapSrcValue'][$pdk][0]);
-                                $dataProcessDtl['AUTO_MAP_ON_DELETE'] = empty($_POST['groupProcessDtlTransferAutoMapValue'][$pdk][0]) ? null : Input::param($_POST['groupProcessDtlTransferAutoMapOnDeleteValue'][$pdk][0]);
-                                $dataProcessDtl['AUTO_MAP_ON_UPDATE'] = empty($_POST['groupProcessDtlTransferAutoMapValue'][$pdk][0]) ? null : Input::param($_POST['groupProcessDtlTransferAutoMapOnUpdateValue'][$pdk][0]);
-                                $dataProcessDtl['AUTO_MAP_SRC_PATH'] = empty($_POST['groupProcessDtlTransferAutoMapSrcPath'][$pdk][0]) ? null : Input::param($_POST['groupProcessDtlTransferAutoMapSrcPath'][$pdk][0]);
-                                $dataProcessDtl['AUTO_MAP_SRC_TABLE_NAME'] = empty($_POST['groupProcessDtlTransferAutoMapTableName'][$pdk][0]) ? null : Input::param($_POST['groupProcessDtlTransferAutoMapTableName'][$pdk][0]);
-                                $dataProcessDtl['AUTO_MAP_DELETE_PROCESS_ID'] = empty($_POST['groupProcessDtlTransferAutoMapValue'][$pdk][0]) ? null : Input::param($_POST['groupProcessDtlTransferDeleteMetaId'][$pdk][0]);
-                                $dataProcessDtl['AUTO_MAP_DATAVIEW_ID'] = issetParam($_POST['groupProcessDtlTransferListMetaId'][$pdk][0]);
-                                $dataProcessDtl['AUTO_MAP_NAME_PATTERN'] = issetParam($_POST['groupProcessDtlTransferPattern'][$pdk][0]);
-                                $dataProcessDtl['AUTO_MAP_TRG_NAME_PATTERN'] = issetParam($_POST['groupProcessDtlTransferTrgPattern'][$pdk][0]);
-                            }
-                            $resultProcessDtl = $this->db->AutoExecute('META_DM_PROCESS_DTL', $dataProcessDtl);
-
-                            if ($resultProcessDtl) {
-                                if (isset($_POST['groupProcessDtlTransferGetMetaId'][$pdk])) {
-                                    $groupProcessDtlTransferGetMetaIdData = $_POST['groupProcessDtlTransferGetMetaId'][$pdk];
-                                    foreach ($groupProcessDtlTransferGetMetaIdData as $dtlTk => $dtlTkRow) {
-                                        $dataProcessDtlTransfer = array(
-                                            'ID' => getUID(),
-                                            'MAIN_META_DATA_ID' => $metaDataId,
-                                            'PROCESS_META_DATA_ID' => $pdk,
-                                            'VIEW_FIELD_PATH' => Input::param($_POST['groupProcessDtlTransferViewPath'][$pdk][$dtlTk]),
-                                            'GET_META_DATA_ID' => Input::param($_POST['groupProcessDtlTransferGetMetaId'][$pdk][$dtlTk]),
-                                            'INPUT_PARAM_PATH' => Input::param($_POST['groupProcessDtlTransferParamPath'][$pdk][$dtlTk]), 
-                                            'DEFAULT_VALUE' => Input::param($_POST['groupProcessDtlTransferDefaultValue'][$pdk][$dtlTk])
-                                        );
-                                        $this->db->AutoExecute('META_DM_TRANSFER_PROCESS', $dataProcessDtlTransfer);
-                                    }
-                                }
-                                if (isset($_POST['groupProcessDtlBasketTransferParamPath'][$pdk]) && !empty($_POST['groupProcessDtlBasketTransferParamPath'][$pdk])) {
-                                    $groupProcessDtlBasketTransferParamPath = $_POST['groupProcessDtlBasketTransferParamPath'][$pdk];
-                                    foreach ($groupProcessDtlBasketTransferParamPath as $dtlTk => $dtlTkRow) {
-                                        $dataProcessDtlBasketTransfer = array(
-                                            'ID' => getUID(),
-                                            'MAIN_META_DATA_ID' => $metaDataId,
-                                            'PROCESS_META_DATA_ID' => $pdk,
-                                            'VIEW_FIELD_PATH' => Input::param($_POST['groupProcessDtlBasketTransferViewPath'][$pdk][$dtlTk]),
-                                            'BASKET_PATH' => Input::param($_POST['groupProcessDtlBasketTransferParamPath'][$pdk][$dtlTk]), 
-                                            'BASKET_INPUTPATH' => Input::param($_POST['groupProcessDtlBasketTransferDefaultValue'][$pdk][$dtlTk])
-                                        );
-                                        $this->db->AutoExecute('META_DM_TRANSFER_PROCESS', $dataProcessDtlBasketTransfer);
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    if (Input::postCheck('batchNumber')) {
-                        $batchNumberData = Input::post('batchNumber');
-                        foreach ($batchNumberData as $bk => $bRow) {
-                            if ($bRow != '') {
-                                $dmProcessBatch = array(
-                                    'ID' => getUID(),
-                                    'MAIN_META_DATA_ID' => $metaDataId,
-                                    'BATCH_NUMBER' => Input::param($bRow),
-                                    'BATCH_NAME' => Input::param($_POST['batchNumberName'][$bk]),
-                                    'ICON_NAME' => Input::param($_POST['batchNumberIcon'][$bk]),
-                                    'IS_DROPDOWN' => Input::param($_POST['batchNumberIsDrop'][$bk]),
-                                    'IS_SHOW_POPUP' => Input::param($_POST['batchNumberIsShowPopup'][$bk]),
-                                    'BUTTON_STYLE' => Input::param($_POST['batchNumberColor'][$bk])
                                 );
-                                $this->db->AutoExecute('META_DM_PROCESS_BATCH', $dmProcessBatch);
-                            }
-                        }
-                    }
-                }
+                                $groupProcessDtlConfirmMsg = Str::cp1251_utf8($_POST['groupProcessDtlConfirmMsg'][$pdk][0]);
 
-                if (Input::postCheck('groupProcessDtlTransferProcessParamPath')) {
-                    self::clearGroupProcessDetailRowMap($metaDataId);
-
-                    $groupProcessDtlMetaIdData = $_POST['groupProcessDtlTransferProcessParamPath'];
-
-                    foreach ($groupProcessDtlMetaIdData as $pdk => $pdkRow) {
-
-                        if (isset($_POST['groupProcessDtlTransferProcessParamPath'][$pdk])) {
-                            $groupProcessDtlTransferGetMetaIdData = $_POST['groupProcessDtlTransferProcessParamPath'][$pdk];
-                            foreach ($groupProcessDtlTransferGetMetaIdData as $dtlTk => $dtlTkRow) {
-                                $dataProcessDtlTransfer = array(
+                                $dataProcessDtl = array(
                                     'ID' => getUID(),
                                     'MAIN_META_DATA_ID' => $metaDataId,
                                     'PROCESS_META_DATA_ID' => $pdk,
-                                    'SRC_PARAM_PATH' => Input::param($_POST['groupProcessDtlTransferDataViewPath'][$pdk][$dtlTk]),
-                                    'TRG_PARAM_PATH' => Input::param($dtlTkRow)
+                                    'IS_MULTI' => ((isset($_POST['groupProcessDtlIsMulti'][$pdk])) ? 1 : 0),
+                                    'PROCESS_NAME' => Input::param($_POST['groupProcessDtlProcessName'][$pdk][0]),
+                                    'ICON_NAME' => Input::param($_POST['groupProcessDtlIconName'][$pdk][0]),
+                                    'ORDER_NUM' => Input::param($_POST['groupProcessDtlOrderNum'][$pdk][0]),
+                                    'IS_CONFIRM' => ((isset($_POST['groupProcessDtlIsConfirm'][$pdk])) ? 1 : 0),
+                                    'BATCH_NUMBER' => Input::param($_POST['groupProcessDtlBatchNum'][$pdk][0]),
+                                    'IS_SHOW_POPUP' => ((isset($_POST['groupProcessDtlIsShowPopup'][$pdk])) ? 1 : 0),
+                                    'IS_WORKFLOW' => ((isset($_POST['groupProcessDtlIsWorkFlow'][$pdk])) ? 1 : 0),
+                                    'IS_MAIN' => ((isset($_POST['groupProcessDtlIsMain'][$pdk])) ? 1 : 0),
+                                    'IS_SHOW_BASKET' => ((isset($_POST['groupProcessDtlIsBasket'][$pdk])) ? 1 : 0),
+                                    'BUTTON_STYLE' => ((isset($_POST['groupProcessDtlColor'][$pdk])) ? Input::param($_POST['groupProcessDtlColor'][$pdk][0]) : null),
+                                    'CRITERIA' => $groupProcessDtlCriteria,
+                                    'ADVANCED_CRITERIA' => $groupProcessDtlAdvancedCriteria,
+                                    'CONFIRM_MESSAGE' => $groupProcessDtlConfirmMsg,
+                                    'PASSWORD_PATH' => issetVar($_POST['groupProcessDtlPasswordPath'][$pdk][0]), 
+                                    'IS_BP_OPEN' => issetVar($_POST['groupProcessDtlOpenBP'][$pdk][0]), 
+                                    'IS_BP_OPEN_DEFAULT' => issetVar($_POST['groupProcessDtlOpenBPdefault'][$pdk][0]), 
+                                    'ICON_COLOR' => issetVar($_POST['groupProcessDtlIconColor'][$pdk][0]), 
+                                    'SHOW_POSITION' => issetVar($_POST['groupProcessShowPosition'][$pdk][0]), 
+                                    'POST_PARAM' => Input::param($_POST['groupProcessDtlPostParam'][$pdk][0]),
+                                    'GET_PARAM' => Input::param($_POST['groupProcessDtlGetParam'][$pdk][0]), 
+                                    'IS_ROW_UPDATE' => isset($_POST['groupProcessDtlIsRowUpdate'][$pdk]) ? 1 : null, 
+                                    'IS_SHOW_ROWSELECT' => isset($_POST['groupProcessDtlIsShowRowSelect'][$pdk]) ? Input::param($_POST['groupProcessDtlIsShowRowSelect'][$pdk][0]) : null, 
+                                    'IS_USE_PROCESS_TOOLBAR' => isset($_POST['groupProcessDtlUseProcessToolbar'][$pdk]) ? Input::param($_POST['groupProcessDtlUseProcessToolbar'][$pdk][0]) : null, 
+                                    'IS_PROCESS_TOOLBAR' => isset($_POST['groupProcessDtlProcessToolbar'][$pdk]) ? Input::param($_POST['groupProcessDtlProcessToolbar'][$pdk][0]) : null, 
+                                    'IS_CONTEXT_MENU' => isset($_POST['groupProcessDtlIsContextMenu'][$pdk]) ? Input::param($_POST['groupProcessDtlIsContextMenu'][$pdk][0]) : null, 
+                                    'IS_RUN_LOOP' => isset($_POST['groupProcessDtlIsRunLoop'][$pdk]) ? Input::param($_POST['groupProcessDtlIsRunLoop'][$pdk][0]) : null 
                                 );
-                                $this->db->AutoExecute('META_DM_ROW_PROCESS_PARAM', $dataProcessDtlTransfer);
+
+                                if (isset($_POST['groupProcessDtlTransferAutoMapValue'][$pdk][0])) {
+                                    $dataProcessDtl['IS_AUTO_MAP'] = Input::param($_POST['groupProcessDtlTransferAutoMapValue'][$pdk][0]);
+                                    $dataProcessDtl['AUTO_MAP_SRC'] = Input::param($_POST['groupProcessDtlTransferAutoMapSrcValue'][$pdk][0]);
+                                    $dataProcessDtl['AUTO_MAP_ON_DELETE'] = empty($_POST['groupProcessDtlTransferAutoMapValue'][$pdk][0]) ? null : Input::param($_POST['groupProcessDtlTransferAutoMapOnDeleteValue'][$pdk][0]);
+                                    $dataProcessDtl['AUTO_MAP_ON_UPDATE'] = empty($_POST['groupProcessDtlTransferAutoMapValue'][$pdk][0]) ? null : Input::param($_POST['groupProcessDtlTransferAutoMapOnUpdateValue'][$pdk][0]);
+                                    $dataProcessDtl['AUTO_MAP_SRC_PATH'] = empty($_POST['groupProcessDtlTransferAutoMapSrcPath'][$pdk][0]) ? null : Input::param($_POST['groupProcessDtlTransferAutoMapSrcPath'][$pdk][0]);
+                                    $dataProcessDtl['AUTO_MAP_SRC_TABLE_NAME'] = empty($_POST['groupProcessDtlTransferAutoMapTableName'][$pdk][0]) ? null : Input::param($_POST['groupProcessDtlTransferAutoMapTableName'][$pdk][0]);
+                                    $dataProcessDtl['AUTO_MAP_DELETE_PROCESS_ID'] = empty($_POST['groupProcessDtlTransferAutoMapValue'][$pdk][0]) ? null : Input::param($_POST['groupProcessDtlTransferDeleteMetaId'][$pdk][0]);
+                                    $dataProcessDtl['AUTO_MAP_DATAVIEW_ID'] = issetParam($_POST['groupProcessDtlTransferListMetaId'][$pdk][0]);
+                                    $dataProcessDtl['AUTO_MAP_NAME_PATTERN'] = issetParam($_POST['groupProcessDtlTransferPattern'][$pdk][0]);
+                                    $dataProcessDtl['AUTO_MAP_TRG_NAME_PATTERN'] = issetParam($_POST['groupProcessDtlTransferTrgPattern'][$pdk][0]);
+                                }
+                                $resultProcessDtl = $this->db->AutoExecute('META_DM_PROCESS_DTL', $dataProcessDtl);
+
+                                if ($resultProcessDtl) {
+                                    if (isset($_POST['groupProcessDtlTransferGetMetaId'][$pdk])) {
+                                        $groupProcessDtlTransferGetMetaIdData = $_POST['groupProcessDtlTransferGetMetaId'][$pdk];
+                                        foreach ($groupProcessDtlTransferGetMetaIdData as $dtlTk => $dtlTkRow) {
+                                            $dataProcessDtlTransfer = array(
+                                                'ID' => getUID(),
+                                                'MAIN_META_DATA_ID' => $metaDataId,
+                                                'PROCESS_META_DATA_ID' => $pdk,
+                                                'VIEW_FIELD_PATH' => Input::param($_POST['groupProcessDtlTransferViewPath'][$pdk][$dtlTk]),
+                                                'GET_META_DATA_ID' => Input::param($_POST['groupProcessDtlTransferGetMetaId'][$pdk][$dtlTk]),
+                                                'INPUT_PARAM_PATH' => Input::param($_POST['groupProcessDtlTransferParamPath'][$pdk][$dtlTk]), 
+                                                'DEFAULT_VALUE' => Input::param($_POST['groupProcessDtlTransferDefaultValue'][$pdk][$dtlTk])
+                                            );
+                                            $this->db->AutoExecute('META_DM_TRANSFER_PROCESS', $dataProcessDtlTransfer);
+                                        }
+                                    }
+                                    if (isset($_POST['groupProcessDtlBasketTransferParamPath'][$pdk]) && !empty($_POST['groupProcessDtlBasketTransferParamPath'][$pdk])) {
+                                        $groupProcessDtlBasketTransferParamPath = $_POST['groupProcessDtlBasketTransferParamPath'][$pdk];
+                                        foreach ($groupProcessDtlBasketTransferParamPath as $dtlTk => $dtlTkRow) {
+                                            $dataProcessDtlBasketTransfer = array(
+                                                'ID' => getUID(),
+                                                'MAIN_META_DATA_ID' => $metaDataId,
+                                                'PROCESS_META_DATA_ID' => $pdk,
+                                                'VIEW_FIELD_PATH' => Input::param($_POST['groupProcessDtlBasketTransferViewPath'][$pdk][$dtlTk]),
+                                                'BASKET_PATH' => Input::param($_POST['groupProcessDtlBasketTransferParamPath'][$pdk][$dtlTk]), 
+                                                'BASKET_INPUTPATH' => Input::param($_POST['groupProcessDtlBasketTransferDefaultValue'][$pdk][$dtlTk])
+                                            );
+                                            $this->db->AutoExecute('META_DM_TRANSFER_PROCESS', $dataProcessDtlBasketTransfer);
+                                        }
+                                    }
+                                }
                             }
-                        }                        
-
-                    }
-                }
-
-                if (Input::postCheck('gridProperties')) {
-                    self::clearDataViewGridOptions($metaDataId);
-                    $gridPropertiesData = $_POST['gridProperties'];
-                    $gridOptionData = array(
-                        'OPTION_ID' => getUID(),
-                        'MAIN_META_DATA_ID' => $metaDataId
-                    );
-                    foreach ($gridPropertiesData as $gridOptionKey => $gridOptionVal) {
-                        $gridOptionData[strtoupper($gridOptionKey)] = Input::param($gridOptionVal);
-                    }
-                    $this->db->AutoExecute('META_GROUP_GRID_OPTIONS', $gridOptionData);
-                }
-
-                if (Input::postCheck('dvExportHeader')) {
-                    self::clearDataViewExportHeaderFooter($metaDataId);
-
-                    $expHdrFtr = array(
-                        'ID' => getUID(),
-                        'META_DATA_ID' => $metaDataId, 
-                        'HEADER_HTML' => Input::postNonTags('dvExportHeader'), 
-                        'FOOTER_HTML' => Input::postNonTags('dvExportFooter')
-                    );
-                    $this->db->AutoExecute('CUSTOMER_DV_HDR_FTR', $expHdrFtr);
-                }
-                
-                (new Mdmeta())->dvCacheClearByMetaId($metaDataId);
-            } 
-
-            if ($metaTypeId == Mdmetadata::$workSpaceMetaTypeId) {
-                $dataWorkSpaceLink = array(
-                    'ID' => getUID(),
-                    'META_DATA_ID' => Input::param($metaDataId),
-                    'MENU_META_DATA_ID' => Input::post('menuActionMetaDataId'),
-                    'SUBMENU_META_DATA_ID' => Input::post('menuQuickMetaDataId'),
-                    'GROUP_META_DATA_ID' => Input::post('groupMetaDataId'),
-                    'THEME_CODE' => Input::post('themeCode'),
-                    'DEFAULT_MENU_ID' => Input::post('defaultMenuId'),
-                    'WINDOW_HEIGHT' => Input::post('windowHeight'),
-                    'WINDOW_SIZE' => Input::post('windowSize'),
-                    'WINDOW_TYPE' => Input::post('windowType'),
-                    'WINDOW_WIDTH' => Input::post('windowWidth'),
-                    'IS_FLOW' => Input::post('isFlow'),
-                    'USE_TOOLTIP' => Input::post('useTooltip'), 
-                    'USE_PICTURE' => Input::postCheck('usePic') ? 1 : 0, 
-                    'USE_COVER_PICTURE' => Input::postCheck('useCoverPic') ? 1 : 0, 
-                    'USE_LEFT_SIDE' => Input::postCheck('useLeftSide') ? 1 : 0, 
-                    'IS_LAST_VISIT_MENU' => Input::postCheck('isLastVisitMenu') ? 1 : 0, 
-                    'USE_MENU' => Input::postCheck('isUseMenu') ? 1 : 0, 
-                    'CHECK_MODIFIED_CATCH' => Input::postCheck('checkModifiedCatch') ? 1 : 0, 
-                    'ACTION_TYPE' => Input::post('actionType'), 
-                    'MOBILE_THEME' => Input::post('mobileTheme'), 
-                    'ROW_DATAVIEW_ID' => Input::post('rowMetaDataId')
-                );
-
-                if (self::isExistsMetaLink('META_WORKSPACE_LINK', 'META_DATA_ID', $metaDataId)) {
-                    unset($dataWorkSpaceLink['ID']);
-                    $this->db->AutoExecute('META_WORKSPACE_LINK', $dataWorkSpaceLink, 'UPDATE', 'META_DATA_ID = ' . $metaDataId);
-                } else {
-                    $this->db->AutoExecute('META_WORKSPACE_LINK', $dataWorkSpaceLink);
-                }
-            } 
-
-            if ($metaTypeId == Mdmetadata::$statementMetaTypeId) {
-                
-                $reportType = Input::post('reportType');
-                $statementLinkData = array(
-                    'ID' => getUID(),
-                    'META_DATA_ID' => $metaDataId,
-                    'REPORT_NAME' => Input::post('reportName'),
-                    'REPORT_TYPE' => $reportType,
-                    'DATA_VIEW_ID' => Input::post('dataViewId'),
-                    'GROUP_DATA_VIEW_ID' => Input::post('groupDataViewId'),
-                    'PAGE_SIZE' => Input::post('pageSize'),
-                    'PAGE_ORIENTATION' => Input::post('pageOrientation'),
-                    'PAGE_MARGIN_TOP' => Input::post('pageMarginTop'),
-                    'PAGE_MARGIN_LEFT' => Input::post('pageMarginLeft'),
-                    'PAGE_MARGIN_RIGHT' => Input::post('pageMarginRight'),
-                    'PAGE_MARGIN_BOTTOM' => Input::post('pageMarginBottom'),
-                    'PAGE_HEIGHT' => Input::post('pageHeight'),
-                    'PAGE_WIDTH' => Input::post('pageWidth'), 
-                    'FONT_FAMILY' => Input::post('fontFamily'), 
-                    'RENDER_TYPE' => Input::post('renderType'), 
-                    'IS_ARCHIVE' => Input::postCheck('isArchive') ? 1 : null, 
-                    'IS_HDR_REPEAT_PAGE' => Input::postCheck('isHdrRepeatPage') ? 1 : null,
-                    'IS_NOT_PAGE_BREAK' => Input::postCheck('isNotPageBreak') ? 1 : null,
-                    'IS_BLANK' => Input::postCheck('isBlank') ? 1 : null,
-                    'IS_SHOW_DV_BTN' => Input::postCheck('isShowDvBtn') ? 1 : null,
-                    'IS_USE_SELF_DV' => Input::postCheck('isUseSelfDv') ? 1 : null,
-                    'IS_AUTO_FILTER' => Input::postCheck('isAutoFilter') ? 1 : null,
-                    'IS_GROUP_MERGE' => Input::postCheck('isGroupMerge') ? 1 : null,
-                    'IS_TIMETABLE' => Input::postCheck('isTimetable') ? 1 : null,
-                    'IS_EXPORT_NO_FOOTER' => Input::postCheck('isExportNoFooter') ? 1 : null,
-                    'PROCESS_META_DATA_ID' => Input::post('calcProcessId'), 
-                    'CALC_ORDER_NUM' => Input::post('calcOrderNum') 
-                );
-
-                if ($statementPkId = self::isExistsMetaLink('META_STATEMENT_LINK', 'META_DATA_ID', $metaDataId)) {
-                    unset($statementLinkData['ID']);
-                    $statementLinkData['REPORT_DETAIL_FILE_PATH'] = null;
-                    $this->db->AutoExecute('META_STATEMENT_LINK', $statementLinkData, 'UPDATE', 'META_DATA_ID = '.$metaDataId);
-                    $statementLinkData['ID'] = $statementPkId;
-                } else {
-                    $this->db->AutoExecute('META_STATEMENT_LINK', $statementLinkData);
-                }
-
-                $this->db->UpdateClob('META_STATEMENT_LINK', 'REPORT_HEADER', Input::postWithDoubleSpace('reportHeader'), 'META_DATA_ID = '.$metaDataId);
-                $this->db->UpdateClob('META_STATEMENT_LINK', 'PAGE_HEADER', Input::postWithDoubleSpace('pageHeader'), 'META_DATA_ID = '.$metaDataId);
-                $this->db->UpdateClob('META_STATEMENT_LINK', 'REPORT_DETAIL', Input::postWithDoubleSpace('reportDetail'), 'META_DATA_ID = '.$metaDataId);
-                $this->db->UpdateClob('META_STATEMENT_LINK', 'PAGE_FOOTER', Input::postWithDoubleSpace('pageFooter'), 'META_DATA_ID = '.$metaDataId);
-                $this->db->UpdateClob('META_STATEMENT_LINK', 'REPORT_FOOTER', Input::postWithDoubleSpace('reportFooter'), 'META_DATA_ID = '.$metaDataId);
-
-                if (Input::postCheck('reportRowExpressionString_set')) {
-                    $this->db->UpdateClob('META_STATEMENT_LINK', 'ROW_EXPRESSION', Input::postWithDoubleSpace('reportRowExpressionString_set'), 'META_DATA_ID = '.$metaDataId);
-                    $this->db->UpdateClob('META_STATEMENT_LINK', 'GLOBAL_EXPRESSION', Input::postWithDoubleSpace('reportGlobalExpressionString_set'), 'META_DATA_ID = '.$metaDataId);
-                    $this->db->UpdateClob('META_STATEMENT_LINK', 'SUPER_GLOBAL_EXPRESSION', Input::postWithDoubleSpace('reportSuperGlobalExpressionString_set'), 'META_DATA_ID = '.$metaDataId);
-                    $this->db->UpdateClob('META_STATEMENT_LINK', 'UI_EXPRESSION', Input::postWithDoubleSpace('uiExpressionHeaderFooter_set'), 'META_DATA_ID = '.$metaDataId);
-                    $this->db->UpdateClob('META_STATEMENT_LINK', 'UI_GROUP_EXPRESSION', Input::postWithDoubleSpace('uiExpressionGroup_set'), 'META_DATA_ID = '.$metaDataId);
-                    $this->db->UpdateClob('META_STATEMENT_LINK', 'UI_DETAIL_EXPRESSION', Input::postWithDoubleSpace('uiExpressionDetail_set'), 'META_DATA_ID = '.$metaDataId);
-                }
-
-                if (Input::isEmpty('reportGroupingLoad') == false) {
-                    self::clearStatementGroupLinkMapByLinkId($statementLinkData['ID']);
-
-                    if (Input::postCheck('groupFieldPath')) {
-                        $groupFieldPathData = Input::post('groupFieldPath');
-                        
-                        foreach ($groupFieldPathData as $skr => $groupFieldPath) {
-                            
-                            $stateLinkId = getUID();
-                            $isUserOption = Input::param($_POST['groupIsUserOption'][$skr]);
-                            $isDefault = Input::param($_POST['groupIsDefault'][$skr]);
-                            $isSaveUserOption = null;
-                            
-                            if ($isUserOption == '1' && $isDefault == '1') {
-                                $isSaveUserOption = 2;
-                            } elseif ($isUserOption == '1' && ($isDefault == '' || $isDefault == '0')) {
-                                $isSaveUserOption = 1;
-                            } elseif ($isDefault == '1' && ($isUserOption == '' || $isUserOption == '0')) {
-                                $isSaveUserOption = null;
-                            }
-                            
-                            $statementLinkGroupData = array(
-                                'ID' => $stateLinkId,
-                                'META_DATA_ID' => Input::param($metaDataId),
-                                'GROUP_FIELD_PATH' => Input::param($groupFieldPath),
-                                'GROUP_ORDER' => Input::param($_POST['groupOrderNum'][$skr]),
-                                'HEADER_BG_COLOR' => Input::param($_POST['groupHdrBgColor'][$skr]),
-                                'FOOTER_BG_COLOR' => Input::param($_POST['groupFtrBgColor'][$skr]),
-                                'IS_USER_OPTION' => $isSaveUserOption, 
-                                'META_STATEMENT_LINK_ID' => $statementLinkData['ID']
-                            );
-                            $this->db->AutoExecute('META_STATEMENT_LINK_GROUP', $statementLinkGroupData);
-
-                            $this->db->UpdateClob('META_STATEMENT_LINK_GROUP', 'GROUP_HEADER', Input::paramWithDoubleSpace($_POST['groupHeader'][$skr]), 'ID = '.$stateLinkId);
-                            $this->db->UpdateClob('META_STATEMENT_LINK_GROUP', 'GROUP_FOOTER', Input::paramWithDoubleSpace($_POST['groupFooter'][$skr]), 'ID = '.$stateLinkId);
                         }
+
+                        if (Input::postCheck('batchNumber')) {
+                            $batchNumberData = Input::post('batchNumber');
+                            foreach ($batchNumberData as $bk => $bRow) {
+                                if ($bRow != '') {
+                                    $dmProcessBatch = array(
+                                        'ID' => getUID(),
+                                        'MAIN_META_DATA_ID' => $metaDataId,
+                                        'BATCH_NUMBER' => Input::param($bRow),
+                                        'BATCH_NAME' => Input::param($_POST['batchNumberName'][$bk]),
+                                        'ICON_NAME' => Input::param($_POST['batchNumberIcon'][$bk]),
+                                        'IS_DROPDOWN' => Input::param($_POST['batchNumberIsDrop'][$bk]),
+                                        'IS_SHOW_POPUP' => Input::param($_POST['batchNumberIsShowPopup'][$bk]),
+                                        'BUTTON_STYLE' => Input::param($_POST['batchNumberColor'][$bk])
+                                    );
+                                    $this->db->AutoExecute('META_DM_PROCESS_BATCH', $dmProcessBatch);
+                                }
+                            }
+                        }
+                    }
+
+                    if (Input::postCheck('groupProcessDtlTransferProcessParamPath')) {
+                        self::clearGroupProcessDetailRowMap($metaDataId);
+
+                        $groupProcessDtlMetaIdData = $_POST['groupProcessDtlTransferProcessParamPath'];
+
+                        foreach ($groupProcessDtlMetaIdData as $pdk => $pdkRow) {
+
+                            if (isset($_POST['groupProcessDtlTransferProcessParamPath'][$pdk])) {
+                                $groupProcessDtlTransferGetMetaIdData = $_POST['groupProcessDtlTransferProcessParamPath'][$pdk];
+                                foreach ($groupProcessDtlTransferGetMetaIdData as $dtlTk => $dtlTkRow) {
+                                    $dataProcessDtlTransfer = array(
+                                        'ID' => getUID(),
+                                        'MAIN_META_DATA_ID' => $metaDataId,
+                                        'PROCESS_META_DATA_ID' => $pdk,
+                                        'SRC_PARAM_PATH' => Input::param($_POST['groupProcessDtlTransferDataViewPath'][$pdk][$dtlTk]),
+                                        'TRG_PARAM_PATH' => Input::param($dtlTkRow)
+                                    );
+                                    $this->db->AutoExecute('META_DM_ROW_PROCESS_PARAM', $dataProcessDtlTransfer);
+                                }
+                            }                        
+
+                        }
+                    }
+
+                    if (Input::postCheck('gridProperties')) {
+                        self::clearDataViewGridOptions($metaDataId);
+                        $gridPropertiesData = $_POST['gridProperties'];
+                        $gridOptionData = array(
+                            'OPTION_ID' => getUID(),
+                            'MAIN_META_DATA_ID' => $metaDataId
+                        );
+                        foreach ($gridPropertiesData as $gridOptionKey => $gridOptionVal) {
+                            $gridOptionData[strtoupper($gridOptionKey)] = Input::param($gridOptionVal);
+                        }
+                        $this->db->AutoExecute('META_GROUP_GRID_OPTIONS', $gridOptionData);
+                    }
+
+                    if (Input::postCheck('dvExportHeader')) {
+                        self::clearDataViewExportHeaderFooter($metaDataId);
+
+                        $expHdrFtr = array(
+                            'ID' => getUID(),
+                            'META_DATA_ID' => $metaDataId, 
+                            'HEADER_HTML' => Input::postNonTags('dvExportHeader'), 
+                            'FOOTER_HTML' => Input::postNonTags('dvExportFooter')
+                        );
+                        $this->db->AutoExecute('CUSTOMER_DV_HDR_FTR', $expHdrFtr);
+                    }
+
+                    (new Mdmeta())->dvCacheClearByMetaId($metaDataId);
+                } 
+
+                if ($metaTypeId == Mdmetadata::$workSpaceMetaTypeId) {
+                    $dataWorkSpaceLink = array(
+                        'ID' => getUID(),
+                        'META_DATA_ID' => Input::param($metaDataId),
+                        'MENU_META_DATA_ID' => Input::post('menuActionMetaDataId'),
+                        'SUBMENU_META_DATA_ID' => Input::post('menuQuickMetaDataId'),
+                        'GROUP_META_DATA_ID' => Input::post('groupMetaDataId'),
+                        'THEME_CODE' => Input::post('themeCode'),
+                        'DEFAULT_MENU_ID' => Input::post('defaultMenuId'),
+                        'WINDOW_HEIGHT' => Input::post('windowHeight'),
+                        'WINDOW_SIZE' => Input::post('windowSize'),
+                        'WINDOW_TYPE' => Input::post('windowType'),
+                        'WINDOW_WIDTH' => Input::post('windowWidth'),
+                        'IS_FLOW' => Input::post('isFlow'),
+                        'USE_TOOLTIP' => Input::post('useTooltip'), 
+                        'USE_PICTURE' => Input::postCheck('usePic') ? 1 : 0, 
+                        'USE_COVER_PICTURE' => Input::postCheck('useCoverPic') ? 1 : 0, 
+                        'USE_LEFT_SIDE' => Input::postCheck('useLeftSide') ? 1 : 0, 
+                        'IS_LAST_VISIT_MENU' => Input::postCheck('isLastVisitMenu') ? 1 : 0, 
+                        'USE_MENU' => Input::postCheck('isUseMenu') ? 1 : 0, 
+                        'CHECK_MODIFIED_CATCH' => Input::postCheck('checkModifiedCatch') ? 1 : 0, 
+                        'ACTION_TYPE' => Input::post('actionType'), 
+                        'MOBILE_THEME' => Input::post('mobileTheme'), 
+                        'ROW_DATAVIEW_ID' => Input::post('rowMetaDataId')
+                    );
+
+                    if (self::isExistsMetaLink('META_WORKSPACE_LINK', 'META_DATA_ID', $metaDataId)) {
+                        unset($dataWorkSpaceLink['ID']);
+                        $this->db->AutoExecute('META_WORKSPACE_LINK', $dataWorkSpaceLink, 'UPDATE', 'META_DATA_ID = ' . $metaDataId);
+                    } else {
+                        $this->db->AutoExecute('META_WORKSPACE_LINK', $dataWorkSpaceLink);
                     }
                 } 
-                
-                self::clearMetaVersionMap($metaDataId);
 
-                if (Input::postCheck('versionChildMetaDataId')) {
-                    
-                    $versionChildMetaDatas = Input::post('versionChildMetaDataId');
-                    
-                    foreach ($versionChildMetaDatas as $cv => $versionChildMetaDataId) {
-                        if (!empty($versionChildMetaDataId)) {
-                            $dataVersion = array(
-                                'ID' => getUID(),
-                                'SRC_META_DATA_ID' => $metaDataId,
-                                'TRG_META_DATA_ID' => $versionChildMetaDataId, 
-                                'ORDER_NUM' => ($cv + 1)
-                            );
-                            $this->db->AutoExecute('META_VERSION_MAP', $dataVersion);
-                        }
+                if ($metaTypeId == Mdmetadata::$statementMetaTypeId) {
+
+                    $reportType = Input::post('reportType');
+                    $statementLinkData = array(
+                        'ID' => getUID(),
+                        'META_DATA_ID' => $metaDataId,
+                        'REPORT_NAME' => Input::post('reportName'),
+                        'REPORT_TYPE' => $reportType,
+                        'DATA_VIEW_ID' => Input::post('dataViewId'),
+                        'GROUP_DATA_VIEW_ID' => Input::post('groupDataViewId'),
+                        'PAGE_SIZE' => Input::post('pageSize'),
+                        'PAGE_ORIENTATION' => Input::post('pageOrientation'),
+                        'PAGE_MARGIN_TOP' => Input::post('pageMarginTop'),
+                        'PAGE_MARGIN_LEFT' => Input::post('pageMarginLeft'),
+                        'PAGE_MARGIN_RIGHT' => Input::post('pageMarginRight'),
+                        'PAGE_MARGIN_BOTTOM' => Input::post('pageMarginBottom'),
+                        'PAGE_HEIGHT' => Input::post('pageHeight'),
+                        'PAGE_WIDTH' => Input::post('pageWidth'), 
+                        'FONT_FAMILY' => Input::post('fontFamily'), 
+                        'RENDER_TYPE' => Input::post('renderType'), 
+                        'IS_ARCHIVE' => Input::postCheck('isArchive') ? 1 : null, 
+                        'IS_HDR_REPEAT_PAGE' => Input::postCheck('isHdrRepeatPage') ? 1 : null,
+                        'IS_NOT_PAGE_BREAK' => Input::postCheck('isNotPageBreak') ? 1 : null,
+                        'IS_BLANK' => Input::postCheck('isBlank') ? 1 : null,
+                        'IS_SHOW_DV_BTN' => Input::postCheck('isShowDvBtn') ? 1 : null,
+                        'IS_USE_SELF_DV' => Input::postCheck('isUseSelfDv') ? 1 : null,
+                        'IS_AUTO_FILTER' => Input::postCheck('isAutoFilter') ? 1 : null,
+                        'IS_GROUP_MERGE' => Input::postCheck('isGroupMerge') ? 1 : null,
+                        'IS_TIMETABLE' => Input::postCheck('isTimetable') ? 1 : null,
+                        'IS_EXPORT_NO_FOOTER' => Input::postCheck('isExportNoFooter') ? 1 : null,
+                        'PROCESS_META_DATA_ID' => Input::post('calcProcessId'), 
+                        'CALC_ORDER_NUM' => Input::post('calcOrderNum') 
+                    );
+
+                    if ($statementPkId = self::isExistsMetaLink('META_STATEMENT_LINK', 'META_DATA_ID', $metaDataId)) {
+                        unset($statementLinkData['ID']);
+                        $statementLinkData['REPORT_DETAIL_FILE_PATH'] = null;
+                        $this->db->AutoExecute('META_STATEMENT_LINK', $statementLinkData, 'UPDATE', 'META_DATA_ID = '.$metaDataId);
+                        $statementLinkData['ID'] = $statementPkId;
+                    } else {
+                        $this->db->AutoExecute('META_STATEMENT_LINK', $statementLinkData);
                     }
-                }
-                
-                if (defined('CONFIG_REPORT_SERVER_ADDRESS') && CONFIG_REPORT_SERVER_ADDRESS) {
-                    
-                    self::clearMetaStatementTemplateMap($metaDataId);
-                    
-                    if (Input::postCheck('templateStatementMetaId')) {
-                    
-                        $templateStatementMetaIds = Input::post('templateStatementMetaId');
 
-                        foreach ($templateStatementMetaIds as $cv => $templateStatementMetaId) {
-                            if (!empty($templateStatementMetaId)) {
+                    $this->db->UpdateClob('META_STATEMENT_LINK', 'REPORT_HEADER', Input::postWithDoubleSpace('reportHeader'), 'META_DATA_ID = '.$metaDataId);
+                    $this->db->UpdateClob('META_STATEMENT_LINK', 'PAGE_HEADER', Input::postWithDoubleSpace('pageHeader'), 'META_DATA_ID = '.$metaDataId);
+                    $this->db->UpdateClob('META_STATEMENT_LINK', 'REPORT_DETAIL', Input::postWithDoubleSpace('reportDetail'), 'META_DATA_ID = '.$metaDataId);
+                    $this->db->UpdateClob('META_STATEMENT_LINK', 'PAGE_FOOTER', Input::postWithDoubleSpace('pageFooter'), 'META_DATA_ID = '.$metaDataId);
+                    $this->db->UpdateClob('META_STATEMENT_LINK', 'REPORT_FOOTER', Input::postWithDoubleSpace('reportFooter'), 'META_DATA_ID = '.$metaDataId);
+
+                    if (Input::postCheck('reportRowExpressionString_set')) {
+                        $this->db->UpdateClob('META_STATEMENT_LINK', 'ROW_EXPRESSION', Input::postWithDoubleSpace('reportRowExpressionString_set'), 'META_DATA_ID = '.$metaDataId);
+                        $this->db->UpdateClob('META_STATEMENT_LINK', 'GLOBAL_EXPRESSION', Input::postWithDoubleSpace('reportGlobalExpressionString_set'), 'META_DATA_ID = '.$metaDataId);
+                        $this->db->UpdateClob('META_STATEMENT_LINK', 'SUPER_GLOBAL_EXPRESSION', Input::postWithDoubleSpace('reportSuperGlobalExpressionString_set'), 'META_DATA_ID = '.$metaDataId);
+                        $this->db->UpdateClob('META_STATEMENT_LINK', 'UI_EXPRESSION', Input::postWithDoubleSpace('uiExpressionHeaderFooter_set'), 'META_DATA_ID = '.$metaDataId);
+                        $this->db->UpdateClob('META_STATEMENT_LINK', 'UI_GROUP_EXPRESSION', Input::postWithDoubleSpace('uiExpressionGroup_set'), 'META_DATA_ID = '.$metaDataId);
+                        $this->db->UpdateClob('META_STATEMENT_LINK', 'UI_DETAIL_EXPRESSION', Input::postWithDoubleSpace('uiExpressionDetail_set'), 'META_DATA_ID = '.$metaDataId);
+                    }
+
+                    if (Input::isEmpty('reportGroupingLoad') == false) {
+                        self::clearStatementGroupLinkMapByLinkId($statementLinkData['ID']);
+
+                        if (Input::postCheck('groupFieldPath')) {
+                            $groupFieldPathData = Input::post('groupFieldPath');
+
+                            foreach ($groupFieldPathData as $skr => $groupFieldPath) {
+
+                                $stateLinkId = getUID();
+                                $isUserOption = Input::param($_POST['groupIsUserOption'][$skr]);
+                                $isDefault = Input::param($_POST['groupIsDefault'][$skr]);
+                                $isSaveUserOption = null;
+
+                                if ($isUserOption == '1' && $isDefault == '1') {
+                                    $isSaveUserOption = 2;
+                                } elseif ($isUserOption == '1' && ($isDefault == '' || $isDefault == '0')) {
+                                    $isSaveUserOption = 1;
+                                } elseif ($isDefault == '1' && ($isUserOption == '' || $isUserOption == '0')) {
+                                    $isSaveUserOption = null;
+                                }
+
+                                $statementLinkGroupData = array(
+                                    'ID' => $stateLinkId,
+                                    'META_DATA_ID' => Input::param($metaDataId),
+                                    'GROUP_FIELD_PATH' => Input::param($groupFieldPath),
+                                    'GROUP_ORDER' => Input::param($_POST['groupOrderNum'][$skr]),
+                                    'HEADER_BG_COLOR' => Input::param($_POST['groupHdrBgColor'][$skr]),
+                                    'FOOTER_BG_COLOR' => Input::param($_POST['groupFtrBgColor'][$skr]),
+                                    'IS_USER_OPTION' => $isSaveUserOption, 
+                                    'META_STATEMENT_LINK_ID' => $statementLinkData['ID']
+                                );
+                                $this->db->AutoExecute('META_STATEMENT_LINK_GROUP', $statementLinkGroupData);
+
+                                $this->db->UpdateClob('META_STATEMENT_LINK_GROUP', 'GROUP_HEADER', Input::paramWithDoubleSpace($_POST['groupHeader'][$skr]), 'ID = '.$stateLinkId);
+                                $this->db->UpdateClob('META_STATEMENT_LINK_GROUP', 'GROUP_FOOTER', Input::paramWithDoubleSpace($_POST['groupFooter'][$skr]), 'ID = '.$stateLinkId);
+                            }
+                        }
+                    } 
+
+                    self::clearMetaVersionMap($metaDataId);
+
+                    if (Input::postCheck('versionChildMetaDataId')) {
+
+                        $versionChildMetaDatas = Input::post('versionChildMetaDataId');
+
+                        foreach ($versionChildMetaDatas as $cv => $versionChildMetaDataId) {
+                            if (!empty($versionChildMetaDataId)) {
                                 $dataVersion = array(
                                     'ID' => getUID(),
                                     'SRC_META_DATA_ID' => $metaDataId,
-                                    'TRG_META_DATA_ID' => $templateStatementMetaId
+                                    'TRG_META_DATA_ID' => $versionChildMetaDataId, 
+                                    'ORDER_NUM' => ($cv + 1)
                                 );
-                                $this->db->AutoExecute('META_STATEMENT_TEMPLATE', $dataVersion);
+                                $this->db->AutoExecute('META_VERSION_MAP', $dataVersion);
                             }
                         }
                     }
-                }  
-            } 
 
-            if ($metaTypeId == Mdmetadata::$packageMetaTypeId) {
-                $packageLinkData = array(
-                    'ID' => getUID(),
-                    'META_DATA_ID' => Input::param($metaDataId),
-                    'RENDER_TYPE' => Input::post('renderType'), 
-                    'IS_IGNORE_MAIN_TITLE' => Input::postCheck('isIgnoreMainTitle') ? 1 : null, 
-                    'MOBILE_THEME' => Input::post('mobileTheme'),
-                    'SPLIT_COLUMN' => Input::post('split_column'),
-                    'PACKAGE_CLASS' => Input::post('package_class'),
-                    'IS_IGNORE_PACKAGE_TITLE' => Input::postCheck('isIgnorePackageTitle') ? 1 : null,
-                    'IS_FILTER_BTN_SHOW' => Input::postCheck('isFilterShowButton') ? 1 : null,
-                    'COUNT_META_DATA_ID' => Input::post('countMetaDataId'),
-                    'TAB_BACKGROUND_COLOR' => Input::post('tabBackgroundColor'),
-                    'IS_CHECK_PERMISSION' => Input::postCheck('isPermission') ? 1 : null,
-                    'IS_REFRESH' => Input::postCheck('isRefresh') ? 1 : null,  
-                    'DEFAULT_META_ID' => Input::post('defaultMetaDataId') 
-                );
+                    if (defined('CONFIG_REPORT_SERVER_ADDRESS') && CONFIG_REPORT_SERVER_ADDRESS) {
 
-                if (self::isExistsMetaLink('META_PACKAGE_LINK', 'META_DATA_ID', $metaDataId)) {
-                    unset($packageLinkData['ID']);
-                    $this->db->AutoExecute('META_PACKAGE_LINK', $packageLinkData, 'UPDATE', 'META_DATA_ID = '.$metaDataId);
-                } else {
-                    $this->db->AutoExecute('META_PACKAGE_LINK', $packageLinkData);
-                }
-            } 
+                        self::clearMetaStatementTemplateMap($metaDataId);
 
-            if ($metaTypeId == Mdmetadata::$layoutMetaTypeId) {
-                $layoutLinkId = Input::post('layoutLinkId');
-                $result = $this->db->GetRow('SELECT ID FROM META_LAYOUT_LINK WHERE ID = ' . Input::post('layoutLinkId'));
-                if (count($result) > 0) {
-                    $dataLayoutMapLink = array(
-                        'THEME_CODE' => Input::post('themeCode'),
-                        'IS_HIDE_BUTTON' => Input::postCheck('isHideButton') ? 1 : 0,
-                        'CRITERIA_DATA_VIEW_ID' => Input::post('dataViewIdLayout'),
-                        'USE_BORDER' => Input::postCheck('useBorder') ? 1 : 0,
-                        'REFRESH_TIMER' => Input::post('refreshTimerLayout')
-                    );
-                    $this->db->AutoExecute('META_LAYOUT_LINK', $dataLayoutMapLink, 'UPDATE', 'ID = ' . $layoutLinkId);
-                } else {
-                    $layoutLinkId = getUID();
-                    $dataLayoutMapLink = array(
-                        'ID' => $layoutLinkId,
-                        'META_DATA_ID' => $metaDataId,
-                        'IS_HIDE_BUTTON' => Input::postCheck('isHideButton') ? 1 : 0,
-                        'CRITERIA_DATA_VIEW_ID' => Input::post('dataViewIdLayout'),
-                        'USE_BORDER' => Input::postCheck('useBorder') ? 1 : 0,
-                        'THEME_CODE' => Input::post('themeCode'),
-                        'REFRESH_TIMER' => Input::post('refreshTimerLayout')
-                    );
-                    $this->db->AutoExecute('META_LAYOUT_LINK', $dataLayoutMapLink);
-                }
+                        if (Input::postCheck('templateStatementMetaId')) {
 
-                if (isset($_POST['bpMetaDataId'])) {
+                            $templateStatementMetaIds = Input::post('templateStatementMetaId');
 
-                    self::clearLayoutLinkParamMap(Input::post('layoutLinkId'));
-                    
-                    foreach ($_POST['bpMetaDataId'] as $k => $row) {
-                        $layoutParamMapId = getUID();
-                        $dataLayoutParam = array(
-                            'ID' => $layoutParamMapId,
-                            'LAYOUT_PATH' => Input::param($_POST['layoutPath'][$k]),
-                            'BP_META_DATA_ID' => Input::param($row),
-                            'META_LAYOUT_LINK_ID' => $layoutLinkId,
-                            'ORDER_NUM' => Input::param($_POST['orderNum'][$k])
-                        );
-                        $this->db->AutoExecute('META_LAYOUT_PARAM_MAP', $dataLayoutParam);
-                    }
-                }
-            } 
-            
-            if ($metaTypeId == Mdmetadata::$bpmMetaTypeId) {
-                
-                $graphXml = Input::postNonTags('graphXml');
-                
-                $bpmLinkData = array(
-                    'ID' => getUID(),
-                    'META_DATA_ID' => Input::param($metaDataId)
-                );
+                            foreach ($templateStatementMetaIds as $cv => $templateStatementMetaId) {
+                                if (!empty($templateStatementMetaId)) {
+                                    $dataVersion = array(
+                                        'ID' => getUID(),
+                                        'SRC_META_DATA_ID' => $metaDataId,
+                                        'TRG_META_DATA_ID' => $templateStatementMetaId
+                                    );
+                                    $this->db->AutoExecute('META_STATEMENT_TEMPLATE', $dataVersion);
+                                }
+                            }
+                        }
+                    }  
+                } 
 
-                if (self::isExistsMetaLink('META_BPM_LINK', 'META_DATA_ID', $metaDataId)) {
-                    
-                    unset($bpmLinkData['ID']);
-                    
-                    $this->db->AutoExecute('META_BPM_LINK', $bpmLinkData, 'UPDATE', 'META_DATA_ID = '.$metaDataId);
-                    $this->db->UpdateClob('META_BPM_LINK', 'GRAPH_XML', $graphXml, 'META_DATA_ID = '.$metaDataId);
-                    
-                } else {
-                    
-                    $this->db->AutoExecute('META_BPM_LINK', $bpmLinkData);
-                    
-                    if ($graphXml) {
-                        $this->db->UpdateClob('META_BPM_LINK', 'GRAPH_XML', $graphXml, 'META_DATA_ID = '.$metaDataId);
-                    }
-                }  
-            } 
-            
-            if ($metaTypeId == Mdmetadata::$dmMetaTypeId) {
-                $dmLink = $this->db->GetRow('SELECT ID FROM META_DATAMART_LINK WHERE META_DATA_ID = ' . $metaDataId);
-                
-                if ($dmLink) {
-                    $this->db->Execute("DELETE FROM META_DATAMART_COLUMN_CRITERIA WHERE META_DATAMART_COLUMN_ID IN (SELECT ID FROM META_DATAMART_COLUMN WHERE META_DATAMART_LINK_ID = " . $dmLink['ID'] . ")");
-                    $this->db->Execute("DELETE FROM META_DATAMART_COLUMN WHERE META_DATAMART_LINK_ID = " . $dmLink['ID']);
-                    $this->db->Execute("DELETE FROM META_GROUP_RELATION WHERE MAIN_META_DATA_ID = " . $metaDataId);
-                    $this->db->Execute("DELETE FROM META_DATAMART_SCHEDULE WHERE META_DATA_ID = " . $metaDataId);
-                } else {
-                    $dmLink = array(
+                if ($metaTypeId == Mdmetadata::$packageMetaTypeId) {
+                    $packageLinkData = array(
                         'ID' => getUID(),
-                        'TABLE_NAME' => Input::post('dmTableName'),
-                        'META_DATA_ID' => $metaDataId
-                    );                    
-                    $this->db->AutoExecute('META_DATAMART_LINK', $dmLink);                     
-                }
-                
-                foreach ($_POST['dmOutput'] as $dmKey => $dmrow) {
-                    $groupId = $_POST['dmMetaGroup'][$dmKey];
-                    $dmLinkData = array(
-                        'ID' => getUIDAdd($dmKey),
-                        'META_DATAMART_LINK_ID' => $dmLink['ID'],
-                        'META_GROUP_ID' => Input::param($groupId),
-                        'SRC_PARAM_PATH' => Input::param($_POST['dmPath'][$dmKey]),
-                        'EXPRESSION' => Input::param($_POST['dmExpression'][$dmKey]),
-                        'IS_OUTPUT' => Input::param($dmrow),
-                        'AGGREGATE_FUNCTION' => Input::param($_POST['dmAggregate'][$dmKey]),
-                        'ALIAS_NAME' => Input::param($_POST['dmAs'][$dmKey]),
-                        'SORT_TYPE' => Input::param($_POST['dmSortType'][$dmKey]),
-                        'SORT_ORDER' => Input::param($_POST['dmSortOrder'][$dmKey]),
-                        'IS_GROUP' => Input::param($_POST['dmGrouping'][$dmKey])
-                    );                    
-                    $this->db->AutoExecute('META_DATAMART_COLUMN', $dmLinkData);
+                        'META_DATA_ID' => Input::param($metaDataId),
+                        'RENDER_TYPE' => Input::post('renderType'), 
+                        'IS_IGNORE_MAIN_TITLE' => Input::postCheck('isIgnoreMainTitle') ? 1 : null, 
+                        'MOBILE_THEME' => Input::post('mobileTheme'),
+                        'SPLIT_COLUMN' => Input::post('split_column'),
+                        'PACKAGE_CLASS' => Input::post('package_class'),
+                        'IS_IGNORE_PACKAGE_TITLE' => Input::postCheck('isIgnorePackageTitle') ? 1 : null,
+                        'IS_FILTER_BTN_SHOW' => Input::postCheck('isFilterShowButton') ? 1 : null,
+                        'COUNT_META_DATA_ID' => Input::post('countMetaDataId'),
+                        'TAB_BACKGROUND_COLOR' => Input::post('tabBackgroundColor'),
+                        'IS_CHECK_PERMISSION' => Input::postCheck('isPermission') ? 1 : null,
+                        'IS_REFRESH' => Input::postCheck('isRefresh') ? 1 : null,  
+                        'DEFAULT_META_ID' => Input::post('defaultMetaDataId') 
+                    );
 
-                    if (isset($_POST['dmCriteria'.$groupId.$dmLinkData['SRC_PARAM_PATH']]) && !empty($_POST['dmCriteria'.$groupId.$dmLinkData['SRC_PARAM_PATH']])) {
-                        foreach ($_POST['dmCriteria'.$groupId.$dmLinkData['SRC_PARAM_PATH']] as $criKey => $criteria) {
-                            if (!empty($criteria)) {
-                                $dmCriteriaData = array(
-                                    'ID' => getUIDAdd($criKey),
-                                    'META_DATAMART_COLUMN_ID' => $dmLinkData['ID'],
-                                    'CRITERIA' => Input::param($criteria)
-                                );                    
-                                $this->db->AutoExecute('META_DATAMART_COLUMN_CRITERIA', $dmCriteriaData);                            
-                            }
+                    if (self::isExistsMetaLink('META_PACKAGE_LINK', 'META_DATA_ID', $metaDataId)) {
+                        unset($packageLinkData['ID']);
+                        $this->db->AutoExecute('META_PACKAGE_LINK', $packageLinkData, 'UPDATE', 'META_DATA_ID = '.$metaDataId);
+                    } else {
+                        $this->db->AutoExecute('META_PACKAGE_LINK', $packageLinkData);
+                    }
+                } 
+
+                if ($metaTypeId == Mdmetadata::$layoutMetaTypeId) {
+                    $layoutLinkId = Input::post('layoutLinkId');
+                    $result = $this->db->GetRow('SELECT ID FROM META_LAYOUT_LINK WHERE ID = ' . Input::post('layoutLinkId'));
+                    if (count($result) > 0) {
+                        $dataLayoutMapLink = array(
+                            'THEME_CODE' => Input::post('themeCode'),
+                            'IS_HIDE_BUTTON' => Input::postCheck('isHideButton') ? 1 : 0,
+                            'CRITERIA_DATA_VIEW_ID' => Input::post('dataViewIdLayout'),
+                            'USE_BORDER' => Input::postCheck('useBorder') ? 1 : 0,
+                            'REFRESH_TIMER' => Input::post('refreshTimerLayout')
+                        );
+                        $this->db->AutoExecute('META_LAYOUT_LINK', $dataLayoutMapLink, 'UPDATE', 'ID = ' . $layoutLinkId);
+                    } else {
+                        $layoutLinkId = getUID();
+                        $dataLayoutMapLink = array(
+                            'ID' => $layoutLinkId,
+                            'META_DATA_ID' => $metaDataId,
+                            'IS_HIDE_BUTTON' => Input::postCheck('isHideButton') ? 1 : 0,
+                            'CRITERIA_DATA_VIEW_ID' => Input::post('dataViewIdLayout'),
+                            'USE_BORDER' => Input::postCheck('useBorder') ? 1 : 0,
+                            'THEME_CODE' => Input::post('themeCode'),
+                            'REFRESH_TIMER' => Input::post('refreshTimerLayout')
+                        );
+                        $this->db->AutoExecute('META_LAYOUT_LINK', $dataLayoutMapLink);
+                    }
+
+                    if (isset($_POST['bpMetaDataId'])) {
+
+                        self::clearLayoutLinkParamMap(Input::post('layoutLinkId'));
+
+                        foreach ($_POST['bpMetaDataId'] as $k => $row) {
+                            $layoutParamMapId = getUID();
+                            $dataLayoutParam = array(
+                                'ID' => $layoutParamMapId,
+                                'LAYOUT_PATH' => Input::param($_POST['layoutPath'][$k]),
+                                'BP_META_DATA_ID' => Input::param($row),
+                                'META_LAYOUT_LINK_ID' => $layoutLinkId,
+                                'ORDER_NUM' => Input::param($_POST['orderNum'][$k])
+                            );
+                            $this->db->AutoExecute('META_LAYOUT_PARAM_MAP', $dataLayoutParam);
                         }
                     }
-                }
-                
-                if (isset($_POST['dmSourceGroup'])) {
-                    foreach ($_POST['dmSourceGroup'] as $dmKey => $dmrow) {
-                        if(!empty($dmrow)) {
-                            $dmLinkData = array(
-                                'ID' => getUIDAdd($dmKey),
-                                'SRC_META_GROUP_ID' => Input::param($dmrow),
-                                'TRG_META_GROUP_ID' => Input::param($_POST['dmTargetGroup'][$dmKey]),
-                                'MAIN_META_DATA_ID' => Input::param($metaDataId),
-                                'SRC_PARAM_PATH' => Input::param($_POST['dmSourceGroupPath'][$dmKey]),
-                                'TRG_PARAM_PATH' => Input::param($_POST['dmTargetGroupPath'][$dmKey])
-                            );                    
-                            $this->db->AutoExecute('META_GROUP_RELATION', $dmLinkData);
+                } 
+
+                if ($metaTypeId == Mdmetadata::$bpmMetaTypeId) {
+
+                    $graphXml = Input::postNonTags('graphXml');
+
+                    $bpmLinkData = array(
+                        'ID' => getUID(),
+                        'META_DATA_ID' => Input::param($metaDataId)
+                    );
+
+                    if (self::isExistsMetaLink('META_BPM_LINK', 'META_DATA_ID', $metaDataId)) {
+
+                        unset($bpmLinkData['ID']);
+
+                        $this->db->AutoExecute('META_BPM_LINK', $bpmLinkData, 'UPDATE', 'META_DATA_ID = '.$metaDataId);
+                        $this->db->UpdateClob('META_BPM_LINK', 'GRAPH_XML', $graphXml, 'META_DATA_ID = '.$metaDataId);
+
+                    } else {
+
+                        $this->db->AutoExecute('META_BPM_LINK', $bpmLinkData);
+
+                        if ($graphXml) {
+                            $this->db->UpdateClob('META_BPM_LINK', 'GRAPH_XML', $graphXml, 'META_DATA_ID = '.$metaDataId);
                         }
+                    }  
+                } 
+
+                if ($metaTypeId == Mdmetadata::$dmMetaTypeId) {
+                    $dmLink = $this->db->GetRow('SELECT ID FROM META_DATAMART_LINK WHERE META_DATA_ID = ' . $metaDataId);
+
+                    if ($dmLink) {
+                        $this->db->Execute("DELETE FROM META_DATAMART_COLUMN_CRITERIA WHERE META_DATAMART_COLUMN_ID IN (SELECT ID FROM META_DATAMART_COLUMN WHERE META_DATAMART_LINK_ID = " . $dmLink['ID'] . ")");
+                        $this->db->Execute("DELETE FROM META_DATAMART_COLUMN WHERE META_DATAMART_LINK_ID = " . $dmLink['ID']);
+                        $this->db->Execute("DELETE FROM META_GROUP_RELATION WHERE MAIN_META_DATA_ID = " . $metaDataId);
+                        $this->db->Execute("DELETE FROM META_DATAMART_SCHEDULE WHERE META_DATA_ID = " . $metaDataId);
+                    } else {
+                        $dmLink = array(
+                            'ID' => getUID(),
+                            'TABLE_NAME' => Input::post('dmTableName'),
+                            'META_DATA_ID' => $metaDataId
+                        );                    
+                        $this->db->AutoExecute('META_DATAMART_LINK', $dmLink);                     
                     }
-                }
-                
-                if (isset($_POST['dmScheduleId'])) {
-                    foreach ($_POST['dmScheduleId'] as $dmKey => $dmrow) {
+
+                    foreach ($_POST['dmOutput'] as $dmKey => $dmrow) {
+                        $groupId = $_POST['dmMetaGroup'][$dmKey];
                         $dmLinkData = array(
                             'ID' => getUIDAdd($dmKey),
-                            'META_DATA_ID' => $metaDataId,
-                            'SCHEDULE_ID' => Input::param($dmrow)
+                            'META_DATAMART_LINK_ID' => $dmLink['ID'],
+                            'META_GROUP_ID' => Input::param($groupId),
+                            'SRC_PARAM_PATH' => Input::param($_POST['dmPath'][$dmKey]),
+                            'EXPRESSION' => Input::param($_POST['dmExpression'][$dmKey]),
+                            'IS_OUTPUT' => Input::param($dmrow),
+                            'AGGREGATE_FUNCTION' => Input::param($_POST['dmAggregate'][$dmKey]),
+                            'ALIAS_NAME' => Input::param($_POST['dmAs'][$dmKey]),
+                            'SORT_TYPE' => Input::param($_POST['dmSortType'][$dmKey]),
+                            'SORT_ORDER' => Input::param($_POST['dmSortOrder'][$dmKey]),
+                            'IS_GROUP' => Input::param($_POST['dmGrouping'][$dmKey])
                         );                    
-                        $this->db->AutoExecute('META_DATAMART_SCHEDULE', $dmLinkData);
+                        $this->db->AutoExecute('META_DATAMART_COLUMN', $dmLinkData);
+
+                        if (isset($_POST['dmCriteria'.$groupId.$dmLinkData['SRC_PARAM_PATH']]) && !empty($_POST['dmCriteria'.$groupId.$dmLinkData['SRC_PARAM_PATH']])) {
+                            foreach ($_POST['dmCriteria'.$groupId.$dmLinkData['SRC_PARAM_PATH']] as $criKey => $criteria) {
+                                if (!empty($criteria)) {
+                                    $dmCriteriaData = array(
+                                        'ID' => getUIDAdd($criKey),
+                                        'META_DATAMART_COLUMN_ID' => $dmLinkData['ID'],
+                                        'CRITERIA' => Input::param($criteria)
+                                    );                    
+                                    $this->db->AutoExecute('META_DATAMART_COLUMN_CRITERIA', $dmCriteriaData);                            
+                                }
+                            }
+                        }
+                    }
+
+                    if (isset($_POST['dmSourceGroup'])) {
+                        foreach ($_POST['dmSourceGroup'] as $dmKey => $dmrow) {
+                            if(!empty($dmrow)) {
+                                $dmLinkData = array(
+                                    'ID' => getUIDAdd($dmKey),
+                                    'SRC_META_GROUP_ID' => Input::param($dmrow),
+                                    'TRG_META_GROUP_ID' => Input::param($_POST['dmTargetGroup'][$dmKey]),
+                                    'MAIN_META_DATA_ID' => Input::param($metaDataId),
+                                    'SRC_PARAM_PATH' => Input::param($_POST['dmSourceGroupPath'][$dmKey]),
+                                    'TRG_PARAM_PATH' => Input::param($_POST['dmTargetGroupPath'][$dmKey])
+                                );                    
+                                $this->db->AutoExecute('META_GROUP_RELATION', $dmLinkData);
+                            }
+                        }
+                    }
+
+                    if (isset($_POST['dmScheduleId'])) {
+                        foreach ($_POST['dmScheduleId'] as $dmKey => $dmrow) {
+                            $dmLinkData = array(
+                                'ID' => getUIDAdd($dmKey),
+                                'META_DATA_ID' => $metaDataId,
+                                'SCHEDULE_ID' => Input::param($dmrow)
+                            );                    
+                            $this->db->AutoExecute('META_DATAMART_SCHEDULE', $dmLinkData);
+                        }
+                    }
+
+                    $param = array(
+                        'metadataid' => $metaDataId,
+                        'create_datamart_table' => Input::post('dmTableName'),
+                    );
+
+                    $dmQuery = $this->ws->runResponse(GF_SERVICE_ADDRESS, 'generate_datamart_query', $param);
+
+                    if ($dmQuery['status'] === 'success') {
+                        $dmLinkUpdate = array(
+                            'TABLE_NAME' => Input::post('dmTableName')
+                        );
+                        $this->db->AutoExecute('META_DATAMART_LINK', $dmLinkUpdate, 'UPDATE', " ID = " . $dmLink['ID']);
+                        $this->db->UpdateClob('META_DATAMART_LINK', 'SELECT_QUERY', $dmQuery['result'], 'ID = '.$dmLink['ID']);
                     }
                 }
 
-                $param = array(
-                    'metadataid' => $metaDataId,
-                    'create_datamart_table' => Input::post('dmTableName'),
-                );
-        
-                $dmQuery = $this->ws->runResponse(GF_SERVICE_ADDRESS, 'generate_datamart_query', $param);
+                if ($oldMetaTypeId != $metaTypeId) {
 
-                if ($dmQuery['status'] === 'success') {
-                    $dmLinkUpdate = array(
-                        'TABLE_NAME' => Input::post('dmTableName')
-                    );
-                    $this->db->AutoExecute('META_DATAMART_LINK', $dmLinkUpdate, 'UPDATE', " ID = " . $dmLink['ID']);
-                    $this->db->UpdateClob('META_DATAMART_LINK', 'SELECT_QUERY', $dmQuery['result'], 'ID = '.$dmLink['ID']);
+                    if ($oldMetaTypeId == Mdmetadata::$proxyMetaTypeId) {
+                        self::clearMetaProxyMap($metaDataId);
+                    } elseif ($oldMetaTypeId == Mdmetadata::$bookmarkMetaTypeId) {
+                        self::clearMetaBookmarkLinkMap($metaDataId);
+                    } elseif ($oldMetaTypeId == Mdmetadata::$dashboardMetaTypeId) {
+                        self::clearMetaDashboardLinkMap($metaDataId);
+                    } elseif ($oldMetaTypeId == Mdmetadata::$reportMetaTypeId) {
+                        self::clearMetaReportLinkMap($metaDataId);
+                    } elseif ($oldMetaTypeId == Mdmetadata::$fieldMetaTypeId) {
+                        self::clearMetaFieldLinkMap($metaDataId);
+                    } elseif ($oldMetaTypeId == Mdmetadata::$menuMetaTypeId) {
+                        self::clearMenuLinkMap($metaDataId);
+                    } elseif ($oldMetaTypeId == Mdmetadata::$calendarMetaTypeId) {
+                        self::clearCalendarLinkMap($metaDataId);
+                    } elseif ($oldMetaTypeId == Mdmetadata::$contentMetaTypeId) {
+                        self::clearContentLinkMap($metaDataId);
+                    } elseif ($oldMetaTypeId == Mdmetadata::$donutMetaTypeId) {
+                        self::clearDonutLinkMap($metaDataId);
+                    } elseif ($oldMetaTypeId == Mdmetadata::$cardMetaTypeId) {
+                        self::clearCardLinkMap($metaDataId);
+                    } elseif ($oldMetaTypeId == Mdmetadata::$reportTemplateMetaTypeId) {
+                        self::clearReportTemplateLinkMap($metaDataId);
+                    } elseif ($oldMetaTypeId == Mdmetadata::$diagramMetaTypeId) {
+                        self::clearDiagramLinkMap($metaDataId);
+                    } elseif ($oldMetaTypeId == Mdmetadata::$metaGroupMetaTypeId) {
+                        self::clearGroupLinkMap($metaDataId);
+                        self::clearGroupConfigMap($metaDataId);
+                        self::clearGroupProcessDetailMap($metaDataId);
+                        self::clearGroupProcessDetailRowMap($metaDataId);
+                        self::clearDataViewGridOptions($metaDataId);
+                        self::clearDataViewProcessBatch($metaDataId);
+                        self::clearDataViewExportHeaderFooter($metaDataId);
+                    } elseif ($oldMetaTypeId == Mdmetadata::$workSpaceMetaTypeId) {
+                        self::clearWorkSpaceLinkMap($metaDataId);
+                    } elseif ($oldMetaTypeId == Mdmetadata::$statementMetaTypeId) {
+                        self::clearStatementLinkMap($metaDataId);
+                    } elseif ($oldMetaTypeId == Mdmetadata::$packageMetaTypeId) {
+                        self::clearPackageLinkMap($metaDataId);
+                    } elseif ($oldMetaTypeId == Mdmetadata::$layoutMetaTypeId) {
+                        self::clearLayoutLinkMap($metaDataId);
+                    } elseif ($oldMetaTypeId == Mdmetadata::$bpmMetaTypeId) {
+                        self::clearBpmLinkMap($metaDataId);
+                    } 
                 }
-            }
-            
-            if ($oldMetaTypeId != $metaTypeId) {
-                
-                if ($oldMetaTypeId == Mdmetadata::$proxyMetaTypeId) {
-                    self::clearMetaProxyMap($metaDataId);
-                } elseif ($oldMetaTypeId == Mdmetadata::$bookmarkMetaTypeId) {
-                    self::clearMetaBookmarkLinkMap($metaDataId);
-                } elseif ($oldMetaTypeId == Mdmetadata::$dashboardMetaTypeId) {
-                    self::clearMetaDashboardLinkMap($metaDataId);
-                } elseif ($oldMetaTypeId == Mdmetadata::$reportMetaTypeId) {
-                    self::clearMetaReportLinkMap($metaDataId);
-                } elseif ($oldMetaTypeId == Mdmetadata::$fieldMetaTypeId) {
-                    self::clearMetaFieldLinkMap($metaDataId);
-                } elseif ($oldMetaTypeId == Mdmetadata::$menuMetaTypeId) {
-                    self::clearMenuLinkMap($metaDataId);
-                } elseif ($oldMetaTypeId == Mdmetadata::$calendarMetaTypeId) {
-                    self::clearCalendarLinkMap($metaDataId);
-                } elseif ($oldMetaTypeId == Mdmetadata::$contentMetaTypeId) {
-                    self::clearContentLinkMap($metaDataId);
-                } elseif ($oldMetaTypeId == Mdmetadata::$donutMetaTypeId) {
-                    self::clearDonutLinkMap($metaDataId);
-                } elseif ($oldMetaTypeId == Mdmetadata::$cardMetaTypeId) {
-                    self::clearCardLinkMap($metaDataId);
-                } elseif ($oldMetaTypeId == Mdmetadata::$reportTemplateMetaTypeId) {
-                    self::clearReportTemplateLinkMap($metaDataId);
-                } elseif ($oldMetaTypeId == Mdmetadata::$diagramMetaTypeId) {
-                    self::clearDiagramLinkMap($metaDataId);
-                } elseif ($oldMetaTypeId == Mdmetadata::$metaGroupMetaTypeId) {
-                    self::clearGroupLinkMap($metaDataId);
-                    self::clearGroupConfigMap($metaDataId);
-                    self::clearGroupProcessDetailMap($metaDataId);
-                    self::clearGroupProcessDetailRowMap($metaDataId);
-                    self::clearDataViewGridOptions($metaDataId);
-                    self::clearDataViewProcessBatch($metaDataId);
-                    self::clearDataViewExportHeaderFooter($metaDataId);
-                } elseif ($oldMetaTypeId == Mdmetadata::$workSpaceMetaTypeId) {
-                    self::clearWorkSpaceLinkMap($metaDataId);
-                } elseif ($oldMetaTypeId == Mdmetadata::$statementMetaTypeId) {
-                    self::clearStatementLinkMap($metaDataId);
-                } elseif ($oldMetaTypeId == Mdmetadata::$packageMetaTypeId) {
-                    self::clearPackageLinkMap($metaDataId);
-                } elseif ($oldMetaTypeId == Mdmetadata::$layoutMetaTypeId) {
-                    self::clearLayoutLinkMap($metaDataId);
-                } elseif ($oldMetaTypeId == Mdmetadata::$bpmMetaTypeId) {
-                    self::clearBpmLinkMap($metaDataId);
-                } 
-            }
 
-            if (isset($_FILES['meta_file'])) {
-                
-                $file_arr = Arr::arrayFiles($_FILES['meta_file']);
-                $fileData = Input::post('meta_file_name');
+                if (isset($_FILES['meta_file'])) {
 
-                foreach ($fileData as $f => $file) {
-                    
-                    if ($file_arr[$f]['name'] != '') {
-                        
-                        $newFileName = 'file_' . getUID() . $f;
-                        $fileExtension = strtolower(substr($file_arr[$f]['name'], strrpos($file_arr[$f]['name'], '.') + 1));
-                        $fileName = $newFileName . '.' . $fileExtension;
-                        
-                        FileUpload::SetFileName($fileName);
-                        FileUpload::SetTempName($file_arr[$f]['tmp_name']);
-                        FileUpload::SetUploadDirectory(UPLOADPATH . 'meta/file/');
-                        FileUpload::SetValidExtensions(explode(',', Config::getFromCache('CONFIG_FILE_EXT')));
-                        FileUpload::SetMaximumFileSize(10485760); //10mb
-                        $uploadResult = FileUpload::UploadFile();
+                    $file_arr = Arr::arrayFiles($_FILES['meta_file']);
+                    $fileData = Input::post('meta_file_name');
 
-                        if ($uploadResult) {
-                            
-                            $attachFileId = getUID();
-                            
-                            $dataAttachFile = array(
-                                'ATTACH_ID' => $attachFileId,
-                                'ATTACH_NAME' => ((empty($file)) ? $file_arr[$f]['name'] : $file),
-                                'ATTACH' => UPLOADPATH . 'meta/file/' . $fileName,
-                                'FILE_EXTENSION' => $fileExtension,
-                                'FILE_SIZE' => $file_arr[$f]['size'],
-                                'CREATED_USER_ID' => Ue::sessionUserKeyId()
-                            );
-                            $attachFile = $this->db->AutoExecute('FILE_ATTACH', $dataAttachFile);
-                            
-                            if ($attachFile) {
-                                $dataMetaFile = array(
-                                    'META_DATA_ID' => $metaDataId,
-                                    'ATTACH_ID' => $attachFileId
+                    foreach ($fileData as $f => $file) {
+
+                        if ($file_arr[$f]['name'] != '') {
+
+                            $newFileName = 'file_' . getUID() . $f;
+                            $fileExtension = strtolower(substr($file_arr[$f]['name'], strrpos($file_arr[$f]['name'], '.') + 1));
+                            $fileName = $newFileName . '.' . $fileExtension;
+
+                            FileUpload::SetFileName($fileName);
+                            FileUpload::SetTempName($file_arr[$f]['tmp_name']);
+                            FileUpload::SetUploadDirectory(UPLOADPATH . 'meta/file/');
+                            FileUpload::SetValidExtensions(explode(',', Config::getFromCache('CONFIG_FILE_EXT')));
+                            FileUpload::SetMaximumFileSize(10485760); //10mb
+                            $uploadResult = FileUpload::UploadFile();
+
+                            if ($uploadResult) {
+
+                                $attachFileId = getUID();
+
+                                $dataAttachFile = array(
+                                    'ATTACH_ID' => $attachFileId,
+                                    'ATTACH_NAME' => ((empty($file)) ? $file_arr[$f]['name'] : $file),
+                                    'ATTACH' => UPLOADPATH . 'meta/file/' . $fileName,
+                                    'FILE_EXTENSION' => $fileExtension,
+                                    'FILE_SIZE' => $file_arr[$f]['size'],
+                                    'CREATED_USER_ID' => Ue::sessionUserKeyId()
                                 );
-                                $this->db->AutoExecute('META_DATA_ATTACH', $dataMetaFile);
+                                $attachFile = $this->db->AutoExecute('FILE_ATTACH', $dataAttachFile);
+
+                                if ($attachFile) {
+                                    $dataMetaFile = array(
+                                        'META_DATA_ID' => $metaDataId,
+                                        'ATTACH_ID' => $attachFileId
+                                    );
+                                    $this->db->AutoExecute('META_DATA_ATTACH', $dataMetaFile);
+                                }
                             }
                         }
                     }
                 }
+
+                self::saveMetaChangingLog($metaDataId);
+
+                return array('folderId' => $folderId, 'metaDataId' => $metaDataId);
             }
             
-            self::saveMetaChangingLog($metaDataId);
-            
-            return array('folderId' => $folderId, 'metaDataId' => $metaDataId);
+        } catch (Exception $ex) {
+            return array('status' => 'error', 'message' => $ex->getMessage());
         }
 
         return false;
