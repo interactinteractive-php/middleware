@@ -566,7 +566,8 @@ $(function() {
                 positionLeft: $elem.find(".wfIcon").attr('data-left'), 
                 isScheduled: (isScheduled ? isScheduled : ''), 
                 scheduledPath: (scheduledPath ? scheduledPath : ''), 
-                taskflowType: $elem.hasClass('wf-tf-UI') ? 'UI' : ''
+                taskflowType: $elem.hasClass('wf-tf-UI') ? 'UI' : '', 
+                description: $elem.find('.pflow-bp-descr').text()
             });
             strBoolen = 0;
         });

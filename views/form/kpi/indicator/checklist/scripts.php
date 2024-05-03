@@ -566,7 +566,7 @@ $(function() {
                     }
                 });            
                 
-            } else if (kpiTypeId == '1060') {
+            } else if (kpiTypeId == '1130') {
             
                 var postData = {
                     mainIndicatorId: jsonObj.mainIndicatorId, 

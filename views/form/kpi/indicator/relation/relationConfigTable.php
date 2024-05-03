@@ -1,4 +1,4 @@
-<form method="post" id="kpiDataMartVisualConfigForm">
+<form method="post" id="kpiDataMartVisualConfigForm" style="height: 100%">
     
     <div class="row">
         <div class="col">
@@ -7,43 +7,47 @@
                     <i class="icon-plus3 font-size-12"></i> <?php echo $this->lang->line('add_btn'); ?>
                 </button>
             </div>
-            <div class="heigh-editor-table">
-                <div class="css-editor" id="datamart-editor" style="height: 300px; position: relative;"></div>
-            </div>
         </div>
     </div>
-    <div class="row">
+    <div class="row" style="height: 100%">
         <div class="col">
-            <div class="d-flex justify-content-between" style="height: 35px;background-color: #F5F5F5;border-top: 1px solid #ccc;border-bottom: 1px solid #ccc;">
-                <div class="mt7 ml10" style="color:rgba(0,0,0,0.6)">
-                    <span class="show-indicator-column-count"></span> багана
-                </div>
-                <div>
-                    <button type="button" style="padding: 2px 5px 0px 7px;" class="btn dropdown-toggle mt5 mr10" data-toggle="dropdown" aria-expanded="true">
-                        <i class="fa fa-cog" style="color:rgba(0,0,0,0.6)"></i>
-                    </button>                                  
-                    <div class="dropdown-menu">              
-                        <a class="showHideStructureColumn dropdown-item" href="javascript:;">Нуусан багана харах</a>
+            <div class="" style="height: 100%">
+                <div class="heigh-editor-table" id="relation-settings-gutter">
+                    <div class="css-editor" id="datamart-editor" style=""></div>
+                </div>              
+                <div id="relation-settings-gutter-2">
+                    <div class="d-flex justify-content-between" style="height: 35px;background-color: #F5F5F5;border-top: 1px solid #ccc;border-bottom: 1px solid #ccc;">
+                        <div class="mt7 ml10" style="color:rgba(0,0,0,0.6)">
+                            <span class="show-indicator-column-count"></span> багана
+                        </div>
+                        <div>
+                            <button type="button" style="padding: 2px 5px 0px 7px;" class="btn dropdown-toggle mt5 mr10" data-toggle="dropdown" aria-expanded="true">
+                                <i class="fa fa-cog" style="color:rgba(0,0,0,0.6)"></i>
+                            </button>                                  
+                            <div class="dropdown-menu">              
+                                <a class="showHideStructureColumn dropdown-item" href="javascript:;">Нуусан багана</a>
+                            </div>
+                        </div>
                     </div>
+                    <div class="editor-bottom-layout d-flex">
+                        <div class="col" style="flex: 0 0 500px;border-right: 1px solid #ccc;">    
+                            <div class="editor-table-settings-area">
+                            </div>    
+                        </div>           
+                        <div class="col pl10">    
+                            <div class="mt10 d-none reload-datamart-btn" style="margin-left: -10px;">
+                                <button type="button" class="btn btn-sm green-meadow" onclick="refreshLoadDataListMart()">
+                                    <i class="far fa-database"></i> Датамарт шинэчлэх
+                                </button>
+                            </div>
+                            <div class="editor-table-datalist-area">
+                            </div>    
+                        </div>    
+                    </div>                      
                 </div>
             </div>
         </div>
-    </div>
-    <div class="row editor-bottom-layout">
-        <div class="col" style="flex: 0 0 500px;border-right: 1px solid #ccc;">    
-            <div class="editor-table-settings-area">
-            </div>    
-        </div>           
-        <div class="col pl10">    
-            <div class="mt10 d-none reload-datamart-btn" style="margin-left: -10px;">
-                <button type="button" class="btn btn-sm green-meadow" onclick="refreshLoadDataListMart()">
-                    <i class="far fa-database"></i> Датамарт шинэчлэх
-                </button>
-            </div>
-            <div class="editor-table-datalist-area">
-            </div>    
-        </div>    
-    </div>    
+    </div>  
     
     <input type="hidden" name="id" value="<?php echo $this->id; ?>" data-kpidatamart-id="1"/>
 </form>    
@@ -84,11 +88,14 @@
         border: 1px solid #333;
     }
     .editor-table-settings-area {
-        max-height: 395px;
         overflow-y: auto;
     }
     #dialog-dmart-relationconfig-table {
         overflow: hidden;
+    }
+    .gutter.gutter-vertical {
+        height: 5px;
+        cursor: row-resize !important;
     }
 </style>
 

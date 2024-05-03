@@ -7146,52 +7146,52 @@ class Mdobject_Model extends Model {
                         }
                             
                         if (is_array($defParamVal)) {
-                            $defParamVals = Arr::implode_r(',', $defParamVal, true);
-
-                            if ($defParamVals != '') {
-                                $paramDefaultCriteria[$defParam][] = array(
-                                    'operator' => ($operator == '!=' ? 'NOT IN' : 'IN'),
-                                    'operand' => $defParamVals
-                                );
-                            }
-                        } else {           
-
+                            
                             if ($operator == 'between') {
                                 $paramDefaultCriteria[$defParam][] = array(
                                     'operator' => $operator,
                                     'operand' => $defParamVal[0].' AND '.$defParamVal[1]
                                 );
                             } else {
-                                
-                                $getTypeCode = self::getDataViewGridCriteriaRowModel($metaDataId, $defParam);
-                                $getTypeCodeLower = $getTypeCode['META_TYPE_CODE'];
-                                
-                                if ($getTypeCodeLower == 'date' || $getTypeCodeLower == 'datetime') {
+                                $defParamVals = Arr::implode_r(',', $defParamVal, true);
 
-                                    $defParamVal = str_replace(
-                                        array('____-__-__', '___-__-__', '__-__-__', '_-__-__', '-__-__', '-__', '_', '__:__', ':__'), '', $defParamVal
+                                if ($defParamVals != '') {
+                                    $paramDefaultCriteria[$defParam][] = array(
+                                        'operator' => ($operator == '!=' ? 'NOT IN' : 'IN'),
+                                        'operand' => $defParamVals
                                     );
-
-                                    $operator = ($defaultCondition === '0') ? '=' : (isset($defaultCriteriaCondition[$defParam]) ? $defaultCriteriaCondition[$defParam] : '='); 
-
-                                } elseif ($getTypeCodeLower == 'long' || $getTypeCodeLower == 'integer') {
-
-                                    $operator = ($defaultCondition === '0') ? '=' : (isset($defaultCriteriaCondition[$defParam]) ? $defaultCriteriaCondition[$defParam] : '='); 
-
-                                } elseif ($getTypeCodeLower == 'bigdecimal' || $getTypeCodeLower == 'number') {
-
-                                    $defParamVal = Number::decimal($defParamVal);
-
-                                } elseif ($getTypeCodeLower == 'boolean') {
-
-                                    $operator = '=';
                                 }
-                                
-                                $paramDefaultCriteria[$defParam][] = array(
-                                    'operator' => $operator,
-                                    'operand' => ($operator == 'like') ? '%'.$defParamVal.'%' : $defParamVal 
-                                );
                             }
+                        } else {           
+                                
+                            $getTypeCode = self::getDataViewGridCriteriaRowModel($metaDataId, $defParam);
+                            $getTypeCodeLower = $getTypeCode['META_TYPE_CODE'];
+
+                            if ($getTypeCodeLower == 'date' || $getTypeCodeLower == 'datetime') {
+
+                                $defParamVal = str_replace(
+                                    array('____-__-__', '___-__-__', '__-__-__', '_-__-__', '-__-__', '-__', '_', '__:__', ':__'), '', $defParamVal
+                                );
+
+                                $operator = ($defaultCondition === '0') ? '=' : (isset($defaultCriteriaCondition[$defParam]) ? $defaultCriteriaCondition[$defParam] : '='); 
+
+                            } elseif ($getTypeCodeLower == 'long' || $getTypeCodeLower == 'integer') {
+
+                                $operator = ($defaultCondition === '0') ? '=' : (isset($defaultCriteriaCondition[$defParam]) ? $defaultCriteriaCondition[$defParam] : '='); 
+
+                            } elseif ($getTypeCodeLower == 'bigdecimal' || $getTypeCodeLower == 'bigdecimal_null' || $getTypeCodeLower == 'number') {
+
+                                $defParamVal = Number::decimal($defParamVal);
+
+                            } elseif ($getTypeCodeLower == 'boolean') {
+
+                                $operator = '=';
+                            }
+
+                            $paramDefaultCriteria[$defParam][] = array(
+                                'operator' => $operator,
+                                'operand' => ($operator == 'like') ? '%'.$defParamVal.'%' : $defParamVal 
+                            );
                         }
                     }
                 }

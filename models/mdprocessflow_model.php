@@ -4542,7 +4542,8 @@ class Mdprocessflow_model extends Model {
                             'CREATED_USER_ID' => $sessionUserId, 
                             'IS_SCHEDULED' => Input::param($row['isScheduled']),
                             'SCHEDULED_DATE_PATH' => Input::param($row['scheduledPath']), 
-                            'TASKFLOW_TYPE' => Input::param($row['taskflowType'])
+                            'TASKFLOW_TYPE' => Input::param($row['taskflowType']), 
+                            'DESCRIPTION' => issetVar($row['description'])
                         );
                         $this->db->AutoExecute('META_PROCESS_WORKFLOW', $data);
                     }

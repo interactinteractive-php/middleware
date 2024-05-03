@@ -327,6 +327,14 @@ $(function() {
         }
     });
     
+    $kpiTmp_<?php echo $this->uniqId; ?>.on('click', 'a[href^="#sectiongid"]', function (event) {
+        event.preventDefault();
+
+        $('html, body').animate({
+            scrollTop: $($.attr(this, 'href')).offset().top - 20
+        }, 500);
+    });    
+    
     $kpiTmp_<?php echo $this->uniqId; ?>.on('change', 'select.select2[data-out-param]:not([data-row-data])', function() {
         
         var $this = $(this), outParam = $this.attr('data-out-param');

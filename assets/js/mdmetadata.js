@@ -19076,7 +19076,7 @@ function drillDownStatement(elem, rowStr) {
                         $dialog.empty().dialog('destroy').remove();
                     },
                     buttons: [{
-                        text: data.close_btn,
+                        text: plang.get('close_btn'),
                         class: 'btn blue-hoki btn-sm',
                         click: function() {
                             $dialog.dialog('close');
@@ -19131,54 +19131,47 @@ function drillDownStatement(elem, rowStr) {
                             class: 'btn green-meadow btn-sm bp-btn-save',
                             click: function(e) {
 
-                                if (window['processBeforeSave_' + processUniqId]($(e.target))) {
+                                if (window['processBeforeSave_' + processUniqId]($(e.target)) && bpFormValidate(processForm)) {
+                                    
+                                    processForm.ajaxSubmit({
+                                        type: 'post',
+                                        url: 'mdwebservice/runProcess',
+                                        dataType: 'json',
+                                        beforeSend: function() {
+                                            Core.blockUI({message: 'Түр хүлээнэ үү', boxed: true});
+                                        },
+                                        success: function(responseData) {
 
-                                    if (bpFormValidate(processForm)) {
+                                            PNotify.removeAll();
 
-                                        processForm.ajaxSubmit({
-                                            type: 'post',
-                                            url: 'mdwebservice/runProcess',
-                                            dataType: 'json',
-                                            beforeSend: function() {
-                                                Core.blockUI({message: 'Түр хүлээнэ үү', boxed: true});
-                                            },
-                                            success: function(responseData) {
-
-                                                PNotify.removeAll();
-
-                                                if (responseData.status === 'success') {
-                                                    new PNotify({
-                                                        title: 'Success',
-                                                        text: responseData.message + '<br />Та шүүлтийг дахин ажиллуулж сэргээнэ үү.',
-                                                        type: 'success',
-                                                        insert_brs: false,
-                                                        addclass: pnotifyPosition,
-                                                        sticker: false
-                                                    });
-                                                    $dialog.dialog('close');
-                                                } else {
-                                                    new PNotify({
-                                                        title: 'Error',
-                                                        text: responseData.message,
-                                                        type: 'error',
-                                                        sticker: false,
-                                                        hide: true,
-                                                        addclass: pnotifyPosition,
-                                                        delay: 1000000000
-                                                    });
-                                                }
-
-                                                bpIgnoreGroupRemove(processForm);
-
-                                                Core.unblockUI();
-                                            },
-                                            error: function() {
-                                                alert('Error');
+                                            if (responseData.status === 'success') {
+                                                new PNotify({
+                                                    title: 'Success',
+                                                    text: responseData.message + '<br />Та шүүлтийг дахин ажиллуулж сэргээнэ үү.',
+                                                    type: 'success',
+                                                    insert_brs: false,
+                                                    addclass: pnotifyPosition,
+                                                    sticker: false
+                                                });
+                                                $dialog.dialog('close');
+                                            } else {
+                                                new PNotify({
+                                                    title: 'Error',
+                                                    text: responseData.message,
+                                                    type: 'error',
+                                                    sticker: false,
+                                                    hide: true,
+                                                    addclass: pnotifyPosition,
+                                                    delay: 1000000000
+                                                });
                                             }
-                                        });
-                                    } else {
-                                        bpIgnoreGroupRemove(processForm);
-                                    }
+
+                                            bpIgnoreGroupRemove(processForm);
+
+                                            Core.unblockUI();
+                                        },
+                                        error: function() { alert('Error'); }
+                                    });
                                 } else {
                                     bpIgnoreGroupRemove(processForm);
                                 }
@@ -19388,7 +19381,7 @@ function drillDownStatement(elem, rowStr) {
                             }
                         },
                         {
-                            text: data.close_btn,
+                            text: plang.get('close_btn'),
                             class: 'btn blue-madison btn-sm bp-btn-close',
                             click: function() {
                                 $dialog.dialog('close');
@@ -19463,7 +19456,7 @@ function drillDownStatement(elem, rowStr) {
                         $dialog.empty().dialog('destroy').remove();
                     },
                     buttons: [{
-                        text: data.close_btn,
+                        text: plang.get('close_btn'),
                         class: 'btn blue-hoki btn-sm',
                         click: function() {
                             $dialog.dialog('close');

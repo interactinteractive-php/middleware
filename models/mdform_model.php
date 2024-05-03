@@ -4927,6 +4927,8 @@ class Mdform_Model extends Model {
                         NULL AS METHOD_WIDGET_POSITION, 
                         NULL AS WIDGET_POSITION, 
                         NULL AS IS_FILTER, 
+                        NULL AS TAB_RENDER_TYPE, 
+                        NULL AS IS_SHOW_SECTION_NAME, 
                         NULL AS IS_FROM_MART_EXPRESSION, 
                         NULL AS WIDGET_CODE, 
                         NULL AS IS_GROUP_PATH, 
@@ -5033,6 +5035,8 @@ class Mdform_Model extends Model {
                         M.METHOD_WIDGET_POSITION, 
                         M.WIDGET_POSITION, 
                         M.IS_FILTER, 
+                        M.TAB_RENDER_TYPE, 
+                        M.IS_SHOW_SECTION_NAME, 
                         CASE WHEN M.ALL_CELL_EXPRESSION IS NOT NULL 
                         THEN 1 ELSE 0 END AS IS_FROM_MART_EXPRESSION, 
                         MW.CODE AS WIDGET_CODE, 
@@ -5652,7 +5656,13 @@ class Mdform_Model extends Model {
                     if (stripos($tableName, ':'.$trgPath) !== false && !Input::postCheck('isConsolidate')) {
                         $tableName = str_ireplace(':'.$trgPath, "'".$srcPathVal."'", $tableName);
                     } elseif (Input::postCheck('isConsolidate')) {
-                        $tableName = str_ireplace(':'.$trgPath, $srcPathVal, $tableName);
+                        
+                        if (stripos($tableName, ':'.$trgPath) !== false) {
+                            $tableName = str_ireplace(':'.$trgPath, $srcPathVal, $tableName);
+                        } else {
+                            $where .= "T0.$trgPath = '".$srcPathVal."' AND ";
+                        }
+                        
                     } else {
                         $where .= "T0.$trgPath = '".$srcPathVal."' AND ";
                     }
@@ -6223,27 +6233,43 @@ class Mdform_Model extends Model {
             $t = 1;
             $tabItemArr = $tabContentArr = [];
             
-            foreach (Mdform::$tabRender as $tabName => $tabContent) {
-                
-                $tabItemArr[] = '<li class="nav-item">';
-                    $tabItemArr[] = '<a href="#tab_'.Mdform::$subUniqId.'_'.$t.'" class="nav-link'.($t == 1 ? ' active' : '').'" data-toggle="tab" aria-expanded="false">'.$tabName.'</a>';
-                $tabItemArr[] = '</li>';
-                
-                $tabContentArr[] = '<div class="tab-pane'.($t == 1 ? ' active' : '').'" id="tab_'.Mdform::$subUniqId.'_'.$t.'">';
-                    $tabContentArr[] = implode('', $tabContent);
-                $tabContentArr[] = '</div>';
-                    
-                $t ++;
-            }
+            if (Mdform::$tabSectionRender) {
             
-            $render[] = '<div class="bp-tabs tabbable-line mt-3">';
-                $render[] = '<ul class="nav nav-tabs">';
-                    $render[] = implode('', $tabItemArr);
-                $render[] = '</ul>';
-                $render[] = '<div class="tab-content">';
-                    $render[] = implode('', $tabContentArr);
+                foreach (Mdform::$tabRender as $tabName => $tabContent) {
+
+                    $render[] = '<div class="sectiongidseperator"></div>';
+                    $render[] = '<a class="" id="sectiongid'.$t.'"><fieldset class="sectiongidseperatorcontent collapsible" data-initialized="1">';
+                    $render[] = '<legend>'.$tabName.'</legend>';
+                    $render[] = implode('', $tabContent);
+                    $render[] = '</fieldset></a>';
+
+                    $t ++;
+                }          
+                
+            } else {
+            
+                foreach (Mdform::$tabRender as $tabName => $tabContent) {
+
+                    $tabItemArr[] = '<li class="nav-item">';
+                        $tabItemArr[] = '<a href="#tab_'.Mdform::$subUniqId.'_'.$t.'" class="nav-link'.($t == 1 ? ' active' : '').'" data-toggle="tab" aria-expanded="false">'.$tabName.'</a>';
+                    $tabItemArr[] = '</li>';
+
+                    $tabContentArr[] = '<div class="tab-pane'.($t == 1 ? ' active' : '').'" id="tab_'.Mdform::$subUniqId.'_'.$t.'">';
+                        $tabContentArr[] = implode('', $tabContent);
+                    $tabContentArr[] = '</div>';
+
+                    $t ++;
+                }
+
+                $render[] = '<div class="bp-tabs tabbable-line mt-3">';
+                    $render[] = '<ul class="nav nav-tabs">';
+                        $render[] = implode('', $tabItemArr);
+                    $render[] = '</ul>';
+                    $render[] = '<div class="tab-content">';
+                        $render[] = implode('', $tabContentArr);
+                    $render[] = '</div>';
                 $render[] = '</div>';
-            $render[] = '</div>';
+            }
         }
         
         if (Mdform::$topTabRender) {
@@ -6297,6 +6323,28 @@ class Mdform_Model extends Model {
             }
             
             Mdform::$topTabRenderShow = $topTab;
+        }
+        
+        if (Mdform::$tabRender && Mdform::$tabSectionRenderSidebar) {
+            $tnames = [];
+            $tt = 1;
+            foreach (Mdform::$tabRender as $tabName => $tabContent) {
+                $tnames[] = '<div class="my-2"><a href="#sectiongid'.$tt.'" style="color: #666;font-weight: bold;">'.$tabName.'</a></div>';
+                $tt++;
+            }                      
+            $sideSectionRender = [];
+            $sideSectionRender[] = '<div class="d-flex">';
+            $sideSectionRender[] = '<div style="flex: 0 0 250px;border-right: 1px solid #eee;">';
+            $sideSectionRender[] = '<div style="position: fixed;">';
+            $sideSectionRender[] = implode('', $tnames);
+            $sideSectionRender[] = '</div>';
+            $sideSectionRender[] = '</div>';
+            $sideSectionRender[] = '<div class="ml20 w-100">';
+            $sideSectionRender[] = implode('', $render);
+            $sideSectionRender[] = '</div>';
+            $sideSectionRender[] = '</div>';
+            
+            return implode('', $sideSectionRender);
         }
         
         return implode('', $render);
@@ -6523,7 +6571,7 @@ class Mdform_Model extends Model {
                 $addAttrs['data-maxlength'] = 'true';
             }
             
-        } elseif ($showType == 'percent' || $showType == 'decimal' || $showType == 'bigdecimal' || $showType == 'number') {
+        } elseif ($showType == 'percent' || $showType == 'decimal' || $showType == 'bigdecimal' || $showType == 'bigdecimal_null' || $showType == 'number') {
 
             if ($row['MIN_VALUE'] != '') {
                 $addAttrs['data-v-min'] = $row['MIN_VALUE'];
@@ -6575,6 +6623,7 @@ class Mdform_Model extends Model {
             case 'decimal':
             case 'decimal_zero':
             case 'bigdecimal':
+            case 'bigdecimal_null':
             {
                 $attrArray = array(
                     'data-path' => $columnNamePath, 
@@ -8034,8 +8083,8 @@ class Mdform_Model extends Model {
                                 $controlRender[] = '</div>';
                             } else {
                                 $controlRender[] = '<div class="mv-hdr-label-control kpi-hdr-table" data-cell-path="'.$arrRow['COLUMN_NAME_PATH'].'">';
-                                    $controlRender[] = '<div class="mv-hdr-label-control-label" style="width: '.Mdform::$labelWidth.'">' . $label . '</div>';
-                                    $controlRender[] = '<div class="mv-hdr-label-control-input">' . $control . '</div>';
+                                    $controlRender[] = '<div class="mv-hdr-label-control-label type-'.$arrRow['SHOW_TYPE'].'" style="width: '.Mdform::$labelWidth.'">' . $label . '</div>';
+                                    $controlRender[] = '<div class="mv-hdr-label-control-input type-'.$arrRow['SHOW_TYPE'].'">' . $control . '</div>';
                                 $controlRender[] = '</div>';
                             }
                                 
@@ -8161,6 +8210,14 @@ class Mdform_Model extends Model {
                     if ($arrRow['TAB_NAME']) {
                         
                         Mdform::$tabRender[$arrRow['TAB_NAME']][] = $renderControl;
+                        
+                        if (Str::lower(issetParam($arrRow['TAB_RENDER_TYPE'])) == 'section') {
+                            Mdform::$tabSectionRender = true;
+                        }
+                        
+                        if (issetParam($arrRow['IS_SHOW_SECTION_NAME'])) {
+                            Mdform::$tabSectionRenderSidebar = true;
+                        }
                         
                     } else {
                         
@@ -10941,28 +10998,12 @@ class Mdform_Model extends Model {
     public function mvRowDetailDbSave($indicatorId, $configRow, $row, &$mvSaveParams, $depth = 0, $rowIndex = null) {
         
         $parentColumnNamePath = $configRow['COLUMN_NAME_PATH'];
+        $pkColumnName = issetParam(Mdform::$mvParamsConfig['detail'][$parentColumnNamePath.'_pfpk']);
         
-        if ($configRow['TABLE_NAME']) {
+        if ($configRow['TABLE_NAME'] && !$pkColumnName) {
             
-            if ($isIgnoreAlter == false) {
-
-                $pkColumnName = 'ID';
-
-                if (!isset(Mdform::$mvParamsConfig['detail'][$parentColumnNamePath.'_pfpk'])) {
-                    throw new Exception('Primary key баганын тохиргоо олдсонгүй! /'.$parentColumnNamePath.'/'); 
-                }
-
-            } else {
-                $pkColumnName = issetParam(Mdform::$mvParamsConfig['detail'][$parentColumnNamePath.'_pfpk']);
-
-                if (!$pkColumnName) {
-                    throw new Exception('Primary key баганын тохиргоо олдсонгүй! /'.$parentColumnNamePath.'/'); 
-                }
-            }
-            
-        } else {
-            $pkColumnName = issetParam(Mdform::$mvParamsConfig['detail'][$parentColumnNamePath.'_pfpk']);
-        }
+            throw new Exception('Primary key баганын тохиргоо олдсонгүй! /'.$parentColumnNamePath.'/'); 
+        } 
         
         $parentTableName = self::replaceKpiDbSchemaName($configRow['TABLE_NAME']);
         $isIgnoreAlter = self::isCheckSystemTable($parentTableName, true);
@@ -11625,7 +11666,7 @@ class Mdform_Model extends Model {
                                         $saveData[$columnName] = $getValue;
                                     }
                                     
-                                } elseif ($showType == 'bigdecimal' || $showType == 'decimal' || $showType == 'decimal_zero' || $showType == 'percent' || $showType == 'number' || $showType == 'long' || $showType == 'integer') {
+                                } elseif ($showType == 'bigdecimal' || $showType == 'bigdecimal_null' || $showType == 'decimal' || $showType == 'decimal_zero' || $showType == 'percent' || $showType == 'number' || $showType == 'long' || $showType == 'integer') {
                                     
                                     $saveData[$columnName] = ($getValue == '' ? null : Number::decimal($getValue));
                                     
@@ -12823,7 +12864,7 @@ class Mdform_Model extends Model {
                         || $showType == 'popup' || $showType == 'number' 
                         || $showType == 'long' || $showType == 'decimal' 
                         || $showType == 'decimal_zero' || $showType == 'bigdecimal' 
-                        || $showType == 'percent') {
+                        || $showType == 'bigdecimal_null' || $showType == 'percent') {
                         
                         $whereClause .= "$colName = " . $this->db->Param($p) . ' AND ';
                         $bindParam[] = $saveData[$colName];
@@ -13599,7 +13640,7 @@ class Mdform_Model extends Model {
                     $fields .= '"'.$row['name'].'" DATE,';
                 } elseif ($row['type'] == 'combo' || $row['type'] == 'radio' || $row['type'] == 'popup' || $row['type'] == 'number' || $row['type'] == 'long') {
                     $fields .= '"'.$row['name'].'" NUMBER(18,0),';
-                } elseif ($row['type'] == 'decimal' || $row['type'] == 'decimal_zero' || $row['type'] == 'bigdecimal' || $row['type'] == 'percent') {
+                } elseif ($row['type'] == 'decimal' || $row['type'] == 'decimal_zero' || $row['type'] == 'bigdecimal' || $row['type'] == 'bigdecimal_null' || $row['type'] == 'percent') {
                     $fields .= '"'.$row['name'].'" NUMBER(24,6),';
                 } elseif ($row['type'] == 'code' || $row['type'] == 'icon_picker') {
                     $fields .= '"'.$row['name'].'" VARCHAR2(50 CHAR),';
@@ -13698,7 +13739,7 @@ class Mdform_Model extends Model {
                     
                     $alter = "ALTER TABLE $tblName ADD (".$row['name']." DATE)";
                     
-                } elseif ($row['type'] == 'decimal' || $row['type'] == 'decimal_zero' || $row['type'] == 'bigdecimal' || $row['type'] == 'percent') {
+                } elseif ($row['type'] == 'decimal' || $row['type'] == 'decimal_zero' || $row['type'] == 'bigdecimal' || $row['type'] == 'bigdecimal_null' || $row['type'] == 'percent') {
                     
                     $alter = "ALTER TABLE $tblName ADD (".$row['name']." NUMBER(24,6))";
                     
@@ -14230,6 +14271,11 @@ class Mdform_Model extends Model {
                             $columns[] = "align: 'right', ";
                             $columns[] = "formatter: function(v, r, i) { return ".$startAnchor."gridAmountField(v, r)$endAnchor; },";
 
+                        } elseif ($column['SHOW_TYPE'] == 'bigdecimal_null') {
+
+                            $columns[] = "align: 'right', ";
+                            $columns[] = "formatter: function(v, r, i) { return ".$startAnchor."gridAmountNullField(v, r)$endAnchor; },";
+
                         } elseif ($column['SHOW_TYPE'] == 'number' || $column['SHOW_TYPE'] == 'long' || $column['SHOW_TYPE'] == 'integer') {
 
                             $columns[] = "align: 'right', ";
@@ -14741,8 +14787,11 @@ class Mdform_Model extends Model {
             }
         
             $indicatorId = Input::numeric('indicatorId');
-        
             $row = self::getKpiIndicatorRowModel($indicatorId); 
+            
+            if (!$row) {
+                return ['status' => 'error', 'message' => '', 'rows' => [], 'total' => 0];
+            }
             
             $tableName = $row['TABLE_NAME'];
             $queryString = self::parseQueryString($row['QUERY_STRING']);
@@ -14771,6 +14820,7 @@ class Mdform_Model extends Model {
             $isShowPivot   = Input::numeric('isShowPivot');
             $isGoogleMap   = Input::numeric('isGoogleMap');
             $isComboData   = Input::numeric('isComboData');
+            $isShowQuery   = Input::numeric('isShowQuery');
             $workSpaceId   = Input::numeric('workSpaceId');
             
             $isUseWorkflow             = $row['IS_USE_WORKFLOW'];
@@ -14974,7 +15024,7 @@ class Mdform_Model extends Model {
                         
                         $filterDefaultValue = Mdmetadata::setDefaultValue($column['DEFAULT_VALUE']);
                         
-                        if (in_array($column['SHOW_TYPE'], ['bigdecimal', 'decimal', 'number', 'long', 'date'])) {
+                        if (in_array($column['SHOW_TYPE'], ['bigdecimal', 'bigdecimal_null', 'decimal', 'number', 'long', 'date'])) {
                             
                             $_POST['filterData'][$column['COLUMN_NAME']][] = [
                                 'begin' => $filterDefaultValue, 'end' => $filterDefaultValue
@@ -15065,7 +15115,7 @@ class Mdform_Model extends Model {
                     }
                 }
                     
-            } elseif ($isExportExcel || $isShowPivot || $isQueryString) {
+            } elseif ($isExportExcel || $isShowPivot || $isQueryString) { 
                 
                 $idColumnName = null;
                 
@@ -15259,7 +15309,7 @@ class Mdform_Model extends Model {
                             $filterColBeginVal = $filterColVal['begin'];
                             $filterColEndVal = $filterColVal['end'];
                             
-                            if ($filterShowType == 'bigdecimal' || $filterShowType == 'decimal' || $filterShowType == 'number') {
+                            if ($filterShowType == 'bigdecimal' || $filterShowType == 'bigdecimal_null' || $filterShowType == 'decimal' || $filterShowType == 'number') {
                                 
                                 $subCondition .= " AND $filterColName BETWEEN $filterColBeginVal AND $filterColEndVal";
                                 
@@ -15545,7 +15595,7 @@ class Mdform_Model extends Model {
                     ORDER BY $sortField";
             }
             
-            if ($isExportExcel || $isComboData) {
+            if ($isExportExcel || $isComboData || $isShowQuery) {
                 
                 $mainSortFields = '';
                 
@@ -15561,7 +15611,7 @@ class Mdform_Model extends Model {
 
                         $columnName = (!$isCheckSystemTable && ($colName['SHOW_TYPE'] == 'combo' || $colName['SHOW_TYPE'] == 'popup' || $colName['SHOW_TYPE'] == 'radio')) ? $colName['COLUMN_NAME'] . '_DESC' : $colName['COLUMN_NAME'];
                         
-                        if ($colName['SHOW_TYPE'] == 'bigdecimal' || $colName['SHOW_TYPE'] == 'decimal' || $colName['SHOW_TYPE'] == 'number') {
+                        if ($colName['SHOW_TYPE'] == 'bigdecimal' || $colName['SHOW_TYPE'] == 'bigdecimal_null' || $colName['SHOW_TYPE'] == 'decimal' || $colName['SHOW_TYPE'] == 'number') {
                             
                             $colAggregate = strtoupper($colName['COLUMN_AGGREGATE'] ? $colName['COLUMN_AGGREGATE'] : 'SUM');
                             
@@ -18173,7 +18223,7 @@ class Mdform_Model extends Model {
                                 $updateColumnName = $updateCol['columnName'];
                                 $updateShowType = $updateCol['showType'];
 
-                                if ($updateShowType == 'decimal' || $updateShowType == 'bigdecimal' || $updateShowType == 'percent' || $updateShowType == 'number') {
+                                if ($updateShowType == 'decimal' || $updateShowType == 'bigdecimal' || $updateShowType == 'bigdecimal_null' || $updateShowType == 'percent' || $updateShowType == 'number') {
 
                                     $updateEqualCol .= "TRG.$updateColumnName = TRG.$updateColumnName - SRC.$updateColumnName,";
 
@@ -19740,6 +19790,7 @@ class Mdform_Model extends Model {
 
                     $rowGroupFields = rtrim(trim($rowGroupFields), ',');
                     $rowGroupGroupBy = rtrim(trim($rowGroupGroupBy), ',');
+                    $rowGroupSelectGroupBy = $rowGroupGroupBy;
                     $rowGroupOrderBy = rtrim(trim($rowGroupOrderBy), ',');
                     
                     $sortColumns = [];
@@ -19764,11 +19815,11 @@ class Mdform_Model extends Model {
                             if (isset($fieldConfigs[$sortColumnName]['showType']) && $fieldConfigs[$sortColumnName]['showType'] == 'combo') {
                                 
                                 $rowGroupOrderBy .= $sortColumnName . '_DESC ' . $sortColumn['sortType'] . ', ';
-                                $rowGroupGroupBy .= ', ' . $sortColumnName . '_DESC';
+                                $rowGroupSelectGroupBy .= ', ' . $sortColumnName . '_DESC';
                                 
                             } else {
                                 $rowGroupOrderBy .= $sortColumnName . ' ' . $sortColumn['sortType'] . ', ';
-                                $rowGroupGroupBy .= ', ' . $sortColumnName;
+                                $rowGroupSelectGroupBy .= ', ' . $sortColumnName;
                             }
                         }
 
@@ -19782,7 +19833,7 @@ class Mdform_Model extends Model {
                         WHERE 1 = 1 
                             $dataFilterWhere 
                         GROUP BY 
-                            $rowGroupGroupBy 
+                            $rowGroupSelectGroupBy 
                         ORDER BY 
                             $rowGroupOrderBy";
 
@@ -19986,7 +20037,7 @@ class Mdform_Model extends Model {
                                     ) SRC ON ($mergeMatch) 
                                     WHEN MATCHED THEN UPDATE SET 
                                         TRG.$pivotColumn = SRC.$trgAliasName";
-
+                                
                                 $this->db->Execute($mergeSql);
                             }
                         }
@@ -20182,7 +20233,7 @@ class Mdform_Model extends Model {
                     $fields .= '"'.$row['name'].'" DATE,';
                 } elseif ($row['type'] == 'combo' || $row['type'] == 'popup' || $row['type'] == 'radio' || $row['type'] == 'number' || $row['type'] == 'long') {
                     $fields .= '"'.$row['name'].'" NUMBER(18,0),';
-                } elseif ($row['type'] == 'decimal' || $row['type'] == 'decimal_zero' || $row['type'] == 'bigdecimal' || $row['type'] == 'percent') {
+                } elseif ($row['type'] == 'decimal' || $row['type'] == 'decimal_zero' || $row['type'] == 'bigdecimal' || $row['type'] == 'bigdecimal_null' || $row['type'] == 'percent') {
                     $fields .= '"'.$row['name'].'" NUMBER(24,6),';
                 } elseif ($row['type'] == 'code') {
                     $fields .= '"'.$row['name'].'" VARCHAR2(50 CHAR),';
@@ -20267,7 +20318,7 @@ class Mdform_Model extends Model {
                     $fields .= '"'.$row['name'].'" DATE,';
                 } elseif ($row['type'] == 'combo' || $row['type'] == 'popup' || $row['type'] == 'radio' || $row['type'] == 'number' || $row['type'] == 'long') {
                     $fields .= '"'.$row['name'].'" NUMBER(18,0),';
-                } elseif ($row['type'] == 'decimal' || $row['type'] == 'decimal_zero' || $row['type'] == 'bigdecimal' || $row['type'] == 'percent') {
+                } elseif ($row['type'] == 'decimal' || $row['type'] == 'decimal_zero' || $row['type'] == 'bigdecimal' || $row['type'] == 'bigdecimal_null' || $row['type'] == 'percent') {
                     $fields .= '"'.$row['name'].'" NUMBER(24,6),';
                 } elseif ($row['type'] == 'code') {
                     $fields .= '"'.$row['name'].'" VARCHAR2(50 CHAR),';
@@ -20457,7 +20508,7 @@ class Mdform_Model extends Model {
                                 $filterColBeginVal = $filterColVal['begin'];
                                 $filterColEndVal = $filterColVal['end'];
 
-                                if ($filterShowType == 'bigdecimal' || $filterShowType == 'decimal' || $filterShowType == 'number') {
+                                if ($filterShowType == 'bigdecimal' || $filterShowType == 'bigdecimal_null' || $filterShowType == 'decimal' || $filterShowType == 'number') {
 
                                     $subCondition .= " AND $filterColName BETWEEN $filterColBeginVal AND $filterColEndVal";
 
@@ -20497,7 +20548,7 @@ class Mdform_Model extends Model {
                         if ($col['DEFAULT_VALUE'] != '' && $filterColName != '') {
                             $defaultValue = Mdmetadata::setDefaultValue($col['DEFAULT_VALUE']);
 
-                            if ($filterShowType == 'bigdecimal' || $filterShowType == 'decimal' || $filterShowType == 'number') {
+                            if ($filterShowType == 'bigdecimal' || $filterShowType == 'bigdecimal_null' || $filterShowType == 'decimal' || $filterShowType == 'number') {
 
                                 $subCondition .= " AND $filterColName BETWEEN $defaultValue AND $defaultValue";
 
@@ -20546,7 +20597,7 @@ class Mdform_Model extends Model {
                             'namedParam' => false
                         ]; 
                         
-                        if ($showType != 'bigdecimal' && $showType != 'decimal' && $showType != 'number' && $showType != 'date' && $showType != 'datetime') {
+                        if ($showType != 'bigdecimal' && $showType != 'bigdecimal_null' && $showType != 'decimal' && $showType != 'number' && $showType != 'date' && $showType != 'datetime') {
                             
                             $targetColumns = self::getKpiDashboardTargetColumnsModel($headerData['SRC_INDICATOR_MAP_ID']);
                             
@@ -20658,7 +20709,7 @@ class Mdform_Model extends Model {
                         
                     } elseif (isset($tblColumns[$columnName])) {
                                 
-                        if ($showType != 'bigdecimal' && $showType != 'decimal' && $showType != 'number' && $showType != 'date' && $showType != 'datetime') {
+                        if ($showType != 'bigdecimal' && $showType != 'bigdecimal_null' && $showType != 'decimal' && $showType != 'number' && $showType != 'date' && $showType != 'datetime') {
                             
                             $cacheName = 'mvFilterData_'.$indicatorId.'_'.md5($columnName.'_'.$sessionUserKeyId.'_'.$subCondition);
                             $data = $cache->get($cacheName);
@@ -20724,7 +20775,7 @@ class Mdform_Model extends Model {
                             'namedParam' => false
                         ]; 
                         
-                        if ($showType != 'bigdecimal' && $showType != 'decimal' && $showType != 'number' && $showType != 'date' && $showType != 'datetime') {
+                        if ($showType != 'bigdecimal' && $showType != 'bigdecimal_null' && $showType != 'decimal' && $showType != 'number' && $showType != 'date' && $showType != 'datetime') {
                             
                             $targetColumns = self::getKpiDashboardTargetColumnsModel($headerData['SRC_INDICATOR_MAP_ID']);
                             
@@ -20806,7 +20857,7 @@ class Mdform_Model extends Model {
                         
                     } elseif (isset($tblColumns[$columnName])) {
                                 
-                        if ($showType != 'bigdecimal' && $showType != 'decimal' && $showType != 'number' && $showType != 'date' && $showType != 'datetime') {
+                        if ($showType != 'bigdecimal' && $showType != 'bigdecimal_null' && $showType != 'decimal' && $showType != 'number' && $showType != 'date' && $showType != 'datetime') {
                             
                             $cacheName = 'mvFilterData_'.$indicatorId.'_'.md5($columnName.'_'.$sessionUserKeyId.'_'.$subCondition);
                             $data = $cache->get($cacheName);
@@ -20964,7 +21015,7 @@ class Mdform_Model extends Model {
                     }
                 }
                 
-                if (($isFirstLoad || $isFirstLoad == null) && $defaultValue != '' && !$filterData && ($showType == 'bigdecimal' || $showType == 'decimal' || $showType == 'number')) {
+                if (($isFirstLoad || $isFirstLoad == null) && $defaultValue != '' && !$filterData && ($showType == 'bigdecimal' || $showType == 'bigdecimal_null' || $showType == 'decimal' || $showType == 'number')) {
                     
                     $defaultValue = Mdmetadata::setDefaultValue($defaultValue);
                     
@@ -21022,7 +21073,7 @@ class Mdform_Model extends Model {
                                     $filterColBeginVal = $filterColVal['begin'];
                                     $filterColEndVal = $filterColVal['end'];
 
-                                    if ($dashboardFilterTrgShowType == 'bigdecimal' || $dashboardFilterTrgShowType == 'decimal' || $dashboardFilterTrgShowType == 'number') {
+                                    if ($dashboardFilterTrgShowType == 'bigdecimal' || $dashboardFilterTrgShowType == 'bigdecimal_null' || $dashboardFilterTrgShowType == 'decimal' || $dashboardFilterTrgShowType == 'number') {
 
                                         $subCondition .= " AND $dashboardFilterTrgColumn BETWEEN $filterColBeginVal AND $filterColEndVal";
 
@@ -21088,7 +21139,7 @@ class Mdform_Model extends Model {
                             $filterColBeginVal = $filterColVal['begin'];
                             $filterColEndVal = $filterColVal['end'];
                             
-                            if ($filterShowType == 'bigdecimal' || $filterShowType == 'decimal' || $filterShowType == 'number') {
+                            if ($filterShowType == 'bigdecimal' || $filterShowType == 'bigdecimal_null' || $filterShowType == 'decimal' || $filterShowType == 'number') {
                                 
                                 $subCondition .= " AND $filterColName BETWEEN $filterColBeginVal AND $filterColEndVal";
                                 
@@ -21153,7 +21204,7 @@ class Mdform_Model extends Model {
                     if ($valueShowType == 'text' || $valueShowType == 'description' || $valueShowType == 'description_auto') {
                         
                         $valueSelectCol .= "ROUND ($aggregate($valueCol) , 2) AS $aliasName,";
-                        $valueSelectCol .=  ($isBuild == '1') ? "ROUND($aggregate(TO_NUMBER(REPLACE($valueCol, ','))), 2) AS VALUE," : '';
+                        $valueSelectCol .=  ($isBuild == '1') ? "ROUND ($aggregate($valueCol) , 2)  AS VALUE," : '';
                         
                         if ($axisYSortType && $chartType != 'clustered_column') {
                             $orderBy .= "$aggregate($valueCol) $axisYSortType, ";
@@ -22806,7 +22857,7 @@ class Mdform_Model extends Model {
                                     $showType     = $colConfig['SHOW_TYPE']; 
                                     $defaultValue = Mdmetadata::setDefaultValue($colConfig['DEFAULT_VALUE']); 
 
-                                    if ($showType == 'decimal' || $showType == 'bigdecimal') {
+                                    if ($showType == 'decimal' || $showType == 'bigdecimal' || $showType == 'bigdecimal_null') {
                                         
                                         $cellVal = self::setEitherValue(Number::decimal($cellVal), $defaultValue);
                                         $evalRow .= '$insertData[\''.$colName.'\'] = self::setEitherValue(self::cleanDecimal($row['.$key.']), \''.$defaultValue.'\'); ';
@@ -23371,7 +23422,7 @@ class Mdform_Model extends Model {
                 CASE 
                     WHEN SHOW_TYPE = 'combo' OR SHOW_TYPE = 'popup' OR SHOW_TYPE = 'radio' OR SHOW_TYPE = 'text' 
                     THEN 'string' 
-                    WHEN SHOW_TYPE = 'decimal' OR SHOW_TYPE = 'percent' 
+                    WHEN SHOW_TYPE = 'decimal' OR SHOW_TYPE = 'percent' OR SHOW_TYPE = 'bigdecimal_null' 
                     THEN 'bigdecimal' 
                     WHEN SHOW_TYPE = 'check' 
                     THEN 'boolean' 
@@ -23649,7 +23700,7 @@ class Mdform_Model extends Model {
     
     public function indicatorActionsModel($config = []) {
         
-        $buttons = $contextMenu = [];
+        $buttons = $contextMenu = $indicatorIds = [];
         $indicatorId = $config['indicatorId'];
         
         if ($config['isDataMart']) {
@@ -23718,6 +23769,7 @@ class Mdform_Model extends Model {
                 $buttonName = $className = $onClick = $description = $opt = '';
                 $isDfillRelation = issetParam($process['is_dfill_relation']);
                 $isCfillRelation = issetParam($process['is_cfill_relation']);                                                
+                $actionmode = '';
 
                 if ($srcIndicatorId == $indicatorId) {
 
@@ -23733,7 +23785,9 @@ class Mdform_Model extends Model {
 
                         if ($isNormalRelation) {
                             $onClick = "mvNormalRelationRender(this, '$kpiTypeId', '".$indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId});";
+                            $actionmode = "{methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId}";
                         } else {
+                            $actionmode = str_replace(', {', '{', $opt);
                             $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '".$indicatorId."', false$opt);";
                         }
 
@@ -23751,10 +23805,13 @@ class Mdform_Model extends Model {
 
                         if ($isNormalRelation) {
                             $onClick = "mvNormalRelationRender(this, '$kpiTypeId', '".$indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'update'});";
+                            $actionmode = "{methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'update'}";
                         } else {
                             if (issetParam($process['widget_code']) !== '') {
+                                $actionmode = "{methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'update', widgetCode: '". $process['widget_code'] ."'}";
                                 $onClick = "mvWidgetRelationRender(this, '$kpiTypeId', '".$indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'update', widgetCode: '". $process['widget_code'] ."'});";
                             } else {
+                                $actionmode = str_replace(', {', '{', $opt);
                                 $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '".$indicatorId."', true$opt);";
                             }
                         }
@@ -23779,8 +23836,10 @@ class Mdform_Model extends Model {
                         $buttonName = '<i class="fas fa-eye"></i> '.Lang::line('view_btn');
 
                         if ($isNormalRelation) {
+                            $actionmode = "{methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'view'}";
                             $onClick = "mvNormalRelationRender(this, '$kpiTypeId', '".$indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'view'});";
                         } else {
+                            $actionmode = "{mode: 'view'}";
                             $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '".$indicatorId."', true, {mode: 'view'});";
                         }
 
@@ -23915,11 +23974,14 @@ class Mdform_Model extends Model {
 
                         if ($isNormalRelation) {
                             if (issetParam($process['widget_code']) !== '') {
+                                $actionmode = "{methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'update', widgetCode: '". $process['widget_code'] ."'}";
                                 $onClick = "mvWidgetRelationRender(this, '$kpiTypeId', '".$indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'update', widgetCode: '". $process['widget_code'] ."'});";
                             } else {
+                                $actionmode = "{methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId}";
                                 $onClick = "mvNormalRelationRender(this, '$kpiTypeId', '".$indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId});";
                             }
                         } else {
+                            $actionmode = str_replace(', {', '{', $opt);
                             $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '$srcIndicatorId', false$opt);";
                         }
 
@@ -23935,11 +23997,14 @@ class Mdform_Model extends Model {
                         }
 
                         if ($isNormalRelation) {
+                            $actionmode = "{methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'update', isFillRelation: '$isFillRelation'}";
                             $onClick = "mvNormalRelationRender(this, '$kpiTypeId', '".$indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'update', isFillRelation: '$isFillRelation'});";
                         } else {
                             if (issetParam($process['widget_code']) !== '') {
+                                $actionmode = "{methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'update', widgetCode: '". $process['widget_code'] ."'}";
                                 $onClick = "mvWidgetRelationRender(this, '$kpiTypeId', '".$indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'update', widgetCode: '". $process['widget_code'] ."'});";
                             } else {
+                                $actionmode = str_replace(', {', '{', $opt);
                                 $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '$srcIndicatorId', true$opt);";
                             }
                         }
@@ -23971,11 +24036,14 @@ class Mdform_Model extends Model {
                         }
 
                         if ($isNormalRelation) {
+                            $actionmode = "{methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'view'}";
                             $onClick = "mvNormalRelationRender(this, '$kpiTypeId', '".$indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'view'});";
                         } else {
                             if (issetParam($process['widget_code']) !== '') {
+                                $actionmode = "{methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'update', widgetCode: '". $process['widget_code'] ."'}";
                                 $onClick = "mvWidgetRelationRender(this, '$kpiTypeId', '".$indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'update', widgetCode: '". $process['widget_code'] ."'});";
                             } else {
+                                $actionmode = str_replace(', {', '{', $opt);
                                 $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '$srcIndicatorId', true$opt);";
                             }
                         }
@@ -24014,6 +24082,21 @@ class Mdform_Model extends Model {
                     ], 
                     $buttonName, true
                 );
+                
+                $indicatorIds[$crudIndicatorId] = [ 
+                    'href' => 'javascript:;', 
+                    'class' => $className, 
+                    'data-qtip-title' => $description, 
+                    'data-qtip-pos' => 'top', 
+                    'onclick' => $onClick, 
+                    'data-actiontype' => $typeCode, 
+                    'data-actiontypeid' => $kpiTypeId, 
+                    'data-actionmode' => $actionmode, 
+                    'data-main-indicatorid' => $indicatorId, 
+                    'data-structure-indicatorid' => $indicatorId, 
+                    'data-crud-indicatorid' => $crudIndicatorId,
+                    'data-mapid' => issetParam($process['map_id'])
+                ];
             }
             
             if ($config['isCallWebService']) {
@@ -24115,7 +24198,7 @@ class Mdform_Model extends Model {
             }
         }
         
-        return ['buttons' => $buttons, 'contextMenu' => $contextMenu];
+        return ['buttons' => $buttons, 'contextMenu' => $contextMenu, 'indicatorIds' => $indicatorIds];
     }
     
     public function getKpiIndicatorProcessWidgetModel($srcId, $mapId) {
@@ -25365,7 +25448,7 @@ class Mdform_Model extends Model {
                                             continue 2;
                                         }
                                         
-                                        if ($showType == 'decimal' || $showType == 'bigdecimal') {
+                                        if ($showType == 'decimal' || $showType == 'bigdecimal' || $showType == 'bigdecimal_null') {
                                 
                                             $cellVal = Number::decimal($cellVal);
 
@@ -26838,7 +26921,7 @@ class Mdform_Model extends Model {
                         }
                     }
 
-                    if ($showType == 'decimal' || $showType == 'bigdecimal') {
+                    if ($showType == 'decimal' || $showType == 'bigdecimal' || $showType == 'bigdecimal_null') {
 
                         $evalRow .= '$insertData[\''.$columnName.'\'] = self::cleanDecimal($row['.$c.']); ';
 
@@ -29264,6 +29347,65 @@ class Mdform_Model extends Model {
                 throw new Exception('Үндсэн бүтэц дээр UNIQUE талбарын тохиргоо хийгдээгүй байна!'); 
             }
             
+            $beforeCommitCheck = $this->db->GetAll("
+                SELECT 
+                    T1.ID, 
+                    T2.CHECK_QUERY, 
+                    T0.CRITERIA, 
+                    T0.DESCRIPTION 
+                FROM KPI_INDICATOR_INDICATOR_MAP T0 
+                    INNER JOIN KPI_INDICATOR T1 ON T1.ID = T0.TRG_INDICATOR_ID 
+                    INNER JOIN V_CHECK_QUERY T2 ON T2.SRC_RECORD_ID = T1.ID 
+                WHERE T0.SRC_INDICATOR_ID = ".$this->db->Param(0)." 
+                    AND T0.SEMANTIC_TYPE_ID = 75 
+                    AND T1.KPI_TYPE_ID = 1200 
+                    AND T2.CHECK_QUERY IS NOT NULL 
+                    AND T0.CRITERIA IS NOT NULL 
+                    AND T0.DESCRIPTION IS NOT NULL 
+                ORDER BY T0.ORDER_NUMBER ASC", [$mainIndicatorId]); 
+            
+            $beforeShowMessage = [];
+            
+            foreach ($beforeCommitCheck as $check) {
+                
+                $checkQuery = html_entity_decode($check['CHECK_QUERY'], ENT_QUOTES, 'UTF-8');
+                $checkQuery = self::replaceNamedParameters($checkQuery); 
+                
+                $checkQuery = str_ireplace('[SRC_TABLE]', $mainTableName, $checkQuery);
+                $checkQuery = str_ireplace('[TRG_TABLE]', $tableName, $checkQuery);
+                
+                $checkRow = $this->db->GetRow($checkQuery);
+                
+                if ($checkRow) {
+                    
+                    $checkCriteria = Str::lower(html_entity_decode($check['CRITERIA'], ENT_QUOTES, 'UTF-8'));
+                    $checkDescription = html_entity_decode($check['DESCRIPTION'], ENT_QUOTES, 'UTF-8');
+                    
+                    foreach ($checkRow as $sk => $sv) {
+                        
+                        $replaceVal = $sv;
+                        
+                        if (is_string($replaceVal) && strpos($replaceVal, "'") === false) {
+                            $replaceVal = "'".Str::lower($replaceVal)."'";
+                        } elseif (is_null($replaceVal)) {
+                            $replaceVal = "''";
+                        }
+                                
+                        $checkCriteria = str_ireplace('['.$sk.']', $replaceVal, $checkCriteria);
+                        $checkDescription = str_ireplace('['.$sk.']', $sv, $checkDescription);
+                    }
+                    
+                    if (Mdcommon::expressionEvalFixWithReturn($checkCriteria)) {
+                        
+                        $beforeShowMessage[] = $checkDescription;
+                    }
+                }
+            }
+            
+            if ($beforeShowMessage) {
+                throw new Exception(implode('<br /><br />', $beforeShowMessage)); 
+            }
+            
             $equal  = rtrim(trim($equal), 'AND');
             $insert = rtrim(trim($insert), ',');
             $values = rtrim(trim($values), ',');
@@ -29295,7 +29437,7 @@ class Mdform_Model extends Model {
             
             foreach ($executeIndicators as $row) {
                 
-                $queryStr = $row['QUERY_STRING'];
+                $queryStr = html_entity_decode($row['QUERY_STRING'], ENT_QUOTES, 'UTF-8');
                 $queryStr = self::replaceNamedParameters($queryStr); 
                 
                 $queryStr = str_ireplace('[SRC_TABLE]', $mainTableName, $queryStr);
@@ -30306,12 +30448,12 @@ class Mdform_Model extends Model {
                                     }
                                     
                                     $_POST['isConsolidate'] = true;
+                                    
                                     $getDetailData = self::getMetaVerseDataModel($dataJson['GET_INDICATOR_ID'], [$trg => implode(',', $equalVal)]);
 
                                     if ($detailData = issetParam($getDetailData['data'])) {
                                         return isset($setRowsPath) ? array($setRowsPath => $detailData) : $detailData;                
                                     }
-                                    
                                 }
                                 
                             } else {
@@ -30331,131 +30473,6 @@ class Mdform_Model extends Model {
                             }
                             
                             $rowData = $this->db->GetRow("SELECT * FROM $fillMapTableName WHERE 1 = 1 $where");
-                            
-                            if ($rowData) {
-                                
-                                $trgIndicatorId = (isset($isFillRelation) && $isFillRelation) ? issetVar($_POST['param']['indicatorId']) : $fillMapRow['ID'];
-                                $dataJsonArr    = (isset($rowData['DATA']) && $rowData['DATA']) ? @json_decode($rowData['DATA'], true) : array();
-                                
-                                unset($rowData['DATA']);
-                                
-                                if (isset($isFillRelation)) {
-                                    $tmpIndicatorId = $indicatorId;
-                                    $indicatorId = $trgIndicatorId;
-                                    $trgIndicatorId = $tmpIndicatorId;
-                                    $linkIndicatorId = $indicatorId;
-                                } else {
-                                    $linkIndicatorId = $trgIndicatorId;
-                                }
-                                
-                                $pathRelationConfigs = $this->db->GetAll("
-                                    SELECT 
-                                        LOWER(T0.ALIAS_NAME) AS ALIAS_NAME, 
-                                        T0.COLUMN_NAME, 
-                                        T0.SHOW_TYPE,
-                                        T0.ID,
-                                        T0.PARENT_ID, 
-                                        T1.TRG_INDICATOR_ID, 
-                                        T1.SEMANTIC_TYPE_ID, 
-                                        T1.COLUMN_NAME AS TRG_COLUMN_NAME, 
-                                        T1.SHOW_TYPE AS TRG_SHOW_TYPE,
-                                        T1.ID AS TRG_ID,
-                                        T1.PARENT_ID AS TRG_PARENT_ID 
-                                    FROM (
-                                        SELECT 
-                                            CASE WHEN T1.TRG_ALIAS_NAME IS NULL 
-                                                THEN T0.TRG_ALIAS_NAME 
-                                            ELSE T1.TRG_ALIAS_NAME||'.'||T0.TRG_ALIAS_NAME 
-                                            END AS ALIAS_NAME, 
-                                            T0.ID,
-                                            T0.COLUMN_NAME, 
-                                            T0.SHOW_TYPE,
-                                            T0.PARENT_ID, 
-                                            T0.ORDER_NUMBER, 
-                                            T0.TRG_INDICATOR_ID, 
-                                            T0.SEMANTIC_TYPE_ID 
-                                        FROM KPI_INDICATOR_INDICATOR_MAP T0 
-                                            LEFT JOIN KPI_INDICATOR_INDICATOR_MAP T1 ON T1.ID = T0.PARENT_ID 
-                                        WHERE T0.MAIN_INDICATOR_ID = ".$this->db->Param(0)." 
-                                            AND T0.TRG_ALIAS_NAME IS NOT NULL
-                                    ) T0 
-                                    INNER JOIN (
-                                        SELECT 
-                                            CASE WHEN T1.TRG_ALIAS_NAME IS NULL 
-                                                THEN T0.TRG_ALIAS_NAME 
-                                            ELSE T1.TRG_ALIAS_NAME||'.'||T0.TRG_ALIAS_NAME 
-                                            END AS ALIAS_NAME, 
-                                            T0.ID,
-                                            T0.COLUMN_NAME, 
-                                            T0.SHOW_TYPE,
-                                            T0.PARENT_ID, 
-                                            T0.TRG_INDICATOR_ID, 
-                                            T0.SEMANTIC_TYPE_ID 
-                                        FROM KPI_INDICATOR_INDICATOR_MAP T0 
-                                            LEFT JOIN KPI_INDICATOR_INDICATOR_MAP T1 ON T1.ID = T0.PARENT_ID 
-                                        WHERE T0.MAIN_INDICATOR_ID = ".$this->db->Param(1)." 
-                                            AND T0.TRG_ALIAS_NAME IS NOT NULL 
-                                    ) T1 ON LOWER(T1.ALIAS_NAME) = LOWER(T0.ALIAS_NAME) 
-                                    ORDER BY T0.PARENT_ID DESC, T0.ORDER_NUMBER ASC", 
-                                    array($indicatorId, $trgIndicatorId)    
-                                );
-                                
-                                foreach ($pathRelationConfigs as $p => $pathRelationConfig) {
-                                    
-                                    $srcColumnName = $pathRelationConfig['COLUMN_NAME'];
-                                    $srcShowType = $pathRelationConfig['SHOW_TYPE'];
-                                    $srcParentId = $pathRelationConfig['PARENT_ID'];
-                                    
-                                    $trgColumnName = $pathRelationConfig['TRG_COLUMN_NAME'];
-                                    $trgShowType = $pathRelationConfig['TRG_SHOW_TYPE'];
-                                    $trgParentId = $pathRelationConfig['TRG_PARENT_ID'];
-                                    $mapIndicatorId = $pathRelationConfig['TRG_INDICATOR_ID'];
-                                    $semanticTypeId = $pathRelationConfig['SEMANTIC_TYPE_ID'];
-                                    $savedSubTableRows = array();
-                                    
-                                    if ($srcShowType != 'rows' && $srcParentId == '') {
-                                        
-                                        $fillData[$srcColumnName] = issetParam($rowData[$trgColumnName]);
-                                        
-                                        unset($pathRelationConfigs[$p]);
-                                        
-                                    } elseif ($srcShowType == 'rows') {
-                                        
-                                        if ($trgIndicatorId && $semanticTypeId == '10000002') {
-                                            
-                                            $srcRowId = $rowData['ID'];
-                                            $savedSubTableRows = self::getKpiSubTableRowsModel($linkIndicatorId, $mapIndicatorId, $srcRowId, $trgColumnName);
-                                            
-                                        } elseif ($dataJsonArr) {
-                                            
-                                            $savedSubTableRows = issetParamArray($dataJsonArr[$trgColumnName]);
-                                        }
-                                        
-                                        unset($pathRelationConfigs[$p]);
-                                    }
-                                    
-                                    if ($savedSubTableRows) {
-                                            
-                                        $subRows = array();
-                                        
-                                        foreach ($savedSubTableRows as $s => $savedSubTableRow) {
-                                            
-                                            foreach ($pathRelationConfigs as $pathRelationConfigSub) {
-                                                
-                                                if ($pathRelationConfig['TRG_ID'] == $pathRelationConfigSub['TRG_PARENT_ID'] 
-                                                    && isset($savedSubTableRow[$pathRelationConfigSub['TRG_COLUMN_NAME']])) {
-
-                                                    $subRows[$s][$pathRelationConfigSub['COLUMN_NAME']] = $savedSubTableRow[$pathRelationConfigSub['TRG_COLUMN_NAME']];
-                                                }
-                                            }
-                                        }
-                                        
-                                        if ($subRows) {
-                                            $fillData[$srcColumnName] = $subRows;
-                                        }
-                                    }
-                                }
-                            }
                             
                         } catch (Exception $ex) { }
                         

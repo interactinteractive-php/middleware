@@ -2579,6 +2579,7 @@ class Mdexpression extends Controller {
         $fullExpression = str_ireplace('getKpiDataAvg(', 'bpGetKpiDataAvg(', $fullExpression);
         $fullExpression = str_ireplace('getKpiDataCellVal(', 'bpGetKpiDataCellVal(', $fullExpression);
         $fullExpression = str_replace('getKpiColField(', 'bpGetKpiColField(' . $mainSelector . ', checkElement, ', $fullExpression);
+        $fullExpression = str_replace('getKpiColFieldNull(', 'bpGetKpiColFieldNull(' . $mainSelector . ', checkElement, ', $fullExpression);
         $fullExpression = str_replace('getKpiColSum(', 'bpGetKpiColSum(' . $mainSelector . ', checkElement, ', $fullExpression);
         $fullExpression = str_replace('getKpiSubColSum(', 'bpGetKpiSubColSum(' . $mainSelector . ', checkElement, ', $fullExpression);
         $fullExpression = str_replace('getKpiColCount(', 'bpGetKpiColCount(' . $mainSelector . ', checkElement, ', $fullExpression);

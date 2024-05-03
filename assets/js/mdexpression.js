@@ -12163,6 +12163,39 @@ function bpGetKpiColField(mainSelector, elem, path) {
     
     return '';
 }
+function bpGetKpiColFieldNull(mainSelector, elem, path) {
+    
+    if (elem !== 'open') {
+        
+        var $elem = $(elem);
+        
+        if (typeof $elem.prop('tagName') !== 'undefined' && $elem.prop('tagName') == 'TR') {
+            var $row = $elem; 
+        } else {
+            var $row = $elem.closest('tr'); 
+        }
+    } else {
+        var $row = mainSelector;
+    }
+    
+    var $getPath = $row.find('[data-col-path="'+path+'"]'); 
+    
+    if ($getPath.length) {
+        if ($getPath.hasClass('longInit') || $getPath.hasClass('integerInit') || $getPath.hasClass('decimalInit')) {
+            if ($getPath.val() != '') {
+                return Number($getPath.autoNumeric('get'));
+            } else {
+                return '';
+            }
+        } else if ($getPath.hasClass('booleanInit')) {
+            return $getPath.is(':checked');
+        } else {
+            return $getPath.val();
+        }
+    }
+    
+    return '';
+}
 function bpGetKpiColLookupFieldValue(mainSelector, elem, path, column) {
     try {
         var elem = $(elem), $row = elem.closest('tr'), 

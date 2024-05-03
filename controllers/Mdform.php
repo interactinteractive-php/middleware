@@ -81,6 +81,8 @@ class Mdform extends Controller {
     public static $indicatorTemplateRow = [];
     public static $indicatorConfigValues = [];
     public static $tabRender = [];
+    public static $tabSectionRender = false;
+    public static $tabSectionRenderSidebar = false;
     public static $topTabRender = [];
     public static $topTabRenderShow = [];
     public static $gridStyler = [];
@@ -2976,7 +2978,7 @@ class Mdform extends Controller {
         $this->view->render('kpi/indicator/chart/oneChart', self::$viewPath);
     }
     
-    public function indicatorStatement($indicatorId = '') {
+    public function indicatorStatement($indicatorId = '', $isReturnHtml = false) {
         
         $this->view->isAjax = is_ajax_request();
         $this->view->uniqId = getUID();
@@ -2993,6 +2995,11 @@ class Mdform extends Controller {
         
         $this->view->indicatorId = Mdform::$kpiTemplateId;
         
+        if (!isset($this->model)) {
+            $this->load->model('mdform', 'middleware/models/');
+            $this->model = new Mdform_Model();
+        }    
+
         $filterData = $this->model->filterKpiIndicatorValueFormModel($this->view->indicatorId);
 
         if ($filterData['status'] == 'success') {
@@ -3012,7 +3019,11 @@ class Mdform extends Controller {
             $this->view->render('header');
         } 
         
-        $this->view->render('kpi/indicator/statement/render', self::$viewPath);
+        if ($isReturnHtml) {
+            return $this->view->renderPrint('kpi/indicator/statement/render', self::$viewPath);
+        } else {
+            $this->view->render('kpi/indicator/statement/render', self::$viewPath);
+        }
         
         if ($this->view->isAjax == false) {
             $this->view->render('footer');
@@ -6039,7 +6050,7 @@ class Mdform extends Controller {
     }
     
     public function runPivotDataMartTest() {
-        $rs = $this->model->runPivotDataMartModel('17107591072459');
+        $rs = $this->model->runPivotDataMartModel('17138563935611');
         var_dump($rs);
     }
     

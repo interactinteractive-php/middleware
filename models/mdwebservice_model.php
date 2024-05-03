@@ -4311,7 +4311,7 @@ class Mdwebservice_Model extends Model {
                         INNER JOIN META_DATA T1 ON T1.META_DATA_ID = T0.LOOKUP_META_DATA_ID
                     WHERE T0.SRC_INDICATOR_MAP_ID = $idPh1 
                         AND T0.SEMANTIC_TYPE_ID = $idPh2", 
-                    array($mapId, Mdform::$semanticTypes['checkListParamMap'])
+                    [$mapId, Mdform::$semanticTypes['checkListParamMap']]
                 );
                 
                 if ($mapList) {
@@ -4328,14 +4328,14 @@ class Mdwebservice_Model extends Model {
                         FROM META_BUSINESS_PROCESS_LINK DG 
                             INNER JOIN META_DATA MD ON MD.META_DATA_ID = DG.META_DATA_ID 
                             LEFT JOIN WEB_SERVICE_LANGUAGE SL ON SL.SERVICE_LANGUAGE_ID = DG.SERVICE_LANGUAGE_ID 
-                        WHERE DG.META_DATA_ID = $idPh1", array($getMetaId));
+                        WHERE DG.META_DATA_ID = $idPh1", [$getMetaId]);
                     
                     if ($row) {
                         $inputParams = [];
                         
                         foreach ($mapList as $map) {
                             $defaultValue = Mdmetadata::setDefaultValue($map['DEFAULT_VALUE']);
-                            $inputParams['criteria'][$map['TRG_META_DATA_PATH']] = array(array('operator' => '=', 'operand' => $defaultValue));
+                            $inputParams['criteria'][$map['TRG_META_DATA_PATH']] = [['operator' => '=', 'operand' => $defaultValue]];
                             $inputParams['param'][$map['TRG_META_DATA_PATH']] = $defaultValue;
                         }
                         

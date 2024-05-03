@@ -23,446 +23,15 @@
                     <div class="text-uppercase font-weight-bold mt-0 mb-2">
                         <?php echo $this->title; ?>
                     </div>
-                    <?php
-                    }
-                    ?>
+                    <?php } ?>
                     
                     <div class="table-toolbar d-none">
                         <div class="d-flex">
                             <div class="col p-0">
                                 <div class="dv-process-buttons">
                                     <div class="btn-group btn-group-devided">
-                                        <?php
-                                        if ($this->isDataMart) {
-                                            
-                                            echo html_tag('a', 
-                                                array(
-                                                    'class' => 'btn btn-success btn-circle btn-sm', 
-                                                    'onclick' => "generateKpiDataMart(this, '".$this->indicatorId."');", 
-                                                    'data-actiontype' => 'generateDataMart', 
-                                                    'href' => 'javascript:;'
-                                                ), 
-                                                '<i class="far fa-database"></i> Датамарт бэлдэх', true
-                                            ); 
-                                            
-                                            echo html_tag('a', 
-                                                array(
-                                                    'class' => 'btn btn-success btn-circle btn-sm', 
-                                                    'onclick' => "generateDataMartSqlView(this, '".$this->indicatorId."');", 
-                                                    'data-actiontype' => 'generateDataMartSqlView', 
-                                                    'href' => 'javascript:;'
-                                                ), 
-                                                '<i class="far fa-database"></i> SQL харах', true
-                                            );
-
-                                        } elseif ($this->isRawDataMart) {
-                                            
-                                            echo html_tag('a', 
-                                                array(
-                                                    'class' => 'btn btn-success btn-circle btn-sm', 
-                                                    'onclick' => "generateKpiRawDataMart(this, '".$this->indicatorId."');", 
-                                                    'data-actiontype' => 'generateRawDataMart', 
-                                                    'href' => 'javascript:;'
-                                                ), 
-                                                '<i class="far fa-database"></i> Датамарт бэлдэх', true
-                                            ); 
-                                            
-                                        } elseif ($this->isCheckQuery) {
-                                            
-                                            echo html_tag('a', 
-                                                array(
-                                                    'class' => 'btn btn-success btn-circle btn-sm', 
-                                                    'onclick' => "mvExecuteCheckQuery(this, '".$this->indicatorId."');", 
-                                                    'data-actiontype' => 'executeCheckQuery', 
-                                                    'href' => 'javascript:;'
-                                                ), 
-                                                '<i class="far fa-database"></i> Run check query', true
-                                            ); 
-                                            
-                                            echo html_tag('a', 
-                                                array(
-                                                    'class' => 'btn btn-success btn-circle btn-sm', 
-                                                    'onclick' => "mvExecuteFixQuery(this, '".$this->indicatorId."');", 
-                                                    'data-actiontype' => 'executeFixQuery', 
-                                                    'href' => 'javascript:;'
-                                                ), 
-                                                '<i class="far fa-database"></i> Run fix query', true
-                                            );
-
-                                        } else {
-                                            
-                                            $contextMenu = array();
-                                            $createFcProcessEvent = $createFcProcessEventBtnName = "";
-                                            
-                                            foreach ($this->process as $process) {
-                                                
-                                                $srcIndicatorId = $process['structure_indicator_id'];
-                                                $crudIndicatorId = issetParam($process['crud_indicator_id']);
-                                                $isFillRelation = issetParam($process['is_fill_relation']);
-                                                $isNormalRelation = issetParam($process['is_normal_relation']);
-                                                $typeCode = $process['type_code'];
-                                                $kpiTypeId = $process['kpi_type_id'];
-                                                $buttonName = $className = $onClick = $description = $opt = '';
-                                                if ($srcIndicatorId == $this->indicatorId) {
-                                                    
-                                                    if ($typeCode == 'create') {
-                                                        
-                                                        $labelName = $process['label_name'] == 'Нэмэх' ? $this->lang->line('add_btn') : $this->lang->line($process['label_name']);
-                                                        $className = 'btn btn-success btn-circle btn-sm';
-                                                        $buttonName = '<i class="far fa-plus"></i> '.$labelName;
-                                                        $createFcProcessEventBtnName = $labelName;
-                                                        if ($isNormalRelation) {
-                                                            $createFcProcessEvent = "mvNormalRelationRender(this, '$kpiTypeId', '".$this->indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId});";
-                                                        } else {
-                                                            $createFcProcessEvent = "manageKpiIndicatorValue(this, '$kpiTypeId', '".$this->indicatorId."', false, undefined, undefined, 'refetchEvents_". $this->indicatorId ."');";
-                                                        }
-                                                        
-                                                    } elseif ($typeCode == 'update') {
-                                                        
-                                                        $labelName = $process['label_name'] == 'Засах' ? $this->lang->line('edit_btn') : $this->lang->line($process['label_name']);
-                                                        $isUpdate = true;
-                                                        
-                                                        if ($isFillRelation) {
-                                                            $opt = ", {fillSelectedRow: true, mode: 'update'}, undefined, 'refetchEvents_". $this->indicatorId ."'";
-                                                        } else {
-                                                            $opt = ", undefined, undefined, 'refetchEvents_". $this->indicatorId ."'";
-                                                        }
-                                                        
-                                                        $className = 'btn btn-warning btn-circle btn-sm';
-                                                        $buttonName = '<i class="far fa-edit"></i> '.$labelName;
-                                                        
-                                                        if ($isNormalRelation) {
-                                                            $onClick = "mvNormalRelationRender(this, '$kpiTypeId', '".$this->indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'update'});";
-                                                        } else {
-                                                            $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '".$this->indicatorId."', true$opt);";
-                                                        }
-                                                        
-                                                        $contextMenu[] = array(
-                                                            'crudIndicatorId' => $crudIndicatorId, 
-                                                            'labelName' => $labelName,
-                                                            'onClick' => $onClick,
-                                                            'actionName' => 'edit',
-                                                            'iconName' => 'edit', 
-                                                            'data-actiontype' => $typeCode, 
-                                                            'data-main-indicatorid' => $this->indicatorId, 
-                                                            'data-structure-indicatorid' => $this->indicatorId, 
-                                                            'data-crud-indicatorid' => $crudIndicatorId,
-                                                            'data-mapid' => issetParam($process['map_id'])
-                                                        );
-                                                        
-                                                    } elseif ($typeCode == 'read') {
-                                                        
-                                                        $isUpdate = true;
-                                                        $className = 'btn purple btn-circle btn-sm';
-                                                        $buttonName = '<i class="fas fa-eye"></i> '.$this->lang->line('view_btn');
-                                                        $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '".$this->indicatorId."', true, {mode: 'view'}, undefined, 'refetchEvents_". $this->indicatorId ."');";
-                                                        
-                                                        $contextMenu[] = array(
-                                                            'crudIndicatorId' => $crudIndicatorId, 
-                                                            'labelName' => $this->lang->line('view_btn'),
-                                                            'onClick' => $onClick,
-                                                            'actionName' => 'view',
-                                                            'iconName' => 'eye', 
-                                                            'data-actiontype' => $typeCode, 
-                                                            'data-main-indicatorid' => $this->indicatorId, 
-                                                            'data-structure-indicatorid' => $this->indicatorId, 
-                                                            'data-crud-indicatorid' => $crudIndicatorId,
-                                                            'data-mapid' => issetParam($process['map_id'])
-                                                        );
-                                                        
-                                                    } elseif ($typeCode == 'delete') {
-                                                        
-                                                        $isDelete = true;
-                                                        $className = 'btn btn-danger btn-circle btn-sm';
-                                                        $buttonName = '<i class="far fa-trash"></i> '.$this->lang->line('delete_btn');
-                                                        $onClick = "removeKpiIndicatorValue(this, '".$this->indicatorId."', 'refetchEvents_". $this->indicatorId ."');";
-                                                        
-                                                        $contextMenu[] = array(
-                                                            'crudIndicatorId' => $crudIndicatorId, 
-                                                            'labelName' => $this->lang->line('delete_btn'),
-                                                            'onClick' => $onClick,
-                                                            'actionName' => 'delete',
-                                                            'iconName' => 'trash', 
-                                                            'data-actiontype' => $typeCode, 
-                                                            'data-main-indicatorid' => $this->indicatorId, 
-                                                            'data-structure-indicatorid' => $this->indicatorId, 
-                                                            'data-crud-indicatorid' => $crudIndicatorId,
-                                                            'data-mapid' => issetParam($process['map_id'])
-                                                        );
-                                                        
-                                                    } elseif ($typeCode == 'config') {
-                                                        
-                                                        $isDelete = true;
-                                                        $className = 'btn blue-steel btn-circle btn-sm';
-                                                        $buttonName = '<i class="far fa-tools"></i> '.$this->lang->line('Config');
-                                                        $onClick = "mapKpiIndicatorValue(this, '$kpiTypeId', '".$this->indicatorId."', 'config');";
-                                                        
-                                                        $contextMenu[] = array(
-                                                            'crudIndicatorId' => $crudIndicatorId, 
-                                                            'labelName' => $this->lang->line('Config'),
-                                                            'onClick' => $onClick,
-                                                            'actionName' => 'config',
-                                                            'iconName' => 'tools', 
-                                                            'data-actiontype' => $typeCode, 
-                                                            'data-main-indicatorid' => $this->indicatorId, 
-                                                            'data-structure-indicatorid' => $this->indicatorId, 
-                                                            'data-crud-indicatorid' => $crudIndicatorId,
-                                                            'data-mapid' => issetParam($process['map_id'])
-                                                        );
-                                                        
-                                                    } elseif ($typeCode == '360') {
-                                                        
-                                                        $isDelete = true;
-                                                        $className = 'btn blue-steel btn-circle btn-sm';
-                                                        $buttonName = '<i class="far fa-tools"></i> '.$this->lang->line('360');
-                                                        $onClick = "mapKpiIndicatorValue(this, '$kpiTypeId', '".$this->indicatorId."', '360');";
-                                                        
-                                                        $contextMenu[] = array(
-                                                            'crudIndicatorId' => $crudIndicatorId, 
-                                                            'labelName' => $this->lang->line('360'),
-                                                            'onClick' => $onClick,
-                                                            'actionName' => '360',
-                                                            'iconName' => 'tools', 
-                                                            'data-actiontype' => $typeCode, 
-                                                            'data-main-indicatorid' => $this->indicatorId, 
-                                                            'data-structure-indicatorid' => $this->indicatorId, 
-                                                            'data-crud-indicatorid' => $crudIndicatorId,
-                                                            'data-mapid' => issetParam($process['map_id'])
-                                                        );
-                                                        
-                                                    } elseif ($typeCode == 'excel') {
-                                                        
-                                                        $className = 'btn green btn-circle btn-sm';
-                                                        $buttonName = '<i class="far fa-file-excel"></i> '.$this->lang->line('pf_excel_import');
-                                                        $onClick = "excelImportKpiIndicatorValue(this, '".$this->indicatorId."');";
-                                                        
-                                                    } elseif ($typeCode == 'excel_export_one_line') {
-                                                        
-                                                        $className = 'btn green btn-circle btn-sm';
-                                                        $buttonName = '<i class="far fa-file-excel"></i> Эксель нэг мөрөөр татах';
-                                                        $onClick = "exportExcelOneLineKpiIndicatorValue(this, '".$this->indicatorId."');";
-                                                        
-                                                    } elseif ($typeCode == 'export') {
-                                                        
-                                                        $isDelete = true;
-                                                        $className = 'btn green btn-circle btn-sm';
-                                                        $buttonName = '<i class="far fa-download"></i> '.$this->lang->line('excel_export_btn');
-                                                        $onClick = "exportKpiIndicatorValue(this, '".$this->indicatorId."');";
-                                                        
-                                                    } elseif ($kpiTypeId == '1191') {
-                                                        
-                                                        $className = 'btn blue-steel btn-circle btn-sm';
-                                                        $buttonName = '<i class="far fa-play"></i> ' . $this->lang->line($process['label_name'] ? $process['label_name'] : $process['name']);
-                                                        $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '$crudIndicatorId', false, {transferSelectedRow: true}, undefined, 'refetchEvents_". $this->indicatorId ."');";
-                                                        
-                                                    } elseif ($kpiTypeId == '1080') {
-                                                        
-                                                        $className = 'btn blue-steel btn-circle btn-sm';
-                                                        $buttonName = '<i class="far fa-play"></i> ' . $this->lang->line($process['label_name'] ? $process['label_name'] : $process['name']);
-                                                        $onClick = "callWebServiceKpiIndicatorValue(this, '$crudIndicatorId');";
-                                                    } 
-                                                    
-                                                } else {
-                                                    
-                                                    $description = $this->lang->line(issetParam($process['description']));
-                                                    $processName = $this->lang->line(issetParam($process['label_name']));
-                                                    $isDfillRelation = issetParam($process['is_dfill_relation']);
-                                                    
-                                                    if (issetParam($this->relationViewConfig['eventclick']) === $srcIndicatorId) {
-                                                        $eventClickProcess['kpiTypeId'] =  $kpiTypeId;
-                                                        $eventClickProcess['srcIndicatorId'] =  $srcIndicatorId;
-                                                    }
-
-                                                    if ($typeCode == 'create') {
-                                                        
-                                                        $className = 'btn btn-success btn-circle btn-sm';
-                                                        $buttonName = '<i class="far fa-plus"></i> '.$processName;
-                                                        
-                                                        if ($isFillRelation) {
-                                                            $opt = ', {fillSelectedRow: true, mode: \'create\'}';
-                                                        } elseif ($isDfillRelation) {
-                                                            $opt = ', {fillDynamicSelectedRow: true, mode: \'create\'}';
-                                                        }
-                                                        
-                                                        $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '$srcIndicatorId', false$opt, undefined, 'refetchEvents_". $this->indicatorId ."');";
-                                                        
-                                                    } elseif ($typeCode == 'update') {
-                                                        
-                                                        $className = 'btn btn-warning btn-circle btn-sm';
-                                                        $buttonName = '<i class="far fa-edit"></i> '.$processName;
-                                                        
-                                                        if ($isFillRelation) {
-                                                            $opt = ', {fillSelectedRow: true, mode: \'update\'}';
-                                                            
-                                                            if (issetParam($this->relationViewConfig['eventclick']) === $srcIndicatorId) {
-                                                                $eventClickProcess['mode'] =  '{fillSelectedRow: true, mode: \'update\'}';
-                                                            }
-                                                        } elseif ($isDfillRelation) {
-                                                            $opt = ', {fillDynamicSelectedRow: true, mode: \'update\'}';
-                                                            
-                                                            if (issetParam($this->relationViewConfig['eventclick']) === $srcIndicatorId) {
-                                                                $eventClickProcess['mode'] =  '{fillDynamicSelectedRow: true, mode: \'update\'}';
-                                                            }
-                                                        } elseif ($opt === '') {
-                                                            $opt = ',undefined';
-                                                            if (issetParam($this->relationViewConfig['eventclick']) === $srcIndicatorId) {
-                                                                $eventClickProcess['mode'] =  'undefined';
-                                                            }
-                                                        }
-                                                        
-                                                        $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '$srcIndicatorId', true$opt, undefined, 'refetchEvents_". $this->indicatorId ."');";
-                                                       
-                                                        $contextMenu[] = array(
-                                                            'crudIndicatorId' => $crudIndicatorId, 
-                                                            'labelName' => $processName,
-                                                            'onClick' => $onClick,
-                                                            'actionName' => 'edit',
-                                                            'iconName' => 'edit', 
-                                                            'data-actiontype' => $typeCode, 
-                                                            'data-main-indicatorid' => $this->indicatorId, 
-                                                            'data-structure-indicatorid' => $this->indicatorId, 
-                                                            'data-crud-indicatorid' => $crudIndicatorId,
-                                                            'data-mapid' => issetParam($process['map_id'])
-                                                        );
-
-                                                    } elseif ($typeCode == 'read') {
-                                                        
-                                                        $className = 'btn purple btn-circle btn-sm';
-                                                        $buttonName = '<i class="far fa-eye"></i> '.$processName;
-                                                        
-                                                        if ($isFillRelation) {
-                                                            $opt = ', {fillSelectedRow: true, mode: \'view\'}';
-                                                            if (issetParam($this->relationViewConfig['eventclick']) === $srcIndicatorId) {
-                                                                $eventClickProcess['mode'] =  '{fillSelectedRow: true, mode: \'view\'}';
-                                                            }
-                                                        } elseif ($isDfillRelation) {
-                                                            $opt = ', {fillDynamicSelectedRow: true, mode: \'view\'}';
-                                                            if (issetParam($this->relationViewConfig['eventclick']) === $srcIndicatorId) {
-                                                                $eventClickProcess['mode'] =  '{fillDynamicSelectedRow: true, mode: \'view\'}';
-                                                            }
-                                                        } else {
-                                                            $opt = ', {mode: \'view\'}';
-                                                            if (issetParam($this->relationViewConfig['eventclick']) === $srcIndicatorId) {
-                                                                $eventClickProcess['mode'] =  '{mode: \'view\'}';
-                                                            }
-                                                        }
-                                                        
-                                                        $onClick = "manageKpiIndicatorValue(this, '$kpiTypeId', '$srcIndicatorId', true$opt, undefined, 'refetchEvents_". $this->indicatorId ."');";
-                                                        
-                                                        
-                                                    } elseif ($typeCode == 'delete') {
-                                                        
-                                                        $className = 'btn btn-danger btn-circle btn-sm';
-                                                        $buttonName = '<i class="far fa-trash"></i> '.$processName;
-                                                        $onClick = "removeKpiIndicatorValue(this, '$srcIndicatorId', 'refetchEvents_". $this->indicatorId ."');";
-                                                        
-                                                    } elseif ($typeCode == 'excel') {
-                                                        
-                                                        $className = 'btn green btn-circle btn-sm';
-                                                        $buttonName = '<i class="far fa-file-excel"></i> '.$processName;
-                                                        $onClick = "excelImportKpiIndicatorValue(this, '$srcIndicatorId');";
-                                                    }
-                                                }
-                                                
-                                                echo html_tag('a', 
-                                                    array( 
-                                                        'href' => 'javascript:;', 
-                                                        'class' => $className, 
-                                                        'data-qtip-title' => $description, 
-                                                        'data-qtip-pos' => 'top', 
-                                                        'onclick' => $onClick, 
-                                                        'data-actiontype' => $typeCode, 
-                                                        'data-main-indicatorid' => $this->indicatorId, 
-                                                        'data-structure-indicatorid' => $this->indicatorId, 
-                                                        'data-crud-indicatorid' => $crudIndicatorId,
-                                                        'data-mapid' => issetParam($process['map_id'])
-                                                    ), 
-                                                    $buttonName, true
-                                                );
-                                            }
-                                            
-                                            echo html_tag('a', 
-                                                array(
-                                                    'class' => 'btn green btn-circle btn-sm', 
-                                                    'onclick' => "callWebServiceKpiIndicatorValue(this, '".$this->indicatorId."');", 
-                                                    'data-actiontype' => 'callwebservice', 
-                                                    'href' => 'javascript:;'
-                                                ), 
-                                                'Call service', $this->isCallWebService
-                                            );
-                                            
-                                            if ($this->isPrint) {
-                                                
-                                                echo html_tag('a', 
-                                                    array(
-                                                        'class' => 'btn green btn-circle btn-sm', 
-                                                        'onclick' => "reportTemplateKpiIndicatorValue(this, '".$this->indicatorId."');", 
-                                                        'data-actiontype' => 'reporttemplate', 
-                                                        'href' => 'javascript:;'
-                                                    ), 
-                                                    '<i class="far fa-print"></i> Хэвлэх'
-                                                );
-                                            }
-                                            
-                                            if ($this->isUseWorkflow) {
-                                                
-                                                echo '<div class="btn-group workflow-btn-group-'.$this->indicatorId.'">
-                                                    <button type="button" class="btn btn-sm blue btn-circle dropdown-toggle workflow-btn-'.$this->indicatorId.'" data-toggle="dropdown"><i class="far fa-cogs"></i> '.$this->lang->line('change_workflow').'</button>
-                                                    <ul class="dropdown-menu workflow-dropdown-'.$this->indicatorId.'" role="menu"></ul>
-                                                </div>';
-                                            }
-                                            
-                                            echo html_tag('a', 
-                                                array(
-                                                    'class' => 'btn btn-success btn-circle btn-sm', 
-                                                    'onclick' => "renderIframeIndicator(this);", 
-                                                    'href' => 'javascript:;'
-                                                ), 
-                                                '<i class="far fa-database"></i> iFrame', false
-                                            ); 
-                                        }
-                                        
-                                        if (isset($this->isImportManage) && $this->isImportManage) {
-                                            
-                                            echo html_tag('a', 
-                                                array(
-                                                    'class' => 'btn btn-info btn-circle btn-sm', 
-                                                    'onclick' => 'mvImportManageFieldsConfig(this, \''.$this->indicatorId.'\', \''.$this->mainIndicatorId.'\');', 
-                                                    'href' => 'javascript:;'
-                                                ), 
-                                                '<i class="far fa-cogs"></i> Талбарын тохиргоо', true
-                                            ); 
-                                            
-                                            echo html_tag('a', 
-                                                array(
-                                                    'class' => 'btn btn-warning btn-circle btn-sm', 
-                                                    'onclick' => 'mvImportManageDataCheck(this, \''.$this->indicatorId.'\', \''.$this->mainIndicatorId.'\');', 
-                                                    'href' => 'javascript:;'
-                                                ), 
-                                                '<i class="far fa-check"></i> Шалгах', true
-                                            ); 
-                                            
-                                            echo html_tag('a', 
-                                                array(
-                                                    'class' => 'btn btn-success btn-circle btn-sm', 
-                                                    'onclick' => 'mvImportManageDataUpdate(this, \''.$this->indicatorId.'\', \''.$this->mainIndicatorId.'\');', 
-                                                    'href' => 'javascript:;'
-                                                ), 
-                                                '<i class="far fa-database"></i> Update', true
-                                            ); 
-                                            
-                                            echo html_tag('a', 
-                                                array(
-                                                    'class' => 'btn btn-success btn-circle btn-sm', 
-                                                    'onclick' => 'mvImportManageDataCommit(this, \''.$this->indicatorId.'\', \''.$this->mainIndicatorId.'\');', 
-                                                    'href' => 'javascript:;'
-                                                ), 
-                                                '<i class="far fa-database"></i> Commit', true
-                                            ); 
-                                        ?>
-                                        <div class="mv-imp-manage-info d-inline-block ml-4"></div>
-                                        <?php
-                                        }
+                                        <?php 
+                                            echo implode('', $this->actions['buttons']); 
                                         ?>
                                     </div>
                                 </div>
@@ -1303,14 +872,42 @@ function initFullCalendar_<?php echo $this->indicatorId; ?>() {
         },
         eventClick: function(arg) {
             if (!$(arg.el).hasClass('no-dataview')) $(arg.el).addClass('no-dataview');
-            <?php if (issetParam($this->relationViewConfig['eventclicksidebar']) !== '') { ?>
-                manageKpiIndicatorValue(arg.el, '<?php echo $this->relationViewConfig['eventclicksidebar'] ?>', '<?php echo $this->indicatorId; ?>', true, {mode: 'view'}, 'indicatorSidebarView_<?php echo $this->indicatorId ?>', 'refetchEvents_<?php echo $this->indicatorId ?>');
+            <?php if (issetParam($this->relationViewConfig['eventclicksidebar']) === '1' && issetParam($this->relationViewConfig['eventclick']) !== '' &&  issetParamArray($this->actions['indicatorIds'][$this->relationViewConfig['eventclick']])) { 
+                $eventClickProcessArr = issetParamArray($this->actions['indicatorIds'][$this->relationViewConfig['eventclick']]);?>
+                
+                var opt = <?php echo checkDefaultVal($eventClickProcessArr['data-actionmode'], '{}') ?>;
+                if (opt.hasOwnProperty('widgetCode')) {
+                    mvWidgetRelationRender(arg.el, 
+                        '<?php echo issetParam($eventClickProcessArr['data-actiontypeid']); ?>', 
+                        '<?php echo issetParam($eventClickProcessArr['data-structure-indicatorid']); ?>', 
+                        <?php echo checkDefaultVal($eventClickProcessArr['data-actionmode'], '{}') ?>,
+                        'indicatorSidebarView_<?php echo $this->indicatorId ?>', 'refetchEvents_<?php echo $this->indicatorId ?>');
+                } else {
+                    manageKpiIndicatorValue(arg.el, 
+                        '<?php echo issetParam($eventClickProcessArr['data-actiontypeid']); ?>', 
+                        '<?php echo issetParam($eventClickProcessArr['data-structure-indicatorid']); ?>', 
+                        true, <?php echo checkDefaultVal($eventClickProcessArr['data-actionmode'], '{}') ?>,
+                        'indicatorSidebarView_<?php echo $this->indicatorId ?>', 'refetchEvents_<?php echo $this->indicatorId ?>');
+                }
+                
                 mvCalendar_<?php echo $this->indicatorId; ?>.find('.calendar-bp-layout').show();
-            <?php } elseif (issetParam($eventClickProcess['widget_code']) !== '') { ?>
-                    /* $onClick = "mvWidgetRelationRender(this, '$kpiTypeId', '".$this->indicatorId."', {methodIndicatorId: $crudIndicatorId, structureIndicatorId: $srcIndicatorId, mode: 'update', widgetCode: '". $process['widget_code'] ."'});"; */
-                    mvWidgetRelationRender(arg.el, '<?php echo issetParam($kpiTypeId) ?>', '<?php echo $this->indicatorId ?>', , {methodIndicatorId: <?php echo $eventClickProcess['crudIndicatorId'] ?>, structureIndicatorId: <?php echo $eventClickProcess['srcIndicatorId'] ?>, mode: 'update', widgetCode: '<?php echo $eventClickProcess['widget_code'] ?>'});
-            <?php } elseif (issetParam($this->relationViewConfig['eventclick']) !== '' && $eventClickProcess) { ?>
-                manageKpiIndicatorValue(arg.el, '<?php echo $eventClickProcess['kpiTypeId']; ?>', '<?php echo $eventClickProcess['srcIndicatorId']; ?>', true, <?php echo $eventClickProcess['mode']; ?>, undefined, 'refetchEvents_<?php echo $this->indicatorId ?>', '<?php echo $this->indicatorId ?>');
+            <?php } elseif (issetParam($this->relationViewConfig['eventclick']) !== '' &&  issetParamArray($this->actions['indicatorIds'][$this->relationViewConfig['eventclick']])) {$onclickFnc = $this->actions['indicatorIds'][$this->relationViewConfig['eventclick']]['onclick'];
+                    echo str_replace('this,', 'arg.el,', $onclickFnc); ?>
+                var opt = <?php echo checkDefaultVal($eventClickProcessArr['data-actionmode'], '{}') ?>;
+                if (opt.hasOwnProperty('widgetCode')) {
+                    mvWidgetRelationRender(arg.el, 
+                        '<?php echo issetParam($eventClickProcessArr['data-actiontypeid']); ?>', 
+                        '<?php echo issetParam($eventClickProcessArr['data-structure-indicatorid']); ?>', 
+                        <?php echo checkDefaultVal($eventClickProcessArr['data-actionmode'], '{}') ?>,
+                        undefined, 'refetchEvents_<?php echo $this->indicatorId ?>',  '<?php echo $this->indicatorId ?>');
+                } else {
+                    manageKpiIndicatorValue(arg.el, 
+                        '<?php echo issetParam($eventClickProcessArr['data-actiontypeid']); ?>', 
+                        '<?php echo issetParam($eventClickProcessArr['data-structure-indicatorid']); ?>', 
+                        true, <?php echo checkDefaultVal($eventClickProcessArr['data-actionmode'], '{}') ?>,
+                        undefined, 'refetchEvents_<?php echo $this->indicatorId ?>',  '<?php echo $this->indicatorId ?>');
+                }
+        
             <?php } ?>
         },
         /* dateClick: function(arg) {
@@ -1328,7 +925,7 @@ function initFullCalendar_<?php echo $this->indicatorId; ?>() {
                 var filterStartDate = dateStartGet.format('YYYY-MM-DD'); // HH:mm:ss
                 var filterEndDate = dateEndGet.format('YYYY-MM-') + (dateEndDay < 10 ? '0' + dateEndDay : dateEndDay); // HH:mm:ss
                 
-                manageKpiIndicatorValue(arg.el, '<?php echo $eventClickProcess['kpiTypeId']; ?>', '<?php echo $eventClickProcess['srcIndicatorId']; ?>', true, <?php echo $eventClickProcess['mode']; ?>, undefined, 'refetchEvents_<?php echo $this->indicatorId ?>', '<?php echo $this->indicatorId ?>');
+                manageKpiIndicatorValue(arg.el, '<?php echo issetParam($eventClickProcess['kpiTypeId']);; ?>', '<?php echo issetParam($eventClickProcess['srcIndicatorId']); ?>', true, <?php echo checkDefaultVal($eventClickProcess['mode'], '{}'); ?>, undefined, 'refetchEvents_<?php echo $this->indicatorId ?>', '<?php echo $this->indicatorId ?>');
             },
         <?php } ?>
         progressiveEventRendering: function(event, element, view) {}

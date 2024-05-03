@@ -332,6 +332,8 @@ class Mdstatement extends Controller {
                 
                 if ($typeCode == 'bigdecimal') {
                     $rowGlobal = self::detailFormatMoney($rowGlobal);
+                } elseif ($typeCode == 'bigdecimal_null') {
+                    $rowGlobal = self::detailFormatMoneyNull($rowGlobal);
                 } elseif ($typeCode == 'string' || $typeCode == 'description' || $typeCode == 'description_auto') {
                     $rowGlobal = $rowGlobal;
                 } elseif ($typeCode == 'date') {
@@ -817,6 +819,8 @@ class Mdstatement extends Controller {
 
                         if ($typeCode == 'bigdecimal') {
                             $rowGlobal = self::detailFormatMoney($rowGlobal);
+                        } elseif ($typeCode == 'bigdecimal_null') {
+                            $rowGlobal = self::detailFormatMoneyNull($rowGlobal);
                         } elseif ($typeCode == 'string' || $typeCode == 'description' || $typeCode == 'description_auto') {
                             $rowGlobal = $rowGlobal;
                         } elseif ($typeCode == 'date') {
@@ -2011,6 +2015,8 @@ class Mdstatement extends Controller {
         
         if ($typeCode == 'bigdecimal') {
             $v = self::detailFormatMoney($v);
+        } elseif ($typeCode == 'bigdecimal_null') {
+            $v = self::detailFormatMoneyNull($v);
         } elseif ($typeCode == 'date') {
             $v = Date::formatter($v, 'Y-m-d');
         } elseif ($typeCode == 'datetime') {
@@ -2257,6 +2263,10 @@ class Mdstatement extends Controller {
     
     public static function detailFormatMoney($v) {
         return (empty($v) || !is_numeric($v)) ? '0' : number_format($v, 2, '.', ',');
+    }
+    
+    public static function detailFormatMoneyNull($v) {
+        return ($v == '') ? '' : (is_numeric($v) ? ($v == 0 ? '0' : number_format($v, 2, '.', ',')) : $v);
     }
     
     public static function detailFormatMoneyScale($v, $field) {
@@ -2663,6 +2673,8 @@ class Mdstatement extends Controller {
                     
                     if ($typeCode == 'bigdecimal') {
                         $val = self::detailFormatMoney($val);
+                    } elseif ($typeCode == 'bigdecimal_null') {
+                        $val = self::detailFormatMoneyNull($val);
                     } elseif ($typeCode == 'date') {
                         $val = Date::formatter($val, 'Y-m-d');
                     } elseif ($typeCode == 'datetime') {
@@ -3927,14 +3939,19 @@ class Mdstatement extends Controller {
         
         Mdexpression::$searchMainSelector = 'dataview_statement_search_'.$this->view->metaDataId;
         $this->view->dvScripts = Mdexpression::searchGenerateScripts($this->view->dataViewId);
-
-        $this->load->model('mdobject', 'middleware/models/');
         
-        $dataViewSearchData = $this->model->dataViewHeaderDataModel($this->view->dataViewId);
+        if (self::$isKpiIndicator == false) {
+            
+            $this->load->model('mdobject', 'middleware/models/');
+            $dataViewSearchData = $this->model->dataViewHeaderDataModel($this->view->dataViewId);
 
-        $this->load->model('mdstatement', 'middleware/models/');
-        
-        $this->view->dataViewSearchData = $this->model->dataViewHeaderDataResolveModel($dataViewSearchData);
+            $this->load->model('mdstatement', 'middleware/models/');
+            $this->view->dataViewSearchData = $this->model->dataViewHeaderDataResolveModel($dataViewSearchData);
+            
+        } else {
+            $this->load->model('mdstatement', 'middleware/models/');
+            $this->view->isSearchForm = false;
+        }
         
         $this->view->fillParamData = null;
         $this->view->isUserGroupingButton = false;
@@ -4004,7 +4021,7 @@ class Mdstatement extends Controller {
         
         $statementId = Input::numeric('statementId');
         $columnName  = Input::post('columnName');
-        $rId         = Input::post('rId');
+        $rId         = Input::numeric('rId');
         
         if ($rId == 'iframe') {
             
@@ -4172,22 +4189,70 @@ class Mdstatement extends Controller {
                 $linkIndicatorId = $getLinkMetaRow['linkIndicatorId'];
                 $kpiTypeId = $getLinkMetaRow['kpiTypeId'];
                 
-                if ($postArr) {
-                    $_POST['drillDownCriteria'] = http_build_query($postArr);
-                }
+                if ($kpiTypeId == 1000 || $kpiTypeId == 1040 || $kpiTypeId == 1044 || $kpiTypeId == 1045 || $kpiTypeId == '16641793815766') { /*List*/
+                    
+                    if ($postArr) {
+                        $_POST['drillDownCriteria'] = http_build_query($postArr);
+                    }
+
+                    $_POST['isIgnoreTitle'] = 1;
+                    $_POST['isDrilldown'] = 1;
                 
-                $_POST['isIgnoreTitle'] = 1;
-                $_POST['isDrilldown'] = 1;
-                
-                if ($kpiTypeId == '1000') {
                     $contentDecode = (new Mdform())->indicatorList($linkIndicatorId, true);
                     $contentDecode['metaType'] = 'kpi_dataview';
+                    
+                } elseif ($kpiTypeId == 2010) { /*Statement*/
+                    
+                    /*$title = 'kpi';
+                    
+                    foreach ($postArr as $postKey => $postVal) {
+                        $_POST['filterData'][$postKey] = $postVal;
+                    }
+                    
+                    $contentHtml = (new Mdform())->indicatorStatement($linkIndicatorId, true);
+
+                    $response = [
+                        'title' => $title,  
+                        'html' => $contentHtml,
+                        'metaType' => 'statement'
+                    ];
+
+                    jsonResponse($response);*/
+                    
+                    Mdstatement::$isKpiIndicator = true;
+                    
+                    $row = $this->model->getStatementRowModel($linkIndicatorId);
+                    $title = $this->lang->line($row['REPORT_NAME']);
+
+                    unset($_POST); 
+                    
+                    $_POST['isKpiIndicator'] = 1;
+                    $_POST['dataViewId']  = $row['DATA_INDICATOR_ID'];
+                    $_POST['statementId'] = $row['MAIN_INDICATOR_ID'];
+                    
+                    Mdform::$kpiTemplateId = $row['DATA_INDICATOR_ID'];
+
+                    foreach ($postArr as $postKey => $postVal) {
+                        $_POST['filterData'][$postKey][] = $postVal;
+                    }
+
+                    $reportHtml = (new Mdstatement())->renderDataModelByFilter(true);
+                    $contentHtml = (new Mdstatement())->dataModelReportDrillViewer($linkIndicatorId, $row, $reportHtml);
+
+                    $response = [
+                        'title' => $title,  
+                        'html' => $contentHtml,
+                        'metaType' => 'statement',
+                        'close_btn' => Lang::line('close_btn')
+                    ];
+
+                    echo json_encode($response, JSON_UNESCAPED_UNICODE); exit;
                 }
                 
                 $contentDecode['status'] = 'success';
                 $contentDecode['linkMetaDataId'] = $linkIndicatorId;
                 
-                echo json_encode($contentDecode, JSON_UNESCAPED_UNICODE); exit;
+                jsonResponse($contentDecode);
             }
             
         } else {

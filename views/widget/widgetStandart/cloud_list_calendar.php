@@ -96,7 +96,7 @@ $sun = date("Y-m-d", strtotime(date("Y-m-d", $monday) . " +6 days"));
                                                 </a>
                                             </div>
                                             <div>
-                                                <a href="javascript:;" class="text-one-line text-default font-weight-semibold letter-icon-title cloud-call-process-action" data-row="<?php echo $rowJson ?>" data-processid="<?php echo $renderAtom->renderAtomPath("position11", $this->positionConfig); ?>" data-tpath="<?php echo $renderAtom->renderAtomPath("position1", $this->positionConfig); ?>" title="<?php echo $renderAtom->renderAtom($row, "position1", $this->positionConfig, 'Default value') ?>"><?php echo $renderAtom->renderAtom($row, "position1", $this->positionConfig, 'Default value') ?></a>
+                                                <a href="javascript:;" class="text-one-line text-default font-weight-semibold letter-icon-title cloud-callprocess-action" data-row="<?php echo $rowJson ?>" data-processid="<?php echo $renderAtom->renderAtomPath("position11", $this->positionConfig); ?>" data-tpath="<?php echo $renderAtom->renderAtomPath("position1", $this->positionConfig); ?>" title="<?php echo $renderAtom->renderAtom($row, "position1", $this->positionConfig, 'Default value') ?>"><?php echo $renderAtom->renderAtom($row, "position1", $this->positionConfig, 'Default value') ?></a>
                                                 <div class="text-one-line text-muted font-size-sm text-left text-less" data-tpath="<?php echo $renderAtom->renderAtomPath("position2", $this->positionConfig); ?>" title="<?php echo $renderAtom->renderAtom($row, "position2", $this->positionConfig, 'Default value') ?>"> <?php echo $renderAtom->renderAtom($row, "position2", $this->positionConfig, 'Default value') ?></div>
                                             </div>
                                         </div>
@@ -116,12 +116,11 @@ $sun = date("Y-m-d", strtotime(date("Y-m-d", $monday) . " +6 days"));
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="w-120px text-right">
+                                    <td class="w-140px text-right">
                                         <div class="list-icons">
-                                            <div class="dropdown">
-                                                <a href="javascript:;" data-style="expand-right" data-spinner-color="#333" data-spinner-size="20" data-row="<?php echo $rowJson ?>" data-processid="<?php echo $renderAtom->renderAtomPath("position9", $this->positionConfig); ?>" title="Хөгжүүлэлт эхлүүлэх" class="cloud-call-process-action btn btn-light btn-ladda ladda-button btn-ladda-spinner btn-icon mr-1"><i class="icon-play4"></i></a>
-                                                <a href="javascript:;" data-style="expand-right" data-spinner-color="#333" data-spinner-size="20" data-row="<?php echo $rowJson ?>" data-processid="<?php echo $renderAtom->renderAtomPath("position10", $this->positionConfig); ?>" title="Хөгжүүлэлт дуусгах" class="cloud-call-process-action btn btn-light btn-ladda ladda-button btn-ladda-spinner btn-icon"><i class="icon-stop2"></i></a>
-                                            </div>
+                                            <a href="javascript:;" data-style="expand-right" data-spinner-color="#333" data-spinner-size="20" data-row="<?php echo $rowJson ?>" data-processid="<?php echo $renderAtom->renderAtomPath("position9", $this->positionConfig); ?>" title="Хөгжүүлэлт эхлүүлэх" class="cloud-callprocess-action btn btn-light btn-ladda ladda-button btn-ladda-spinner btn-icon mr-1"><i class="icon-play4"></i></a>
+                                            <a href="javascript:;" data-style="expand-right" data-spinner-color="#333" data-spinner-size="20" data-row="<?php echo $rowJson ?>" data-processid="<?php echo $renderAtom->renderAtomPath("position10", $this->positionConfig); ?>" title="Хөгжүүлэлт дуусгах" class="cloud-callprocess-action btn btn-light btn-ladda ladda-button btn-ladda-spinner btn-icon"><i class="icon-stop2"></i></a>
+                                            <a href="javascript:;" data-style="expand-right" data-spinner-color="#333" data-spinner-size="20" data-row="<?php echo $rowJson ?>" data-processid="<?php echo $renderAtom->renderAtomPath("position18", $this->positionConfig); ?>" title="Хөгжүүлэлт буцаах" class="cloud-callprocess-action btn btn-light btn-ladda ladda-button btn-ladda-spinner btn-icon"><i class="icon-cross2"></i></a>
                                         </div>
                                     </td>
                                 </tr>
@@ -135,6 +134,11 @@ $sun = date("Y-m-d", strtotime(date("Y-m-d", $monday) . " +6 days"));
                 </tbody>
             </table>
         </div>
+        <?php if ($renderAtom->renderAtom(issetParamArray($this->datasrc[0]), "position16", $this->positionConfig, '') !== '') { ?>
+            <div class="mt-2 w-100" style="text-align: right;">
+                <?php echo '<span style="color:#A0A0A0;font-size: 11px" data-position="'. $renderAtom->renderAtom(issetParamArray($this->datasrc[0]), "position16", $this->positionConfig, '') .'" data-positiontype="'. $renderAtom->renderAtom(issetParamArray($this->datasrc[0]), "position17", $this->positionConfig, 'package') .'" data-morebtn="1" class="morebtn">'. Lang::line('More_10').'</span>'; ?>
+            </div>   
+        <?php } ?>
     </div>
 </div>
 
@@ -159,6 +163,11 @@ $sun = date("Y-m-d", strtotime(date("Y-m-d", $monday) . " +6 days"));
             width: 40% !important;
             max-width: 40% !important;
             min-width: 40% !important;
+        }
+        .w-140px {
+            width: 140px !important;
+            max-width: 140px !important;
+            min-width: 140px !important;
         }
         .w-120px {
             width: 120px !important;
@@ -200,6 +209,9 @@ $sun = date("Y-m-d", strtotime(date("Y-m-d", $monday) . " +6 days"));
             padding: 9px 14px 10px 12px;
             border-radius: 6px;
         }
+        .morebtn:hover {
+            cursor: pointer;
+        }
     }
 </style>
 <script type="text/javascript">
@@ -208,15 +220,15 @@ $sun = date("Y-m-d", strtotime(date("Y-m-d", $monday) . " +6 days"));
         reload_<?php echo $uid ?>(_this)
     });
 
-    $('body').on('click', ".cloud-call-process-action", function(){
+    $('body').on('click', ".req_<?php echo $uid ?> .cloud-callprocess-action", function(){
         var element = this,
             $this = $(element),
             $parentSection = $this.closest('section[data-metadataid]');
             
-            Core.blockUI({
-            message: "Loading...",
-            boxed: true,
-            });
+            /* Core.blockUI({
+                message: "Loading...",
+                boxed: true,
+            }); */
 
         var metaDataId = $(this).data("processid");
         if (metaDataId) {
@@ -226,7 +238,7 @@ $sun = date("Y-m-d", strtotime(date("Y-m-d", $monday) . " +6 days"));
                 dataType: "json",
                 async: false,
                 success: function (data) {
-                    Core.unblockUI();
+                    /* Core.unblockUI(); */
                     return data.result;
                 },
             });
@@ -273,4 +285,10 @@ $sun = date("Y-m-d", strtotime(date("Y-m-d", $monday) . " +6 days"));
         _this.addClass('dv-twocol-f-selected');
         dataViewWfmStatusFlowViewer(elem, rowId, wfmStatusId, wfmStatusName, dataViewId, refStructureId, wfmstatuscolor);
     };
+
+    $('body').on('click', '.req_<?php echo $uid ?> span[data-morebtn]', function() {
+        var _this = $(this);
+        appMultiTab({metaDataId: _this.data('position')+'', title: 'Дэлгэрэнгүй', type: 'selfurl', type: _this.data('positiontype')});
+    });
+
 </script>

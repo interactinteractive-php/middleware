@@ -1175,7 +1175,7 @@ class Mdprocessflow extends Controller {
             $result = array('status' => 'error', 'message' => 'Хадгалах боломжгүй lifeCycle байна');
         }
         
-        echo json_encode($result); exit;
+        convJson($result);
     }
 
     public function showBpmn($mainBpId = null) {

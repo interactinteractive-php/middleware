@@ -344,7 +344,7 @@ class Mdstatement_model extends Model {
                         
                         if ($bodyAlign) {
                             $style = 'text-align: '.$bodyAlign.';';
-                        } elseif ($showType == 'percent' || $showType == 'decimal' || $showType == 'bigdecimal' || $showType == 'number') {
+                        } elseif ($showType == 'percent' || $showType == 'decimal' || $showType == 'bigdecimal' || $showType == 'bigdecimal_null' || $showType == 'number') {
                             $style = 'text-align: right;';
                         } 
                         
@@ -1429,7 +1429,7 @@ class Mdstatement_model extends Model {
         $ml->load->model('mdform', 'middleware/models/');                    
 
         $_POST['indicatorId'] = $dataViewId;
-        $_POST['isExportExcel'] = 1;
+        $_POST['isShowQuery'] = 1;
         
         if (Mdstatement::$isPivotView) {
             
@@ -2072,11 +2072,10 @@ class Mdstatement_model extends Model {
 
     public function getDrillDownColumnDataModel($statementId, $dataViewId) {
 
-        $result = array();
+        $result = [];
         
         if (Mdstatement::$isKpiIndicator) {
             $filterColumn = 'MAIN_INDICATOR_ID';
-            $statementId = $dataViewId;
         } else {
             $filterColumn = 'STATEMENT_META_DATA_ID';
         }
@@ -2097,7 +2096,7 @@ class Mdstatement_model extends Model {
             GROUP BY 
                 DTL.ID, 
                 DTL.MAIN_GROUP_LINK_PARAM", 
-            array($statementId)
+            [$statementId]
         );
         
         if ($columnData) {
@@ -2235,7 +2234,7 @@ class Mdstatement_model extends Model {
 
     public function getDrillDownParamsModel($id, $row, $drillParams) {
 
-        $result = array();
+        $result = [];
 
         $data = $this->db->GetAll("
             SELECT 
@@ -2244,7 +2243,7 @@ class Mdstatement_model extends Model {
                 DEFAULT_VALUE 
             FROM META_DM_DRILLDOWN_PARAM 
             WHERE DM_DRILLDOWN_DTL_ID = ".$this->db->Param(0), 
-            array($id) 
+            [$id] 
         ); 
 
         if ($data) {
@@ -2304,8 +2303,8 @@ class Mdstatement_model extends Model {
                     DD.ID, 
                     MD.META_TYPE_ID, 
                     DD.LINK_META_DATA_ID, 
-                    null AS LINK_INDICATOR_ID, 
-                    null AS KPI_TYPE_ID, 
+                    NULL AS LINK_INDICATOR_ID, 
+                    NULL AS KPI_TYPE_ID, 
                     DD.CRITERIA 
                 FROM META_DM_DRILLDOWN_DTL DD 
                     LEFT JOIN META_DATA MD ON MD.META_DATA_ID = DD.LINK_META_DATA_ID  

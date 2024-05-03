@@ -92,6 +92,10 @@ function widgetLayoutCallDiagramByMeta(metaDataId, executeType) {
     .widget-container {
         margin-left: -15px;
         margin-right: -15px;
+    }
+    .widget-container .page-main-layout-<?php echo $this->metaDataId ?> {
+        margin-left: -15px;
+        margin-right: -15px;
         font-family: "Rubik", sans-serif !important;
     }
     .shadow-citizen {

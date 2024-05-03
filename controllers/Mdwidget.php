@@ -1652,7 +1652,7 @@ class Mdwidget extends Controller {
         $this->view->positionData3 = $this->model->loadListModel($chartDvId_left, $criteria);
         $this->view->positionData4 = $this->model->loadListModel($chartDvId_right, $criteria);
         $this->view->positionData5 = $this->model->loadListModel($this->view->sdataViewId, $criteria);
-//        var_dump($this->view->positionData5); die;
+
         (Array) $data = array();
         foreach ($this->view->positionData3 as $row) {
             
@@ -2288,7 +2288,7 @@ class Mdwidget extends Controller {
     
     public function controlTemplateDatabank() {
         
-    $postData = Input::postData();
+        $postData = Input::postData();
         $this->view->uniqId = getUID();
         $type = 1;
         
@@ -4510,11 +4510,55 @@ class Mdwidget extends Controller {
         return array('html' => $pageHtml, 'css' => $pageCss);
     }
     
+    public function renderWidgetContent ($body, $simpleData, $isSimpleData = '0') {
+        (String) $pageHtml = $pageCss = '';
+        foreach ($body as $row) {
+            $lowerType = Str::lower($row['type']);
+            $attrs = '';
+            if (issetParamArray($row['attributes'])) {
+                foreach ($row['attributes'] as $key =>  $attr) {
+                    $attrs .= ' ' . $key . '="'. $attr . '"';
+                }
+            }
+
+            if (issetParamArray($row['content']['0']) && is_array($row['content']['0']) && issetParam($row['type']) !== '') {
+                $pageHtml .= '<' . $lowerType . $attrs . '>';
+                    $pageAttr = self::renderWidgetContent($row['content'], $simpleData, $isSimpleData);
+                    $pageHtml .= issetParam($pageAttr['html']);
+                    $pageCss .= issetParam($pageAttr['css']);
+                $pageHtml .= '</' . $lowerType . '>';
+            } elseif (issetParamArray($row['content']['0']) && !is_array($row['content']['0'])) {
+                $pageHtml .= '<' . $lowerType . $attrs . '>';
+                    $pageHtml .= issetParam($row['content']['0']);
+                $pageHtml .= '</' . $lowerType . '>';
+            }
+        }
+
+        return array('html' => $pageHtml, 'css' => $pageCss);
+    }
+
+    public function renderWidgetContentTree ($body, $jsTree = array()) {
+        foreach ($body as $row) {
+            $tmp = array(
+                'text' => issetParam($row['attributes']['data-name']),
+                'id' => issetParam($row['attributes']['data-id']),
+                'children' => array(),
+            );
+
+            if (issetParamArray($row['content']['0']) && is_array($row['content']['0']) && issetParam($row['type']) !== '') {
+                $tmp['children'] = self::renderWidgetContentTree($row['content']);
+            }
+
+            array_push($jsTree, $tmp);
+        }
+        
+        return $jsTree;
+    }
+
     public function renderLayoutSection ($indicatorId) {
         $this->load->model('mdwidget', 'middleware/models/');
         $pageConfig = $this->model->getIndicatorWidgetModel($indicatorId);
-//        pa($pageConfig);
-        
+
         $layoutHtml = '<div class="row">        
             <div class="col">
                 <div class="kpipage-data-top-filter-col my-2 mt0"></div>
@@ -4583,6 +4627,10 @@ class Mdwidget extends Controller {
     }    
 
     public function builderAtomicWidget ($id = '', $returnType = '') {
+        self::atomicBuild($id, $returnType);
+    }   
+
+    public function atomicBuild ($id = '', $returnType = '') {
 
         $selectedRow = Arr::decode(Input::post('selectedRow'));
         $this->view->indicatorId = issetParam($selectedRow['dataRow']['id']);
@@ -4593,18 +4641,19 @@ class Mdwidget extends Controller {
         }
 
         $this->view->uniqId = getUID();
-        
-        
         $this->view->isAjax = is_ajax_request();
-
-        $this->view->mainData = $this->ws->runSerializeResponse(GF_SERVICE_ADDRESS, 'indicatorWidgetConfig_004', array('id' => $this->view->indicatorId));      
-        $this->view->pageJsonConfig = json_decode(html_entity_decode(issetParam($this->view->mainData['result']['widgetdtl']['widgetconfig']), ENT_QUOTES, 'UTF-8'), true);
+        
+        $this->view->mainData = $this->ws->runSerializeResponse(GF_SERVICE_ADDRESS, 'indicatorWidgetConfig_004', array('id' => $this->view->indicatorId));  
+        $json = json_decode(html_entity_decode(issetParam($this->view->mainData['result']['widgetdtl']['widgetconfig']), ENT_QUOTES, 'UTF-8'), true);
+        $this->view->json = issetParamArray($json['content']);
         $this->view->js = array_unique(array_merge(array('custom/addon/admin/pages/scripts/app.js'), AssetNew::metaOtherJs()));
         $this->view->css = AssetNew::metaCss();
 
         $this->view->fullUrlJs = array(
-            'middleware/assets/plugins/builder/dom-to-image.min.js',
-            'middleware/assets/plugins/builder/builder.js',
+            'middleware/assets/plugins/builder.v2/moveable/moveable.js',
+            'middleware/assets/plugins/builder.v2/moveable/dom-to-image.min.js',
+            'middleware/assets/plugins/builder.v2/atomic.js',
+            'assets/core/js/plugins/forms/inputs/touchspin.min.js',
         );
         
         $this->view->fullUrlJs = array_unique(array_merge($this->view->fullUrlJs, AssetNew::amChartJs()));
@@ -4635,17 +4684,18 @@ class Mdwidget extends Controller {
                     break;
             }
         }
-    }
+    }   
 
-    public function createAtomicWidget() {
+    public function createAtomic() {
 
         $postData = Input::postData();
-        $jsonConfig = html_to_obj($postData['pageJson']);
+        $jsonConfig = $postData['json'];
 
         $_POST = array (
             'param' =>  array (
                 'id' => issetParam($postData['indicatorId']),
-                'name' => 'Widget : ' . Str::upper(Str::random_string('alpha', '4')),
+                'name' => checkDefaultVal($postData['widgetName'], 'Widget : ' . Str::upper(Str::random_string('alpha', '4'))),
+                'code' => checkDefaultVal($postData['widgetCode'], 'Widget : ' . Str::upper(Str::random_string('alpha', '4'))),
                 'widgetDtl.id' =>  array (
                     array (
                         0 => issetParam($postData['widgetdtlId']),
@@ -4658,7 +4708,7 @@ class Mdwidget extends Controller {
                 ),
                 'widgetDtl.widgetConfig' =>  array (
                     array (
-                    0 => json_encode(issetParam($jsonConfig), JSON_PRETTY_PRINT),
+                    0 => issetParam($jsonConfig),
                     ),
                 ),
                 'categoryMap.id' =>  array (
@@ -4684,8 +4734,6 @@ class Mdwidget extends Controller {
         );
 
         $response = (new Mdwebservice())->runProcess();
-        /* var_dump($response);
-        die; */
         convJson($response);
     }
 

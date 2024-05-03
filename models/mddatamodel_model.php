@@ -1595,9 +1595,9 @@ class Mddatamodel_Model extends Model {
             $footerBody = $userData['DEPARTMENT_NAME'] . ', ' . $userData['EMPLOYEE_NAME'] .' (' . $userData['POSITION_NAME'] .')';
         }
 
-        $emailBody = $headerBody.'<br />' . $emailBody;
+        $emailBody = $headerBody;
 
-        $rowsHtml = self::rowsToHtmlTable($dataViewId, json_encode(array($dataRow)), true);
+        $rowsHtml = self::rowsToHtmlTable($dataViewId, json_encode([$dataRow], JSON_UNESCAPED_UNICODE), true);
         $emailBody = empty($emailBody) ? '<br />'.$rowsHtml : $emailBody.'<br /><br />'.$rowsHtml . '<br />' . $footerBody;
 
         $emailBodyContent = file_get_contents('middleware/views/metadata/dataview/form/email_templates/selectionRows.html');

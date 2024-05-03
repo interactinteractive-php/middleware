@@ -62,7 +62,6 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt, call
         if (opt.hasOwnProperty('isIgnoreRunButton')) {
             postData.isIgnoreRunButton = opt.isIgnoreRunButton;
         }
-        
         if (opt.hasOwnProperty('consolidateFillSelectedRow')) {
 
             var selectedRows = isNoDataview ? fcSelectedRow : getDataViewSelectedRows(mainIndicatorId);
@@ -137,7 +136,7 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt, call
             }
         }                   
     }
-    
+
     if (mode == 'view') {
         saveBtnClass = 'd-none';
     }
@@ -7243,7 +7242,7 @@ function drawTreeIndicator(elem) {
     });
 }
 
-function mvWidgetRelationRender(elem, kpiTypeId, mainIndicatorId, opt) {
+function mvWidgetRelationRender(elem, kpiTypeId, mainIndicatorId, opt, callback, successCallback, srcIndicatorId) {
     var $this = $(elem);
     var postData = {
         mainIndicatorId: mainIndicatorId, 
@@ -7261,6 +7260,7 @@ function mvWidgetRelationRender(elem, kpiTypeId, mainIndicatorId, opt) {
                 if ($this.hasClass('no-dataview') && $this.attr('data-rowdata')) {
                     isNoDataview = true;
                     fcSelectedRow = [JSON.parse($this.attr('data-rowdata'))];
+                    var selectedRows = fcSelectedRow;
                 } else {
                     var selectedRows = getDataViewSelectedRows(mainIndicatorId);
                 }
@@ -7294,6 +7294,12 @@ function mvWidgetRelationRender(elem, kpiTypeId, mainIndicatorId, opt) {
             PNotify.removeAll();
             if (data.status == 'success') {
                 
+                if (typeof callback !== 'undefined') {
+                    Core.unblockUI();
+                    window[callback](data);
+                    return false;
+                }
+
                 var $dialogName = 'dialog-widgetrender-'+mainIndicatorId;
                 if (!$("#" + $dialogName).length) {
                     $('<div id="' + $dialogName + '"></div>').appendTo('body');

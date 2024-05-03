@@ -438,6 +438,18 @@ $renderType = $this->methodRow['RENDER_THEME'];
 .mv-checklist2-render-parent .sidebar-light {
     border-right: none;
 }
+.mv-checklist2-render-parent .kpi-ind-tmplt-section {
+    background-color: #fff;
+    padding-top: 10px;
+    margin-bottom: 15px;
+}
+.mv-checklist2-render-parent .sectiongidseperatorcontent legend {
+    padding: 12px !important;
+}
+.mv-checklist2-render-parent .sectiongidseperator {
+    height: 15px;
+    background-color: #F9F9F9;
+}
 .mv-checklist2-render-parent > .sidebar .card-body .nav-sidebar a.nav-link i {
     font-size: 18px;
     margin-right: 10px;
@@ -671,7 +683,7 @@ input.kpi-notfocus-readonly-input::placeholder {
     height: 32px!important;
     min-height: 32px!important;
     border-radius: 6px!important;
-    border: 1px #eee solid;
+    border: 1px #F9F9F9 solid;
     padding: 7px 10px!important;
 }
 .mv-checklist2-render-parent .mv-hdr-label-control-input textarea.form-control {

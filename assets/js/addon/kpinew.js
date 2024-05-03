@@ -1197,8 +1197,31 @@ function kpiDataMartRelationConfigTable(elem, processMetaDataId, dataViewId, sel
                             var setHeight = $(window).height() - 550;
                             var $editor = $('#datamart-editor');
                             
-                            $editor.css({'height': setHeight - 2, 'max-height': setHeight - 2});
-
+                            //$editor.css({'height': setHeight - 2, 'max-height': setHeight - 2});                            
+                            
+                            var splitobj = Split(["#relation-settings-gutter", "#relation-settings-gutter-2"], {
+                                elementStyle: function (dimension, size, gutterSize) {
+                                    $(window).trigger('resize');
+                                    return {'height': 'calc(' + size + '% - 20px)'};
+                                },
+                                gutterStyle: function (dimension, gutterSize) { 
+                                    return {'height':  gutterSize + '% - 20px'}; 
+                                },
+                                direction: 'vertical',
+                                sizes: [40,60],
+                                minSize: 70,
+                                gutterSize: 6,
+                                cursor: 'col-resize',
+                                onDragEnd: function (sizes) {
+                                    $('.editor-table-settings-area').css('height',$('#relation-settings-gutter-2').height() - 45);
+                                    refreshLoadDataListMart();
+                                }
+                            });
+                            
+                            setTimeout(function() {
+                                $('.editor-table-settings-area').css('height',$('#relation-settings-gutter-2').height() - 45);
+                            }, 100);    
+                            
                             setKpiDataMartVisualObjects($editor, data.objects, data.objects.graphjson, false);
                             
                             Core.unblockUI();
@@ -2688,13 +2711,13 @@ function loadDataListMart(id) {
 }
 
 function settingsRow(row, single) {
-    return '<tr data-mapid="' + row['id'] + '"><td style="width:80px">' + row['showtype'] + '</td><td>' + row['labelname'] + '</td>'+
+    return '<tr data-mapid="' + row['id'] + '" data-type="' + row['showtype'] + '"><td style="width:80px;'+(row['aggregatefunction'] ? 'border-left: 3px solid #0abf9a;' : '')+'">' + row['showtype'] + '</td><td>' + row['labelname'] + '</td>'+
         '<td style="width:50px;padding: 0;" class="pl3">'+
             (typeof single === 'undefined' ? '<button type="button" style="padding: 2px 5px 0px 7px;" class="btn btn-sm green-meadow dropdown-toggle" data-toggle="dropdown" aria-expanded="true">'+
                 '<i class="fa fa-bars"></i>'+
             '</button>'+
             '<div class="dropdown-menu" style="">'+
-                '<div class="dropdown-submenu">'+
+                (row['showtype'] != 'text' ? '<div class="dropdown-submenu">'+
                         '<a href="javascript:;" class="dropdown-item">Aggregate function</a>'+
                         '<div class="dropdown-menu">'+
                             '<a href="javascript:;" class="dropdown-item" onClick="addAggregateFunctionRow(this, \'SUM\')">SUM '+(row['aggregatefunction'] == 'SUM' ? '<i class="fa fa-check ml5" style="color: rgb(5 187 21);"></i>' : '')+'</a>'+
@@ -2702,7 +2725,7 @@ function settingsRow(row, single) {
                             '<a href="javascript:;" class="dropdown-item" onClick="addAggregateFunctionRow(this, \'MIN\')">MIN '+(row['aggregatefunction'] == 'MIN' ? '<i class="fa fa-check ml5" style="color: rgb(5 187 21);"></i>' : '')+'</a>'+
                             '<a href="javascript:;" class="dropdown-item" onClick="addAggregateFunctionRow(this, \'COUNT\')">COUNT '+(row['aggregatefunction'] == 'COUNT' ? '<i class="fa fa-check ml5" style="color: rgb(5 187 21);"></i>' : '')+'</a>'+
                         '</div>'+
-                '</div>'+                
+                '</div>' : '')+                
                 '<a class="removeStructureColumn dropdown-item" href="javascript:;">Нуух</a>'+
             '</div>' : '')+
         '</td>'+
@@ -3064,12 +3087,12 @@ $(function() {
         $('.editor-table-settings-area').empty().append(trgComboAttrs.join(''));
     });
     
-    $(document.body).on('click', '.css-editor', function(e) {
+    $(document.body).on('click', '.heigh-editor-table', function(e) {
         var $this = $(this), 
             trgComboAttrs = [],
             colCount = 0;
             
-        if (e.target.className != 'css-editor') return;
+        if (e.target.className != 'heigh-editor-table') return;
 
         $this.find('.active').removeClass('active');
         $('.editor-table-settings-area').empty().append('<div class="mt10">Түр хүлээнэ үү...</div>');
@@ -3143,7 +3166,7 @@ $(function() {
         var $dialog = $(dialogName);        
         var trgComboAttrs = [];
         
-        trgComboAttrs.push('<table class="table table-hover table-bordered mt10">');
+        trgComboAttrs.push('<div style="overflow-y: auto;height:'+($(window).height() - 150)+'px;"><table class="table table-hover table-bordered mt10">');
         trgComboAttrs.push('<thead>'+
                             '<tr>'+
                                 '<th>Төрөл</th>'+
@@ -3174,7 +3197,7 @@ $(function() {
                     $.each(data, function(i, value) {
                         trgComboAttrs.push(settingsHideRow(data[i]));
                     });                    
-                    trgComboAttrs.push('</tbody></table>');
+                    trgComboAttrs.push('</tbody></table></div>');
                     $dialog.html(trgComboAttrs.join(''));
                     $dialog.dialog({
                         cache: false,

@@ -1139,7 +1139,10 @@ function posLockerUnilockNew(elem, processMetaDataId, dataViewId, selectedRow, p
   $('<div id="' + $dialogName + '"></div>').appendTo("body");
   var $dialog = $("#" + $dialogName);
 
-  $dialog.empty().append('<div style="text-align: center;"><img style="height: 250px;" alt="nfc reader" src="middleware/assets/img/pos/nfc-reader.jpg" /></div>');
+  $dialog.empty().append('<div style="text-align: center;">'+
+    '<input type="text" class="form-control">'+
+    '<img style="height: 250px;" alt="nfc reader" src="middleware/assets/img/pos/nfc-reader.jpg" />'+
+    '</div>');
 
   $dialog.dialog({
     cache: false,
@@ -1152,173 +1155,137 @@ function posLockerUnilockNew(elem, processMetaDataId, dataViewId, selectedRow, p
     modal: true,
     closeOnEscape: true,
     close: function () {
-      clearInterval(posNfcCheckInterval);
       $dialog.empty().dialog("destroy").remove();
     },
     buttons: []
   });
   $dialog.dialog("open");    
     
-    posNfcCheckInterval = setInterval(function () {
-        posLockerUnilockCheckNew();
-    }, 3000);
+    $dialog.find('input').on("keydown", function (e) {
+      var keyCode = e.keyCode ? e.keyCode : e.which;
+      if (keyCode == 13) {
+          posLockerUnilockCheckNew($(this).val());
+      }
+    });    
+    //posLockerUnilockCheckNew();
 
 }
 
-function posLockerUnilockCheckNew() {
+function posLockerUnilockCheckNew(getLockerCode) {
+    
+    if (getLockerCode) {
+        $('#dialog-pos-nfc-reader').dialog("close");
 
-    if ("WebSocket" in window) {
-        console.log("WebSocket is supported by your Browser!");
-        // Let us open a web socket
-        var ws = new WebSocket("ws://localhost:58324/socket");
-
-        ws.onopen = function() {
-            var currentDateTime = GetCurrentDateTime();
-            ws.send('{"command":"nfc_card_read", "dateTime":"' + currentDateTime + '", details: []}');
-        };        
-
-        ws.onmessage = function(evt) {
-            var received_msg = evt.data;
-            var jsonData = JSON.parse(received_msg);            
-
-            if (Object.keys(jsonData.details).length) {
-                var getLockerCode = jsonData.details[2].value;
-                $('#dialog-pos-nfc-reader').dialog("close");
-
-                $tabMainContainer = $('body').find("div.m-tab > div.tabbable-line > ul.card-multi-tab-navtabs");
-                if ($tabMainContainer.find("a[href='#app_tab_mdposLocker_1566556713853_1992']").length) {
-                    $('div.card-multi-tab > div.card-body > div.card-multi-tab-content').find('div#app_tab_mdposLocker_1566556713853_1992').empty().remove();
-                    $tabMainContainer.find("a[href='#app_tab_mdposLocker_1566556713853_1992']").closest('li').remove();
-                }
-
-                var paramsData = { weburl: 'mdpos', metaDataId: 'mdposLocker_1566556713853_1992', title: 'POS', type: 'selfurl', recordId: getLockerCode, selectedRow: { keycode: getLockerCode, id: '', typeid: '5' }};
-                $.ajax({
-                    type: 'post',
-                    url: 'mdpos/checkLoadLocker',
-                    data: paramsData,
-                    dataType: 'json',
-                    success: function(data) {
-                        if (typeof data.message !== 'undefined') {
-                            PNotify.removeAll();
-                            new PNotify({
-                                title: 'Warning',
-                                text: data.message,
-                                type: 'warning', 
-                                sticker: false, 
-                                addclass: 'pnotify-center'
-                            });
-                            return;
-                        }
-                        
-                        appMultiTab({ weburl: 'mdpos', metaDataId: 'mdposLocker_1566556713853_1991', title: 'POS', type: 'selfurl', recordId: getLockerCode, selectedRow: { keycode: getLockerCode, id: '', typeid: '5' } }, this, function(elem, param, data) {
-                            if (typeof data.chooseCashier === 'undefined') {
-                                elem.find('.pos-wrap').css({"margin-left":"-15px", "margin-right":"-16px", "margin-top":"-9px"});
-                                if (typeof checkInitPosJS === 'undefined') {
-                                    $.ajax({
-                                        url: "middleware/assets/js/pos/pos.js",
-                                        dataType: "script",
-                                        cache: false,
-                                        async: false
-                                    });
-                                } else {
-                                    setTimeout(function() {
-                                        Core.initDecimalPlacesInput();
-                                        posConfigVisibler($('body'));
-                                        posPageLoadEndVisibler();
-                                        posItemCombogridList('');
-                                        $('.pos-item-combogrid-cell').find('input.textbox-text').val('').focus();
-
-                                        var $tbody = $('#posTable').find('> tbody');
-
-                                        if ($tbody.find('> tr').length) {
-
-                                            Core.initLongInput($tbody);
-                                            Core.initUniform($tbody);
-
-                                            posGiftRowsSetDelivery($tbody);
-
-                                            var $firstRow = $tbody.find('tr[data-item-id]:eq(0)');
-                                            $firstRow.click();
-
-                                            posCalcTotal();
-                                        }                                    
-                                    }, 300);
-                                }
-                                setTimeout(function() {
-                                    posTableSetHeight();
-                                    posFixedHeaderTable();
-                                }, 300);
-                            }
-                        });                        
-                        
-                        /*paramsData.content = data.html;
-                        appMultiTabByContent(paramsData, function(elem) {
-                            if (typeof data.chooseCashier === 'undefined') {
-                                elem.find('.pos-wrap').css('margin-left', '0');
-                                if (typeof checkInitPosJS === 'undefined') {
-                                    $.ajax({
-                                        url: "middleware/assets/js/pos/pos.js",
-                                        dataType: "script",
-                                        cache: true,
-                                        async: false
-                                    });
-                                } else {
-                                    setTimeout(function() {
-                                        Core.initDecimalPlacesInput();
-                                        posConfigVisibler($('body'));
-                                        posPageLoadEndVisibler();
-                                        posItemCombogridList('');
-                                        $('.pos-item-combogrid-cell').find('input.textbox-text').val('').focus();
-
-                                        var $tbody = $('#posTable').find('> tbody');
-
-                                        if ($tbody.find('> tr').length) {
-
-                                            Core.initLongInput($tbody);
-                                            Core.initUniform($tbody);
-
-                                            posGiftRowsSetDelivery($tbody);
-
-                                            var $firstRow = $tbody.find('tr[data-item-id]:eq(0)');
-                                            $firstRow.click();
-
-                                            posCalcTotal();
-                                        }                                    
-                                    }, 300);
-                                }
-                                setTimeout(function() {
-                                    posTableSetHeight();
-                                    posFixedHeaderTable();
-                                }, 300);
-                            }
-                        });*/
-                    }
-                });                
-
-            }
-        };
-
-        ws.onerror = function(event) {
-            var resultJson = {
-                Status: 'Error',
-                Error: event.code
-            }
-            _isReadLocker = false;
-            console.log(JSON.stringify(resultJson));
-        };
-
-        ws.onclose = function() {
-            console.log("Connection is closed...");
-        };
-    } else {
-        var resultJson = {
-            Status: 'Error',
-            Error: "WebSocket NOT supported by your Browser!"
+        $tabMainContainer = $('body').find("div.m-tab > div.tabbable-line > ul.card-multi-tab-navtabs");
+        if ($tabMainContainer.find("a[href='#app_tab_mdposLocker_1566556713853_1992']").length) {
+            $('div.card-multi-tab > div.card-body > div.card-multi-tab-content').find('div#app_tab_mdposLocker_1566556713853_1992').empty().remove();
+            $tabMainContainer.find("a[href='#app_tab_mdposLocker_1566556713853_1992']").closest('li').remove();
         }
 
-        console.log(JSON.stringify(resultJson));
-    }
+        var paramsData = { weburl: 'mdpos', metaDataId: 'mdposLocker_1566556713853_1992', title: 'POS', type: 'selfurl', recordId: getLockerCode, selectedRow: { keycode: getLockerCode, id: '', typeid: '5' }};
+        $.ajax({
+        type: 'post',
+        url: 'mdpos/checkLoadLocker',
+        data: paramsData,
+        dataType: 'json',
+        success: function(data) {
+            if (typeof data.message !== 'undefined') {
+                PNotify.removeAll();
+                new PNotify({
+                    title: 'Warning',
+                    text: data.message,
+                    type: 'warning', 
+                    sticker: false, 
+                    addclass: 'pnotify-center'
+                });
+                return;
+            }
 
+            appMultiTab({ weburl: 'mdpos', metaDataId: 'mdposLocker_1566556713853_1991', title: 'POS', type: 'selfurl', recordId: getLockerCode, selectedRow: { keycode: getLockerCode, id: '', typeid: '5' } }, this, function(elem, param, data) {
+                if (typeof data.chooseCashier === 'undefined') {
+                    elem.find('.pos-wrap').css({"margin-left":"-15px", "margin-right":"-16px", "margin-top":"-9px"});
+                    if (typeof checkInitPosJS === 'undefined') {
+                        $.ajax({
+                            url: "middleware/assets/js/pos/pos.js",
+                            dataType: "script",
+                            cache: false,
+                            async: false
+                        });
+                    } else {
+                        setTimeout(function() {
+                            Core.initDecimalPlacesInput();
+                            posConfigVisibler($('body'));
+                            posPageLoadEndVisibler();
+                            posItemCombogridList('');
+                            $('.pos-item-combogrid-cell').find('input.textbox-text').val('').focus();
+
+                            var $tbody = $('#posTable').find('> tbody');
+
+                            if ($tbody.find('> tr').length) {
+
+                                Core.initLongInput($tbody);
+                                Core.initUniform($tbody);
+
+                                posGiftRowsSetDelivery($tbody);
+
+                                var $firstRow = $tbody.find('tr[data-item-id]:eq(0)');
+                                $firstRow.click();
+
+                                posCalcTotal();
+                            }                                    
+                        }, 300);
+                    }
+                    setTimeout(function() {
+                        posTableSetHeight();
+                        posFixedHeaderTable();
+                    }, 300);
+                }
+            });                        
+
+            /*paramsData.content = data.html;
+            appMultiTabByContent(paramsData, function(elem) {
+                if (typeof data.chooseCashier === 'undefined') {
+                    elem.find('.pos-wrap').css('margin-left', '0');
+                    if (typeof checkInitPosJS === 'undefined') {
+                        $.ajax({
+                            url: "middleware/assets/js/pos/pos.js",
+                            dataType: "script",
+                            cache: true,
+                            async: false
+                        });
+                    } else {
+                        setTimeout(function() {
+                            Core.initDecimalPlacesInput();
+                            posConfigVisibler($('body'));
+                            posPageLoadEndVisibler();
+                            posItemCombogridList('');
+                            $('.pos-item-combogrid-cell').find('input.textbox-text').val('').focus();
+
+                            var $tbody = $('#posTable').find('> tbody');
+
+                            if ($tbody.find('> tr').length) {
+
+                                Core.initLongInput($tbody);
+                                Core.initUniform($tbody);
+
+                                posGiftRowsSetDelivery($tbody);
+
+                                var $firstRow = $tbody.find('tr[data-item-id]:eq(0)');
+                                $firstRow.click();
+
+                                posCalcTotal();
+                            }                                    
+                        }, 300);
+                    }
+                    setTimeout(function() {
+                        posTableSetHeight();
+                        posFixedHeaderTable();
+                    }, 300);
+                }
+            });*/
+        }
+    });       
+    }
 }
 
 function readMagCard($elem, path) {
