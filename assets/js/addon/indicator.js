@@ -4009,6 +4009,12 @@ function kpiDataMartChartTableDialog($dialog, chartName, html) {
     $dialog.dialog('open');
 }
 
+function removeKpiIndicatorRowsFromBasket(elem) {
+    var e = jQuery.Event("keydown");
+    e.keyCode = e.which = 13;
+    $(elem).closest(".mv-popup-control").find(".lookup-code-autocomplete").val("").trigger(e);    
+}
+
 function chooseKpiIndicatorRowsFromBasket(elem, indicatorId, chooseType, funcName) {
 
     var $this = $(elem), chooseType = (chooseType == '') ? 'single' : chooseType;

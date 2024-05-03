@@ -430,18 +430,21 @@ $(function() {
                                 <div>'+$this.text()+'</div>\n\
                                 <div class="main-process-text-description">'+(dataHtml.indicatorInfo && dataHtml.indicatorInfo.DESCRIPTION ? dataHtml.indicatorInfo.DESCRIPTION : '')+'</div>\n\
                             </div>';
+                        var sveActionBtn = ''
                         
                         if (viewMode_<?php echo $this->uniqId; ?> != 'view') {
-                            renderHeader += '<div class="ml-auto">'+
+                            sveActionBtn = '<div class="ml-auto pull-right">'+
                                     '<button type="button" class="btn btn-sm btn-circle btn-success bpMainSaveButton bp-btn-save" onclick="checkListSaveKpiIndicatorForm(this, \'\', \''+strIndicatorId+'\');"><i class="icon-checkmark-circle2"></i> '+plang.get('save_btn')+'</button>'+
                                 '</div>';
                         }
                         
+                        //renderHeader += sveActionBtn;
                         renderHeader += '</div>';
                 
                         html.push('<form method="post" enctype="multipart/form-data">');
                             html.push(renderHeader);
                             html.push(dataHtml.html);
+                            html.push(sveActionBtn);
                         html.push('</form>');
 
                         viewProcess_<?php echo $this->uniqId; ?>.empty().append(html.join('')).promise().done(function() {

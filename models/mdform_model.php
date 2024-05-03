@@ -7026,6 +7026,7 @@ class Mdform_Model extends Model {
                             </span> 
                             <span class="input-group-btn">
                                 ' . html_entity_decode($controlNameInput, ENT_QUOTES, 'UTF-8') . '      
+                                <a href="javascript:;" class="btn default btn-bordered btn-xs mv-popup-remove-value-btn" onclick="removeKpiIndicatorRowsFromBasket(this)" style="border-right: none !important;"><i class="far fa-times"></i></a>
                             </span> 
                         </div>
                     </div>';
@@ -8831,14 +8832,14 @@ class Mdform_Model extends Model {
 
             $render[] = '<div class="mt-2 mb-2 d-flex mv-add-row-actions">';
                     
-                $render[] = '<input type="text" class="form-control input-xs bp-add-one-row-num integerInit" data-v-min="1" data-v-max="1000" data-addrowtype="selectedrow" data-action-path="'.$row['COLUMN_NAME'].'" data-row-limit="'.$row['ROW_COUNT_LIMIT'].'" onkeydown="if(event.keyCode==13){ addRowKpiIndicatorTemplate(this); return false;}"/>';
+                $render[] = '<input type="text" class="form-control input-xs bp-add-one-row-num integerInit" data-v-min="1" data-v-max="1000" data-addrowtype="selectedrow" data-action-path="'.$row['COLUMN_NAME_PATH'].'" data-row-limit="'.$row['ROW_COUNT_LIMIT'].'" onkeydown="if(event.keyCode==13){ addRowKpiIndicatorTemplate(this); return false;}"/>';
 
                 $render[] = html_tag('button', 
                     [
                         'type' => 'button', 
                         'class' => 'btn btn-xs green-meadow bp-add-one-row mr-2', 
                         'onclick' => 'addRowKpiIndicatorTemplate(this);', 
-                        'data-action-path' => $row['COLUMN_NAME'], 
+                        'data-action-path' => $row['COLUMN_NAME_PATH'], 
                         'data-row-limit' => $row['ROW_COUNT_LIMIT']
                     ], 
                     '<i class="far fa-plus"></i> '.$this->lang->line('addRow')

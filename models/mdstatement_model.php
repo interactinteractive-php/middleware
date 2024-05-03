@@ -2284,12 +2284,12 @@ class Mdstatement_model extends Model {
                     DD.ID, 
                     MD.META_TYPE_ID, 
                     DD.LINK_META_DATA_ID, 
-                    DD.LINK_INDICATOR_ID,
+                    DD.LINK_INDICATOR_ID, 
                     KI.KPI_TYPE_ID, 
                     DD.CRITERIA 
                 FROM META_DM_DRILLDOWN_DTL DD 
-                    LEFT JOIN META_DATA MD ON MD.META_DATA_ID = DD.LINK_META_DATA_ID  
-                    INNER JOIN META_STATEMENT_LINK SL ON SL.DATA_INDICATOR_ID = DD.MAIN_INDICATOR_ID 
+                    LEFT JOIN META_DATA MD ON MD.META_DATA_ID = DD.LINK_META_DATA_ID 
+                    INNER JOIN META_STATEMENT_LINK SL ON SL.MAIN_INDICATOR_ID = DD.MAIN_INDICATOR_ID 
                     INNER JOIN KPI_INDICATOR KI ON KI.ID = DD.LINK_INDICATOR_ID 
                 WHERE SL.MAIN_INDICATOR_ID = ".$this->db->Param(0)."  
                     AND LOWER(DD.MAIN_GROUP_LINK_PARAM) = ".$this->db->Param(1), 

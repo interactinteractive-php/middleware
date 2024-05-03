@@ -441,6 +441,7 @@ $renderType = $this->methodRow['RENDER_THEME'];
 .mv-checklist2-render-parent .kpi-ind-tmplt-section {
     background-color: #fff;
     padding-top: 10px;
+    padding-bottom: 10px;
     margin-bottom: 15px;
 }
 .mv-checklist2-render-parent .sectiongidseperatorcontent legend {
@@ -573,12 +574,12 @@ $renderType = $this->methodRow['RENDER_THEME'];
     color: #99A1B7;
 }
 .kpi-form-paper-portrait .tabbable-line>.nav-tabs>li a.active:not(.nav-tabs-btn-filter, .nav-tabs-btn-search) {
-    border-bottom: 3px solid #1B84FF !important;
+    border-bottom: 4px solid #1B84FF !important;
     color: #1B84FF;
 }
 .mv-checklist2-render-parent .kpi-form-paper-portrait .tabbable-line>.nav-tabs>li.open, 
 .mv-checklist2-render-parent .kpi-form-paper-portrait .tabbable-line>.nav-tabs>li a:hover {
-    border-bottom: 3px solid #1B84FF;
+    border-bottom: 4px solid #1B84FF;
     color: #1B84FF;
 }
 .kpi-form-paper-portrait .bp-tabs .tab-pane .tabbable-line>.nav-tabs>li a.nav-link {
