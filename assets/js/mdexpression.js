@@ -19142,3 +19142,77 @@ function bpReportTemplatePreview(mainSelector, metaDataId, pageSize, pageOrienta
                     
     return;
 }
+function bpGetDataPointInPolygon(mainSelector, elem, dsId, polygonField, coordinate, paramsPath) {
+    
+    var paramData = [];
+    
+    if (typeof paramsPath != 'undefined' && paramsPath != '') {
+        var paramsPathArr = paramsPath.split('|');
+        var paramsLength = paramsPathArr.length;
+
+        for (var i = 0; i < paramsLength; i++) {
+            var fieldPathArr = paramsPathArr[i].split('@');
+            var fieldPath = fieldPathArr[0].trim();
+            var inputPath = fieldPathArr[1].trim();
+            var fieldValue = '';
+
+            var $bpElem = getBpElement(mainSelector, elem, fieldPath);
+
+            if ($bpElem) {
+                if ($bpElem.hasClass('base64Init') || $bpElem.hasClass('fileInit')) {
+                    var fileUrl = $bpElem.val();
+                    if (fileUrl) {
+                        var ext = fileUrl.substring(fileUrl.lastIndexOf('.') + 1).toLowerCase();
+                        var formData = new FormData();
+                        formData.append('file_1', $bpElem.get(0).files[0]); 
+                        $.ajax({
+                            type: 'post',
+                            url: 'api/getBase64FromFile',
+                            data: formData,
+                            processData: false,
+                            contentType: false,
+                            async: false,
+                            success: function(data) {
+                                fieldValue = ext + '♠' + data;
+                            }
+                        });
+                    }
+                } else {
+                    fieldValue = getBpRowParamNum(mainSelector, elem, fieldPath);
+                }
+            } else {
+                fieldValue = fieldPath;
+            }
+
+            paramData.push({
+                fieldPath: fieldPath, 
+                inputPath: inputPath, 
+                value: fieldValue
+            });
+        }
+    }
+    
+    var postData = {
+        indicatorId: dsId, 
+        polygonField: polygonField,
+        coordinate: coordinate, 
+        uniqId: mainSelector.attr('data-bp-uniq-id'), 
+        paramData: paramData
+    };
+
+    var response = $.ajax({
+        type: 'post',
+        url: 'mdform/getDataPointInPolygon', 
+        data: postData, 
+        dataType: 'json',
+        async: false
+    });
+    var result = response.responseJSON;
+    
+    if (result.status != 'success') {
+        console.log(result);
+        return null;
+    } else {
+        return result.data;
+    }
+}

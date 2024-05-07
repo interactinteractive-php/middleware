@@ -8165,7 +8165,6 @@ function getChildFolder(element, id, parentId, srcId) {
                 });
             },
             success: function(data) {
-
                 __$selector.find('li[data-parentid="'+ $parent.attr('data-parentid') +'"]').hide();
                 __$selector.attr('data-parentid', id);
 
@@ -8232,7 +8231,9 @@ function getChildFolder(element, id, parentId, srcId) {
                         $li += '</li>';
                     });
 
-                    __$selector.find('.list-view-photo').append($li);
+                    __$selector.find('.list-view-photo').append($li).promise().done(function () {
+                        Core.initFancybox(__$selector);
+                    });
                 }
                 
                 if (srcId) {

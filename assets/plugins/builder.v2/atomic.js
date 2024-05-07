@@ -773,8 +773,7 @@ var Atomic = function() {
 
         window['layoutBuilder' + uniqId].find('.top-action-btns > .table-attr').hide();
         window['layoutBuilder' + uniqId].find('.top-action-btns > .column-attr').hide();
-        console.log(_this.data('name'));
-        console.log(window['layoutBuilder' + uniqId].find('.top-action-btns > .column-attr'));
+        
         switch (_this.data('name')) {
             case 'table':
                 window['layoutBuilder' + uniqId].find('.top-action-btns > .table-attr').show();
@@ -926,9 +925,19 @@ var Atomic = function() {
             var contentHtml = html_entity_decode(selectedRow['content']);
             
             $('.temp_' + uniqId).empty().append(contentHtml).promise().done(function () {
-                $('.temp_' + uniqId).children().attr('data-id', elementUniqId);
-                $('.temp_' + uniqId).children().attr('data-target', 'target');
-                $('.temp_' + uniqId).children().attr('data-name', selectedRow['text']);
+                switch (selectedRow['text']) {
+                    case 'Button':
+                        $('.temp_' + uniqId).children().children().attr('data-id', elementUniqId);
+                        $('.temp_' + uniqId).children().children().attr('data-target', 'target');
+                        $('.temp_' + uniqId).children().children().attr('data-name', selectedRow['text']);
+                        break;
+                
+                    default:
+                        $('.temp_' + uniqId).children().attr('data-id', elementUniqId);
+                        $('.temp_' + uniqId).children().attr('data-target', 'target');
+                        $('.temp_' + uniqId).children().attr('data-name', selectedRow['text']);
+                        break;
+                }
 
                 $(targetElement).append($('.temp_' + uniqId).html()).promise().done(function () {
                     $('.temp_' + uniqId).empty();

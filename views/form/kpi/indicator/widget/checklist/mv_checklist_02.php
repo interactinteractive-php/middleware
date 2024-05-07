@@ -446,6 +446,7 @@ $renderType = $this->methodRow['RENDER_THEME'];
 }
 .mv-checklist2-render-parent .sectiongidseperatorcontent legend {
     padding: 12px !important;
+    padding-left: 43px !important;
 }
 .mv-checklist2-render-parent .sectiongidseperator {
     height: 15px;
@@ -637,14 +638,14 @@ input.kpi-notfocus-readonly-input::placeholder {
     display: inline-block;
     padding-left: 10px;
 }
-.mv-checklist2-render-parent .mv-hdr-label-control-label, 
-.mv-checklist2-render-parent .mv-hdr-label-control-input {
+.mv-checklist2-render-parent .mv-hdr-label-control-label:not(.type-check), 
+.mv-checklist2-render-parent .mv-hdr-label-control-input:not(.type-check) {
     max-width: 100%;
 }
-.mv-checklist2-render-parent .mv-hdr-label-control:not(.mv-hdr-right-label-control), 
+/*.mv-checklist2-render-parent .mv-hdr-label-control:not(.mv-hdr-right-label-control):not(.type-check),*/ 
 .mv-checklist2-render-parent .mv-hdr-label-control:not(.mv-hdr-right-label-control) .mv-hdr-label-control-row,
-.mv-checklist2-render-parent .mv-hdr-label-control:not(.mv-hdr-right-label-control) .mv-hdr-label-control-label, 
-.mv-checklist2-render-parent .mv-hdr-label-control:not(.mv-hdr-right-label-control) .mv-hdr-label-control-input {
+.mv-checklist2-render-parent .mv-hdr-label-control:not(.mv-hdr-right-label-control) .mv-hdr-label-control-label:not(.type-check), 
+.mv-checklist2-render-parent .mv-hdr-label-control:not(.mv-hdr-right-label-control) .mv-hdr-label-control-input:not(.type-check) {
     display: block;
 }
 .mv-checklist2-render-parent .mv-hdr-label-control, 
@@ -652,11 +653,9 @@ input.kpi-notfocus-readonly-input::placeholder {
 .mv-checklist2-render-parent .mv-hdr-label-control-label, 
 .mv-checklist2-render-parent .mv-hdr-label-control-input {
     border: none;
-    padding-left: 0;
-    padding-right: 0;
-    background-color: transparent;
+    background-color: #fff;
 }
-.mv-checklist2-render-parent .mv-hdr-label-control:not(.mv-hdr-right-label-control) .mv-hdr-label-control-label {
+.mv-checklist2-render-parent .mv-hdr-label-control:not(.mv-hdr-right-label-control) .mv-hdr-label-control-label:not(.type-check) {
     width: 100%!important;
     padding-bottom: 8px;
 }
@@ -680,10 +679,9 @@ input.kpi-notfocus-readonly-input::placeholder {
 .ui-dialog .mv-checklist2-render-parent .ws-area .ws-page-content-wrapper .ws-page-content {
     padding: 0px!important;
 }
-.mv-checklist2-render-parent .mv-hdr-label-control-input input.form-control {
+.mv-checklist2-render-parent .mv-hdr-label-control-input .form-control {
     height: 32px!important;
     min-height: 32px!important;
-    border-radius: 6px!important;
     border: 1px #F9F9F9 solid;
     padding: 7px 10px!important;
 }

@@ -5,7 +5,6 @@ $headerPathArray = $rowsArray = $position1GroupArray = array();
 if (issetParamArray($this->relationComponentsConfigData['header'])) {
     $headerPathArray = $this->relationComponentsConfigData['header'];
     $headerArray = Arr::groupByArrayOnlyRow($headerPathArray, 'trg_indicator_path', false);
-    
 }
 
 if (issetParamArray($this->relationComponentsConfigData['rows'])) {

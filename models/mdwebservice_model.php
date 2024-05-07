@@ -3355,6 +3355,14 @@ class Mdwebservice_Model extends Model {
             
             $loop .= '$array[$k][\''.$processPath.'\'] = '.$setValue.'; ';
         }
+        
+        if ($dataObj) {
+            $firstRow = $dataObj[0];
+            $firstKey = array_key_first($firstRow);
+            if (strtoupper($firstKey) == $firstKey) {
+                $dataObj = Arr::changeKeyLower($dataObj);
+            }
+        }
             
         foreach ($dataObj as $k => $row) {
             eval($loop);

@@ -5110,7 +5110,7 @@ class Mdform_Model extends Model {
                             SELECT 
                                 C.INDICATOR_MAP_ID AS ID, 
                                 LISTAGG(M2.COLUMN_NAME_PATH, '|') WITHIN GROUP (ORDER BY C.ID) AS GROUP_CONFIG_PARAM_PATH, 
-                                LISTAGG(M3.COLUMN_NAME_PATH, '|') WITHIN GROUP (ORDER BY C.ID) AS GROUP_CONFIG_LOOKUP_PATH 
+                                LISTAGG(NVL(M3.COLUMN_NAME_PATH, M3.TRG_ALIAS_NAME), '|') WITHIN GROUP (ORDER BY C.ID) AS GROUP_CONFIG_LOOKUP_PATH 
                             FROM KPI_INDICATOR_MAP_CRITERIA C 
                                 INNER JOIN KPI_INDICATOR_INDICATOR_MAP M1 ON C.INDICATOR_MAP_ID = M1.ID 
                                 INNER JOIN KPI_INDICATOR_INDICATOR_MAP M2 ON C.SRC_INDICATOR_MAP_ID = M2.ID 
@@ -6238,10 +6238,10 @@ class Mdform_Model extends Model {
                 foreach (Mdform::$tabRender as $tabName => $tabContent) {
 
                     $render[] = '<div class="sectiongidseperator"></div>';
-                    $render[] = '<a class="" id="sectiongid'.$t.'"><fieldset class="sectiongidseperatorcontent collapsible" data-initialized="1">';
+                    $render[] = '<div class="sectiongidseperatorcontent-container row"><fieldset class="sectiongidseperatorcontent collapsible w-100" data-initialized="1">';
                     $render[] = '<legend>'.$tabName.'</legend>';
                     $render[] = implode('', $tabContent);
-                    $render[] = '</fieldset></a>';
+                    $render[] = '</fieldset></div>';
 
                     $t ++;
                 }          
@@ -6460,7 +6460,7 @@ class Mdform_Model extends Model {
         $value             = is_array($templateRow) ? (isset($templateRow[$columnName]) ? $templateRow[$columnName] : '') : '';
         $controlName       = 'mvParam'.Mdform::$addonPathPrefix.'['.$columnNamePath.']'.Mdform::$pathSuffix;
         $cellId            = '';
-        $addAttrs          = array();
+        $addAttrs          = [];
 
         if (!isset($row['ignoreSavedDataRow']) 
             && (Mdform::$recordId || Mdform::$defaultTplSavedId || Mdform::$fillFromExpression) 
@@ -6534,8 +6534,7 @@ class Mdform_Model extends Model {
         
         if (Mdform::$isControlViewLabel) {
             
-            $control = html_tag('span', array('class' => 'font-weight-bold pl8'), $value);
-            
+            $control = html_tag('span', ['class' => 'font-weight-bold pl8'], $value);
             return $control;
         }
         
@@ -6780,14 +6779,14 @@ class Mdform_Model extends Model {
                         || $row['GROUP_CONFIG_PARAM_PATH'] != '' 
                         || $row['GROUP_CONFIG_FIELD_PATH'] != '') {
                         
-                        $attrArray = array(
+                        $attrArray = [
                             'name' => $controlName, 
                             'data-path' => $columnNamePath, 
                             'data-col-path' => $code, 
                             'class' => 'form-control input-sm dropdownInput select2 data-combo-set kpi-ind-combo mv-ind-combo', 
                             'data-field-name' => $cellId, 
                             'isReturnArray' => true
-                        ) + $addAttrs;
+                        ] + $addAttrs;
                         
                         $row['isData'] = true;
                         
@@ -6825,15 +6824,15 @@ class Mdform_Model extends Model {
                         $attrArray['op_text'] = $datas['name'];
                         $attrArray['value'] = $value;
                         
-                        $arr = array(
-                            'META_DATA_ID' => $filterIndicatorId,
-                            'ATTRIBUTE_ID_COLUMN' => $datas['id'],
+                        $arr = [
+                            'META_DATA_ID'          => $filterIndicatorId,
+                            'ATTRIBUTE_ID_COLUMN'   => $datas['id'],
                             'ATTRIBUTE_CODE_COLUMN' => $datas['name'],
                             'ATTRIBUTE_NAME_COLUMN' => $datas['name'],
-                            'PARAM_REAL_PATH' => $columnNamePath,
-                            'PROCESS_META_DATA_ID' => $mainIndicatorId,
-                            'CHOOSE_TYPE' => 'single'
-                        );
+                            'PARAM_REAL_PATH'       => $columnNamePath,
+                            'PROCESS_META_DATA_ID'  => $mainIndicatorId,
+                            'CHOOSE_TYPE'           => 'single'
+                        ];
                         
                         $attrArray['data-row-data'] = htmlentities(json_encode($arr), ENT_QUOTES, 'UTF-8');
                         
@@ -6850,7 +6849,7 @@ class Mdform_Model extends Model {
                             $addAttrs['disabled'] = 'disabled';
                             $addAttrs['data-in-param'] = $criteriaPath;
                             
-                            $datas = array('data' => array(), 'id' => '', 'code' => '', 'name' => '');
+                            $datas = ['data' => [], 'id' => '', 'code' => '', 'name' => ''];
                             
                             if (Mdform::$kpiDmMart) {
                                 
@@ -6910,7 +6909,7 @@ class Mdform_Model extends Model {
                         }
                     }
                     
-                    $attrArray['op_custom_attr'] = array(array('key' => 'rowData', 'attr' => 'data-row-data'));
+                    $attrArray['op_custom_attr'] = [['key' => 'rowData', 'attr' => 'data-row-data']];
                     
                     if ($showType == 'multicombo') {
                         
@@ -6925,12 +6924,11 @@ class Mdform_Model extends Model {
                     $control = $selectControl['control']; 
                     
                     $controlName = str_replace('['.$columnNamePath.']', '['.$columnNamePath.'_DESC]', $controlName);
-                    $control .= Form::hidden(array('name' => $controlName, 'value' => $selectControl['op_text']));
+                    $control .= Form::hidden(['name' => $controlName, 'value' => $selectControl['op_text']]);
                     
                 } else {
                     
-                    $control = Form::text(
-                        array(
+                    $control = Form::text([
                             'name' => $controlName, 
                             'data-path' => $columnNamePath, 
                             'data-col-path' => $code, 
@@ -6938,8 +6936,7 @@ class Mdform_Model extends Model {
                             'placeholder' => $placeholder, 
                             'value' => $value, 
                             'data-field-name' => $cellId
-                        ) + $addAttrs 
-                    );
+                        ] + $addAttrs);
                 }
             }
             break;
@@ -6966,14 +6963,14 @@ class Mdform_Model extends Model {
                         }
                     }
                     
-                    $hiddenAttr = array(
+                    $hiddenAttr = [
                         'name' => $controlName,
                         'id' => $columnName . '_valueField',
                         'data-path' => $columnNamePath,
                         'value' => $selectedValue,
                         'class' => 'popupInit',
                         'data-row-data' => $lookupRowData
-                    );
+                    ];
                     
                     if ($row['GROUP_CONFIG_FIELD_PATH'] != '') {
                         
@@ -6985,12 +6982,25 @@ class Mdform_Model extends Model {
                         }
                     }
                     
-                    $attrArrayButton = array(
+                    if ($row['GROUP_CONFIG_PARAM_PATH'] != '') {
+                        $hiddenAttr['data-in-param'] = $row['GROUP_CONFIG_PARAM_PATH'];
+                        $hiddenAttr['data-in-lookup-param'] = $row['GROUP_CONFIG_LOOKUP_PATH'];
+
+                        if (substr_count($columnNamePath, '.') < 2) {
+                            $attrArray['readonly'] = 'readonly';
+                            
+                            if (issetParam($datas['isIgnoreDisabled'])) {
+                                unset($attrArray['readonly']);
+                            }
+                        }
+                    }       
+                    
+                    $attrArrayButton = [
                         'class' => 'btn default btn-bordered btn-xs mr-0',
                         'value' => '<i class="far fa-search"></i>', 
                         'onclick' => 'chooseKpiIndicatorRowsFromBasket(this, \''.$filterIndicatorId.'\', \'single\', \'mvFieldFillSelectedRows\');', 
                         'tabindex' => '-1'
-                    );
+                    ];
                     
                     $controlHidden = Form::hidden($hiddenAttr);
                     
@@ -7740,7 +7750,7 @@ class Mdform_Model extends Model {
                         (KIIM.SORT_ORDER IS NOT NULL AND KIIM.SORT_TYPE IS NOT NULL) 
                     )    
                 ORDER BY KIIM.INPUT_NAME ASC", 
-                array($indicatorId)
+                [$indicatorId]
             );
             
             $idField = 'ID';
@@ -7790,7 +7800,13 @@ class Mdform_Model extends Model {
             $linkLookupPath = issetParam($row['GROUP_CONFIG_LOOKUP_PATH']);
             $indicatorName  = issetParam($configs[0]['INDICATOR_NAME']);
             
-            $response = array('id' => $idField, 'code' => $codeField, 'name' => $nameField, 'indicatorName' => $indicatorName);
+            $response = ['id' => $idField, 'code' => $codeField, 'name' => $nameField, 'indicatorName' => $indicatorName];
+            $isQueryString = false;
+            
+            if (!$tableName && $queryString = issetParam($configs[0]['QUERY_STRING'])) {
+                $tableName = self::parseQueryString($queryString);
+                $isQueryString = true;
+            }
             
             if ($linkLookupPath) {
                 
@@ -7822,7 +7838,12 @@ class Mdform_Model extends Model {
                             $linkVal = $linkVal['id'];
                         }
                         
-                        $where .= " AND $linkLookupPath = '$linkVal'";
+                        if ($isQueryString && stripos($tableName, ':'.$linkLookupPath) !== false) {
+                            $tableName = str_ireplace(':'.$linkLookupPath, "'".$linkVal."'", $tableName);
+                        } else {
+                            $where .= " AND $linkLookupPath = '$linkVal'";
+                        }
+                        
                         $response['isIgnoreDisabled'] = true;
                         $row['isData'] = true;
                     }
@@ -7839,12 +7860,11 @@ class Mdform_Model extends Model {
                 }
             }
             
-            $data = array();
+            $data = [];
             
             if (issetParam($row['isData'])) {
                 
-                if (!$tableName && $queryString = issetParam($configs[0]['QUERY_STRING'])) {
-                    $tableName = self::parseQueryString($queryString);
+                if ($isQueryString) {
                     
                     unset(self::$indicatorColumns[$indicatorId]);
                 
@@ -7859,7 +7879,7 @@ class Mdform_Model extends Model {
                         parse_str($drillDownCriteria, $drillDownCriteriaArr);
                         
                         $drillDownCriteriaArr = Arr::changeKeyLower($drillDownCriteriaArr);
-                        $drillDownCriterias = array();
+                        $drillDownCriterias = [];
                         
                         foreach ($drillDownCriteriaArr as $drillDownCriteriaKey => $drillDownCriteriaVal) {
                             $drillDownCriterias['filter_'.$drillDownCriteriaKey] = $drillDownCriteriaVal;
@@ -15285,6 +15305,27 @@ class Mdform_Model extends Model {
                 $filterData = Input::post('filterData');
             }
             
+            $drillDownCriteria = Input::post('drillDownCriteria');
+            
+            if ($drillDownCriteria) {
+                
+                parse_str($drillDownCriteria, $defaultCriteriaData);
+                
+                if (is_array($defaultCriteriaData)) {
+                    foreach ($defaultCriteriaData as $drillColumn => $drillVal) {
+                        if ($drillVal != '') {
+                            $drillVal = self::fixFilterColValue(Input::param($drillVal));
+                            if (stripos($tableName, ':'.$drillColumn) !== false) {
+                                $tableName = str_ireplace(':'.$drillColumn, $drillVal, $tableName);
+                            } else {
+                                $subCondition .= " AND $drillColumn = '".$drillVal."'";
+                                $isSubCondition = true;
+                            }
+                        }
+                    }
+                }
+            }
+            
             if ($filterData) {
                 
                 foreach ($filterData as $filterColName => $filterColVals) {
@@ -15414,22 +15455,6 @@ class Mdform_Model extends Model {
             
             if ($whereClause = Input::postNonTags('whereClause')) {
                 $subCondition .= " AND $whereClause";
-            }
-            
-            $drillDownCriteria = Input::post('drillDownCriteria');
-            
-            if ($drillDownCriteria) {
-                
-                parse_str($drillDownCriteria, $defaultCriteriaData);
-                
-                if (is_array($defaultCriteriaData)) {
-                    foreach ($defaultCriteriaData as $drillColumn => $drillVal) {
-                        if ($drillVal != '') {
-                            $subCondition .= " AND $drillColumn = '".self::fixFilterColValue(Input::param($drillVal))."'";
-                            $isSubCondition = true;
-                        }
-                    }
-                }
             }            
             
             if ($filterJson = Input::post('filter')) {
@@ -29200,6 +29225,8 @@ class Mdform_Model extends Model {
         
         try {
             
+            $this->db->BeginTrans();
+            
             $mainIndicatorId = Input::numeric('mainIndicatorId');
             
             $mainRow       = self::getKpiIndicatorRowModel($mainIndicatorId); 
@@ -29252,7 +29279,7 @@ class Mdform_Model extends Model {
                 $values = 'TRG.ID, ';
             }
             
-            $checkColumn = $fieldLookupConfigs = [];
+            $checkColumn = $fieldLookupConfigs = $trgUniqueFields = [];
             
             if (!$isCheckSystemTable) {
                 
@@ -29279,6 +29306,8 @@ class Mdform_Model extends Model {
                         } else {
                             $equal .= 'LOWER(SRC.'.$fieldsConfig['SRC_COLUMN_NAME'].') = LOWER(TRG.'.$fieldsConfig['TRG_COLUMN_NAME'].') AND ';
                         }
+                        
+                        $trgUniqueFields[$fieldsConfig['TRG_COLUMN_NAME']] = $fieldsConfig['TRG_LABEL_NAME'];
                     }
                     
                     if (isset($fieldLookupConfigs[$fieldsConfig['SRC_COLUMN_NAME']][1])) {
@@ -29346,6 +29375,22 @@ class Mdform_Model extends Model {
             
             if (!$equal) {
                 throw new Exception('Үндсэн бүтэц дээр UNIQUE талбарын тохиргоо хийгдээгүй байна!'); 
+            }
+            
+            $checkUniqueNotNullColumns = $selectCheckUniqueColumns = '';
+            foreach ($trgUniqueFields as $trgUniqueField => $trgUniqueFieldLabel) {
+                $checkUniqueNotNullColumns .= $trgUniqueField . ' IS NOT NULL AND ';
+                $selectCheckUniqueColumns .= $trgUniqueField . ', ';
+            }
+            $checkUniqueNotNullColumns = rtrim(trim($checkUniqueNotNullColumns), 'AND');
+            $selectCheckUniqueColumns = rtrim(trim($selectCheckUniqueColumns), ',');
+            
+            $checkUniqueData = $this->db->GetAll("SELECT $selectCheckUniqueColumns, COUNT(1) AS ROW_COUNT FROM $tableName WHERE $checkUniqueNotNullColumns GROUP BY $selectCheckUniqueColumns HAVING COUNT(1) > 1");
+            
+            if ($checkUniqueData) {
+                
+                $this->db->RollbackTrans();
+                return ['status' => 'warning', 'uniqueFields' => $trgUniqueFields, 'data' => $checkUniqueData];
             }
             
             $beforeCommitCheck = $this->db->GetAll("
@@ -29427,29 +29472,87 @@ class Mdform_Model extends Model {
             $executeIndicators = $this->db->GetAll("
                 SELECT 
                     T1.ID, 
-                    T1.QUERY_STRING 
+                    T1.KPI_TYPE_ID, 
+                    T1.QUERY_STRING, 
+                    T2.CHECK_QUERY, 
+                    T0.CRITERIA, 
+                    T0.DESCRIPTION 
                 FROM KPI_INDICATOR_INDICATOR_MAP T0 
                     INNER JOIN KPI_INDICATOR T1 ON T1.ID = T0.TRG_INDICATOR_ID 
-                WHERE T0.SRC_INDICATOR_ID = ".$this->db->Param(0)." 
+                    LEFT JOIN V_CHECK_QUERY T2 ON T2.SRC_RECORD_ID = T1.ID 
+                WHERE T0.SRC_INDICATOR_ID = ".$this->db->Param(0)."   
                     AND T0.SEMANTIC_TYPE_ID = 74 
-                    AND T1.KPI_TYPE_ID = 1043 
-                    AND T1.QUERY_STRING IS NOT NULL 
+                    AND T1.KPI_TYPE_ID IN (1043, 1200) 
+                    AND ( 
+                        (T1.KPI_TYPE_ID = 1043 AND T1.QUERY_STRING IS NOT NULL) 
+                        OR 
+                        (T1.KPI_TYPE_ID = 1200 AND T2.CHECK_QUERY IS NOT NULL 
+                            AND T0.CRITERIA IS NOT NULL 
+                            AND T0.DESCRIPTION IS NOT NULL) 
+                    ) 
                 ORDER BY T0.ORDER_NUMBER ASC", [$mainIndicatorId]); 
+            
+            $afterShowMessage = [];
             
             foreach ($executeIndicators as $row) {
                 
-                $queryStr = html_entity_decode($row['QUERY_STRING'], ENT_QUOTES, 'UTF-8');
-                $queryStr = self::replaceNamedParameters($queryStr); 
+                if ($row['KPI_TYPE_ID'] == '1043') {
+                    
+                    $queryStr = html_entity_decode($row['QUERY_STRING'], ENT_QUOTES, 'UTF-8');
+                    $queryStr = self::replaceNamedParameters($queryStr); 
+
+                    $queryStr = str_ireplace('[SRC_TABLE]', $mainTableName, $queryStr);
+                    $queryStr = str_ireplace('[TRG_TABLE]', $tableName, $queryStr);
                 
-                $queryStr = str_ireplace('[SRC_TABLE]', $mainTableName, $queryStr);
-                $queryStr = str_ireplace('[TRG_TABLE]', $tableName, $queryStr);
+                    $this->db->Execute($queryStr);
+                    
+                } else {
+                    
+                    $checkQuery = html_entity_decode($row['CHECK_QUERY'], ENT_QUOTES, 'UTF-8');
+                    $checkQuery = self::replaceNamedParameters($checkQuery); 
+
+                    $checkQuery = str_ireplace('[SRC_TABLE]', $mainTableName, $checkQuery);
+                    $checkQuery = str_ireplace('[TRG_TABLE]', $tableName, $checkQuery);
+                    
+                    $checkRow = $this->db->GetRow($checkQuery);
                 
-                $this->db->Execute($queryStr);
+                    if ($checkRow) {
+
+                        $checkCriteria = Str::lower(html_entity_decode($row['CRITERIA'], ENT_QUOTES, 'UTF-8'));
+                        $checkDescription = html_entity_decode($row['DESCRIPTION'], ENT_QUOTES, 'UTF-8');
+
+                        foreach ($checkRow as $sk => $sv) {
+
+                            $replaceVal = $sv;
+
+                            if (is_string($replaceVal) && strpos($replaceVal, "'") === false) {
+                                $replaceVal = "'".Str::lower($replaceVal)."'";
+                            } elseif (is_null($replaceVal)) {
+                                $replaceVal = "''";
+                            }
+
+                            $checkCriteria = str_ireplace('['.$sk.']', $replaceVal, $checkCriteria);
+                            $checkDescription = str_ireplace('['.$sk.']', $sv, $checkDescription);
+                        }
+
+                        if (Mdcommon::expressionEvalFixWithReturn($checkCriteria)) {
+
+                            $afterShowMessage[] = $checkDescription;
+                        }
+                    }
+                }
             }
             
+            if ($afterShowMessage) {
+                throw new Exception(implode('<br /><br />', $afterShowMessage)); 
+            }
+            
+            $this->db->CommitTrans();
             $result = ['status' => 'success', 'message' => 'Successfully'];
             
         } catch (Exception $ex) {
+            
+            $this->db->RollbackTrans();
             $result = ['status' => 'error', 'message' => $ex->getMessage()];
         }
         
@@ -29831,6 +29934,98 @@ class Mdform_Model extends Model {
         }
         
         return null;
+    }
+    
+    public function getDataPointInPolygonModel() {
+        
+        $_POST['indicatorId'] = Input::numeric('indicatorId');
+        $_POST['page']        = 1;
+        $_POST['rows']        = 200;
+        
+        $inputParamsData = Input::post('paramData');
+        
+        if ($inputParamsData) {
+
+            $paramFilter = [];
+
+            foreach ($inputParamsData as $row) {
+
+                $value = issetParam($row['value']);
+
+                if ($value != '') {
+
+                    if (is_array($value)) {
+                        $paramFilter[$row['inputPath']][] = [
+                            'operator' => 'IN',
+                            'operand' => Arr::implode_r(',', $value, true)
+                        ];
+                    } else {
+                        $paramFilter[$row['inputPath']][] = [
+                            'operator' => '=',
+                            'operand' => $value
+                        ];
+                    }
+                }
+            }
+
+            $_POST['criteria'] = $paramFilter;
+        }
+
+        $rowDatas = $this->model->indicatorDataGridModel();
+        
+        if ($rowDatas['status'] == 'success') {
+            if (isset($rowDatas['rows'][0])) {
+                $polygonField = strtoupper(Input::post('polygonField'));
+                
+                if (array_key_exists($polygonField, $rowDatas['rows'][0])) {
+                    $coordinate = Input::post('coordinate');
+                    $coordinateArr = explode(',', $coordinate);
+                    $rows = $rowDatas['rows'];
+                    
+                    $x = trim($coordinateArr[0]); $y = trim($coordinateArr[1]);
+                    $responseData = [];
+                    
+                    foreach ($rows as $row) {
+                        if ($row[$polygonField] != '') {
+                            $coordinates = json_decode(html_entity_decode($row[$polygonField], ENT_QUOTES, 'UTF-8'), true);
+                            if ($coordinates && isset($coordinates['coordinates'])) {
+                                
+                                $coordinatesArr = $coordinates['coordinates'];
+                                $inside = false;
+                                
+                                for ($i = 0, $j = count($coordinatesArr) - 1; $i <  count($coordinatesArr); $j = $i++) {
+                                    $xi = $coordinatesArr[$i]['lat']; $yi = $coordinatesArr[$i]['lng'];
+                                    $xj = $coordinatesArr[$j]['lat']; $yj = $coordinatesArr[$j]['lng'];
+
+                                    $intersect = (($yi > $y) != ($yj > $y))
+                                        && ($x < ($xj - $xi) * ($y - $yi) / ($yj - $yi) + $xi);
+                                    if ($intersect) $inside = !$inside;
+                                }
+                                
+                                if ($inside) {
+                                    $responseData[] = $row;
+                                }
+                            }
+                        }
+                    }
+                    
+                    if ($responseData) {
+                        $response = ['status' => 'success', 'data' => $responseData];
+                    } else {
+                        $response = ['status' => 'info', 'message' => 'There was no checked data!'];
+                    }
+
+                } else {
+                    $response = ['status' => 'error', 'message' => $polygonField . ' invalid field!'];
+                }
+            } else {
+                $response = ['status' => 'error', 'message' => 'Empty data!'];
+            }
+        } else {
+            $response = $rowDatas;
+        }
+        
+        return $response;
     }
     
     public function getEndToEndLogDataModel($listIndicatorId, $structureIndicatorId, $recordId) {

@@ -4461,7 +4461,7 @@ class Mdwidget extends Controller {
         (String) $pageHtml = $pageCss = '';
         if (issetParamArray($body['children'])) {
             foreach ($body['children'] as $key => $row) {
-
+                
                 $pageHtml .= '<' . $row['tag'] . ' ';
                     if (issetParam($row['data-section']) === 'table') {
                         $isSimpleData = '1';
@@ -4513,24 +4513,34 @@ class Mdwidget extends Controller {
     public function renderWidgetContent ($body, $simpleData, $isSimpleData = '0') {
         (String) $pageHtml = $pageCss = '';
         foreach ($body as $row) {
-            $lowerType = Str::lower($row['type']);
-            $attrs = '';
-            if (issetParamArray($row['attributes'])) {
-                foreach ($row['attributes'] as $key =>  $attr) {
-                    $attrs .= ' ' . $key . '="'. $attr . '"';
+            if (is_array($row)) {
+                $lowerType = Str::lower($row['type']);
+                $attrs = '';
+                if (issetParamArray($row['attributes'])) {
+                    foreach ($row['attributes'] as $key =>  $attr) {
+                        $attrs .= ' ' . $key . '="'. $attr . '"';
+                    }
                 }
-            }
-
-            if (issetParamArray($row['content']['0']) && is_array($row['content']['0']) && issetParam($row['type']) !== '') {
-                $pageHtml .= '<' . $lowerType . $attrs . '>';
-                    $pageAttr = self::renderWidgetContent($row['content'], $simpleData, $isSimpleData);
-                    $pageHtml .= issetParam($pageAttr['html']);
-                    $pageCss .= issetParam($pageAttr['css']);
-                $pageHtml .= '</' . $lowerType . '>';
-            } elseif (issetParamArray($row['content']['0']) && !is_array($row['content']['0'])) {
-                $pageHtml .= '<' . $lowerType . $attrs . '>';
-                    $pageHtml .= issetParam($row['content']['0']);
-                $pageHtml .= '</' . $lowerType . '>';
+                
+                if (issetParamArray($row['content']['0']) && is_array($row['content']['0']) && issetParam($row['type']) !== '') {
+                    $pageHtml .= '<' . $lowerType . $attrs . '>';
+                        $pageAttr = self::renderWidgetContent($row['content'], $simpleData, $isSimpleData);
+                        $pageHtml .= issetParam($pageAttr['html']);
+                        $pageCss .= issetParam($pageAttr['css']);
+                    $pageHtml .= '</' . $lowerType . '>';
+                } elseif(sizeOf(issetParamArray($row['content'])) > 1) {
+                    $pageHtml .= '<' . $lowerType . $attrs . '>';
+                        $pageAttr = self::renderWidgetContent($row['content'], $simpleData, $isSimpleData);
+                        $pageHtml .= issetParam($pageAttr['html']);
+                        $pageCss .= issetParam($pageAttr['css']);
+                    $pageHtml .= '</' . $lowerType . '>';
+                } else {
+                    $pageHtml .= '<' . $lowerType . $attrs . '>';
+                        if (issetParamArray($row['content']['0']) && !is_array($row['content']['0'])) {
+                            $pageHtml .= issetParam($row['content']['0']);
+                        }
+                    $pageHtml .= '</' . $lowerType . '>';
+                }
             }
         }
 
@@ -4539,17 +4549,21 @@ class Mdwidget extends Controller {
 
     public function renderWidgetContentTree ($body, $jsTree = array()) {
         foreach ($body as $row) {
-            $tmp = array(
-                'text' => issetParam($row['attributes']['data-name']),
-                'id' => issetParam($row['attributes']['data-id']),
-                'children' => array(),
-            );
+            if (is_array($row)) {
+                $tmp = array(
+                    'text' => checkDefaultVal($row['attributes']['data-name'], checkDefaultVal($row['type'], 'none')),
+                    'id' => issetParam($row['attributes']['data-id']),
+                    'children' => array(),
+                );
 
-            if (issetParamArray($row['content']['0']) && is_array($row['content']['0']) && issetParam($row['type']) !== '') {
-                $tmp['children'] = self::renderWidgetContentTree($row['content']);
+                if (issetParamArray($row['content']['0']) && is_array($row['content']['0']) && issetParam($row['type']) !== '') {
+                    $tmp['children'] = self::renderWidgetContentTree($row['content']);
+                } elseif(sizeOf(issetParamArray($row['content'])) > 1) {
+                    $tmp['children'] = self::renderWidgetContentTree($row['content']);
+                }
+
+                array_push($jsTree, $tmp);
             }
-
-            array_push($jsTree, $tmp);
         }
         
         return $jsTree;
@@ -4645,7 +4659,9 @@ class Mdwidget extends Controller {
         
         $this->view->mainData = $this->ws->runSerializeResponse(GF_SERVICE_ADDRESS, 'indicatorWidgetConfig_004', array('id' => $this->view->indicatorId));  
         $json = json_decode(html_entity_decode(issetParam($this->view->mainData['result']['widgetdtl']['widgetconfig']), ENT_QUOTES, 'UTF-8'), true);
-        $this->view->json = issetParamArray($json['content']);
+        $this->view->json = issetParamArray($json);
+        /* var_dump($json);
+        die; */
         $this->view->js = array_unique(array_merge(array('custom/addon/admin/pages/scripts/app.js'), AssetNew::metaOtherJs()));
         $this->view->css = AssetNew::metaCss();
 
@@ -4654,6 +4670,7 @@ class Mdwidget extends Controller {
             'middleware/assets/plugins/builder.v2/moveable/dom-to-image.min.js',
             'middleware/assets/plugins/builder.v2/atomic.js',
             'assets/core/js/plugins/forms/inputs/touchspin.min.js',
+            'assets/custom/addon/plugins/jquery.knob.min.js',
         );
         
         $this->view->fullUrlJs = array_unique(array_merge($this->view->fullUrlJs, AssetNew::amChartJs()));
@@ -4690,7 +4707,7 @@ class Mdwidget extends Controller {
 
         $postData = Input::postData();
         $jsonConfig = $postData['json'];
-
+        
         $_POST = array (
             'param' =>  array (
                 'id' => issetParam($postData['indicatorId']),

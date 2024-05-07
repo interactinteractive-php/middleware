@@ -103,12 +103,25 @@ if ($this->filterData || $this->filterTreeData) {
 
                         if ($rowConfig['namedParam']) {
                             
+                            $setDataRow = [];
+                            
                             if ($rowConfig['row']['SHOW_TYPE'] == 'icon_picker') {
                                 $rowConfig['row']['SHOW_TYPE'] = 'icon_lookup';
                             }
+                            
+                            if ($drillDownCriteria = issetParam($rowConfig['row']['drillDownCriteria'])) {
+                                parse_str($drillDownCriteria, $drillDownCriteriaArr);
+                                if (is_array($drillDownCriteriaArr)) {
+                                    $drillDownCriteriaArr = Arr::changeKeyLower($drillDownCriteriaArr);
+                                    $lowerTrgAliasName = strtolower($rowConfig['row']['TRG_ALIAS_NAME']);
+                                    if (isset($drillDownCriteriaArr[$lowerTrgAliasName])) {
+                                        $setDataRow[$rowConfig['row']['TRG_ALIAS_NAME']] = $drillDownCriteriaArr[$lowerTrgAliasName];
+                                    }
+                                }
+                            }
 
                             $html[] = '<div data-named-param="1" data-load-fnc="'.$clickFnc.'">';
-                                $html[] = $model->kpiIndicatorControl($rowConfig['row']);
+                                $html[] = $model->kpiIndicatorControl($rowConfig['row'], $setDataRow);
                             $html[] = '</div>';
 
                         } else {

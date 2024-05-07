@@ -67,6 +67,7 @@ $(function() {
                         viewProcess_<?php echo $this->uniqId; ?>.empty().append(data.Html).promise().done(function () {
                             viewProcess_<?php echo $this->uniqId; ?>.find('.bp-btn-back, .bpTestCaseSaveButton').remove();
                             viewProcess_<?php echo $this->uniqId; ?>.find('.meta-toolbar').addClass('not-sticky');
+                            viewProcess_<?php echo $this->uniqId; ?>.addClass('bp-render-checklist');
                             
                             var $saveAddBtn = viewProcess_<?php echo $this->uniqId; ?>.find('.bp-btn-saveadd:visible');
                             if ($saveAddBtn.length) {
@@ -168,9 +169,13 @@ $(function() {
                             viewProcess_<?php echo $this->uniqId; ?>.empty().append(data.html).promise().done(function () {
                                 Core.unblockUI();                        
                                 if (typeof data.chooseCashier === 'undefined') {
-                                    viewProcess_<?php echo $this->uniqId; ?>.find('.pos-wrap').css({"margin-left":"-15px", "margin-right":"-16px", "margin-top":"-9px"});
-                                    viewProcess_<?php echo $this->uniqId; ?>.find('.pos-left').css({"position":"inherit","overflow-y":"auto","overflow-x":"hidden","height":viewProcess_<?php echo $this->uniqId; ?>.find('.pos-center-inside-height').height()+130+'px'});
-                                    viewProcess_<?php echo $this->uniqId; ?>.find('.pos-left-inside-help').css("position","inherit");
+                                    
+                                    setTimeout(function () {
+                                        viewProcess_<?php echo $this->uniqId; ?>.find('.pos-wrap').css({"margin-left":"-15px", "margin-right":"-16px", "margin-top":"-9px"});
+                                        viewProcess_<?php echo $this->uniqId; ?>.find('.pos-left').css({"position":"inherit","overflow-y":"auto","overflow-x":"hidden","height":viewProcess_<?php echo $this->uniqId; ?>.find('.pos-center-inside-height').height()+130+'px'});
+                                        viewProcess_<?php echo $this->uniqId; ?>.find('.pos-left-inside-help').css("position","inherit");
+                                    }, 300);
+                                    
                                     if (typeof checkInitPosJS === 'undefined') {
                                         $.ajax({
                                             url: "middleware/assets/js/pos/pos.js",
@@ -218,6 +223,22 @@ $(function() {
                                 }                    
                             });
                         });                        
+                    },
+                    error: function(){ alert('Error'); Core.unblockUI(); }
+                });
+            } else if (metaDataId == '1482131909084156') { //Salary menu meta id
+            
+                $.ajax({
+                    type: 'post',
+                    url: 'mdsalary/salary_v3',
+                    beforeSend: function() {
+                        Core.blockUI({message: 'Loading...', boxed: true});
+                    },
+                    success: function (data) {
+                        viewProcess_<?php echo $this->uniqId; ?>.empty().append(data).promise().done(function () {
+                            Core.initAjax(viewProcess_<?php echo $this->uniqId; ?>);
+                            Core.unblockUI();                                   
+                        });                    
                     },
                     error: function(){ alert('Error'); Core.unblockUI(); }
                 });

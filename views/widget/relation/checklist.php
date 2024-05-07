@@ -2,6 +2,7 @@
 $headerPathArray = $headerArray = $rowsArray = array();
 $positionTimer = '';
 $positionSetTimer = '';
+$positionSetCorrectPath = 'C8.IS_CORRECT';
 $minusPx = '150';
 
 if (issetParamArray($this->relationComponentsConfigData['header'])) {
@@ -211,6 +212,10 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                                                             }
                                                             else {
                                                                 $tmp['usedesc'] = '0';
+                                                            }
+
+                                                            if (issetParamArray($rowsArray['position-check'])) { 
+                                                                $positionSetCorrectPath = $rowsArray['position-check']['src_indicator_path'];
                                                             }
 
                                                             if (issetParamArray($rowsArray['position-files'])) {
@@ -1257,16 +1262,16 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
         if (_checkType === '1') {
             if (_this.hasClass('active')) {
                 _this.removeClass('active');
-                _selector.find('input[data-path="C8.IS_CORRECT"]').val('0');
+                _selector.find('input[data-path="<?php echo $positionSetCorrectPath; ?>"]').val('0');
             } else {
                 _this.addClass('active');
-                _selector.find('input[data-path="C8.IS_CORRECT"]').val('1');
+                _selector.find('input[data-path="<?php echo $positionSetCorrectPath; ?>"]').val('1');
             }
         } else {
-            _this.closest('.column-grap').find('input[data-path="C8.IS_CORRECT"]').val('0');
+            _this.closest('.column-grap').find('input[data-path="<?php echo $positionSetCorrectPath; ?>"]').val('0');
             _this.closest('.column-grap').find('.active').removeClass('active');
 
-            _selector.find('input[data-path="C8.IS_CORRECT"]').val('1');
+            _selector.find('input[data-path="<?php echo $positionSetCorrectPath; ?>"]').val('1');
             _this.addClass('active');
         }
 

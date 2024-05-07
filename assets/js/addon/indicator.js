@@ -4017,17 +4017,77 @@ function removeKpiIndicatorRowsFromBasket(elem) {
 
 function chooseKpiIndicatorRowsFromBasket(elem, indicatorId, chooseType, funcName) {
 
-    var $this = $(elem), chooseType = (chooseType == '') ? 'single' : chooseType;
+    var $this = $(elem), chooseType = (chooseType == '') ? 'single' : chooseType, params = '';
     var $dialogName = 'dialog-dataview-selectable-' + indicatorId;
     if (!$("#" + $dialogName).length) {
         $('<div id="' + $dialogName + '"></div>').appendTo('body');
     }
     var $dialog = $('#' + $dialogName);
+    var $parent = $this.closest('div.meta-autocomplete-wrap');    
+    var $thisHidden = $parent.find('input[type="hidden"]');
+    
+    if (typeof $thisHidden.attr('data-in-param') !== 'undefined' && $thisHidden.attr('data-in-param') != '' && typeof $thisHidden.attr('data-in-lookup-param') !== 'undefined') {
+
+        var _inputParam = $thisHidden.attr('data-in-param').split('|');
+        var _lookupParam = $thisHidden.attr('data-in-lookup-param').split('|');
+        var isBPDtlTbl = $this.closest('table').hasClass('bprocess-table-dtl');
+
+        if ($parent.closest('.popup-parent-tag').length) {
+            var $parentForm = $parent.closest('.popup-parent-tag');
+        } else {
+            var $parentForm = $this.closest('form');
+
+            if ($parentForm.attr('id') == 'default-criteria-form') {
+                $parentForm = $parentForm.closest('.main-dataview-container').find('form');
+            } else if ($parentForm.closest('.selectable-dataview-grid').length) {
+                $parentForm = $parentForm.closest('.selectable-dataview-grid').find('form');
+            }
+        }
+
+        for (var i = 0; i < _inputParam.length; i++) {
+            if (isBPDtlTbl) {
+                if ($this.closest('tr').find("[data-path='" + _inputParam[i] + "']").length) {
+                    var paramsVal = $this.closest('tr').find("[data-path='" + _inputParam[i] + "']");
+                } else if ($this.closest('table').closest('tr').find("[data-path='" + _inputParam[i] + "']").length) {
+                    var paramsVal = $this.closest('table').closest('tr').find("[data-path='" + _inputParam[i] + "']");
+                } else {
+                    var paramsVal = $parentForm.find("[data-path='" + _inputParam[i] + "']");
+                }
+            } else {
+                var paramsVal = $parentForm.find("[data-path='" + _inputParam[i] + "']");
+            }
+
+            if (paramsVal.length) {
+                var paramVal = '';
+
+                if (paramsVal.prop('tagName') == 'SELECT') {
+                    if (paramsVal.hasClass('select2')) {
+                        paramVal = paramsVal.select2('val');
+                    } else {
+                        paramVal = paramsVal.val();
+                    }
+                } else {
+                    if (paramsVal.length > 1) {
+
+                        _lookupParam[i] = _lookupParam[i] + '[]';
+                        paramVal = paramsVal.map(function() { return this.value; }).get().join(',');
+
+                    } else if (paramsVal.hasClass('bigdecimalInit')) {
+                        paramVal = paramsVal.autoNumeric('get');
+                    } else {
+                        paramVal = paramsVal.val();
+                    }
+                }
+
+                params += _lookupParam[i] + '=' + paramVal + '&';
+            }
+        }
+    }
 
     $.ajax({
         type: 'post',
         url: 'mdform/indicatorSelectableGrid',
-        data: {indicatorId: indicatorId, chooseType: chooseType},
+        data: {indicatorId: indicatorId, chooseType: chooseType, params: params},
         dataType: 'json',
         beforeSend: function() {
             Core.blockUI({message: 'Loading...', boxed: true});

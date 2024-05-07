@@ -3255,7 +3255,27 @@ class Mdexpression extends Controller {
                 }
             }
         }
+        
+        if (strpos($fullExpression, 'getDataPointInPolygon(') !== false) {
+            preg_match_all('/getDataPointInPolygon\((.*?)\)/i', $fullExpression, $callProcess);
 
+            if (count($callProcess[0]) > 0) {
+                foreach ($callProcess[1] as $ek => $ev) {
+
+                    $evArr = explode(',', $ev);
+                    
+                    if (count($evArr) >= 3) {
+                        $processCode = trim(str_replace("'", '', $evArr[0]));
+                        $processCodeLower = strtolower($processCode);
+                        $getProcessId = $this->model->getKpiIndicatorIdByCodeModel($processCodeLower);
+                        $processIdBySelect = $getProcessId ? "'" . $getProcessId . "'" : $processCode;
+
+                        $fullExpression = str_replace($callProcess[0][$ek], 'bpGetDataPointInPolygon('.$mainSelector.', checkElement, '.$processIdBySelect.', '.$evArr[1].', '.$evArr[2].(isset($evArr[3]) ? ', '.$evArr[3] : '').')', $fullExpression);
+                    }
+                }
+            }
+        }
+        
         if (strpos($fullExpression, 'close(') !== false) {
             preg_match_all('/close\((.*?)\)/i', $fullExpression, $closeProcess);
 

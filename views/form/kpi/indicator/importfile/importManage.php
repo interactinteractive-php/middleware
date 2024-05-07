@@ -372,17 +372,21 @@ function mvImportManageDataCommit(elem, indicatorId, mainIndicatorId) {
                     },
                     success: function(data) {
                         Core.unblockUI();
-                        new PNotify({
-                            title: data.status,
-                            text: data.message,
-                            type: data.status,
-                            sticker: false, 
-                            addclass: 'pnotify-center'
-                        }); 
-                            
-                        if (data.status == 'success') {
-                            dataViewReload(indicatorId);
-                        } 
+                        if (data.hasOwnProperty('uniqueFields')) {
+                            mvImportManagePopupDuplicateRows(data.uniqueFields, data.data);
+                        } else {
+                            new PNotify({
+                                title: data.status,
+                                text: data.message,
+                                type: data.status,
+                                sticker: false, 
+                                addclass: 'pnotify-center'
+                            }); 
+
+                            if (data.status == 'success') {
+                                dataViewReload(indicatorId);
+                            } 
+                        }
                     }
                 });
             }},
@@ -459,6 +463,62 @@ function mvImportManageRemoveIndicator(elem) {
                 });
             }},
             {text: plang.get('no_btn'), class: 'btn blue-madison btn-sm', click: function () {
+                $dialog.dialog('close');
+            }}
+        ]
+    });
+    $dialog.dialog('open');
+}
+function mvImportManagePopupDuplicateRows(uniqueFields, data) {
+    var render = [], n = 1;
+                
+    render.push('<table class="table table-bordered table-hover">');
+        render.push('<thead>');
+            render.push('<tr>');
+                render.push('<th class="text-center" style="width: 20px">№</th>');
+                render.push('<th class="text-center" style="width: 85px">Давхардсан тоо</th>');
+                
+                for (var u in uniqueFields) {
+                    render.push('<th class="text-center">'+uniqueFields[u]+'</th>');
+                }
+                
+            render.push('</tr>');
+        render.push('</thead>');
+        render.push('<tbody>');
+
+        for (var d in data) {
+            render.push('<tr>');
+                render.push('<td class="text-center">'+(n++)+'</td>');
+                render.push('<td class="text-center">'+data[d]['ROW_COUNT']+'</td>');
+                for (var u in uniqueFields) {
+                    render.push('<td>'+data[d][u]+'</td>');
+                }
+            render.push('</tr>');
+        }
+
+        render.push('</tbody>');
+    render.push('</table>');    
+
+    var $dialogName = 'dialog-mvduplicate-rows';
+    if (!$("#" + $dialogName).length) {
+        $('<div id="' + $dialogName + '"></div>').appendTo('body');
+    }
+    var $dialog = $('#' + $dialogName);
+
+    $dialog.empty().append(render.join(''));  
+    $dialog.dialog({
+        resizable: true,
+        bgiframe: true,
+        autoOpen: false,
+        title: 'Duplicate rows',
+        width: 800,
+        height: 'auto',
+        modal: true,
+        close: function() {
+            $dialog.empty().dialog('destroy').remove();
+        },
+        buttons: [ 
+            {text: plang.get('close_btn'), class: 'btn blue-madison btn-sm', click: function () {
                 $dialog.dialog('close');
             }}
         ]

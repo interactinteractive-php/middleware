@@ -1372,9 +1372,9 @@ class Mdform extends Controller {
                     }
                 }
                 
-                if (!Mdform::$tabRender && !Mdform::$topTabRender) {
-                    $this->view->form = str_replace(['<!--divClassRowStart-->', '<!--divClassRowEnd-->'], ['<div class="row">', '</div>'], $this->view->form);
-                }
+//                if (!Mdform::$tabRender && !Mdform::$topTabRender) {
+//                }
+                $this->view->form = str_replace(['<!--divClassRowStart-->', '<!--divClassRowEnd-->'], ['<div class="row mv-header-params">', '</div>'], $this->view->form);
                         
                 $response = [
                     'status' => 'success', 
@@ -1707,7 +1707,7 @@ class Mdform extends Controller {
         $this->view->row = $this->model->getKpiIndicatorRowModel($this->view->indicatorId);
         
         if (!isset($this->view->row['NAME'])) {
-            Message::add('e', '', 'back');
+            Message::add('e', $this->view->indicatorId . ' indicator олдсонгүй!', 'back');
         }
         
         $this->view->isAjax = Input::post('isAjax') ? Input::post('isAjax') : is_ajax_request();
@@ -2535,7 +2535,7 @@ class Mdform extends Controller {
     
     public function filterKpiIndicatorValueChart() {
         $response = $this->model->filterKpiIndicatorValueChartModel();
-        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+        convJson($response);
     }
     
     public static function clearCacheData($indicatorId = '') {
@@ -3353,7 +3353,8 @@ class Mdform extends Controller {
         $this->view->isBasket = true;
         $this->view->indicatorId = Input::numeric('indicatorId');
         $this->view->chooseType = Input::post('chooseType');
-        
+        $_POST['drillDownCriteria'] = Input::post('params');
+       
         $mainList = $this->indicatorList($this->view->indicatorId, true);
         
         $this->view->mainList = $mainList['html'];        
@@ -5934,7 +5935,7 @@ class Mdform extends Controller {
         
         $mdwid = &getInstance();
         $mdwid->load->model('mdwidget', 'middleware/models/');
-
+        
         $this->view->widgetData = $mdwid->model->getIndicatorWidgetModel($this->view->indicatorId);
         $this->view->widgetKeys = array();
         if (issetParamArray($this->view->widgetData['pageindicatormap']['0'])) {
@@ -6305,6 +6306,11 @@ class Mdform extends Controller {
     
     public function getIndicatorParam() {
         $response = $this->model->getIndicatorParamModel();
+        convJson($response);
+    }
+    
+    public function getDataPointInPolygon() {
+        $response = $this->model->getDataPointInPolygonModel();
         convJson($response);
     }
     
