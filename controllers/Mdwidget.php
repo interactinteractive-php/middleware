@@ -98,6 +98,10 @@ class Mdwidget extends Controller {
             'detail_header_reverse' => array(
                 'topAddRow' => false, 
                 'topAddOneRow' => false
+            ), 
+            'detail_header_reverse_loop' => array(
+                'topAddRow' => false, 
+                'topAddOneRow' => false
             )
         );
         

@@ -36,6 +36,7 @@ class Mdwebservice extends Controller {
     public static $layoutSectionOrder = array();
     public static $sections = array();
     public static $layoutExistsParam = array();
+    public static $detailFillData = array();
     public static $responseData = null;
     public static $isHistoryControl = false;
     public static $isLogViewMode = false;
@@ -14533,7 +14534,7 @@ class Mdwebservice extends Controller {
         $jsonAttr = Input::post('jsonAttr');
         
         if (!issetParam($jsonAttr['PROCESS_META_DATA_ID']) || !issetParam($jsonAttr['META_DATA_ID']) || !issetParam($jsonAttr['PARAM_REAL_PATH'])) {
-            echo json_encode(array('emptyCombo' => 'OK')); exit;
+            echo json_encode(['emptyCombo' => 'OK']); exit;
         }
         
         $this->load->model('mdobject', 'middleware/models/');
@@ -14560,9 +14561,7 @@ class Mdwebservice extends Controller {
                 
                 $firstRow = $comboData[0];
                 
-                $response = array(
-                    'list' => $comboData
-                );
+                $response = ['list' => $comboData];
                 
                 if (array_key_exists('fixedgroupname', $firstRow['ROW_DATA'])) {
                     $response['isFixedGroupName'] = 1;
@@ -14573,14 +14572,14 @@ class Mdwebservice extends Controller {
                 }
                 
             } else {
-                $response = array('emptyCombo' => 'OK');
+                $response = ['emptyCombo' => 'OK'];
             }
             
         } else {
-            $response = !empty($comboData) ? $comboData : array('emptyCombo' => 'OK');
+            $response = !empty($comboData) ? $comboData : ['emptyCombo' => 'OK'];
         }
         
-        echo json_encode($response, JSON_UNESCAPED_UNICODE); 
+        convJson($response);
     }
     
     public static function fieldHeaderStyleClass($val, $windowId = '') {
@@ -18432,7 +18431,8 @@ class Mdwebservice extends Controller {
                 || $dtlThemeCode == 'detail_frame_paper_tree' 
                 || $dtlThemeCode == 'detail_calendar_sidebar' 
                 || $dtlThemeCode == 'detail_file_preview_001' 
-                || $dtlThemeCode == 'detail_header_reverse') {
+                || $dtlThemeCode == 'detail_header_reverse' 
+                || $dtlThemeCode == 'detail_header_reverse_loop') {
             
             $gridBodyData = self::widgetBpDetailRender($processMetaDataId, $uniqId, $row, $fillParamData);
         }

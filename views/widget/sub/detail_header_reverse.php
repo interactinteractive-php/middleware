@@ -4,10 +4,11 @@ $params = $row['data'];
 $isData = $this->fillParamData ? true : false;
 
 $tbl = [];
-$tbl[] = '<table class="table table-sm table-bordered table-hover bprocess-table-dtl bprocess-theme1">';
+$tbl[] = '<table class="table table-sm table-bordered table-hover bprocess-table-dtl bprocess-theme1" style="table-layout: fixed">';
 $tbl[] = '<tbody>';
     
     if ($isData) {
+        
         $tbl[] = '<tr style="display: none">';
             $tbl[] = '<td>PF params</td>';
             foreach ($this->fillParamData as $rk => $rowData) {
@@ -16,9 +17,15 @@ $tbl[] = '<tbody>';
                 $tbl[] = '</td>';
             }
         $tbl[] = '</tr>';
+        
+        Mdwebservice::$detailFillData = $this->fillParamData;
     }
     
 foreach ($params as $param) {
+    
+    if ($param['THEME_POSITION_NO'] == '1') {
+        Mdwebservice::$paramRealPath = $param['LOWER_PARAM_NAME'];
+    }
     
     $rowStyle = '';
     

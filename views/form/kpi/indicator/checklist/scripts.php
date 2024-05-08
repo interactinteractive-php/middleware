@@ -243,6 +243,40 @@ $(function() {
                     error: function(){ alert('Error'); Core.unblockUI(); }
                 });
                 
+            } else if (metaDataId == '16842269788489') { //Time Plan menu meta id
+            
+                $.ajax({
+                    type: 'post',
+                    url: 'mdtimestable/timeEmployeePlanV2',
+                    beforeSend: function() {
+                        Core.blockUI({message: 'Loading...', boxed: true});
+                    },
+                    success: function (data) {
+                        viewProcess_<?php echo $this->uniqId; ?>.empty().append(data).promise().done(function () {
+                            Core.initAjax(viewProcess_<?php echo $this->uniqId; ?>);
+                            Core.unblockUI();                                   
+                        });                    
+                    },
+                    error: function(){ alert('Error'); Core.unblockUI(); }
+                });
+                
+            } else if (metaDataId == '16293670316521') { //Time Balance menu meta id
+            
+                $.ajax({
+                    type: 'post',
+                    url: 'mdtimestable/timebalanceV5',
+                    beforeSend: function() {
+                        Core.blockUI({message: 'Loading...', boxed: true});
+                    },
+                    success: function (data) {
+                        viewProcess_<?php echo $this->uniqId; ?>.empty().append(data).promise().done(function () {
+                            Core.initAjax(viewProcess_<?php echo $this->uniqId; ?>);
+                            Core.unblockUI();                                   
+                        });                    
+                    },
+                    error: function(){ alert('Error'); Core.unblockUI(); }
+                });
+                
             } else if (metaDataId == '1710231625314794') { //FA_DEPRECTION_WEBLINK
             
                 $.ajax({

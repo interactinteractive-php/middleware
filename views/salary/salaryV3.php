@@ -21,9 +21,10 @@ if (!$this->isAjax) {
             <div id="calculateSalarySheetDiv_<?php echo $this->uniqId; ?>">     
                 <div id="calcInfoWindow_<?php echo $this->uniqId; ?>">
                 <div class="tabbable-line">
+                    <div class="salary-filter-header-info" style="position: absolute;margin-left: 220px;"></div>                    
                     <ul class="nav nav-tabs bp-addon-tab" id="prl_salary_tname_<?php echo $this->uniqId; ?>">
                         <li class="nav-item" data-fetch>
-                            <a href="#prl_salary_tab_<?php echo $this->uniqId; ?>" class="nav-link active" data-toggle="tab">Ерөнхий мэдээлэл</a>
+                            <a href="#prl_salary_tab_<?php echo $this->uniqId; ?>" class="nav-link active" data-toggle="tab">Цалин бодолтын мэдээлэл</a>
                         </li>            
                     </ul>
                     <div class="tab-content" style="padding-top: 10px;" id="prl_salary_tcontent_<?php echo $this->uniqId; ?>">
@@ -250,7 +251,7 @@ if (!$this->isAjax) {
                                 </div>
                                 <div class="row justify-content-end">
                                     <span style="float: left;" class="customLabel text-right existSalaryBook"><?php echo $this->lang->line('MET_99990774'); ?></span>
-                                    <select id="filterDepartment_<?php echo $this->uniqId; ?>" multiple="multiple" name="" style="max-width: 350px !important; height: 24px !important;" class="hidden form-control select2 form-control-sm float-left" data-placeholder="- <?php echo $this->lang->line('MET_99990862'); ?> -">
+                                    <select id="filterDepartment_<?php echo $this->uniqId; ?>" multiple="multiple" name="" style="max-width: 350px !important; height: 28px !important;" class="hidden form-control select2 form-control-sm float-left" data-placeholder="- <?php echo $this->lang->line('MET_99990862'); ?> -">
                                         <option value="">- <?php echo $this->lang->line('MET_99990862'); ?> -</option>
                                     </select>                              
                                     <button id="filterDepartmentBtn_<?php echo $this->uniqId; ?>" class="btn hidden btn-sm ml5 btn-secondary"><?php echo $this->lang->line('search_btn'); ?></button>
@@ -273,6 +274,16 @@ if (!$this->isAjax) {
                                                     'onclick' => "javascript:;",
                                                     'title' => "Fullscreen",
                                                     'class' => 'btn float-right btn-sm btn-circle bg-light-blue ml5 salary-datarid-fullscreen-btn'
+                                                ),
+                                                true 
+                                            );
+                                            echo Html::anchor(
+                                                'javascript:;',
+                                                '<i class="fa fa-chevron-up"></i>',
+                                                array(
+                                                    'onclick' => "javascript:;",
+                                                    'title' => "Хураах",
+                                                    'class' => 'btn float-right btn-sm btn-circle bg-light-blue ml5 salary-datarid-collapsed-btn'
                                                 ),
                                                 true 
                                             );
@@ -696,8 +707,6 @@ if (!$this->isAjax) {
     }
     /* Custom Card CSS End */
     .select2-container-multi .select2-choices {
-        min-height: 24px;
-        height: 24px !important;
         padding-top: 0;
     }
     .select2-container-multi .select2-choices .select2-search-choice {
@@ -755,6 +764,15 @@ if (!$this->isAjax) {
     }
     #calculateSalarySheetDiv_<?php echo $this->uniqId; ?> .bg-light-blue {
     background-color: #41c3f1 !important;
+    }
+    #calculateSalarySheetDiv_<?php echo $this->uniqId; ?> .jeasyuiTheme3 .form-control {
+        height: <?php echo Config::getFromCacheDefault('PayrollWindowRowPX', null, '28px') ?> !important;
+        min-height: <?php echo Config::getFromCacheDefault('PayrollWindowRowPX', null, '28px') ?> !important;
+    }
+    #calculateSalarySheetDiv_<?php echo $this->uniqId; ?> .jeasyuiTheme3 td div, 
+    #calculateSalarySheetDiv_<?php echo $this->uniqId; ?> .jeasyuiTheme3 .datagrid-body .form-control, 
+    #calculateSalarySheetDiv_<?php echo $this->uniqId; ?> .jeasyuiTheme3 td span {
+        font-size: <?php echo Config::getFromCacheDefault('PayrollWindowRowFont', null, '12px') ?> !important;
     }
 </style>
 

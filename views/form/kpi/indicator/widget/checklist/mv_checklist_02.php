@@ -189,7 +189,7 @@ $renderType = $this->methodRow['RENDER_THEME'];
                                         </div>
                                     </div>
                                 </div>
-                                <div class="w-100 content-wrapper-<?php echo $renderType ?>" style="background-color: #F9F9F9; max-width: 1200px">
+                                <div class="w-100 content-wrapper-<?php echo $renderType ?>" style="background-color: #f1f1f1; max-width: 1200px">
                                     <div>
                                         <div class="content-wrapper pt-2 pl-3 pr-3 mv-checklist-render">        
                                         </div>                
@@ -450,7 +450,7 @@ $renderType = $this->methodRow['RENDER_THEME'];
 }
 .mv-checklist2-render-parent .sectiongidseperator {
     height: 15px;
-    background-color: #F9F9F9;
+    background-color: #f1f1f1;
 }
 .mv-checklist2-render-parent > .sidebar .card-body .nav-sidebar a.nav-link i {
     font-size: 18px;

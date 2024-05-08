@@ -389,7 +389,7 @@ class Mdstatement extends Controller {
         if (isset($groupingData[$depth])) {
             
             if (!isset($rows[0][$groupingData[$depth]['GROUP_FIELD_PATH']])) {
-                return html_tag('div', ['class' => 'alert alert-warning'], 'Grouping хийж байгаа талбар үндсэн Datasource-с олдсонгүй!');
+                return html_tag('div', ['class' => 'alert alert-warning'], 'Grouping хийж байгаа талбар үндсэн Datasource-с олдсонгүй! /statementId: '.$statementId.', dataViewId: '.$dataViewId.', groupPath: '.$groupingData[$depth]['GROUP_FIELD_PATH'].'/');
             }
             
             $groupingCount = count($groupingData);
@@ -3964,7 +3964,7 @@ class Mdstatement extends Controller {
             $this->view->fillParamData = $_POST['param'];
         }
                 
-        $pageProperties = array(
+        $pageProperties = [
             'reportName'        => $this->lang->line($this->view->row['REPORT_NAME']), 
             'pageSize'          => $this->view->row['PAGE_SIZE'], 
             'pageOrientation'   => $this->view->row['PAGE_ORIENTATION'], 
@@ -3987,7 +3987,12 @@ class Mdstatement extends Controller {
             'dataViewId'        => $this->view->row['DATA_VIEW_ID'], 
             'isIgnoreFooter'    => $this->view->row['IS_EXPORT_NO_FOOTER'], 
             'metaDataId'        => $this->view->metaDataId
-        );
+        ];
+        
+        if (self::$isPivotView) {
+            $pageProperties['pageOrientation'] = 'landscape';
+            $pageProperties['pageSize'] = 'pivot';
+        }
         
         if (defined('CONFIG_REPORT_SERVER_ADDRESS') && CONFIG_REPORT_SERVER_ADDRESS) {
             
@@ -4203,22 +4208,6 @@ class Mdstatement extends Controller {
                     
                 } elseif ($kpiTypeId == 2010) { /*Statement*/
                     
-                    /*$title = 'kpi';
-                    
-                    foreach ($postArr as $postKey => $postVal) {
-                        $_POST['filterData'][$postKey] = $postVal;
-                    }
-                    
-                    $contentHtml = (new Mdform())->indicatorStatement($linkIndicatorId, true);
-
-                    $response = [
-                        'title' => $title,  
-                        'html' => $contentHtml,
-                        'metaType' => 'statement'
-                    ];
-
-                    jsonResponse($response);*/
-                    
                     Mdstatement::$isKpiIndicator = true;
                     
                     $row = $this->model->getStatementRowModel($linkIndicatorId);
@@ -4231,9 +4220,15 @@ class Mdstatement extends Controller {
                     $_POST['statementId'] = $row['MAIN_INDICATOR_ID'];
                     
                     Mdform::$kpiTemplateId = $row['DATA_INDICATOR_ID'];
+                    
+                    if ($row['KPI_TYPE_ID'] == '1045') {
+                        self::$isPivotView = true;
+                    } elseif ($row['KPI_TYPE_ID'] == '1044') {
+                        Mdform::$isRawDataMart = true;
+                    }
 
                     foreach ($postArr as $postKey => $postVal) {
-                        $_POST['filterData'][$postKey][] = $postVal;
+                        $_POST['filterData'][$postKey][] = $postVal; 
                     }
 
                     $reportHtml = (new Mdstatement())->renderDataModelByFilter(true);
@@ -4246,7 +4241,7 @@ class Mdstatement extends Controller {
                         'close_btn' => Lang::line('close_btn')
                     ];
 
-                    echo json_encode($response, JSON_UNESCAPED_UNICODE); exit;
+                    jsonResponse($response);
                 }
                 
                 $contentDecode['status'] = 'success';

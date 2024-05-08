@@ -6238,7 +6238,7 @@ class Mdform_Model extends Model {
                 foreach (Mdform::$tabRender as $tabName => $tabContent) {
 
                     $render[] = '<div class="sectiongidseperator"></div>';
-                    $render[] = '<div class="sectiongidseperatorcontent-container row"><fieldset class="sectiongidseperatorcontent collapsible w-100" data-initialized="1">';
+                    $render[] = '<div class="sectiongidseperatorcontent-container"><fieldset class="sectiongidseperatorcontent collapsible row" data-initialized="1">';
                     $render[] = '<legend>'.$tabName.'</legend>';
                     $render[] = implode('', $tabContent);
                     $render[] = '</fieldset></div>';
@@ -6334,8 +6334,8 @@ class Mdform_Model extends Model {
             }                      
             $sideSectionRender = [];
             $sideSectionRender[] = '<div class="d-flex">';
-            $sideSectionRender[] = '<div style="flex: 0 0 250px;border-right: 1px solid #eee;">';
-            $sideSectionRender[] = '<div style="position: fixed;">';
+            $sideSectionRender[] = '<div style="flex: 0 0 250px;border-right: 1px solid #eee;background-color: #fff;margin-top: 15px;border-radius: .75rem;padding: 15px;">';
+            $sideSectionRender[] = '<div style="">';
             $sideSectionRender[] = implode('', $tnames);
             $sideSectionRender[] = '</div>';
             $sideSectionRender[] = '</div>';
@@ -15330,8 +15330,6 @@ class Mdform_Model extends Model {
                 
                 foreach ($filterData as $filterColName => $filterColVals) {
                     
-                    $filterColName = strtoupper($filterColName);
-                    
                     if (strpos($filterColName, '_groupingSum') !== false) {
                         
                         $filterColNameArr = explode('_groupingSum', $filterColName);
@@ -15339,6 +15337,8 @@ class Mdform_Model extends Model {
                         
                         continue;
                     }
+                    
+                    $filterColName = strtoupper($filterColName);
                     
                     unset($filterNamedParams[$filterColName]);
                     

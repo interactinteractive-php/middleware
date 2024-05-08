@@ -1142,7 +1142,26 @@ $(function() {
     }
     ?>
 });
-
+</script>
+<?php 
+if (isset($this->popupSearch)) { 
+?>
+<script type="text/template" data-template="st-popup-form-<?php echo $this->metaDataId; ?>">
+    <?php echo $this->popupSearch; ?>
+</script>
+<?php
+    }
+} elseif (isset($this->isDrill) && $this->isDrill) {
+?>
+<script type="text/javascript">
+var statement_freeze_<?php echo $this->metaDataId.$this->dataViewId; ?> = false; 
+var statement_mergecell_<?php echo $this->metaDataId.$this->dataViewId; ?> = false; 
+statementStyleResolver_<?php echo $this->metaDataId; ?>(1);      
+</script>
+<?php 
+} 
+?>
+<script type="text/javascript">
 function statementStyleResolver_<?php echo $this->metaDataId; ?>(childCount, freezeNumber) {
     var $statementWindow = $('div#statement-form-<?php echo $this->metaDataId; ?>').find('.report-preview-container');
 
@@ -1440,15 +1459,5 @@ function statementStyleResolver_<?php echo $this->metaDataId; ?>(childCount, fre
             }, 10);
         }
     }
-}
+}    
 </script>
-<?php 
-if (isset($this->popupSearch)) { 
-?>
-<script type="text/template" data-template="st-popup-form-<?php echo $this->metaDataId; ?>">
-    <?php echo $this->popupSearch; ?>
-</script>
-<?php
-    }
-}
-?>

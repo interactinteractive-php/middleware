@@ -86,6 +86,11 @@ SalaryV3.prototype.initEventListener = function() {
             $('.saveSalarySheet', _self.calcInfoWindowId).removeClass('hidden');
             $(".stoggler", _self.calcInfoWindowId).removeClass("hidden");            
             
+            var infoText = $(_self.calcInfoWindowId).find('.calcTypeId_valueField').find("option:selected").text() + ' <span style="font-size: 10px;" class="fa fa-chevron-right mx-1">&nbsp;</span> ';
+            infoText += $(_self.calcInfoWindowId).find('select[name="criteriaTemplateId"]').find("option:selected").text() + ' <span style="font-size: 10px;" class="fa fa-chevron-right mx-1">&nbsp;</span> ';
+            infoText += $(_self.calcInfoWindowId).find('input[name="calcCode"]').closest(".next-generation-input-wrap").find(".next-generation-input-body").text();
+            $(_self.calcInfoWindowId + ' .salary-filter-header-info').html(infoText);            
+            
             if (isTrigger === undefined) {
                 $('.searchCalcInfo', _self.calcInfoWindowId).attr('data-search-calc', '1');
                 isTrigger = '';
@@ -171,6 +176,33 @@ SalaryV3.prototype.initEventListener = function() {
             $parent.removeClass('wordeditor-iframe-fullscreen');
             $('html').css('overflow', '');
             var dynamicHeight = $(window).height() - 275;
+            $(_self.dataGridId).attr('height', dynamicHeight);
+            $(_self.dataGridId).datagrid('resize', {
+                height: dynamicHeight
+            });                   
+        }
+    });    
+
+    $(_self.calcInfoWindowId).on('click', '.salary-datarid-collapsed-btn', function() {
+        var $this = $(this);
+        
+        if (!$this.hasAttr('data-fullscreen')) {        
+            $(_self.calcInfoFormId).find('.form-body').hide();
+            $(_self.calcInfoFormId).find('.justify-content-end').css('margin-top', '4px');
+            $this.find('i').removeClass('fa-chevron-up').addClass('fa-chevron-down');
+            $this.attr({'data-fullscreen': '1'});
+            var dynamicHeight = $(window).height() - 330;
+            $(_self.dataGridId).attr('height', dynamicHeight);
+            $(_self.dataGridId).datagrid('resize', {
+                height: dynamicHeight
+            });            
+            
+        } else {
+            $(_self.calcInfoFormId).find('.form-body').show();
+            $this.removeAttr('data-fullscreen');
+            $(_self.calcInfoFormId).find('.justify-content-end').css('margin-top', '0px');
+            $this.find('i').removeClass('fa-chevron-down').addClass('fa-chevron-up');
+            var dynamicHeight = $(window).height() - 400;
             $(_self.dataGridId).attr('height', dynamicHeight);
             $(_self.dataGridId).datagrid('resize', {
                 height: dynamicHeight
@@ -1248,6 +1280,32 @@ SalaryV3.prototype.initEventListener = function() {
         $.uniform.update();
     });    
     
+    $(_self.calcInfoWindowId).on('keydown', 'table tbody input', function(e) {
+        var key = e.which;
+        var tr = $(this).closest('tr');
+        var td = $(this).closest('td');        
+        
+        if (key == 39) {
+            td = td.next('td');
+            if (typeof td !== 'undefined') {
+                _self.selectInput(td.find("input"));
+                setTimeout(function () {
+                    td.find("input").select();
+                }, 2);
+            }
+        }
+        
+        if (key == 37) {
+            td = td.prev('td');
+            if (typeof td !== 'undefined') {
+                _self.selectInput(td.find("input"));
+                setTimeout(function () {
+                    td.find("input").select();
+                }, 2);
+            }
+        }
+    });                  
+    
     $("select[name=\"calcTypeId\"]", _self.calcInfoWindowId).on("change", function () {
         if (configCriteriaTemplateJS === '1') {
             $("select[name=\"criteriaTemplateId\"]", _self.calcInfoWindowId).prop('readonly', false).prop('disabled', false).select2('readonly', false).removeClass('data-combo-set');            
@@ -1271,7 +1329,7 @@ SalaryV3.prototype.initEventListener = function() {
             },
             dataType: "json",
             success: function (resp) {
-                if (resp.hasOwnProperty('id')) {
+                if (resp && resp.hasOwnProperty('id')) {
                     $("input[name=\"calcId\"]", _self.calcInfoWindowId).val(resp.id).attr("data-startdate", resp.startdate).attr("data-enddate", resp.enddate);
                     $("input[name=\"calcId\"]", _self.calcInfoWindowId).closest(".next-generation-input-wrap").find(".next-generation-input-body").text(resp.calcname);
                     $("input[name=\"calcCode\"]", _self.calcInfoWindowId).val(resp.calccode);
@@ -2413,6 +2471,7 @@ SalaryV3.prototype.onLoadSuccessActions = function(data) {
     $('.datagrid-footer .datagrid-ftable tbody tr', _self.calcInfoWindowId).find('td').css('background-color', '#ffffff');
     $('.salaryNumberFormat', _self.calcInfoWindowId).autoNumeric('init', {aPad: true, mDec: configNumDec, vMin: '-999999999999999999999999999999.999999999999999999999999999999', vMax: '999999999999999999999999999999.999999999999999999999999999999'});
     //Core.initUniform(_self.calcInfoWindowId);
+    $(_self.calcInfoWindowId + ' .salary-datarid-collapsed-btn').trigger("click");    
     
     var searchFooterCheckbox = $('.datagrid-footer table tbody tr', _self.calcInfoWindowId).find('input[type="checkbox"]');
     if (searchFooterCheckbox.length) {

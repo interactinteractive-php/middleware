@@ -745,12 +745,24 @@ if ($this->isDialog == false) {
                     if (isset($wizardStepDetail[$wizardStep['step']]['rows'])) {
                         $detailShowParams = $wizardStepDetail[$wizardStep['step']]['rows'];
                         $detailShowTabs = [];
+                        $detailShowWidgetTabs = [];
                                 
                         foreach ($detailShowParams as $detailShowParam) {
                             if ($detailShowParam['tabName']) {
                                 
                                 $detailShowTabs[Str::lower($detailShowParam['tabName'])][] = [
                                     'tabName' => $detailShowParam['tabName'], 
+                                    'code' => $detailShowParam['code'], 
+                                    'name' => $detailShowParam['name'], 
+                                    'columnWidth' => $detailShowParam['columnWidth'], 
+                                    'isRefresh' => $detailShowParam['isRefresh'], 
+                                    'content' => $detailShowParam['content']
+                                ];
+                                
+                            } elseif (Mdwidget::bpDetailAvailableWidgets($detailShowParam['code'])) {
+                                
+                                $detailShowWidgetTabs[Str::lower($detailShowParam['name'])][] = [
+                                    'tabName' => $detailShowParam['name'], 
                                     'code' => $detailShowParam['code'], 
                                     'name' => $detailShowParam['name'], 
                                     'columnWidth' => $detailShowParam['columnWidth'], 
@@ -796,6 +808,17 @@ if ($this->isDialog == false) {
                                     '.$tabContent.'
                                 </div>
                             </div>';
+                        }
+
+                        if ($detailShowWidgetTabs) {
+                            foreach ($detailShowWidgetTabs as $detailShowTab) {
+                                $detailShowParam = $detailShowTab[0]; 
+                                
+                                echo '<div data-section-path="' . $detailShowParam['code'] . '" '.($detailShowParam['columnWidth'] ? 'class="float-left" style="width:'.$detailShowParam['columnWidth'].'"' : '').' data-isclear="' . $detailShowParam['isRefresh'] . '">
+                                            <div class="bp-detail-title">' . $this->lang->line($detailShowParam['name']) . '</div>
+                                            <div class="bp-detail-body">' . $detailShowParam['content'] . '</div> 
+                                        </div>';
+                            }
                         }
                     }
                     ?>
