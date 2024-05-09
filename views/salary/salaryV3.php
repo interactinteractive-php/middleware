@@ -769,6 +769,12 @@ if (!$this->isAjax) {
         height: <?php echo Config::getFromCacheDefault('PayrollWindowRowPX', null, '28px') ?> !important;
         min-height: <?php echo Config::getFromCacheDefault('PayrollWindowRowPX', null, '28px') ?> !important;
     }
+    #calculateSalarySheetDiv_<?php echo $this->uniqId; ?> .jeasyuiTheme3 .datagrid-row {
+        height: <?php echo Config::getFromCacheDefault('PayrollWindowRowPX', null, '25px') ?> !important;
+    }
+    #calculateSalarySheetDiv_<?php echo $this->uniqId; ?> .jeasyuiTheme3 .datagrid-cell-check {
+        height: <?php echo Config::getFromCacheDefault('PayrollWindowRowPX', null, '22px') ?> !important;
+    }
     #calculateSalarySheetDiv_<?php echo $this->uniqId; ?> .jeasyuiTheme3 td div, 
     #calculateSalarySheetDiv_<?php echo $this->uniqId; ?> .jeasyuiTheme3 .datagrid-body .form-control, 
     #calculateSalarySheetDiv_<?php echo $this->uniqId; ?> .jeasyuiTheme3 td span {

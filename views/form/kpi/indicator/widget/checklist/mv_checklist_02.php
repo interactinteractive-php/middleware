@@ -210,15 +210,15 @@ $renderType = $this->methodRow['RENDER_THEME'];
     </div>
 </div>
 <?php 
-    $bgImage = 'middleware/assets/img/process/background/khanbank_mv_bg_image.jpg';
+$bgImage = 'middleware/assets/img/process/background/khanbank_mv_bg_image.jpg';
 
-    if (isset($this->bgImage) && file_exists($this->bgImage)) {
-        $bgImage = $this->bgImage;
-    }
-    
-    if ($renderType == 'paper_main_window') {
-        $bgImage = '';
-    }
+if (isset($this->bgImage) && file_exists($this->bgImage)) {
+    $bgImage = $this->bgImage;
+}
+
+if ($renderType == 'paper_main_window') {
+    $bgImage = '';
+}
 ?>
 
 <style type="text/css">
@@ -737,6 +737,17 @@ input.kpi-notfocus-readonly-input::placeholder {
 <?php require getBasePath() . 'middleware/views/form/kpi/indicator/checklist/scripts.php'; ?>
 
 <script type="text/javascript">
+var $checkListTabLink = $('#mv-checklist-render-parent-<?php echo $this->uniqId; ?>').find('.mv-checklist-tab-link');
+if ($checkListTabLink.length == 1) {
+    var $selTb = $('#mv-checklist-render-parent-<?php echo $this->uniqId; ?>').find('.mv-checklist-tab > .tab-content');
+    var $selTbLength = $selTb.length;
+    if ($selTbLength == 1) {
+        var $tabPane = $selTb.find('> .tab-pane');
+        $tabPane.find('> .d-flex > .sidebar').hide();
+        $tabPane.find('> .d-flex > .w-100').css('max-width', '');
+    } 
+}
+
 $('#mv-checklist-render-parent-<?php echo $this->uniqId; ?>').on('shown.bs.tab', '.mv-checklist-tab-link', function() {
     var $tabPane = $($(this).attr('href')), 
         $selTb = $tabPane.find('li.nav-item:not(.d-none) > .mv_checklist_02_sub.nav-link'), 

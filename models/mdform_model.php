@@ -6195,6 +6195,7 @@ class Mdform_Model extends Model {
                 
                 $srcMapId = Input::numeric('mapSrcMapId');
                 $methodId = Input::numeric('methodIndicatorId');
+                $methodId = $methodId ? $methodId : issetVar($_POST['param']['crudIndicatorId']);
                 $mapData  = self::getSrcTrgPathModel($srcMapId, $methodId);
 
                 if ($mapData) {
@@ -29761,6 +29762,7 @@ class Mdform_Model extends Model {
                         LEFT JOIN META_WIDGET T6 ON T6.ID = T1.WIDGET_ID 
                         $checkPermissionJoin 
                     WHERE T1.SRC_INDICATOR_ID = ".$this->db->Param(0)." 
+                        AND (T1.IS_HIDE IS NULL OR T1.IS_HIDE = 0) 
                         AND (T2.ID IS NOT NULL OR T3.META_DATA_ID IS NOT NULL) 
                         $where 
                         $checkPermissionWhere 

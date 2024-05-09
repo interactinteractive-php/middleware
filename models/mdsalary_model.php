@@ -212,7 +212,8 @@ class Mdsalary_Model extends Model {
                 PCTD.COLUMN_SIZE,
                 " . $this->db->IfNull('PCTD.MERGE_NAME', "'$@$'") . " AS MERGE_NAME,
                 MD.META_DATA_CODE AS GLOBE_CODE,
-                MG.ID AS IS_HIDE_USER_COLUMN,
+                MG.IS_SHOW AS IS_HIDE_USER_COLUMN,
+                MG.HEADER_NAME AS USER_COLUMN_COLOR,
                 " . $this->db->IfNull('CTI.META_DATA_ID', "'1'") . " AS IS_IGNORE
                 FROM PRL_CALC_TYPE PCT
                 INNER JOIN PRL_CALC_TYPE_DTL PCTD ON PCT.ID = PCTD.CALC_TYPE_ID
@@ -3256,7 +3257,7 @@ class Mdsalary_Model extends Model {
             }
         }
             
-        $result = $this->db->GetAll('SELECT MD.META_DATA_CODE, MD.META_DATA_NAME, MG.ID, ' . $this->db->IfNull('CTI.META_DATA_ID', "'1'") . ' AS IS_IGNORE
+        $result = $this->db->GetAll('SELECT MD.META_DATA_CODE, MD.META_DATA_NAME, MG.IS_SHOW, MG.HEADER_NAME AS USER_COLUMN_COLOR, ' . $this->db->IfNull('CTI.META_DATA_ID', "'1'") . ' AS IS_IGNORE
                                 FROM PRL_CALC_TYPE_DTL CT 
                                 INNER JOIN META_DATA MD ON MD.META_DATA_ID = CT.META_DATA_ID
                                 LEFT JOIN META_GROUP_CONFIG_USER MG ON MD.META_DATA_ID = MG.MAIN_META_DATA_ID AND MG.CALC_TYPE_ID = ' . $params['calcTypeId'] . ' 
@@ -3414,14 +3415,16 @@ class Mdsalary_Model extends Model {
             );
             $response = $this->db->AutoExecute('PRL_CALC_TYPE_DTL', $typeDtlData, 'UPDATE', 'CALC_TYPE_ID = ' . $calcTypeId . ' AND META_DATA_ID = ' . $getMetaDataId['META_DATA_ID']);
 
-            if ($_POST['IS_HIDE_USER_COL'][$key] === '1') {
+            if ($_POST['IS_HIDE_USER_COL'][$key] === '1' || $_POST['columnColorSet'][$key]) {
                 $insertData = array(
                     'ID' => getUID(),
                     'MAIN_META_DATA_ID' => $getMetaDataId['META_DATA_ID'],
                     'CALC_TYPE_ID' => $calcTypeId,
                     'CALC_ID' => Input::post('calcId'),
+                    'IS_SHOW' => $_POST['IS_HIDE_USER_COL'][$key] ? $_POST['IS_HIDE_USER_COL'][$key] : null,
                     'USER_ID' => Ue::sessionUserKeyId(),
-                    'PARAM_NAME' => $_POST['SALARY_CONFIG_ORDER_METACODE'][$key]
+                    'PARAM_NAME' => $_POST['SALARY_CONFIG_ORDER_METACODE'][$key],
+                    'HEADER_NAME' => $_POST['columnColorSet'][$key]
                 );
                 $this->db->AutoExecute("META_GROUP_CONFIG_USER", $insertData);            
             }

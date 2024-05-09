@@ -174,8 +174,8 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt, call
             var $checkListActive = $checkListParent.find('ul.nav-sidebar a.nav-link.active[data-json]');
             var checkListRowJson = JSON.parse(html_entity_decode($checkListActive.attr('data-json'), 'ENT_QUOTES'));
 
-            postData.param.mapSrcMapId = checkListRowJson.mapId;
-            postData.param.mapSelectedRow = $checkListParent.find('input[data-path="headerParams"]').val();
+            postData.mapSrcMapId = checkListRowJson.mapId;
+            postData.mapSelectedRow = $checkListParent.find('input[data-path="headerParams"]').val();
             isSrcMap = true;
             
         } else {
@@ -261,8 +261,8 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt, call
                                         formData.push({name: 'mapHidden[selectedRow]', value: postData.param.mapHiddenSelectedRow});
                                     }
                                     if (isSrcMap) {
-                                        formData.push({name: 'mapSrc[mapSrcMapId]', value: postData.param.mapSrcMapId});
-                                        formData.push({name: 'mapSrc[mapSelectedRow]', value: postData.param.mapSelectedRow});
+                                        formData.push({name: 'mapSrc[mapSrcMapId]', value: postData.mapSrcMapId});
+                                        formData.push({name: 'mapSrc[mapSelectedRow]', value: postData.mapSelectedRow});
                                     }
                                     if (isListRelation && $this.closest('.mv-checklist-render-parent').length) {
                                         var $checkListParent = $this.closest('.mv-checklist-render-parent');
@@ -2395,7 +2395,7 @@ function kpiIndicatorGoogleMapViewLoad(indicatorId, data, map) {
                 savedPolygonData.push('<div class="mb10 mr-3 cursor-pointer ml1 polygon-row" data-rowdata="'+encodeURIComponent(JSON.stringify(row))+'" style="border-left: 4px solid '+row.REGION_COLOR+';" data-id="'+row.SEGMENTATION_ID+'">\n\
                     <div class="d-flex justify-content-between pt-1">\n\
                         <div class="ml-1"><input type="checkbox" checked id="visible_polygon_btn_'+row.SEGMENTATION_ID+'" class="notuniform visible_polygon_btn"/> <label class="ml-1" for="visible_polygon_btn_'+row.SEGMENTATION_ID+'">'+row.SEGMENTATION_NAME+'</label></div> \n\
-                        <div><i class="show_polygon_marker_btn fa fa-map-marker" style="color:'+(row.REGION_COLOR ? row.REGION_COLOR : '#575757')+'" title="marker"></i> '+(sessionRole == roId ? '<i class="edit_polygon_btn fa fa-edit ml-1" style="color:'+(row.REGION_COLOR ? row.REGION_COLOR : '#575757')+'" title="засах"></i>' : '')+'</div>\n\
+                        <div><i class="show_polygon_marker_btn fa fa-map-marker" style="color:'+(row.REGION_COLOR ? row.REGION_COLOR : '#575757')+'" title="marker"></i> '+(roId == 1 ? '<i class="edit_polygon_btn fa fa-edit ml-1" style="color:'+(row.REGION_COLOR ? row.REGION_COLOR : '#575757')+'" title="засах"></i>' : '')+'</div>\n\
                     </div>\n\
                 </div>');
                 indicatorPolygon.addListener('click', function(event) {

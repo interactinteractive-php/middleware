@@ -20,6 +20,7 @@ var SalaryV3 = function(windowId) {
     this.isEditMode = false;
     this.multifilterParams = [];
     this.linkMetaDataId = '';
+    this.salaryGridStyle = '';
     this.selectedPage = configSelectedPage;
     this.unlimitPage = '200';
     this.tabNameLi = [];
@@ -51,6 +52,10 @@ SalaryV3.prototype.initEventListener = function() {
     
     var dynamicHeight = $(window).height() - 275;
     $(_self.dataGridId).attr('height', dynamicHeight);
+    
+    $(document).on('change', 'select[name="columnColorSet[]"]', function(){
+        $(this).css('background-color', $(this).val());
+    });    
     
     $(".searchCalcInfo", _self.calcInfoWindowId).on("click", function (e, isTrigger) {
         $(_self.calcInfoFormId).validate({errorPlacement: function () {}});
@@ -191,7 +196,7 @@ SalaryV3.prototype.initEventListener = function() {
             $(_self.calcInfoFormId).find('.justify-content-end').css('margin-top', '4px');
             $this.find('i').removeClass('fa-chevron-up').addClass('fa-chevron-down');
             $this.attr({'data-fullscreen': '1'});
-            var dynamicHeight = $(window).height() - 330;
+            var dynamicHeight = $(window).height() - 270;
             $(_self.dataGridId).attr('height', dynamicHeight);
             $(_self.dataGridId).datagrid('resize', {
                 height: dynamicHeight
@@ -202,7 +207,7 @@ SalaryV3.prototype.initEventListener = function() {
             $this.removeAttr('data-fullscreen');
             $(_self.calcInfoFormId).find('.justify-content-end').css('margin-top', '0px');
             $this.find('i').removeClass('fa-chevron-down').addClass('fa-chevron-up');
-            var dynamicHeight = $(window).height() - 400;
+            var dynamicHeight = $(window).height() - 340;
             $(_self.dataGridId).attr('height', dynamicHeight);
             $(_self.dataGridId).datagrid('resize', {
                 height: dynamicHeight
@@ -1618,6 +1623,11 @@ SalaryV3.prototype.prepareDataGridStructure = function(isTrigger) {
                     } else {
                         manageField.formatter = _self.sheetOtherFormatter;
                     }
+
+                    if (dataField.USER_COLUMN_COLOR) {
+                        _self.salaryGridStyle += '.datagrid-view .datagrid-view2 .datagrid-body td[field="'+dataField.META_DATA_CODE+'"] {background-color:'+dataField.USER_COLUMN_COLOR+'}';          
+                        _self.salaryGridStyle += '.datagrid-view .datagrid-view2 .datagrid-body td[field="'+dataField.META_DATA_CODE+'"] input {background-color:'+dataField.USER_COLUMN_COLOR+' !important}';          
+                    }
                     
                     if (dataField.MERGE_NAME != checkMergeName) {
                         if (checkMergeName != '$@$') {
@@ -1665,6 +1675,11 @@ SalaryV3.prototype.prepareDataGridStructure = function(isTrigger) {
                                        
                     checkMergeName = dataField.MERGE_NAME;                    
                 }
+                
+                if ($('#salary-datagrid-filter-style').length) {
+                    $('#salary-datagrid-filter-style').remove();
+                }
+                $('head').append('<style id="salary-datagrid-filter-style">'+_self.salaryGridStyle+'</style>');
                 
                 _self.fieldsColspan.push({
                     field: 'delete', 
@@ -3949,7 +3964,7 @@ SalaryV3.prototype.employeeCalculateBp = function(elem) {
 
 SalaryV3.prototype.salaryColumnConfigPosition = function() {
     var $dialogname = 'dialog-salary-column-config-position';
-    var data = '', typeAllFields = [], _self = this;
+    var data = '', typeAllFields = [], _self = this, columnColors = [];
 
     $.ajax({
         type: 'post',
@@ -3964,6 +3979,37 @@ SalaryV3.prototype.salaryColumnConfigPosition = function() {
             typeAllFields = data;
         }
     });        
+    
+    $.ajax({
+      type: "post",
+      url: "api/callDataview",
+      data: {
+        dataviewId: '1715155351623641'
+      },
+      dataType: "json",
+      async: false,
+      beforeSend: function () {
+        Core.blockUI({
+          message: "Loading...",
+          boxed: true,
+        });          
+      },
+      success: function (dataSub) {
+        if (dataSub.status == "success" && dataSub.result.length) {
+          isPinSuccess = true;
+          columnColors = dataSub.result;
+        }
+        Core.unblockUI();
+      }
+    });    
+    
+//    var colorHtml = '';
+//    colorHtml += '<select name="columnColorSet[]" class="form-control form-control-sm">';
+//    colorHtml += '<option value="">'+plang.get("choose")+'</option>';
+//    for(var i = 0; i < columnColors.length; i++) {
+//        colorHtml += '<option value="'+columnColors[i]['color']+'">'+columnColors[i]['code']+'</option>';
+//    };    
+//    colorHtml += '</select>';
 
     data = '<div class="row">'+
         '<div class="col-md-12">'+
@@ -3979,18 +4025,36 @@ SalaryV3.prototype.salaryColumnConfigPosition = function() {
                                 'Харуулахгүй эсэх'+
                             '</label>'+
                         '</th>'+
+                        '<th>Баганы өнгө</th>'+
                     '</tr>'+
                 '</thead>'+
                 '<tbody>';
                     var allFieldsLen = typeAllFields.length, ii = 1;
+                    var colorHtml = '', colorSelected = '';
                     for(var i = 0; i < allFieldsLen; i++) {
                         data += '<tr id="config-' + typeAllFields[i]['META_DATA_CODE'] + '" style="display: table-row; cursor: move;">';
                         data += '<td class="ordernumber-' + typeAllFields[i]['META_DATA_CODE'] + ' dragHandle">' + ii + '</td>';
                         data += '<td>' + typeAllFields[i]['META_DATA_NAME'] + '<input type="hidden" name="SALARY_CONFIG_ORDER[]" id="order-' + typeAllFields[i]['META_DATA_CODE'] + '" value="' + ii + '"/>'+
                                 '<input type="hidden" name="SALARY_CONFIG_ORDER_METACODE[]" value="' + typeAllFields[i]['META_DATA_CODE'] + '"/></td>';
                         data += '<td class="text-center">';
-                        data += '<input type="hidden" name="IS_HIDE_USER_COL[]" id="show-' + typeAllFields[i]['META_DATA_CODE'] + '" value="' + (typeAllFields[i]['ID'] ? '1' : '') + '"/>';
-                        data += '<input type="checkbox" ' + (typeAllFields[i]['ID'] ? 'checked' : '') + ' class="prl-salary-custom-column" id="' + typeAllFields[i]['META_DATA_CODE'] + '" />';
+                        data += '<input type="hidden" name="IS_HIDE_USER_COL[]" id="show-' + typeAllFields[i]['META_DATA_CODE'] + '" value="' + (typeAllFields[i]['IS_SHOW'] == '1' ? '1' : '') + '"/>';
+                        data += '<input type="checkbox" ' + (typeAllFields[i]['IS_SHOW'] == '1' ? 'checked' : '') + ' class="prl-salary-custom-column" id="' + typeAllFields[i]['META_DATA_CODE'] + '" />';
+                        data += '</td>';
+                        data += '<td class="text-center">';
+                        
+                        colorHtml = '';
+                        colorHtml += '<select name="columnColorSet[]" style="background-color:'+typeAllFields[i]['USER_COLUMN_COLOR']+'" class="form-control form-control-sm">';
+                        colorHtml += '<option value="">'+plang.get("choose")+'</option>';
+                        for(var iii = 0; iii < columnColors.length; iii++) {
+                            colorSelected = '';
+                            if (typeAllFields[i]['USER_COLUMN_COLOR'] == columnColors[iii]['color']) {
+                                colorSelected = ' selected';
+                            }
+                            colorHtml += '<option'+colorSelected+' value="'+columnColors[iii]['color']+'">'+columnColors[iii]['code']+'</option>';
+                        };    
+                        colorHtml += '</select>';        
+                        data += colorHtml;
+                        
                         data += '</td>';
                         data += '</tr>';
                         ii++;

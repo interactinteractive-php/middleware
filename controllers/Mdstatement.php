@@ -3316,7 +3316,7 @@ class Mdstatement extends Controller {
                     if (file_exists($statementHtmlPath)) {
                         
                         $exportServerAddress .= '?mode=html_to_excel&fromurl='. URL . $statementHtmlPath;
-                        $getFileRequest = @file_get_contents($exportServerAddress);
+                        $getFileRequest = @file_get_contents($exportServerAddress, false, stream_context_create(['ssl' => ['verify_peer' => false, 'verify_peer_name' => false]]));
 
                         if ($getFileRequest) {
                             echo $getFileRequest; exit();
