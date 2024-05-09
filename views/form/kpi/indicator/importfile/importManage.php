@@ -3,9 +3,9 @@
         
         <div class="input-group">
             <div class="input-group-prepend">
-                <button type="button" class="btn btn-light dropdown-toggle" data-toggle="dropdown"></button>
+                <button type="button" class="btn btn-light dropdown-toggle" data-toggle="dropdown"><i class="far fa-download"></i></button>
                 <div class="dropdown-menu">
-                    <a href="javascript:;" class="dropdown-item" onclick="mvImportManageDownloadExcelTemplate(this, '<?php echo $this->mainIndicatorId; ?>');"><i class="far fa-download"></i> Эксель загвар татах</a>
+                    <a href="javascript:;" class="dropdown-item" onclick="mvImportManageDownloadExcelTemplate(this, '<?php echo $this->mainIndicatorId; ?>');"><i class="far fa-file-excel"></i> Эксель загвар татах</a>
                 </div>
             </div>
             <button 
