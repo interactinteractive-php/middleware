@@ -7252,7 +7252,7 @@ function mvRowPopupRender(elem) {
     $dialog.dialog('open');
 }
 
-function drawTreeIndicator(elem) {
+function drawTreeIndicator(elem, colName) {
 
     var indicatorId = elem.find('.tree-demo').data('indicatorid');
     window['indicatorStructureTreeView_'+indicatorId] = elem.find('.tree-demo');
@@ -7269,7 +7269,7 @@ function drawTreeIndicator(elem) {
                     return 'mdform/getAjaxTree';
                 },
                 "data": function (node) {
-                    return {'parent': node.id, 'indicatorId' : indicatorId};
+                    return {'parent': node.id, 'indicatorId' : indicatorId, 'colName' : colName};
                 }
             }
         },       
@@ -7696,7 +7696,7 @@ $(function() {
             $this.addClass('opened');
             $filterBody.removeClass('d-none');
             if ($filterBody.find('.tree-demo').length && !$filterBody.find('.tree-demo').html().length) {
-                drawTreeIndicator($filterBody);
+                drawTreeIndicator($filterBody, $this.parent().attr('data-filter-column'));
             }
         } else {
             $this.removeClass('opened');

@@ -6740,9 +6740,10 @@ class Mdform extends Controller {
     
     public function getAjaxTree() {
         $indicatorId = Input::param($_REQUEST['indicatorId']);
+        $colName = Input::param($_REQUEST['colName']);
         $parent = Input::param($_REQUEST['parent']);
         
-        $folderList = $this->model->getTreeDataByValue($indicatorId, $parent);
+        $folderList = $this->model->getTreeDataByValue($indicatorId, $parent, $colName);
         
         jsonResponse($folderList);
     }    

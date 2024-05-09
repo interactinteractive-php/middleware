@@ -30445,7 +30445,7 @@ class Mdform_Model extends Model {
         return $result;
     }
     
-    public function getTreeDataByValue($indicatorId, $parentId) {
+    public function getTreeDataByValue($indicatorId, $parentId, $colName) {
         
         $configRow          = self::getKpiIndicatorRowModel($indicatorId);
         $configRow['isIgnoreStandardFields'] = true;
@@ -30492,9 +30492,9 @@ class Mdform_Model extends Model {
                     $result[$k]['children'] = $isChildRecordCount;
                     $icon = '<div class="mr5"><i class="mv-tree-filter-icon far fa-square"></i></div> ';
                     
-                    $result[$k]['li_attr'] = array('class' => 'list-group-item-action', 'data-colname' => 'C4');
+                    $result[$k]['li_attr'] = array('class' => 'list-group-item-action', 'data-colname' => $colName);
                     if ($isChildRecordCount) {
-                        $result[$k]['li_attr'] = array('class' => 'jstree-custom-folder-icon list-group-item-action');
+                        $result[$k]['li_attr'] = array('class' => 'jstree-custom-folder-icon list-group-item-action', 'data-colname' => $colName);
                     }
                     $text = '<span data-value-mode="'.$tree[$idField].'"><div class="d-flex">' . $icon . '<div class="nameField"><span class="p-row-title">'.$tree[$nameField].'</span></div></div></span>';
                     
