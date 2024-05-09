@@ -6239,7 +6239,7 @@ class Mdform_Model extends Model {
 
                     $render[] = '<div class="sectiongidseperator"></div>';
                     $render[] = '<div class="sectiongidseperatorcontent-container"><fieldset class="sectiongidseperatorcontent collapsible row" data-initialized="1">';
-                    $render[] = '<legend>'.$tabName.'</legend>';
+                    $render[] = '<legend style="padding-top: 20px !important;">'.$tabName.'</legend>';
                     $render[] = implode('', $tabContent);
                     $render[] = '</fieldset></div>';
 

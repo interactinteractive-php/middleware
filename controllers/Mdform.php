@@ -2704,8 +2704,9 @@ class Mdform extends Controller {
     public function downloadExcelImportTemplate() {
         
         $indicatorId = Input::numeric('indicatorId');
-        $indicatorIsTranslate = Input::post('isDataTranslate');
         $parentId = Input::numeric('parentId');
+        $isTranslate = Input::numeric('isDataTranslate');
+        $isImportManage = Input::numeric('isImportManage');
         
         $row = $this->model->getKpiIndicatorRowModel($indicatorId);
         $title = $this->lang->line($row['NAME']);
@@ -2753,39 +2754,48 @@ class Mdform extends Controller {
             
             foreach ($columnsData as $col) {
                 
-                if ($col['COLUMN_NAME']) {
+                if ($col['COLUMN_NAME'] && !$col['IS_HIDE_LIST'] && $col['IS_RENDER'] == '1') {
                     
-                    $n2 ++;
                     $n ++;
                     
-                    $alphaCol2 = numToAlpha($n2);
-                    
-                    $sheet->setCellValue($alphaCol2 . '1', $col['COLUMN_NAME']);
-                    if ($indicatorIsTranslate && Lang::isUseMultiLang()) {
-                        $tlist = Lang::getLanguageList();
-                        $tlistCount = count($tlist) - 1;
+                    if (!$isImportManage) {
+                        
+                        $n2 ++;
+                        
+                        $alphaCol2 = numToAlpha($n2);
+                        $sheet->setCellValue($alphaCol2 . '1', $col['COLUMN_NAME']);
 
-                        foreach ($tlist as $countryCode) {
-                            if (Lang::getDefaultLangCode() != $countryCode['SHORT_CODE']) {
-                                $n2 ++;
-                                $sheet->setCellValue(numToAlpha($n2) . '1', $col['COLUMN_NAME'].'_:'.$countryCode['SHORT_CODE']);
+                        if ($isTranslate && Lang::isUseMultiLang()) {
+                            $tlist = Lang::getLanguageList();
+                            $tlistCount = count($tlist) - 1;
+
+                            foreach ($tlist as $countryCode) {
+                                if (Lang::getDefaultLangCode() != $countryCode['SHORT_CODE']) {
+                                    $n2 ++;
+                                    $sheet->setCellValue(numToAlpha($n2) . '1', $col['COLUMN_NAME'].'_:'.$countryCode['SHORT_CODE']);
+                                }
                             }
-                        }
 
-                        $sheet->setCellValue(numToAlpha($n) . '2', $col['LABEL_NAME']);
-                        $sheet->mergeCells(numToAlpha($n) . '2:' . numToAlpha($n+$tlistCount) . '2');
-                        $n = $n + $tlistCount;                        
+                            $sheet->setCellValue(numToAlpha($n) . '2', $col['LABEL_NAME']);
+                            $sheet->mergeCells(numToAlpha($n) . '2:' . numToAlpha($n+$tlistCount) . '2');
+                            $n = $n + $tlistCount;                        
+                        } else {
+                            $sheet->setCellValue($alphaCol2 . '2', $col['LABEL_NAME']);
+                        }
+                        
                     } else {
-                        $sheet->setCellValue($alphaCol2 . '2', $col['LABEL_NAME']);
+                        $alphaCol = numToAlpha($n);
+                        $n2 = $n;
+                        $excelColumnWidthVal = $col['COLUMN_WIDTH'] ? ((int) $col['COLUMN_WIDTH'] / 7) : 40;
+                                
+                        $sheet->setCellValue($alphaCol . '1', $col['LABEL_NAME']);
+                        $sheet->getColumnDimension($alphaCol)->setAutoSize(false);
+                        $sheet->getColumnDimension($alphaCol)->setWidth($excelColumnWidthVal);
                     }
                 }
             }
             
             $getHighestRowNum = $sheet->getHighestRow();
-            
-            foreach (range(0, $n2) as $columnID) {
-                $sheet->getColumnDimensionByColumn($columnID)->setAutoSize(true);
-            }
             
             $sheet->getStyle('A1:' . numToAlpha($n2) . $getHighestRowNum)->applyFromArray(
                 array(
@@ -6069,13 +6079,18 @@ class Mdform extends Controller {
         $this->view->render('kpi/indicator/importfile/importManage', self::$viewPath);
     }
     
-    public function importManagePopup() {
+    public function importManagePopup($isReturn = false) {
         
         $this->view->isPopup = true;
         $this->view->mainIndicatorId = Input::numeric('mainIndicatorId');
+        $this->view->dataViewId = Input::numeric('dataViewId');
         $this->view->renderChildDataSets = self::renderChildDataSets($this->view->mainIndicatorId, true);
         
-        $this->view->render('kpi/indicator/importfile/importManage', self::$viewPath);
+        if ($isReturn) {
+            return $this->view->renderPrint('kpi/indicator/importfile/importManage', self::$viewPath);
+        } else {
+            $this->view->render('kpi/indicator/importfile/importManage', self::$viewPath);
+        }
     }
     
     public function renderChildDataSets($mainIndicatorId, $isReturn = false) {
@@ -6441,7 +6456,7 @@ class Mdform extends Controller {
         
         $widgetCode = $this->view->methodRow['RELATION_WIDGET_CODE'];
         
-        if ($widgetCode == 'developer_workspace') {
+        if ($widgetCode == 'developer_workspace') { 
             $response = self::developerWorkspace();
         } else {
             
@@ -6492,6 +6507,7 @@ class Mdform extends Controller {
             } else {
                 $this->view->title = $this->view->methodRow['NAME'];
                 $this->view->bgImage = $this->view->methodRow['PROFILE_PICTURE'];
+                $this->view->logoImage = issetParam($this->view->methodRow['ICON']);
                 $this->view->windowWidth = $this->view->methodRow['WINDOW_WIDTH'] ? $this->view->methodRow['WINDOW_WIDTH'] : '1500px';
             }
             
@@ -6921,5 +6937,33 @@ class Mdform extends Controller {
         
         jsonResponse($response);
     }    
+    
+    public function callMetaVerseIndicator() {
+        
+        $indicatorId = Input::numeric('indicatorId');
+        if (!$indicatorId) {
+            jsonResponse(['status' => 'error', 'message' => 'Missing indicatorId!']);
+        }
+        
+        $row = $this->model->getKpiIndicatorRowModel($indicatorId);
+        if (!$row) {
+            jsonResponse(['status' => 'error', 'message' => 'Invalid indicatorId!']);
+        }
+        
+        $response = ['status' => 'info', 'message' => 'Coming soon!'];
+        
+        if ($row['KPI_TYPE_ID'] == '2008') { /*Method*/
+            
+            $response = ['status' => 'success', 'kpiTypeId' => '2008', 'typeCode' => $row['TYPE_CODE']];
+            
+            if ($row['TYPE_CODE'] == 'import') {
+                $_POST['mainIndicatorId'] = $row['PARENT_ID'];
+                $_POST['dataViewId'] = Input::numeric('dataViewId');
+                $response['html'] = self::importManagePopup(true);
+            }
+        }
+        
+        convJson($response);
+    }
     
 }

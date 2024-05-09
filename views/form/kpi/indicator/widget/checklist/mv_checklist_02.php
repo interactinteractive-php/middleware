@@ -682,7 +682,7 @@ input.kpi-notfocus-readonly-input::placeholder {
 .mv-checklist2-render-parent .mv-hdr-label-control-input .form-control {
     height: 32px!important;
     min-height: 32px!important;
-    border: 1px #F9F9F9 solid;
+    border: 1px #f3f3f3 solid;
     padding: 7px 10px!important;
 }
 .mv-checklist2-render-parent .mv-hdr-label-control-input textarea.form-control {

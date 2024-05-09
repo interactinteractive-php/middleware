@@ -7584,6 +7584,107 @@ function mvFileChoosedRemove(elem) {
     }
     return;
 }
+function callMetaVerseIndicator(elem, processMetaDataId, dataViewId, selectedRow, paramData) {
+    if (selectedRow) {
+       delete selectedRow.children; 
+    }
+    var paramObj = paramDataToObject(paramData);
+    paramObj.processMetaDataId = processMetaDataId;
+    paramObj.selectedRow = selectedRow;
+    
+    $.ajax({
+        type: 'post',
+        url: 'mdform/callMetaVerseIndicator',
+        data: paramObj,
+        dataType: 'json',
+        beforeSend: function() {
+            Core.blockUI({message: 'Loading...', boxed: true});
+        },
+        success: function(data) {
+            PNotify.removeAll();
+            
+            if (data.status == 'success') {
+                var kpiTypeId = data.kpiTypeId;
+                
+                if (kpiTypeId == '2008') {
+                    var typeCode = data.typeCode;
+                    
+                    if (typeCode == 'import') {
+                        var dialogName = '#dialog-kpiindicator-dataimport';
+                        if (!$(dialogName).length) {
+                            $('<div id="' + dialogName.replace('#', '') + '"></div>').appendTo('body');
+                        }
+                        var $dialog = $(dialogName);
+
+                        $dialog.empty().append(data.html);
+                        $dialog.dialog({
+                            cache: false,
+                            resizable: true,
+                            bgiframe: true,
+                            autoOpen: false,
+                            title: plang.get('Импорт'), 
+                            width: $(window).width(),
+                            height: $(window).height(),
+                            modal: true,
+                            buttons: [
+                                {text: plang.get('close_btn'), class: 'btn blue-madison btn-sm', click: function () {
+                                    $dialog.dialog('close');
+                                }}
+                            ]
+                        });
+                        $dialog.dialog('open');
+                    }
+                }
+            } else {
+                new PNotify({
+                    title: data.status,
+                    text: data.message,
+                    type: data.status,
+                    sticker: false, 
+                    addclass: pnotifyPosition
+                });
+            }
+            
+            Core.unblockUI();
+        }
+    });
+    
+    /*$.ajax({
+        type: 'post',
+        url: 'mdform/importManagePopup',
+        data: {mainIndicatorId: indicatorId},
+        dataType: 'html',
+        beforeSend: function() {
+            Core.blockUI({message: 'Loading...', boxed: true});
+        },
+        success: function(data) {
+            var dialogName = '#dialog-kpiindicator-dataimport';
+            if (!$(dialogName).length) {
+                $('<div id="' + dialogName.replace('#', '') + '"></div>').appendTo('body');
+            }
+            var $dialog = $(dialogName);
+
+            $dialog.empty().append(data);
+            $dialog.dialog({
+                cache: false,
+                resizable: true,
+                bgiframe: true,
+                autoOpen: false,
+                title: plang.get('Импорт'), 
+                width: $(window).width(),
+                height: $(window).height(),
+                modal: true,
+                buttons: [
+                    {text: plang.get('close_btn'), class: 'btn blue-madison btn-sm', click: function () {
+                        $dialog.dialog('close');
+                    }}
+                ]
+            });
+            $dialog.dialog('open');
+            Core.unblockUI();
+        }
+    });*/
+}
 
 $(function() {
     

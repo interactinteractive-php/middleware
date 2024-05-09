@@ -1,14 +1,23 @@
 <div class="row">
     <div class="col-md-auto imp-file-left-part">
         
-        <button 
-            type="button" 
-            class="btn btn-block green-meadow" 
-            onclick="createMvStructureFromFile(this, '', {isContextMenu: false, isImportManage: true, mainIndicatorId: '<?php echo $this->mainIndicatorId; ?>'});">
-            <i class="fa fa-plus"></i> Импорт хийх
-        </button>
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <button type="button" class="btn btn-light dropdown-toggle" data-toggle="dropdown"></button>
+                <div class="dropdown-menu">
+                    <a href="javascript:;" class="dropdown-item" onclick="mvImportManageDownloadExcelTemplate(this, '<?php echo $this->mainIndicatorId; ?>');"><i class="far fa-download"></i> Эксель загвар татах</a>
+                </div>
+            </div>
+            <button 
+                type="button" 
+                class="btn btn-block green-meadow" 
+                style="position: relative;-ms-flex: 1 1 auto;flex: 1 1 auto;width: 1%;margin-bottom: 0;" 
+                onclick="createMvStructureFromFile(this, '', {isContextMenu: false, isImportManage: true, mainIndicatorId: '<?php echo $this->mainIndicatorId; ?>'});">
+                <i class="fa fa-plus"></i> Импорт хийх
+            </button>
+        </div>
         
-        <div class="tabbable-line bp-tabs">
+        <div class="tabbable-line bp-tabs mt-3">
             <ul class="nav nav-tabs">
                 <li class="nav-item">
                     <a href="#mv-imp-file-tab1" class="nav-link active" data-toggle="tab">Файл</a>
@@ -78,6 +87,8 @@
 </style>
 
 <script type="text/javascript">
+var dataViewId_<?php echo $this->mainIndicatorId; ?> = '<?php echo issetParam($this->dataViewId); ?>';
+
 $(function() {
     $('.mv-imp-file-list').on('click', '.imp-file-item', function() {
         var $this = $(this), $parent = $this.closest('.mv-imp-file-list'), 
@@ -385,6 +396,9 @@ function mvImportManageDataCommit(elem, indicatorId, mainIndicatorId) {
 
                             if (data.status == 'success') {
                                 dataViewReload(indicatorId);
+                                if (dataViewId_<?php echo $this->mainIndicatorId; ?> != '') {
+                                    dataViewReload(dataViewId_<?php echo $this->mainIndicatorId; ?>);
+                                }
                             } 
                         }
                     }
@@ -524,5 +538,24 @@ function mvImportManagePopupDuplicateRows(uniqueFields, data) {
         ]
     });
     $dialog.dialog('open');
+}
+function mvImportManageDownloadExcelTemplate(elem, indicatorId) {
+    Core.blockUI({message: 'Loading...', boxed: true});
+    
+    $.fileDownload(URL_APP + 'mdform/downloadExcelImportTemplate', {
+        httpMethod: 'post',
+        data: {indicatorId: indicatorId, isImportManage: 1}
+    }).done(function() {
+        Core.unblockUI();
+    }).fail(function(response){
+        PNotify.removeAll();
+        new PNotify({
+            title: 'Error',
+            text: response,
+            type: 'error',
+            sticker: false
+        });
+        Core.unblockUI();
+    });
 }
 </script>

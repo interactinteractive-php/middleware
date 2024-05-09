@@ -2510,6 +2510,17 @@ function urlRedirectByDataView(elem, processMetaDataId, url, target, dataViewId,
             editPivotGrid(elem, processMetaDataId, dataViewId, selectedRow);
             return;
 
+        } else if (urlLower == 'callmetaverseindicator') {
+            
+            if (typeof isKpiIndicatorScript === 'undefined') {
+                $.getScript('middleware/assets/js/addon/indicator.js').done(function() {
+                    callMetaVerseIndicator(elem, processMetaDataId, dataViewId, selectedRow, paramData);
+                });
+            } else {
+                callMetaVerseIndicator(elem, processMetaDataId, dataViewId, selectedRow, paramData);
+            } 
+            return;
+
         } else if (urlLower == 'pfkpidatamartrelation2') {
             if (typeof isKpiAddonScript2 === 'undefined') {
                 $("head").append('<link rel="stylesheet" type="text/css" href="assets/rappidjs/database/css/styles.css"/>');
