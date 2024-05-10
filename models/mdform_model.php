@@ -24642,6 +24642,10 @@ class Mdform_Model extends Model {
     }
 
     public function getKpiIOIndicatorColumnsModel($indicatorId, $isInput = 0) {
+        $prArr = array($indicatorId);
+        if (!is_null($isInput)) {
+            array_push($prArr, $isInput);
+        }
         
         $data = $this->db->GetAll("
             SELECT 
@@ -24668,7 +24672,7 @@ class Mdform_Model extends Model {
                 (is_null($isInput) ? "" : " AND ".$this->db->IfNull('KIIM.IS_INPUT', '0')." = ".$this->db->Param(1))." 
                 AND KIIM.COLUMN_NAME <> 'ID' 
             ORDER BY KIIM.ORDER_NUMBER ASC", 
-            array($indicatorId, $isInput)
+            $prArr
         );
 
         return $data;
