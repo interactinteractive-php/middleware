@@ -1806,6 +1806,14 @@ SalaryV3.prototype.callDataGridStructure = function(isTrigger) {
                             $.contextMenu('destroy');
                         }
                     },
+                    "searchcolumn": {
+                        name: 'Багана хайх', 
+                        icon: "search", 
+                        callback: function(key, options) {
+                            _self.searchFieldColumnSheet();
+                            $.contextMenu('destroy');
+                        }
+                    },
                     "calculate": {
                         name: MET_99990770, 
                         icon: "calculator", 
@@ -1953,6 +1961,14 @@ SalaryV3.prototype.callDataGridStructure = function(isTrigger) {
                             $.contextMenu('destroy');
                         }
                     },
+                    "searchcolumn": {
+                        name: 'Багана хайх', 
+                        icon: "search", 
+                        callback: function(key, options) {
+                            _self.searchFieldColumnSheet();
+                            $.contextMenu('destroy');
+                        }
+                    },                    
                     "calculate": {
                         name: MET_99990770, 
                         icon: "calculator", 
@@ -3330,6 +3346,59 @@ SalaryV3.prototype.copyFieldColumnSheet = function() {
         ]
     });
     dialogname.dialog('open');    
+};
+
+SalaryV3.prototype.searchFieldColumnSheet = function() {
+    var _self = this;
+    
+    var dialogname = $('#dialog-copy-field_'+_self.windowId);
+    var $dialogname = 'dialog-copy-field_'+_self.windowId;
+    var data = '';
+    
+    data += '<div><span>Багана сонгох:</span></div>';
+    data += '<select id="searchFromField_'+_self.windowId+'" name="" class="form-control select2 form-control-sm input-xxlarge mt5" required="required" data-placeholder="- Сонгох -">';
+        data += '<option value="">- Сонгох -</option>';
+        $.each(_self.fields, function (key, value) {
+            if(value['title'] != '' && value['disable'] != '1')
+                data += '<option value="' + value['field'] + '">' + value['title'] + '</option>';
+        });
+        data += '</select>';   
+    
+    dialogname.empty().html(data);
+    dialogname.dialog({
+        cache: false,
+        resizable: true,
+        bgiframe: true,
+        autoOpen: false,
+        title: 'Багана хайх',
+        width: 320,
+        height: "auto",
+        modal: true,
+        open: function () {
+            $('div[aria-describedby=' + $dialogname + '] .ui-dialog-buttonset').addClass("btn-group float-right");
+            $('div[aria-describedby=' + $dialogname + '] .ui-dialog-buttonset').find('button:eq(0)').addClass('btn blue-hoki btn-sm ml5');
+            $('#searchFromField_'+_self.windowId).select2();
+        },
+        close: function () {
+            dialogname.empty().dialog('close');
+        },
+        buttons: [
+            {text: plang.get('close_btn'), click: function () {
+                dialogname.empty().dialog('close');
+            }}
+        ]
+    });
+    dialogname.dialog('open');    
+    
+    $(document).on('change', '#searchFromField_'+_self.windowId, function() {
+        var _thisField = $(this).val();
+        $('.datagrid-view .datagrid-view2 .datagrid-body td[field="'+_thisField+'"] input:first').focus();
+        $('.datagrid-view .datagrid-view2 .datagrid-header td[field="'+_thisField+'"] span:first').css({"background-color":"yellow","color":"#000"});
+        setTimeout(function () {
+            $('.datagrid-view .datagrid-view2 .datagrid-header td[field="'+_thisField+'"] span:first').removeAttr("style");
+        }, 2000);
+        dialogname.empty().dialog('close');
+    });     
 };
 
 SalaryV3.prototype.multipleFilter = function(elem) {

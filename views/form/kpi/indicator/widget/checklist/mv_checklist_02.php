@@ -58,7 +58,7 @@ $renderType = $this->methodRow['RENDER_THEME'];
                     if (!$this->isIgnoreHeaderProcess) {
                     ?>
                     <div class="tab-pane active" id="structabcustom_<?php echo $this->uniqId; ?>">
-                        <div class="mv-checklist-main-render" style="width: 100%; padding: 10px 50px;">
+                        <div class="mv-checklist-main-render" style="background-color: #f1f1f1; width: 100%; padding: 10px 20px;">
                             <form method="post" enctype="multipart/form-data">
                                 <div class="meta-toolbar is-bp-open-">
                                     <div class="main-process-text">
@@ -683,12 +683,12 @@ input.kpi-notfocus-readonly-input::placeholder {
     height: 32px!important;
     min-height: 32px!important;
     border: 1px #f3f3f3 solid;
-    padding: 7px 10px!important;
+    /*padding: 7px 10px!important;*/
 }
 .mv-checklist2-render-parent .mv-hdr-label-control-input textarea.form-control {
     border-radius: 6px!important;
     border: 1px #eee solid;
-    padding: 7px 10px!important;
+    /*padding: 7px 10px!important;*/
 }
 .mv-checklist2-render-parent .mv-hdr-label-control {
     margin-bottom: 10px;
@@ -759,7 +759,11 @@ $('#mv-checklist-render-parent-<?php echo $this->uniqId; ?>').on('shown.bs.tab',
             $tabPane.find('> .d-flex > .w-100').css('max-width', '');
         } else {
             $tabPane.find('> .d-flex > .sidebar').show();
-            $tabPane.find('> .d-flex > .w-100').css('max-width', '1200px');
+            var wcontw = $('#mv-checklist-render-parent-<?php echo $this->uniqId; ?>').width();
+            if ($('#mv-checklist-render-parent-<?php echo $this->uniqId; ?>').find(".sidebar:visible").length) {
+                wcontw = wcontw - 300;
+            }            
+            $tabPane.find('> .d-flex > .w-100').css('max-width', wcontw+'px');
         }
         
         $selTb.first().trigger('click');
@@ -777,9 +781,9 @@ $(function() {
 <?php
 if ($renderType == 'paper_main_window') {
 ?>
-$(function() {
-    $('#mv-checklist-render-parent-<?php echo $this->uniqId; ?>').find('.content-wrapper-paper_main_window').css("max-width", $(window).width() - 300);
-});
+    $(function() {
+        $('#mv-checklist-render-parent-<?php echo $this->uniqId; ?>').find('.content-wrapper-paper_main_window').css("max-width", $(window).width() - 300);
+    });
 <?php
 }
 ?>

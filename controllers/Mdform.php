@@ -2232,9 +2232,10 @@ class Mdform extends Controller {
             $this->view->indicatorId = Input::numeric('indicatorId');
             $this->view->isChartList = Input::numeric('isChartList');
             $this->view->isCalendar = Input::numeric('isCalendar');
+            $this->view->isGoogleMap = Input::numeric('isGoogleMap');
 
             $filterData = $this->model->filterKpiIndicatorValueFormModel($this->view->indicatorId);
-
+            
             if ($filterData['status'] == 'success') {
                 $this->view->filterData = $filterData['data'];
                 $this->view->filterTreeData = $filterData['treeData'];

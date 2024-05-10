@@ -1,9 +1,17 @@
+<?php 
+    $mapLayer = array(); 
+    $mapLayerSelectedData = ''; 
+
+    if (issetParam($this->mapLayers['0']['ID'])) {
+        $mapLayer = Arr::groupByArrayOnlyRow($this->mapLayers, 'ID', false);
+        $mapLayerSelectedData = Arr::implode_key(',', $this->mapLayers, 'ID', true);
+    }
+?>
 <div class="center-sidebar overflow-hidden content">
     <div class="row">
         <div class="col right-sidebar-content-for-resize content-wrapper pl-0 pr-0 overflow-hidden">
             <div class="row md-map-container">
                 <div class="col-md-12">
-                    
                     <div class="text-uppercase font-weight-bold mt-0 mb-2">
                         <?php echo $this->title; ?>
                     </div>
@@ -14,46 +22,56 @@
                         <i class="fa fa-angle-double-right"></i>
                     </div>
                     <div class="md-map-filter-container">
-                        <div class="mt10"><h5>Бүсчлэл</h5></div>
-                        <div class="indicator-polygon-data" style="max-height: 57vh; overflow: auto;">
-                            
+                        <div class="col-md-auto px-0 pt-1">
+                            <div class="kpidv-data-filter-col pr-1 border-none"></div>
                         </div>
+                        <div class="list-group border-none" style="width: 240px;">
+                            <div class="px-0 py-1 mt10 list-group-item font-weight-bold font-size-13 line-height-normal justify-content-between kpi-indicator-filter-collapse-btn opened">Төрөл <i class="icon-arrow-right13 ml-1"></i></div>
+                            <div class="list-group-body col-md-auto px-0 ">
+                                <?php 
+                                echo Form::multiselect(
+                                    array(
+                                        'class' => 'form-control form-control-sm select2 data-indicator-id pr-1 data-indicator-id' . $this->indicatorId,
+                                        'name' => 'mayLayers', 
+                                        'data' => $this->mapLayers, 
+                                        'multiple' => 'multiple', 
+                                        'op_value' => 'ID', 
+                                        'op_text' => 'NAME',
+                                        'value' => $mapLayerSelectedData, 
+                                    )
+                                ); 
+                                ?> 
+                            </div>
+                        </div>
+                        <div class="mt10 "><h5>Бүсчлэл</h5></div>
+                        <div class="indicator-polygon-data" style="max-height: 57vh; overflow: auto;"></div>
                         <div class="mb10 mr-3">
                             <button class="indicator_save_polygon btn btn-light bg-primary btn-sm btn-block">Бүс хадгалах</button>
                         </div>
                     </div>        
                 </div>                
                 <div class="col-md-12 div-objectdatagrid-<?php echo $this->indicatorId; ?>">
-                    
-                    <?php
-                    foreach ($this->mapLayers as $mapLayer) {
-                        echo html_tag('button', 
-                            array(
-                                'class' => 'btn btn-sm btn-info btn-circle mr-2 mb-2', 
-                                'data-indicator-id' => $mapLayer['ID'], 
-                                'style' => 'background-color: '.$mapLayer['COLOR'], 
-                                'data-color' => $mapLayer['COLOR'],
-                                'data-icon' => $mapLayer['ICON']
-                            ), 
-                            '<i class="far '.($mapLayer['ICON'] ? $mapLayer['ICON'] : 'fa-eye').'"></i> '.$mapLayer['NAME']
-                        );
-                    }
-                    ?>
-                    
                     <div id="md-map-canvas-<?php echo $this->indicatorId; ?>"></div>
                 </div>
             </div>    
         </div>     
     </div>    
-</div>  
+</div>
 
 <style type="text/css">
-.polygon-row {
-    font-size: 13px;
-}
+    .polygon-row {
+        font-size: 13px;
+    }
 </style>
 
 <script type="text/javascript">
+
+var objectdatagrid_<?php echo $this->indicatorId; ?> = $('#objectdatagrid<?php echo (isset($this->isBasket) ? '_' : '-') . $this->indicatorId; ?>');
+var filterSearchType_<?php echo $this->indicatorId; ?> = '<?php echo issetParam($this->row['SEARCH_TYPE']); ?>';
+var filterSearchType_<?php echo $this->indicatorId; ?> = '<?php echo issetParam($this->row['SEARCH_TYPE']); ?>';
+var dynamicHeight = 350;
+var mapLayersData<?php echo $this->indicatorId ?> = <?php echo json_encode($mapLayer) ?>;
+
 var drawingManager, markerRowData = [], currentPolygon, currentSegmentObj = {}, currentPolygonIndicatorId, savedPolygon = {};
 var strokeOpacity = 0.8;
 var strokeWeight = 2;
@@ -74,6 +92,8 @@ $(function() {
     var $gmap = $('#md-map-canvas-<?php echo $this->indicatorId; ?>');
     $gmap.css('height', ($(window).height() - $gmap.offset().top - 40)); 
     
+    Core.initSelect2($('.data-indicator-id<?php echo $this->indicatorId ?>').parent());
+
     if (typeof isKpiIndicatorScript === 'undefined') {
         $.cachedScript('<?php echo autoVersion('middleware/assets/js/addon/indicator.js'); ?>').done(function() {      
             kpiIndicatorGmapLoad_<?php echo $this->indicatorId; ?>();
@@ -81,47 +101,12 @@ $(function() {
     } else {
         kpiIndicatorGmapLoad_<?php echo $this->indicatorId; ?>();
     }  
-    
-    $('.div-objectdatagrid-<?php echo $this->indicatorId; ?>').on('click', 'button[data-indicator-id]', function() {
-        var $this = $(this), indicatorId = $this.attr('data-indicator-id');
-        var layer = window['kpiMapLayer_' + indicatorId];
-        var layerLength = layer.length;
-        var polygonLayer = Object.keys(layer);
-        
-        if ($this.find('i.fa-eye-slash').length == 0) {
-            
-            $this.find('i').attr('data-class', $this.find('i').attr('class')).attr('class', 'far fa-eye-slash');
-            
-            for (var i = 0; i < layerLength; i++) {
-                layer[i].setVisible(false);
-            }
-            
-            if (polygonLayer) {
-                for (var i = 0; i < polygonLayer.length; i++) {
-                    layer[polygonLayer[i]].setVisible(false);
-                }            
-            }            
-            
-        } else {
-            
-            $this.find('i').attr('class', $this.find('i').attr('data-class'));
-            
-            for (var i = 0; i < layerLength; i++) {
-                layer[i].setVisible(true);
-            }
-            
-            if (polygonLayer) {
-                for (var i = 0; i < polygonLayer.length; i++) {
-                    layer[polygonLayer[i]].setVisible(true);
-                }            
-            }            
-        }
-    });
-    
+
     mapToggleBtn();
     
     $('.md-map-filter-panel-<?php echo $this->indicatorId; ?>').on('click', '.edit_polygon_btn', function() {
-        var $this = $(this), id = $this.closest('div.polygon-row').attr('data-id'), indicatorId = $this.closest('div.indicator-polygon-data').attr('data-indicator-id'), coordinate;
+        var $this = $(this), id = $this.closest('div.polygon-row').attr('data-id'), 
+        indicatorId = $this.closest('div.indicator-polygon-data').attr('data-indicator-id'), coordinate;
         currentPolygon = window['kpiMapLayer_' + indicatorId][id];
         currentPolygonIndicatorId = indicatorId;
         googleMapSetSelection(currentPolygon);
@@ -223,7 +208,13 @@ $(function() {
         currentSegmentObj = {};
         googleMapClearSelection();
     });
+
 });  
+
+$('body').on('change', 'select.data-indicator-id<?php echo $this->indicatorId ?>', function () {
+    var _this = $(this);
+    kpiIndicatorGmapLoad_<?php echo $this->indicatorId; ?>();
+});
 
 function mapToggleBtn() {
     var $mapFilter = $("div.md-map-container div.md-map-filter-panel"), 
@@ -278,17 +269,24 @@ function kpiIndicatorGmapLoad_<?php echo $this->indicatorId; ?>() {
         };
 
         map = new google.maps.Map(document.getElementById('md-map-canvas-<?php echo $this->indicatorId; ?>'), mapProp);
-        var $layers = $('.div-objectdatagrid-<?php echo $this->indicatorId; ?> button[data-indicator-id]');          
+        var $layers = $('.div-objectdatagrid-<?php echo $this->indicatorId; ?> button[data-indicator-id]');    
+        var $parentFilter = $('.list-group[data-indicatorid="<?php echo $this->indicatorId; ?>"]'), 
+            $this = $('.list-group[data-indicatorid="<?php echo $this->indicatorId; ?>"]').find('input:eq(0)');      
 
-        $layers.each(function() {
+        var getFilterData = getKpiIndicatorFilterData($this, $parentFilter);
+        var $mapFilter = $('.md-map-filter-panel-<?php echo $this->indicatorId; ?>');
+        
+        $.each($mapFilter.find('.data-indicator-id').select2('val'), function(i, r) {
+
             var $this = $(this), 
-                indicatorId = $this.attr('data-indicator-id'), 
-                color = $this.attr('data-color'), 
-                icon = $this.attr('data-icon');
+                indicatorId = r, 
+                color = (typeof mapLayersData<?php echo $this->indicatorId ?>[r] !== 'undefined' && typeof mapLayersData<?php echo $this->indicatorId ?>[r]['COLOR'] !== 'undefined') ? mapLayersData<?php echo $this->indicatorId ?>[r]['COLOR'] : '', 
+                icon =  (typeof mapLayersData<?php echo $this->indicatorId ?>[r] !== 'undefined' && typeof mapLayersData<?php echo $this->indicatorId ?>[r]['ICON'] !== 'undefined') ? mapLayersData<?php echo $this->indicatorId ?>[r]['ICON'] : '';
 
             var dvSearchParam = {
                 indicatorId: indicatorId,
                 isGoogleMap: 1,
+                filterData: getFilterData.filterData,
                 drillDownCriteria: '<?php echo $this->drillDownCriteria; ?>', 
                 page: 1, 
                 rows: 500
@@ -310,9 +308,11 @@ function kpiIndicatorGmapLoad_<?php echo $this->indicatorId; ?>() {
                     }
                 }
             });
+
         });
     });
 }
+
 function parseDrillCriteriaQuery(queryString) {
     var query = {};
     var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
@@ -321,7 +321,8 @@ function parseDrillCriteriaQuery(queryString) {
         query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
     }
     return query;
-} 
+}
+ 
 function createPolygonForIndicator(metaId, data) {
   var $dialogName = "dialog-indicatormap-polygon-bp";
   if (!$("#" + $dialogName).length) {
@@ -496,5 +497,60 @@ function createPolygonForIndicator(metaId, data) {
     Core.initBPAjax($dialog);
     Core.unblockUI();
   });
+}
+
+<?php if (!isset($this->isIgnoreFilter)) { ?>
+    filterKpiIndicatorValueForm(<?php echo $this->indicatorId; ?>);
+<?php } ?>
+
+function filterKpiIndicatorValueForm(indicatorId) {
+    var drillDownCriteria = window['drillDownCriteria_' + indicatorId];
+    
+    $.ajax({
+        type: 'post',
+        url: 'mdform/filterKpiIndicatorValueForm',
+        data: {
+            indicatorId: indicatorId, 
+            drillDownCriteria: drillDownCriteria, 
+            filterPosition: '<?php echo issetParam($this->row['SEARCH_TYPE']); ?>', 
+            filterColumnCount: '<?php echo issetParam($this->row['SEARCH_COLUMN_NUMBER']); ?>',
+            isGoogleMap: '1'
+        },
+        dataType: 'json',
+        success: function(data) {
+                        
+            if (filterSearchType_<?php echo $this->indicatorId; ?> === 'top') {
+                var $filterCol = $('#object-value-list-' + indicatorId + ' .kpidv-data-top-filter-col').last();
+            } else {
+                var $filterCol = $('#object-value-list-' + indicatorId + ' .kpidv-data-filter-col').last();
+            }
+            
+            if (data.status == 'success' && data.html != '') {
+                
+                if ($filterCol.length) {
+                    /* if (filterSearchType_<?php echo $this->indicatorId; ?> !== 'top') {
+                        $filterCol.css('height', dynamicHeight + 100);
+                    } */
+                                
+                    $filterCol.closest('.mv-datalist-container').addClass('mv-datalist-show-filter');
+                    $filterCol.closest('.ws-page-content').removeClass('mt-2');
+                
+                    $filterCol.append(data.html).promise().done(function() {
+                        Core.initNumberInput($filterCol);
+                        Core.initLongInput($filterCol);
+                        Core.initDateInput($filterCol);
+                        Core.initSelect2($filterCol);
+
+                        if ($('#object-value-list-' + indicatorId).find('.mv-indicator-filter-tree-open-btn').length) {
+                            $('#object-value-list-' + indicatorId).find('.mv-indicator-filter-tree-open-btn').trigger('click');
+                        }                        
+                    });
+                }
+                
+            } else {
+                $filterCol.closest('.col-md-auto').remove();
+            }
+        }
+    });
 }
 </script>

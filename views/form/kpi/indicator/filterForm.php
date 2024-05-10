@@ -9,6 +9,8 @@ if ($this->filterData || $this->filterTreeData) {
             $clickFnc = 'filterKpiIndicatorValueChartListLoad';
         } elseif (isset($this->isCalendar) && $this->isCalendar) {
             $clickFnc = 'refetchEvents_' . $this->indicatorId;
+        } elseif (isset($this->isGoogleMap) && $this->isGoogleMap) {
+            $clickFnc = 'kpiIndicatorGmapLoad_' . $this->indicatorId;
         } elseif (isset($this->uniqId) && $this->uniqId) {
             $clickFnc = 'filterKpiIndicatorValueChartLoad';
         } else {

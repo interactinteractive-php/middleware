@@ -6240,7 +6240,7 @@ class Mdform_Model extends Model {
 
                     $render[] = '<div class="sectiongidseperator"></div>';
                     $render[] = '<div class="sectiongidseperatorcontent-container"><fieldset class="sectiongidseperatorcontent collapsible row" data-initialized="1">';
-                    $render[] = '<legend style="padding-top: 20px !important;">'.$tabName.'</legend>';
+                    $render[] = '<legend id="sectiongid'.$t.'" style="padding-top: 20px !important;">'.$tabName.'</legend>';
                     $render[] = implode('', $tabContent);
                     $render[] = '</fieldset></div>';
 
@@ -6335,7 +6335,7 @@ class Mdform_Model extends Model {
             }                      
             $sideSectionRender = [];
             $sideSectionRender[] = '<div class="d-flex">';
-            $sideSectionRender[] = '<div style="flex: 0 0 250px;border-right: 1px solid #eee;background-color: #fff;margin-top: 15px;border-radius: .75rem;padding: 15px;">';
+            $sideSectionRender[] = '<div style="flex: 0 0 250px;border-right: 1px solid #eee;background-color: #fff;margin-top: 15px;border-radius: .75rem;padding: 15px;margin-left: -.625rem;">';
             $sideSectionRender[] = '<div style="">';
             $sideSectionRender[] = implode('', $tnames);
             $sideSectionRender[] = '</div>';
@@ -7536,6 +7536,33 @@ class Mdform_Model extends Model {
             }
             break;
             
+            case 'web_camera':
+            {
+                $fileName = $webCamPhoto = '';
+                if ($value) {
+
+                    $fileName = $value;
+
+                    if (!empty($fileName)) {
+                        $fileExtension = strtolower(substr($fileName, strrpos($fileName, '.') + 1));
+                        
+                        if (in_array($fileExtension, array('jpg', 'jpeg', 'png', 'gif')) === true) {
+                            $webCamPhoto = ' <a href="' . URL . $fileName . '" class="fancybox-button main ml5" data-rel="fancybox-button" title="Зураг үзэх"><img src="' . URL . $fileName . '" width="32" style="1px solid #6e6e6e"></a>';
+                        }
+                    }
+                }                
+
+                $hiddenForm = Form::hidden(array(
+                    'name' => $controlName,
+                    'class' => 'form-control form-control-sm '.$code.'Init',
+                    'data-path' => $columnNamePath,
+                    'data-field-name' => $cellId,
+                    'data-isclear' => '1',
+                    'value' => $value
+                ));                
+                $control = '<button type="button" onClick="bpWebCamera(this)" class="btn blue btn-sm" data-path="'.$columnNamePath.'" title="Вэб камер"><i class="fa fa-camera"></i></button>' . $webCamPhoto . $hiddenForm;
+            }
+            break;
             case 'icon_picker':
             {
                 $attrArray = array(
@@ -10897,7 +10924,11 @@ class Mdform_Model extends Model {
                         if (is_null($rowIndex)) {
                             if ($depth == 0) {
                                 $getParam = issetParam(Mdform::$mvPostParams[$columnNamePath]);
-                            } elseif (isset(Mdform::$mvPostParams[$columnNamePath][0])) {
+                                
+                            } elseif (isset(Mdform::$mvPostParams[$columnNamePath][0]) 
+                                && is_array(Mdform::$mvPostParams[$columnNamePath]) 
+                                && array_key_exists(0, Mdform::$mvPostParams[$columnNamePath])) {
+                                
                                 $getParam = Mdform::$mvPostParams[$columnNamePath][0];
                             } else {
                                 $getParam = issetParam(Mdform::$mvPostParams[$columnNamePath]);
@@ -10913,7 +10944,10 @@ class Mdform_Model extends Model {
                                 if (is_null($rowIndex)) {
                                     if ($depth == 0) {
                                         $comboDesc = issetVar(Mdform::$mvPostParams[$columnNamePath.'_DESC']);
-                                    } elseif (isset(Mdform::$mvPostParams[$columnNamePath.'_DESC'][0])) {
+                                    } elseif (isset(Mdform::$mvPostParams[$columnNamePath.'_DESC'][0]) 
+                                        && is_array(Mdform::$mvPostParams[$columnNamePath.'_DESC']) 
+                                        && array_key_exists(0, Mdform::$mvPostParams[$columnNamePath.'_DESC'])) {
+
                                         $comboDesc = Input::param(Mdform::$mvPostParams[$columnNamePath.'_DESC'][0]);
                                     } else {
                                         $comboDesc = issetVar(Mdform::$mvPostParams[$columnNamePath.'_DESC']);
@@ -10998,8 +11032,13 @@ class Mdform_Model extends Model {
                 
                 if (is_null($rowIndex)) {
                     if ($depth == 0) {
+                        
                         $arr['rowState'] = issetVar(Mdform::$mvPostParams[$parentColumnNamePath.'.rowState']);
-                    } elseif (isset(Mdform::$mvPostParams[$parentColumnNamePath.'.rowState'][0])) {
+                        
+                    } elseif (isset(Mdform::$mvPostParams[$parentColumnNamePath.'.rowState'][0]) 
+                        && is_array(Mdform::$mvPostParams[$parentColumnNamePath.'.rowState']) 
+                        && array_key_exists(0, Mdform::$mvPostParams[$parentColumnNamePath.'.rowState'])) {
+                        
                         $arr['rowState'] = Input::param(Mdform::$mvPostParams[$parentColumnNamePath.'.rowState'][0]);
                     } else {
                         $arr['rowState'] = issetVar(Mdform::$mvPostParams[$parentColumnNamePath.'.rowState']);
@@ -14917,7 +14956,7 @@ class Mdform_Model extends Model {
                 
                 foreach ($filterParams as $filterParam) {
                     if ($filterParam['TRG_ALIAS_NAME'] != '') {
-                        $replaceQueryString = str_ireplace(':'.$filterParam['TRG_ALIAS_NAME'], "''", $replaceQueryString);
+                        $replaceQueryString = str_ireplace(':'.$filterParam['TRG_ALIAS_NAME'], 'NULL', $replaceQueryString);
                         $filterNamedParams[strtoupper($filterParam['TRG_ALIAS_NAME'])] = $filterParam['DEFAULT_VALUE'];
                     }
                 }
@@ -15405,7 +15444,11 @@ class Mdform_Model extends Model {
                         
                     } elseif (!is_array($filterColVals)) {
                         
-                        $tableName = str_ireplace(':'.$filterColName, "'".self::fixFilterColValue($filterColVals)."'", $tableName);
+                        if (stripos($tableName, ':'.$filterColName) !== false) {
+                            $tableName = str_ireplace(':'.$filterColName, ($filterColVals != '' ? "'".self::fixFilterColValue($filterColVals)."'" : 'NULL'), $tableName);
+                        } elseif ($filterColVals != '') {
+                            $subCondition .= " AND LOWER($filterColName) = '%".self::fixFilterColValue(Str::lower($filterColVals))."%'";
+                        }
                         
                     } else {
                         
@@ -15448,7 +15491,7 @@ class Mdform_Model extends Model {
                 foreach ($filterParams as $filterParam) {
                     
                     if ($filterParam['TRG_ALIAS_NAME'] != '') {    
-                        $bindVal = ($filterParam['DEFAULT_VALUE'] != '') ? "'".Mdmetadata::setDefaultValue($filterParam['DEFAULT_VALUE'])."'" : 'null';
+                        $bindVal = ($filterParam['DEFAULT_VALUE'] != '') ? "'".Mdmetadata::setDefaultValue($filterParam['DEFAULT_VALUE'])."'" : 'NULL';
                         $tableName = str_ireplace(':'.$filterParam['TRG_ALIAS_NAME'], $bindVal, $tableName);
                     }
                 }

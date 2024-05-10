@@ -329,10 +329,17 @@ $(function() {
     
     $kpiTmp_<?php echo $this->uniqId; ?>.on('click', 'a[href^="#sectiongid"]', function (event) {
         event.preventDefault();
+        var $this = $(this);
 
-        $('html, body').animate({
-            scrollTop: $($.attr(this, 'href')).offset().top - 20
-        }, 500);
+        if ($this.closest(".ui-dialog-content").length) {
+            $('.ui-dialog-content').animate({
+                scrollTop: $($this.attr('href')).offset().top - 20
+            }, 500);            
+        } else {
+            $('html, body').animate({
+                scrollTop: $($this.attr('href')).offset().top - 20
+            }, 500);
+        }
     });    
     
     $kpiTmp_<?php echo $this->uniqId; ?>.on('change', 'select.select2[data-out-param]:not([data-row-data])', function() {
