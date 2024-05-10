@@ -11701,7 +11701,7 @@ class Mdform_Model extends Model {
                                     continue;
                                 }
                                 
-                                if ($showType == 'clob' || $showType == 'text_editor' || $showType == 'html_clicktoedit' || $showType == 'expression_editor') {
+                                if ($showType == 'clob' || $showType == 'text_editor' || $showType == 'html_clicktoedit' || $showType == 'expression_editor' || $showType == 'web_camera') {
                                     
                                     if ($getValue == '') {
                                         $saveData[$columnName] = null;
@@ -11711,6 +11711,14 @@ class Mdform_Model extends Model {
                                         $saveData[$columnName] = $getValue;
                                     }
                                     
+                                } elseif ($showType == 'time') {
+                                    
+                                    if ($getValue == '') {
+                                        $saveData[$columnName] = null;
+                                    } else {
+                                        $saveData[$columnName] = !isValidDate($getValue) ? '1999-01-01 '.$getValue.':00' : $getValue;
+                                    }
+                
                                 } elseif ($showType == 'json') {
                                     
                                     $getValue = isset(Mdform::$mvSaveParams[$columnNamePath]) ? Mdform::$mvSaveParams[$columnNamePath] : null;
@@ -13695,7 +13703,7 @@ class Mdform_Model extends Model {
                     continue;
                 }
                 
-                if ($row['type'] == 'clob' || $row['type'] == 'text_editor' || $row['type'] == 'html_clicktoedit') {
+                if ($row['type'] == 'clob' || $row['type'] == 'text_editor' || $row['type'] == 'html_clicktoedit' || $row['type'] == 'web_camera') {
                     $fields .= '"'.$row['name'].'" CLOB,';
                 } elseif ($row['type'] == 'date' || $row['type'] == 'datetime' || $row['type'] == 'time') {
                     $fields .= '"'.$row['name'].'" DATE,';
@@ -13788,7 +13796,7 @@ class Mdform_Model extends Model {
                 
                 $row['name'] = strtoupper($row['name']);
                 
-                if ($row['type'] == 'clob' || $row['type'] == 'text_editor' || $row['type'] == 'html_clicktoedit') {
+                if ($row['type'] == 'clob' || $row['type'] == 'text_editor' || $row['type'] == 'html_clicktoedit' || $row['type'] == 'web_camera') {
                     
                     $alter = "ALTER TABLE $tblName ADD (".$row['name']." CLOB)";
                     

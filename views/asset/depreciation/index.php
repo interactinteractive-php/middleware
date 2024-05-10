@@ -30,6 +30,9 @@
                         <legend><?php echo $this->lang->line('filter'); ?></legend>
                         <div class="row" id="headerFilterParam">
                             <div class="col-md-4">
+                                <?php
+                                if (Config::getFromCache('IS_HIDE_FILTER_CLOUD_DEPR') != 1) {
+                                ?>                                
                                 <div class="form-group row fom-row">
                                     <?php echo Form::label(array('text' => Lang::lineDefault('PL_0317', 'Салбар нэгж'), 'for' => 'departmentCode_displayField', 'class' => 'col-form-label col-md-3 custom-label', 'required' => 'required', 'style' => 'font-size: 12px !important')); ?>
                                     <div class="col-md-9">
@@ -48,6 +51,7 @@
                                     </div>
                                 </div>
                                 <?php
+                                }    
                                 if (!$this->IS_NOT_SHOW_ACC_IN_DEPR) {
                                 ?>
                                 <div class="form-group row fom-row">

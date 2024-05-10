@@ -6364,6 +6364,7 @@ class Mdform extends Controller {
         
         $_POST['isResponseArray'] = 1;
         $_POST['param']['indicatorId'] = $trgRefStructureId; 
+        $_POST['param']['crudIndicatorId'] = $trgIndicatorId;
         $_POST['param']['actionType'] = 'create';
         
         /*$getWfmRecordIdMetaDmRecordMap = $this->model->getWfmRecordIdMetaDmRecordMapModel($srcMapId);
