@@ -252,6 +252,18 @@ $(function() {
                         Core.blockUI({message: 'Loading...', boxed: true});
                     },
                     success: function (data) {
+                        if (typeof tnaTimeEmployeePlanData === 'undefined') {
+                            $.ajax({
+                                url: "middleware/assets/js/time/timePlanV2.js?v="+Date.now(),
+                                dataType: "script",
+                                cache: true,
+                                async: false,
+                                beforeSend: function() {
+                                    $("head").append('<link rel="stylesheet" type="text/css" href="middleware/assets/css/time/time.css"/>');
+                                }
+                            }).done(function() {
+                            });
+                        }                        
                         viewProcess_<?php echo $this->uniqId; ?>.empty().append(data).promise().done(function () {
                             Core.initAjax(viewProcess_<?php echo $this->uniqId; ?>);
                             Core.unblockUI();                                   
