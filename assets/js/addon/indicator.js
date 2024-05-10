@@ -6771,7 +6771,7 @@ function mvProductRender(elem, url, indicatorId) {
 
                     $dialog.dialogExtend('maximize');
                     $dialog.dialog('open');
-                }
+                }                                   
                 
             } else if (url) {
                 window.location = url;

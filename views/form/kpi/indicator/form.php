@@ -1008,6 +1008,14 @@ $(function() {
     dtlAggregateFunction_<?php echo $this->uniqId; ?>();
     
     Core.initTextareaAutoHeight(bp_window_<?php echo $this->uniqId; ?>);
+    
+    if ($(".mv-checklist-section-sidebar").length) {
+        setTimeout(function() {
+            $(".mv-checklist-section-sidebar").stick_in_parent({
+                offset_top: 55
+            });
+        }, 300);    
+    }       
 });
 
 function rowsDtlPathReplacer_<?php echo $this->uniqId; ?>(groupPath) {

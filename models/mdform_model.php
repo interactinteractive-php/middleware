@@ -6335,7 +6335,7 @@ class Mdform_Model extends Model {
             }                      
             $sideSectionRender = [];
             $sideSectionRender[] = '<div class="d-flex">';
-            $sideSectionRender[] = '<div style="flex: 0 0 250px;border-right: 1px solid #eee;background-color: #fff;margin-top: 15px;border-radius: .75rem;padding: 15px;margin-left: -.625rem;">';
+            $sideSectionRender[] = '<div class="mv-checklist-section-sidebar">';
             $sideSectionRender[] = '<div style="">';
             $sideSectionRender[] = implode('', $tnames);
             $sideSectionRender[] = '</div>';

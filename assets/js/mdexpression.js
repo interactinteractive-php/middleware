@@ -11447,8 +11447,10 @@ function transferSplitValueToDtlFunction(mainSelector, srcSplitPath, trgGroupPat
                         }
                         
                         var $mainCopyTr = '<tr class="bp-detail-row">' + $firstRow.html() + '</tr>';
+                        var $rowState = $mainTableBody.find('input[data-path="'+ trgGroupPath +'.rowState"]');
+                        
                         $sindex = mainSelector.find('table[data-table-path="'+ trgGroupPath +'"] > tbody > tr').length;
-                        $mainTableBody.find('input[data-path="'+ trgGroupPath +'.rowState"]').val('removed');
+                        $rowState.val('removed');
                         
                         if (isCommaValue || $isCommaValue) {
                             if (typeof $realValue !== 'undefined' && $realValue === 'rows-rows') {
@@ -11535,12 +11537,17 @@ function transferSplitValueToDtlFunction(mainSelector, srcSplitPath, trgGroupPat
                                                     Core.initBPDtlInputType($rowThis);
                                                 }
                                             }); 
-                                        }
+                                        } 
 
                                         $sindex++;
                                     });
-                                });
-                                bpSetRowIndexDepth($parent, mainSelector);
+                                }); 
+                                
+                                if ($rowState.attr('name').indexOf('mvParam[') !== -1) { 
+                                    kpiSetRowIndex($mainTableBody);
+                                } else {
+                                    bpSetRowIndexDepth($parent, mainSelector);
+                                }
                                 
                                 mainSelector.find('table[data-table-path="'+ trgGroupPath +'"] > tbody > tr').each(function (sindex, srow) {
                                     if ($(srow).find('input[data-field-name="rowState"]:eq(0)').val() == '') {
@@ -11662,7 +11669,11 @@ function transferSplitValueToDtlFunction(mainSelector, srcSplitPath, trgGroupPat
                                 });
                             }
                             
-                            bpSetRowIndex($parent);
+                            if ($mainTableBody.closest('table').hasClass('kpi-dtl-table')) { 
+                                kpiSetRowIndex($mainTableBody);
+                            } else {
+                                bpSetRowIndex($parent);
+                            }
                             /*bpDetailRowOrdering($mainTableBody);*/
                         }
                     }

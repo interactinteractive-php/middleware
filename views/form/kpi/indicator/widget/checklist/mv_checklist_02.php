@@ -191,7 +191,7 @@ $renderType = $this->methodRow['RENDER_THEME'];
                                 </div>
                                 <div class="w-100 content-wrapper-<?php echo $renderType ?>" style="background-color: #f1f1f1; max-width: 1200px">
                                     <div>
-                                        <div class="content-wrapper pt-2 pl-3 pr-3 mv-checklist-render">        
+                                        <div class="content-wrapper pt-2 pl-3 pr-3 pb-2 mv-checklist-render">        
                                         </div>                
                                     </div>                
                                     <div class="mv-checklist-render-comment pl-3 pr-3">
