@@ -5746,7 +5746,7 @@ class Mdform extends Controller {
 
     public function renderRelationKpi() {
         $selectedRow = Arr::decode(Input::post('selectedRow'));
-        $this->view->indicatorId = $selectedRow['dataRow']['id'];
+        $this->view->indicatorId = isset($selectedRow['dataRow']['crudindicatorid']) ? $selectedRow['dataRow']['crudindicatorid'] : $selectedRow['dataRow']['id'];
         $components = $this->model->getKpiIndicatorMapWithoutTypeModel($this->view->indicatorId, '10000000,10000001,10000009,10000019');
                     
         $this->view->savedComponentRows = $this->model->getSavedRecordMapKpiModel($this->view->indicatorId, $this->view->indicatorId, $components);
