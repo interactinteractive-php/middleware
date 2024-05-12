@@ -1095,6 +1095,10 @@ class Mdstatement_model extends Model {
             return $listResult;
         }
         
+        if (DB_DRIVER == 'postgres9') {
+            unset($param['showQueryWithParameter']);
+        }
+        
         $data = $this->ws->runResponse(self::$gfServiceAddress, Mddatamodel::$getDataViewCommand, $param);
         
         if ($data['status'] == 'success' && isset($data['result'])) {
@@ -1126,10 +1130,16 @@ class Mdstatement_model extends Model {
                 
                 try {
                     
-                    $queryBindParam = DBSql::dataViewQueryBindParams($data['result']);
+                    if (DB_DRIVER == 'postgres9') {
+                        $query = $data['result'];
+                        $bindParams = [];
+                    } else {
+                        $queryBindParam = DBSql::dataViewQueryBindParams($data['result']);
                     
-                    $query          = $queryBindParam['query'];
-                    $bindParams     = $queryBindParam['bindParams'];
+                        $query          = $queryBindParam['query'];
+                        $bindParams     = $queryBindParam['bindParams'];
+                    }
+                    
                     $reportConn     = (issetParam($getRowStatement['PROCESS_META_DATA_ID'])) ? array() : self::getReportDatabaseConnection();
                     
                     $sql = 'SELECT '. ((DB_DRIVER == 'postgres9') ? 'ROW_NUMBER () OVER ()' : 'ROWNUM') .' AS RID, PDD.* FROM ('.$query.') PDD';
@@ -1188,7 +1198,7 @@ class Mdstatement_model extends Model {
 
                         $this->db->StartTrans();
                         
-                        if (isset($param['criteria'])) {
+                        if (DB_DRIVER != 'postgres9' && isset($param['criteria'])) {
                             
                             $param = Arr::changeKeyLower($param);
                             $groupParam = array();
