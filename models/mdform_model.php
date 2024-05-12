@@ -8971,7 +8971,12 @@ class Mdform_Model extends Model {
                                     $columnStyle = 'width: '.$columnWidth.';';
 
                                 } else {
-                                    $columnStyle = 'width: 100px;';
+                                    
+                                    if ($arrRow['SHOW_TYPE'] == 'popup' && ($arrRow['FILTER_INDICATOR_ID'] || $arrRow['LOOKUP_META_DATA_ID'])) {
+                                        $columnStyle = 'width: 240px;';
+                                    } else {
+                                        $columnStyle = 'width: 100px;';
+                                    }
                                 }
 
                                 if ($arrRow['COLUMN_AGGREGATE'] != '') {
