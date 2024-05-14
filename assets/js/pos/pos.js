@@ -10730,8 +10730,7 @@ function posFocusDiscountInput() {
 }
 
 function posTalonList() {
-  //if (isTalonListProtect) {
-  if (false) {
+  if (isTalonListProtect) {
     var $dialogName = "dialog-talon-protect";
     if (!$("#" + $dialogName).length) {
       $('<div id="' + $dialogName + '"></div>').appendTo("body");
