@@ -1905,7 +1905,7 @@ $(function () {
     }
   });
 
-  $("#posTable").on("click", "tbody > tr[data-item-id]", function (e) {
+  $(document.body).on("click", "tbody > tr[data-item-id]", function (e) {
     var $this = $(this),
       $tbody = $this.closest("tbody");
 
@@ -9232,7 +9232,7 @@ function posFixedHeaderTable() {
   $posTable.fixedHeaderTable(/*{footer: true}*/);
 }
 
-function posTableSetHeight() {
+function posTableSetHeight(h) {
   if ($(".pos-center-inside-height").length) {
     $(".pos-center-inside-height").css(
       "height",
@@ -9241,7 +9241,7 @@ function posTableSetHeight() {
       ($("#pos-bottom-bar").length
         ? $("#pos-bottom-bar").height()
         : $("#pos-card-bar").height()) -
-      3
+      (typeof h !== 'undefined' ? h : 3)
     );
   }
 

@@ -193,12 +193,12 @@ class Restapi_Model extends Model {
                             }
                         }
                         
-                        $logParam = array(
+                        $logParam = [
                             'indicatorId' => $indicatorId, 
                             'affectedRows' => null, 
                             'executedQuery' => $queryString."\n\n".$jsonParam."\n\n".json_encode($bindParams), 
                             'errorMsg' => null
-                        );
+                        ];
                         
                         try {
                             
@@ -274,6 +274,207 @@ class Restapi_Model extends Model {
         } catch (Exception $ex) { }
         
         return false;
+    }
+    
+    public function checkMetaVerseRuleDiscountModel($metaProcessId, $parameters) {
+        
+        try {
+            
+            $data = $this->db->GetAll("
+                SELECT 
+                    T0.ID AS MAP_ID, 
+                    T1.ID, 
+                    T2.EXPRESSION 
+                FROM KPI_INDICATOR_INDICATOR_MAP T0 
+                    INNER JOIN KPI_INDICATOR T1 ON T1.ID = T0.SRC_INDICATOR_ID 
+                    INNER JOIN V_RULE_CONFIG T2 ON T2.SRC_RECORD_ID = T1.ID 
+                WHERE T0.LOOKUP_META_DATA_ID = ".$this->db->Param(0)." 
+                    AND T0.SEMANTIC_TYPE_ID = 7025 
+                    AND T2.EXPRESSION IS NOT NULL 
+                ORDER BY T0.ORDER_NUMBER ASC", 
+                [$metaProcessId]
+            );
+            
+            if ($data) {
+                
+                $checkAlreadyRule = $ruleList = $metricIds = $mapIds = [];
+                
+                if (isset($parameters['jsonparam'])) {
+                    $parameters = Arr::changeKeyLower(json_decode($parameters['jsonparam'], true));
+                }
+                
+                foreach ($data as $row) {
+                    
+                    if (isset($checkAlreadyRule[$row['ID']])) {
+                        continue;
+                    }
+                    
+                    $expression = Str::lower($row['EXPRESSION']);
+                    $expression = html_entity_decode($expression, ENT_QUOTES, 'UTF-8');
+                    
+                    if (strpos($expression, '[') !== false) {
+                        
+                        preg_match_all('/\[([\w\W]*?)\]/i', $expression, $expressionArr);
+                        
+                        if (count($expressionArr[0]) > 0) {
+                            
+                            foreach ($expressionArr[1] as $ek => $ev) {
+                                
+                                $evArr = explode('.', $ev);
+                                
+                                if ($evArr && count($evArr) == 2) {
+                                    
+                                    $metricId = trim($evArr[0]);
+                                    $metricIds[$metricId] = 1;
+                                }
+                            }
+                        }
+                    }
+                    
+                    $ruleList[] = ['ruleId' => $row['ID'], 'expression' => $expression];
+                    $checkAlreadyRule[$row['ID']] = 1;
+                    $mapIds[] = $row['MAP_ID'];
+                }
+                
+                $metricExecute = $executedRuleIds = [];
+                $discountPolicyIds = '';
+                
+                if ($metricIds) {
+                    
+                    $metricList = $this->db->GetAll("
+                        SELECT 
+                            SRC_RECORD_ID, 
+                            QUERY_STRING 
+                        FROM V_METRIC_CONFIG 
+                        WHERE SRC_RECORD_ID IN (".implode(',', array_keys($metricIds)).") 
+                            AND QUERY_STRING IS NOT NULL");
+                    
+                    $paramMap = $this->db->GetAll("
+                        SELECT 
+                            LOWER(SRC_INDICATOR_PATH) AS SRC_INDICATOR_PATH, 
+                            LOWER(TRG_META_DATA_PATH) AS TRG_META_DATA_PATH 
+                        FROM KPI_INDICATOR_INDICATOR_MAP 
+                        WHERE SRC_INDICATOR_MAP_ID IN (".implode(',', $mapIds).") 
+                        GROUP BY SRC_INDICATOR_PATH, TRG_META_DATA_PATH");
+                    
+                    foreach ($metricList as $metricRow) {
+                        
+                        $metricId        = $metricRow['SRC_RECORD_ID'];
+                        $metricQryString = html_entity_decode($metricRow['QUERY_STRING'], ENT_QUOTES, 'UTF-8');
+                        $namedParams     = DBSql::getQueryNamedParams($metricQryString);
+                        $metricQryTmp    = $metricQryString;
+                        
+                        $tmpParams = $bindParams = [];
+                        
+                        foreach ($paramMap as $row) {
+                            $bpPath = $row['TRG_META_DATA_PATH'];
+                            $qryPath = $row['SRC_INDICATOR_PATH'];
+                            
+                            $tmpParams[$qryPath] = isset($parameters[$bpPath]) ? $parameters[$bpPath] : null;
+                        }
+                        
+                        foreach ($namedParams as $matchParam) {
+                            $matchParam = str_replace(':', '', strtolower($matchParam));
+                            
+                            if (isset($tmpParams[$matchParam])) {
+                                $bindParams[$matchParam] = $tmpParams[$matchParam];
+                            } else {
+                                $bindParams[$matchParam] = null;
+                            }
+                            
+                            $metricQryTmp = str_ireplace(':'.$matchParam, 'null', $metricQryTmp);
+                        }
+                        
+                        try {
+                            $metricResultRow = $this->db->GetRow($metricQryString, $bindParams);
+                            
+                            if ($metricResultRow) {
+                                $metricExecute[$metricId] = Arr::changeKeyLower($metricResultRow);
+                            } else {
+                                $this->load->model('mdform', 'middleware/models/');
+                                
+                                $metricQryTmp = '('.$metricQryTmp.')';
+                                $dbColumns = $this->model->table_exists($this->db, $metricQryTmp);
+                                
+                                if ($dbColumns) {
+                                    foreach ($dbColumns as $dbColumn => $dbColumnType) {
+                                        $metricExecute[$metricId] = [strtolower($dbColumn) => 0];
+                                    }
+                                } else {
+                                    $metricExecute[$metricId] = [];
+                                }
+                            }
+
+                        } catch (Exception $ex) {
+                            $metricExecute[$metricId] = [];
+                        }
+                    }
+                }
+                
+                foreach ($ruleList as $ruleRow) {
+                    
+                    $ruleId         = $ruleRow['ruleId'];
+                    $ruleExpression = $ruleRow['expression'];
+                    
+                    if (strpos($ruleExpression, '[') !== false) {
+                        
+                        preg_match_all('/\[([\w\W]*?)\]/i', $ruleExpression, $expressionArr);
+                        
+                        if (count($expressionArr[0]) > 0) {
+                            
+                            foreach ($expressionArr[1] as $ek => $ev) {
+                                
+                                $evArr = explode('.', $ev);
+                                
+                                if ($evArr && count($evArr) == 2) {
+                                    
+                                    $metricId = trim($evArr[0]);
+                                    $metricPath = trim($evArr[1]);
+                                    
+                                    if (isset($metricExecute[$metricId][$metricPath])) {
+                                        $ruleExpression = str_replace($expressionArr[0][$ek], Str::lower($metricExecute[$metricId][$metricPath]), $ruleExpression);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    if (Mdcommon::expressionEvalFixWithReturn($ruleExpression)) {
+                        $executedRuleIds[] = $ruleId;
+                    }
+                }
+                
+                if ($executedRuleIds) {
+                    
+                    $discountPolicy = $this->db->GetAll("
+                        SELECT 
+                            WD.ID 
+                        FROM META_DM_RECORD_MAP MAP 
+                            INNER JOIN WH_DISCOUNT_POLICY WD ON MAP.SRC_RECORD_ID = WD.ID 
+                        WHERE MAP.SRC_REF_STRUCTURE_ID = 1464077549513 
+                            AND MAP.TRG_REF_STRUCTURE_ID = 17152437259563 
+                            AND MAP.TRG_RECORD_ID IN (".implode(',', $executedRuleIds).")");
+                    
+                    $discountPolicyIds = Arr::implode_key(',', $discountPolicy, 'ID', true);
+                }
+                
+                $response = [
+                    'status' => 'success', 
+                    'ruleList' => $ruleList, 
+                    'metricIds' => $metricIds, 
+                    'executedRuleIds' => $executedRuleIds, 
+                    'discountPolicyIds' => $discountPolicyIds
+                ];
+                
+            } else {
+                $response = ['status' => 'error', 'message' => 'No config!'];
+            }
+            
+        } catch (Exception $ex) {
+            $response = ['status' => 'error', 'message' => $ex->getMessage()];
+        }
+        
+        return $response;
     }
     
 }

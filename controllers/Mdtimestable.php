@@ -169,7 +169,7 @@ class Mdtimestable extends Controller {
         $this->view->render('main/planScript', "middleware/views/time/");
         /*} else {
             echo '<h4>Салбар нэгж сонгоогүй байна! :(</h4>';
-        }*/
+        }*/        
 
         if (!is_ajax_request()) {
             $this->view->render('footer');

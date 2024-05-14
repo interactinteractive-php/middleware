@@ -504,6 +504,23 @@ class Restapi extends Controller {
                     }
                     break;
                     
+                    case 'kpiIndicatorRuleDiscount':
+                    {
+                        if ($parameters) {
+                            $parameters = Arr::changeKeyLower($parameters);
+                            $metaProcessId = issetVar($parameters['metaprocessid']);
+                        
+                            if ($metaProcessId) {
+                                $response = $this->model->checkMetaVerseRuleDiscountModel($metaProcessId, $parameters);
+                            } else {
+                                $response = ['status' => 'error', 'text' => 'Invalid indicatorId!'];
+                            }
+                        } else {
+                            $response = ['status' => 'error', 'text' => 'Parameter not found!'];
+                        }
+                    }
+                    break;
+                    
                     case 'removeFile':
                     {
                         if (isset($parameters['path']) && isset($parameters['path'][0])) {
@@ -812,22 +829,21 @@ class Restapi extends Controller {
             $bpParam = $inputParam[$bpCode];
 
             if ($bpParam && isset($bpParam['_metadataid']) && isset($bpParam['_indicatorid'])) {
-                $rs = $this->model->runIndicatorFromMetaProcessDataModel($bpParam, $param);
+                $response = $this->model->runIndicatorFromMetaProcessDataModel($bpParam, $param);
             } else {
-                $rs = array('status' => 'info', 'message' => 'No params! /_metadataid, _indicatorid/');
+                $response = ['status' => 'info', 'message' => 'No params! /_metadataid, _indicatorid/'];
             }
         
         } else {
-            $rs = array('status' => 'info', 'message' => 'No params!');
+            $response = ['status' => 'info', 'message' => 'No params!'];
         }
         
-        echo json_encode($rs, JSON_UNESCAPED_UNICODE);
+        convJson($response);
     }
     
     public function runIndicatorFromMetaProcessDataTest() {
         
         $param = file_get_contents('log/runIndicatorFromMetaProcessData.log');
-        
         $inputParam = json_decode($param, true);
         
         if (is_array($inputParam)) {
@@ -836,16 +852,16 @@ class Restapi extends Controller {
             $bpParam = $inputParam[$bpCode];
 
             if ($bpParam && isset($bpParam['_metadataid']) && isset($bpParam['_indicatorid'])) {
-                $rs = $this->model->runIndicatorFromMetaProcessDataModel($bpParam, $param);
+                $response = $this->model->runIndicatorFromMetaProcessDataModel($bpParam, $param);
             } else {
-                $rs = array('status' => 'info', 'message' => 'No params! /_metadataid, _indicatorid/');
+                $response = ['status' => 'info', 'message' => 'No params! /_metadataid, _indicatorid/'];
             }
         
         } else {
-            $rs = array('status' => 'info', 'message' => 'No params!');
+            $response = ['status' => 'info', 'message' => 'No params!'];
         }
         
-        echo json_encode($rs, JSON_UNESCAPED_UNICODE);
+        convJson($response);
     }
     
 }

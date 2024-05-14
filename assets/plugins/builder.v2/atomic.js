@@ -930,22 +930,49 @@ var Atomic = function() {
                         $('.temp_' + uniqId).children().children().attr('data-id', elementUniqId);
                         $('.temp_' + uniqId).children().children().attr('data-target', 'target');
                         $('.temp_' + uniqId).children().children().attr('data-name', selectedRow['text']);
+
                         break;
-                
+                    
                     default:
                         $('.temp_' + uniqId).children().attr('data-id', elementUniqId);
                         $('.temp_' + uniqId).children().attr('data-target', 'target');
                         $('.temp_' + uniqId).children().attr('data-name', selectedRow['text']);
+
+                        if (selectedRow.hasOwnProperty('type') && selectedRow.type) {
+                            $('.temp_' + uniqId).children().attr('id', 'chart_' + elementUniqId);
+                            $('.temp_' + uniqId).children().attr('data-type', selectedRow.type);
+                            $('.temp_' + uniqId).children().attr('data-widgetid', selectedRow.id);
+                        }
                         break;
                 }
-
+                
                 $(targetElement).append($('.temp_' + uniqId).html()).promise().done(function () {
+                    
                     $('.temp_' + uniqId).empty();
                     var elementName = selectedRow['text'];
                     var appendUniqId = (typeof $(targetElement).data('id') !== 'undefined') ? $(targetElement).data('id') : uniqId;
-                    $('#structureTreeView_' + uniqId).jstree().create_node(appendUniqId ,  { "id" : elementUniqId, "text" : elementName}, "last", function(){
+                    $('#structureTreeView_' + uniqId).jstree().create_node(appendUniqId ,  { "id" : elementUniqId, "text" : elementName}, "last", function() {
                         console.log("added = " + elementUniqId);
                     });
+
+                    //check selected Types
+                    if (selectedRow.hasOwnProperty('type') && selectedRow.type) {
+                        switch (selectedRow.type) {
+                            case 'echart':
+                                var jsonConfig = JSON.parse(selectedRow.json);
+                                var chartConfig = jsonConfig['chartConfig'];
+                                var option = JSON.parse(chartConfig['buildCharConfig']);
+                                
+                                var chartDom = document.getElementById('chart_' + elementUniqId);
+                                var myChart = echarts.init(chartDom);
+                                option && myChart.setOption(option);
+
+                                break;
+                        
+                            default:
+                                break;
+                        }
+                    }
                 });
             });
         } catch (error) {

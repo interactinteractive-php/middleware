@@ -149,7 +149,7 @@
             </tr>
             <?php
             }
-            if ($this->depth == 0) {
+            if (true/*$this->depth == 0*/) {
             ?>
             <tr>
                 <td style="height: 30px;" class="left-padding"><label for="dtlTheme_<?php echo $this->paramPath; ?>">Widget:</label></td>

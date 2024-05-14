@@ -4870,7 +4870,19 @@ class Mdupgrade_Model extends Model {
         foreach ($fileSources as $fileSource) {
             
             $fileSource = str_replace('[kpiDbSchemaName].', $kpiDbSchemaName, $fileSource);
-            $fileSource = str_replace('_alteredUserId', $sessionUserId, $fileSource);
+            
+            if (strpos($fileSource, '_alteredUserId') !== false) {
+                
+                preg_match('/VALUES\(([\w\W]*?)\, _alteredUserId/i', $fileSource, $dbLogIdMatch);
+                $dbLogId = $dbLogIdMatch[1];
+                
+                if (self::checkEisArcScriptLog($dbLogId)) {
+                    $this->db->RollbackTrans();
+                    return ['status' => 'error', 'message' => 'Уг файлыг өмнө нь уншуулсан байна!', 'logs' => ''];
+                }
+                
+                $fileSource = str_replace('_alteredUserId', $sessionUserId, $fileSource);
+            }
             
             $decryptedArray = Xml::createArray($fileSource);
             
@@ -7798,6 +7810,17 @@ class Mdupgrade_Model extends Model {
         } catch (Exception $ex) {
             return true;
         }
+    }
+    
+    public function checkEisArcScriptLog($logId) {
+        try {
+            $checkId = $this->db->GetOne("SELECT ID FROM EIS_ARC_SCRIPT_LOG WHERE ID = ".$this->db->Param(0), [$logId]);
+            if ($checkId) {
+                return true;
+            } 
+        } catch (Exception $ex) {}
+        
+        return false;
     }
     
 }

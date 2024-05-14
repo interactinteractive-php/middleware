@@ -172,9 +172,9 @@ $(function() {
                                     
                                     setTimeout(function () {
                                         viewProcess_<?php echo $this->uniqId; ?>.find('.pos-wrap').css({"margin-left":"-15px", "margin-right":"-16px", "margin-top":"-9px"});
-                                        viewProcess_<?php echo $this->uniqId; ?>.find('.pos-left').css({"position":"inherit","overflow-y":"auto","overflow-x":"hidden","height":viewProcess_<?php echo $this->uniqId; ?>.find('.pos-center-inside-height').height()+130+'px'});
+                                        viewProcess_<?php echo $this->uniqId; ?>.find('.pos-left').css({"position":"inherit","overflow-y":"auto","overflow-x":"hidden","height":viewProcess_<?php echo $this->uniqId; ?>.find('.pos-center-inside-height').height()+180+'px'});
                                         viewProcess_<?php echo $this->uniqId; ?>.find('.pos-left-inside-help').css("position","inherit");
-                                    }, 300);
+                                    }, 600);
                                     
                                     if (typeof checkInitPosJS === 'undefined') {
                                         $.ajax({
@@ -217,7 +217,7 @@ $(function() {
                                         }, 300);
                                     }
                                     setTimeout(function() {
-                                        posTableSetHeight();
+                                        posTableSetHeight(80);
                                         posFixedHeaderTable();
                                     }, 300);
                                 }                    

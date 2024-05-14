@@ -9,20 +9,20 @@ $hrmCalendarDrillProcessId = Config::getFromCache('hrmCalendarDrillProcessId');
         
         <div class="smalldate-float-left form-body xs-form pt5 pl0 pr0" id="cal-filter-form-<?php echo $this->uniqId; ?>">
             <div class="dateElement input-group float-left">
-                <input type="text" data-path="filterStartDate" class="form-control form-control-sm dateInit" placeholder="Эхлэх огноо" title="Эхлэх огноо" value="<?php echo $this->filterStartDate; ?>">
+                <input type="text" data-path="filterStartDate" class="form-control form-control-sm dateInit" placeholder="<?php echo $this->lang->line('start_date'); ?>" title="Эхлэх огноо" value="<?php echo $this->filterStartDate; ?>">
                 <span class="input-group-btn">
                     <button onclick="return false;" class="btn" tabindex="-1"><i class="fa fa-calendar"></i></button>
                 </span>
             </div>
             <div class="dateElement input-group float-left">
-                <input type="text" data-path="filterEndDate" class="form-control form-control-sm dateInit" placeholder="Дуусах огноо" title="Дуусах огноо" value="<?php echo $this->filterEndDate; ?>">
+                <input type="text" data-path="filterEndDate" class="form-control form-control-sm dateInit" placeholder="<?php echo $this->lang->line('end_date'); ?>" title="Дуусах огноо" value="<?php echo $this->filterEndDate; ?>">
                 <span class="input-group-btn">
                     <button onclick="return false;" class="btn" tabindex="-1"><i class="fa fa-calendar"></i></button>
                 </span>
             </div>
         </div>
         <div class="float-left ml5">
-            <button type="button" class="btn btn-xs btn-primary calendar-sidebar-filter-<?php echo $this->uniqId; ?>">Шүүх</button>
+            <button type="button" class="btn btn-xs btn-primary calendar-sidebar-filter-<?php echo $this->uniqId; ?>"><?php echo $this->lang->line('do_filter'); ?></button>
         </div>
         
         <div class="clearfix w-100"></div>
@@ -31,8 +31,8 @@ $hrmCalendarDrillProcessId = Config::getFromCache('hrmCalendarDrillProcessId');
             <table class="table table-sm table-hover hrmtimelog-cal-sidebar mb0" id="log-sidebar-<?php echo $this->uniqId; ?>">
                 <thead>
                     <tr>
-                        <th style="width: 170px">Төрөл</th>
-                        <th class="text-right">Хугацаа</th>
+                        <th style="width: 170px"><?php echo $this->lang->line('type'); ?></th>
+                        <th class="text-right"><?php echo $this->lang->line('wf_duration'); ?></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -252,7 +252,7 @@ $(function() {
         defaultDate: moment('<?php echo $this->filterStartDate; ?>', 'YYYY-MM-DD'), 
         themeSystem: 'bootstrap4',
         buttonIcons: true,
-        locale: 'mn', 
+        locale: '<?php echo Lang::getCode() ?>', 
         defaultView: 'month',
         slotMinutes: 15,
         editable: false,
@@ -280,7 +280,7 @@ $(function() {
                 }
             }, 
             customTodayButton: {
-                text: 'Өнөөдөр', 
+                text: plang.get("calendar_globe_today"), 
                 click: function () {
                     $('#calendar-<?php echo $this->uniqId; ?>').fullCalendar('today');
                     fullCalendarGotoDate_<?php echo $this->uniqId; ?>();
@@ -517,7 +517,7 @@ $(function() {
             ?>
             $headerLeft.after('<div class="fc-left-request">'+
                 '<div class="btn-group">'+
-                    '<button class="btn btn-secondary btn-sm" type="button" onclick="fullCalendarGotoDate_<?php echo $this->uniqId; ?>();">Сэргээх</button>'+
+                    '<button class="btn btn-secondary btn-sm" type="button" onclick="fullCalendarGotoDate_<?php echo $this->uniqId; ?>();">'+plang.get("calendar_globe_refresh")+'</button>'+
                     '<button class="btn btn-secondary btn-sm" type="button" onclick="hrmTimesheetHdrProcess(\'<?php echo $this->procId; ?>\', \'\', this);">Нэмэх</button>'+
                 '</div>'+
             '</div>');
@@ -526,10 +526,9 @@ $(function() {
             ?>
             $headerLeft.after('<div class="fc-left-request">'+
                 '<div class="btn-group">'+
-                    '<button class="btn btn-secondary btn-sm" type="button" onclick="fullCalendarGotoDate_<?php echo $this->uniqId; ?>();">Сэргээх</button>'+
+                    '<button class="btn btn-secondary btn-sm" type="button" onclick="fullCalendarGotoDate_<?php echo $this->uniqId; ?>();">'+plang.get("calendar_globe_refresh")+'</button>'+
                     '<div class="btn-group">'+
-                        '<button type="button" class="btn btn-secondary btn-sm btn-icon dropdown-toggle" data-toggle="dropdown">'+
-                            'Хүсэлт үүсгэх'+
+                        '<button type="button" class="btn btn-secondary btn-sm btn-icon dropdown-toggle" data-toggle="dropdown">'+plang.get("Hr_19")+
                         '</button>'+
                         '<div class="dropdown-menu dropdown-menu-left">'+
                             <?php

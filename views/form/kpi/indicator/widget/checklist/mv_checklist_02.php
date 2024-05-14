@@ -58,7 +58,7 @@ $renderType = $this->methodRow['RENDER_THEME'];
                     if (!$this->isIgnoreHeaderProcess) {
                     ?>
                     <div class="tab-pane active" id="structabcustom_<?php echo $this->uniqId; ?>">
-                        <div class="mv-checklist-main-render" style="background-color: #f1f1f1; width: 100%; padding: 10px 20px;">
+                        <div class="mv-checklist-main-render" style="background-color: #f9f3ed; width: 100%; padding: 10px 20px;">
                             <form method="post" enctype="multipart/form-data">
                                 <div class="meta-toolbar is-bp-open-">
                                     <div class="main-process-text">
@@ -189,7 +189,7 @@ $renderType = $this->methodRow['RENDER_THEME'];
                                         </div>
                                     </div>
                                 </div>
-                                <div class="w-100 content-wrapper-<?php echo $renderType ?>" style="background-color: #f1f1f1; max-width: 1200px">
+                                <div class="w-100 content-wrapper-<?php echo $renderType ?>" style="background-color: #f9f3ed; max-width: 1200px">
                                     <div>
                                         <div class="content-wrapper pt-2 pl-3 pr-3 pb-2 mv-checklist-render">        
                                         </div>                
@@ -450,7 +450,7 @@ if ($renderType == 'paper_main_window') {
 }
 .mv-checklist2-render-parent .sectiongidseperator {
     height: 15px;
-    background-color: #f1f1f1;
+    background-color: #f9f3ed;
 }
 .mv-checklist2-render-parent > .sidebar .card-body .nav-sidebar a.nav-link i {
     font-size: 18px;
