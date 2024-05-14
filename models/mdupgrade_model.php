@@ -4801,7 +4801,7 @@ class Mdupgrade_Model extends Model {
                 
                 if ($fileContent && strpos($fileContent, '<meta id="') !== false) {
                     
-                    if (!$isAccessMetaImport && $objectCode == 'dbupdate') {
+                    if ($objectCode == 'dbupdate') {
                         
                         if (strpos($fileContent, '<meta id="9999999999999" typeId="222222222222" code="databaseCompareScripts"') !== false) {
                             $fileSources[] = $fileContent;
