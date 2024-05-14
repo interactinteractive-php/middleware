@@ -1035,38 +1035,44 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
         }());
     
         function tick<?php echo $this->uniqId ?>() {
-            var face = document.getElementById('lazy<?php echo $this->uniqId ?>');
-            var now = new Date(), 
-                elapsed = finishDate - now, 
-                parts = [];
+            try {
+                var face = document.getElementById('lazy<?php echo $this->uniqId ?>');
+                var now = new Date(), 
+                    elapsed = finishDate - now, 
+                    parts = [];
+                    
+                if (elapsed <= 30000) {
+                    $('.hand<?php echo $this->uniqId ?>').addClass('alert<?php echo $this->uniqId ?>');
+                    $('.face').addClass('alert<?php echo $this->uniqId ?>');
+                }
+                if (elapsed <= 0) {
+                    $('.hand<?php echo $this->uniqId ?>').addClass('done<?php echo $this->uniqId ?>');
+                    
+                    $('.hand<?php echo $this->uniqId ?>').removeClass('alert<?php echo $this->uniqId ?>');
+                    $('.face').removeClass('alert<?php echo $this->uniqId ?>');
+    
+                    $('.timer-group<?php echo $this->uniqId ?>').find('.face > h2').empty().append('');
+                    $('.bp-btn-save<?php echo $this->uniqId ?>').trigger('click');
+                    return false;
+                }
                 
-            if (elapsed <= 30000) {
-                $('.hand<?php echo $this->uniqId ?>').addClass('alert<?php echo $this->uniqId ?>');
-                $('.face').addClass('alert<?php echo $this->uniqId ?>');
+                parts[0] = '' + Math.floor( elapsed / one_hour );
+                parts[1] = '' + Math.floor( (elapsed % one_hour) / one_minute );
+                parts[2] = '' + Math.floor( ( (elapsed % one_hour) % one_minute ) / one_second );
+    
+                parts[0] = (parts[0].length == 1) ? '0' + parts[0] : parts[0];
+                parts[1] = (parts[1].length == 1) ? '0' + parts[1] : parts[1];
+                parts[2] = (parts[2].length == 1) ? '0' + parts[2] : parts[2];
+                face.innerText = parts.join(':');
+    
+                requestAnimationFrame<?php echo $this->uniqId ?>(tick<?php echo $this->uniqId ?>);
+            } catch (error) {
+                console.log(error);                
             }
-            if (elapsed <= 0) {
-                $('.hand<?php echo $this->uniqId ?>').addClass('done<?php echo $this->uniqId ?>');
-                
-                $('.hand<?php echo $this->uniqId ?>').removeClass('alert<?php echo $this->uniqId ?>');
-                $('.face').removeClass('alert<?php echo $this->uniqId ?>');
-
-                $('.timer-group<?php echo $this->uniqId ?>').find('.face > h2').empty().append('');
-                $('.bp-btn-save<?php echo $this->uniqId ?>').trigger('click');
-                return false;
-            }
-            
-            parts[0] = '' + Math.floor( elapsed / one_hour );
-            parts[1] = '' + Math.floor( (elapsed % one_hour) / one_minute );
-            parts[2] = '' + Math.floor( ( (elapsed % one_hour) % one_minute ) / one_second );
-
-            parts[0] = (parts[0].length == 1) ? '0' + parts[0] : parts[0];
-            parts[1] = (parts[1].length == 1) ? '0' + parts[1] : parts[1];
-            parts[2] = (parts[2].length == 1) ? '0' + parts[2] : parts[2];
-            face.innerText = parts.join(':');
-
-            requestAnimationFrame<?php echo $this->uniqId ?>(tick<?php echo $this->uniqId ?>);
         }
     <?php } ?>
+
+    <?php echo $this->fullExp['varFnc']; ?>   
 
     $(function() { 
 
@@ -1315,6 +1321,16 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
         <?php echo issetParam($this->fullExp['afterSave']); ?> 
 
         return true;
+    }
+    
+    function bpFullScriptsWithoutEvent_<?php echo $this->uniqId; ?>(elem, groupPath, isAddMulti, isLastRow, multiMode) {
+        var element = typeof elem === 'undefined' ? 'open' : elem; 
+        var groupPath = typeof groupPath === 'undefined' ? '' : groupPath; 
+        var isAddMulti = typeof isAddMulti === 'undefined' ? false : isAddMulti; 
+        var isLastRow = typeof isLastRow === 'undefined' ? false : isLastRow; 
+        var multiMode = typeof multiMode === 'undefined' ? '' : multiMode; 
+        
+        <?php echo issetParam($this->fullExp['withoutEvent']); ?> 
     }
     
 </script>

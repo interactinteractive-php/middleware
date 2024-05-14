@@ -9241,7 +9241,7 @@ function posTableSetHeight(h) {
       ($("#pos-bottom-bar").length
         ? $("#pos-bottom-bar").height()
         : $("#pos-card-bar").height()) -
-      (typeof h !== 'undefined' ? h : 3)
+      (typeof h !== 'undefined' ? h : 3)    
     );
   }
 

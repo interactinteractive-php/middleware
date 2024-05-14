@@ -30,6 +30,10 @@ $(function() {
         
         var viewProcess_<?php echo $this->uniqId; ?> = $checkList_<?php echo $this->uniqId; ?>.find('.mv-checklist-render:visible');
         var viewProcessComment_<?php echo $this->uniqId; ?> = $checkList_<?php echo $this->uniqId; ?>.find('.mv-checklist-render-comment:visible');
+        var viewProcessWindow_<?php echo $this->uniqId; ?> = false;
+        if (viewProcess_<?php echo $this->uniqId; ?>.closest(".content-wrapper-paper_main_window").length) {
+            viewProcessWindow_<?php echo $this->uniqId; ?> = true;
+        }
         
         if (typeof rowJson !== 'object') {
             var jsonObj = JSON.parse(html_entity_decode(rowJson, 'ENT_QUOTES'));
@@ -45,6 +49,12 @@ $(function() {
         if (metaDataId != '' && metaDataId != null) {
             
             if (metaTypeId == '200101010000011') { //Process
+                
+                viewProcess_<?php echo $this->uniqId; ?>.find(".mv_checklist_render_all").addClass("hidden");
+                if (viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).length && viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).html().length) {       
+                    viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).removeClass("hidden");
+                    return;
+                }                
 
                 $.ajax({
                     type: 'post',
@@ -64,25 +74,53 @@ $(function() {
                         Core.blockUI({message: 'Loading...', boxed: true});
                     },
                     success: function(data) {
-                        viewProcess_<?php echo $this->uniqId; ?>.empty().append(data.Html).promise().done(function () {
-                            viewProcess_<?php echo $this->uniqId; ?>.find('.bp-btn-back, .bpTestCaseSaveButton').remove();
-                            viewProcess_<?php echo $this->uniqId; ?>.find('.meta-toolbar').addClass('not-sticky');
-                            viewProcess_<?php echo $this->uniqId; ?>.addClass('bp-render-checklist');
-                            
-                            var $saveAddBtn = viewProcess_<?php echo $this->uniqId; ?>.find('.bp-btn-saveadd:visible');
-                            if ($saveAddBtn.length) {
-                                $saveAddBtn.text(plang.get('save_btn'));
-                                viewProcess_<?php echo $this->uniqId; ?>.find('.bp-btn-save').remove();
+                        if (viewProcessWindow_<?php echo $this->uniqId; ?>) {
+                            if (!viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).length) {
+                                viewProcess_<?php echo $this->uniqId; ?>.append('<div class="mv_checklist_render_all" id="mv_checklist_id_'+metaDataId+'"></div>');
                             }
+                            viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).append(data.Html).promise().done(function () {
+                                viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).find('.bp-btn-back, .bpTestCaseSaveButton').remove();
+                                viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).find('.meta-toolbar').addClass('not-sticky');
+                                viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).addClass('bp-render-checklist');
+
+                                var $saveAddBtn = viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).find('.bp-btn-saveadd:visible');
+                                if ($saveAddBtn.length) {
+                                    $saveAddBtn.text(plang.get('save_btn'));
+                                    viewProcess_<?php echo $this->uniqId; ?>.find('.bp-btn-save').remove();
+                                }
+
+                                Core.initBPAjax(viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId));
+                                Core.unblockUI();
+                            });                            
                             
-                            Core.initBPAjax(viewProcess_<?php echo $this->uniqId; ?>);
-                            Core.unblockUI();
-                        });
+                        } else {                        
+                        
+                            viewProcess_<?php echo $this->uniqId; ?>.empty().append(data.Html).promise().done(function () {
+                                viewProcess_<?php echo $this->uniqId; ?>.find('.bp-btn-back, .bpTestCaseSaveButton').remove();
+                                viewProcess_<?php echo $this->uniqId; ?>.find('.meta-toolbar').addClass('not-sticky');
+                                viewProcess_<?php echo $this->uniqId; ?>.addClass('bp-render-checklist');
+
+                                var $saveAddBtn = viewProcess_<?php echo $this->uniqId; ?>.find('.bp-btn-saveadd:visible');
+                                if ($saveAddBtn.length) {
+                                    $saveAddBtn.text(plang.get('save_btn'));
+                                    viewProcess_<?php echo $this->uniqId; ?>.find('.bp-btn-save').remove();
+                                }
+
+                                Core.initBPAjax(viewProcess_<?php echo $this->uniqId; ?>);
+                                Core.unblockUI();
+                            });
+                        }
                     },
                     error: function() { alert('Error'); Core.unblockUI(); }
                 });
 
             } else if (metaTypeId == '200101010000016') { //Dataview
+            
+                viewProcess_<?php echo $this->uniqId; ?>.find(".mv_checklist_render_all").addClass("hidden");
+                if (viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).length && viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).html().length) {       
+                    viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).removeClass("hidden");
+                    return;
+                }
         
                 $.ajax({
                     type: 'post',
@@ -93,16 +131,33 @@ $(function() {
                         Core.blockUI({message: 'Loading...', boxed: true});
                     },
                     success: function (data) {
-                        if (data.hasOwnProperty('Html')) {
-                            viewProcess_<?php echo $this->uniqId; ?>.empty().append(data.Html).promise().done(function () {
-                                viewProcess_<?php echo $this->uniqId; ?>.find('> .row > .col-md-12:eq(0)').remove();
-                                Core.unblockUI();
-                            });
-                        } else {
-                            viewProcess_<?php echo $this->uniqId; ?>.removeClass('pl-3 pr-3').addClass('pl5 pr5');
-                            viewProcess_<?php echo $this->uniqId; ?>.empty().append(data.html).promise().done(function () {
-                                Core.unblockUI();
-                            });
+                        if (viewProcessWindow_<?php echo $this->uniqId; ?>) {                            
+                            if (!viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).length) {
+                                viewProcess_<?php echo $this->uniqId; ?>.append('<div class="mv_checklist_render_all" id="mv_checklist_id_'+metaDataId+'"></div>');
+                            }
+                            if (data.hasOwnProperty('Html')) {
+                                viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).append(data.Html).promise().done(function () {
+                                    viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).find('> .row > .col-md-12:eq(0)').remove();
+                                    Core.unblockUI();
+                                });
+                            } else {
+                                viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).removeClass('pl-3 pr-3').addClass('pl5 pr5');
+                                viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).append(data.html).promise().done(function () {
+                                    Core.unblockUI();
+                                });
+                            }       
+                        } else {                        
+                            if (data.hasOwnProperty('Html')) {
+                                viewProcess_<?php echo $this->uniqId; ?>.empty().append(data.Html).promise().done(function () {
+                                    viewProcess_<?php echo $this->uniqId; ?>.find('> .row > .col-md-12:eq(0)').remove();
+                                    Core.unblockUI();
+                                });
+                            } else {
+                                viewProcess_<?php echo $this->uniqId; ?>.removeClass('pl-3 pr-3').addClass('pl5 pr5');
+                                viewProcess_<?php echo $this->uniqId; ?>.empty().append(data.html).promise().done(function () {
+                                    Core.unblockUI();
+                                });
+                            }
                         }
                     },
                     error: function(){ alert('Error'); Core.unblockUI(); }
@@ -228,6 +283,12 @@ $(function() {
                 });
             } else if (metaDataId == '1482131909084156') { //Salary menu meta id
             
+                viewProcess_<?php echo $this->uniqId; ?>.find(".mv_checklist_render_all").addClass("hidden");
+                if (viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).length && viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).html().length) {       
+                    viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).removeClass("hidden");
+                    return;
+                }            
+            
                 $.ajax({
                     type: 'post',
                     url: 'mdsalary/salary_v3',
@@ -235,15 +296,31 @@ $(function() {
                         Core.blockUI({message: 'Loading...', boxed: true});
                     },
                     success: function (data) {
-                        viewProcess_<?php echo $this->uniqId; ?>.empty().append(data).promise().done(function () {
-                            Core.initAjax(viewProcess_<?php echo $this->uniqId; ?>);
-                            Core.unblockUI();                                   
-                        });                    
+                        if (viewProcessWindow_<?php echo $this->uniqId; ?>) {
+                            if (!viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).length) {
+                                viewProcess_<?php echo $this->uniqId; ?>.append('<div class="mv_checklist_render_all" id="mv_checklist_id_'+metaDataId+'"></div>');
+                            }
+                            viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).append(data).promise().done(function () {
+                                Core.initAjax(viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId));
+                                Core.unblockUI();                                   
+                            });    
+                        } else {
+                            viewProcess_<?php echo $this->uniqId; ?>.empty().append(data).promise().done(function () {
+                                Core.initAjax(viewProcess_<?php echo $this->uniqId; ?>);
+                                Core.unblockUI();                                   
+                            });     
+                        }
                     },
                     error: function(){ alert('Error'); Core.unblockUI(); }
                 });
                 
             } else if (metaDataId == '16842269788489') { //Time Plan menu meta id
+            
+                viewProcess_<?php echo $this->uniqId; ?>.find(".mv_checklist_render_all").addClass("hidden");
+                if (viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).length && viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).html().length) {       
+                    viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).removeClass("hidden");
+                    return;
+                }                 
             
                 $.ajax({
                     type: 'post',
@@ -263,16 +340,36 @@ $(function() {
                                 }
                             }).done(function() {
                             });
-                        }                        
-                        viewProcess_<?php echo $this->uniqId; ?>.empty().append(data).promise().done(function () {
-                            Core.initAjax(viewProcess_<?php echo $this->uniqId; ?>);
-                            Core.unblockUI();                                   
-                        });                    
+                        }         
+                        
+                        if (viewProcessWindow_<?php echo $this->uniqId; ?>) {
+                            
+                            if (!viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).length) {
+                                viewProcess_<?php echo $this->uniqId; ?>.append('<div class="mv_checklist_render_all" id="mv_checklist_id_'+metaDataId+'"></div>');
+                            }
+                            viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).append(data).promise().done(function () {
+                                Core.initAjax(viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId));
+                                Core.unblockUI();                                   
+                            });    
+                            
+                        } else {                        
+                                       
+                            viewProcess_<?php echo $this->uniqId; ?>.empty().append(data).promise().done(function () {
+                                Core.initAjax(viewProcess_<?php echo $this->uniqId; ?>);
+                                Core.unblockUI();                                   
+                            });                
+                        }
                     },
                     error: function(){ alert('Error'); Core.unblockUI(); }
                 });
                 
             } else if (metaDataId == '16293670316521') { //Time Balance menu meta id
+            
+                viewProcess_<?php echo $this->uniqId; ?>.find(".mv_checklist_render_all").addClass("hidden");
+                if (viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).length && viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).html().length) {       
+                    viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).removeClass("hidden");
+                    return;
+                }                  
             
                 $.ajax({
                     type: 'post',
@@ -281,10 +378,23 @@ $(function() {
                         Core.blockUI({message: 'Loading...', boxed: true});
                     },
                     success: function (data) {
-                        viewProcess_<?php echo $this->uniqId; ?>.empty().append(data).promise().done(function () {
-                            Core.initAjax(viewProcess_<?php echo $this->uniqId; ?>);
-                            Core.unblockUI();                                   
-                        });                    
+                        if (viewProcessWindow_<?php echo $this->uniqId; ?>) {
+                            
+                            if (!viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).length) {
+                                viewProcess_<?php echo $this->uniqId; ?>.append('<div class="mv_checklist_render_all" id="mv_checklist_id_'+metaDataId+'"></div>');
+                            }
+                            viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).append(data).promise().done(function () {
+                                Core.initAjax(viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId));
+                                Core.unblockUI();                                   
+                            });    
+                            
+                        } else {                                 
+                        
+                            viewProcess_<?php echo $this->uniqId; ?>.empty().append(data).promise().done(function () {
+                                Core.initAjax(viewProcess_<?php echo $this->uniqId; ?>);
+                                Core.unblockUI();                                   
+                            });                    
+                        }
                     },
                     error: function(){ alert('Error'); Core.unblockUI(); }
                 });
@@ -463,6 +573,13 @@ $(function() {
             }
             
             if (kpiTypeId == '2008' || isMartRender > 0) { 
+            
+                viewProcess_<?php echo $this->uniqId; ?>.find(".mv_checklist_render_all").addClass("hidden");
+                if (viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).length && viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).html().length) {       
+                    viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).removeClass("hidden");
+                    viewProcessComment_<?php echo $this->uniqId; ?>.empty();
+                    return;
+                }                   
                 
                 var typeCode = (jsonObj.typeCode).toLowerCase();
                 var postData = {
@@ -513,54 +630,110 @@ $(function() {
                             html.push(dataHtml.html);
                             html.push(sveActionBtn);
                         html.push('</form>');
-
-                        viewProcess_<?php echo $this->uniqId; ?>.empty().append(html.join('')).promise().done(function() {
+                        
+                        if (viewProcessWindow_<?php echo $this->uniqId; ?>) {
                             
-                            if (viewMode_<?php echo $this->uniqId; ?> == 'view') {
-                                
-                                var $render = viewProcess_<?php echo $this->uniqId; ?>;
-                                
-                                $render.find('.bp-add-one-row').parent().remove();
-                                $render.find('.bp-remove-row, button.red, button.bp-btn-save, button.green-meadow, button.bp-file-choose-btn, a[onclick*="bpFileChoosedRemove"], span.filename, a[onclick*="kpiIndicatorRelationRemoveRows"], div.input-group.quick-item-process').remove();
-                                $render.find('input[type="text"], textarea').addClass('kpi-notfocus-readonly-input').attr('readonly', 'readonly');
-                                $render.find("div[data-s-path]").addClass('select2-container-disabled kpi-notfocus-readonly-input');
-                                $render.find('button[onclick*="dataViewSelectableGrid"], button[onclick*="chooseKpiIndicatorRowsFromBasket"]').prop('disabled', true);
-                                $render.find('[data-action-name="exportexcel"]').removeClass('d-none');
+                            if (!viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).length) {
+                                viewProcess_<?php echo $this->uniqId; ?>.append('<div class="mv_checklist_render_all" id="mv_checklist_id_'+metaDataId+'"></div>');
+                            }
+                            viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).append(html.join('')).promise().done(function() {
 
-                                var $radioElements = $render.find("input[type='radio']");
-                                if ($radioElements.length) {
-                                    $radioElements.attr({'data-isdisabled': 'true', style: 'cursor: not-allowed', 'tabindex': '-1'});
-                                    $radioElements.closest('.radio').addClass('disabled');
+                                if (viewMode_<?php echo $this->uniqId; ?> == 'view') {
+
+                                    var $render = viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId);
+
+                                    $render.find('.bp-add-one-row').parent().remove();
+                                    $render.find('.bp-remove-row, button.red, button.bp-btn-save, button.green-meadow, button.bp-file-choose-btn, a[onclick*="bpFileChoosedRemove"], span.filename, a[onclick*="kpiIndicatorRelationRemoveRows"], div.input-group.quick-item-process').remove();
+                                    $render.find('input[type="text"], textarea').addClass('kpi-notfocus-readonly-input').attr('readonly', 'readonly');
+                                    $render.find("div[data-s-path]").addClass('select2-container-disabled kpi-notfocus-readonly-input');
+                                    $render.find('button[onclick*="dataViewSelectableGrid"], button[onclick*="chooseKpiIndicatorRowsFromBasket"]').prop('disabled', true);
+                                    $render.find('[data-action-name="exportexcel"]').removeClass('d-none');
+
+                                    var $radioElements = $render.find("input[type='radio']");
+                                    if ($radioElements.length) {
+                                        $radioElements.attr({'data-isdisabled': 'true', style: 'cursor: not-allowed', 'tabindex': '-1'});
+                                        $radioElements.closest('.radio').addClass('disabled');
+                                    }
+
+                                    var $checkElements = $render.find("input[type='checkbox']");
+                                    $checkElements.attr({'data-isdisabled': 'true', style: 'cursor: not-allowed', 'tabindex': '-1'});
+                                    $checkElements.closest('.checker').addClass('disabled');
                                 }
 
-                                var $checkElements = $render.find("input[type='checkbox']");
-                                $checkElements.attr({'data-isdisabled': 'true', style: 'cursor: not-allowed', 'tabindex': '-1'});
-                                $checkElements.closest('.checker').addClass('disabled');
-                            }
+                                if (isComment == '1' && postData.hasOwnProperty('recordId')) {
+
+                                    viewProcessComment_<?php echo $this->uniqId; ?>.empty().append('<div style="font-weight: bold;padding: 10px 0 7px 0;">Сэтгэгдэл</div>');
+
+                                    $.ajax({
+                                        type: 'post',
+                                        url: 'mdwebservice/renderEditModeBpCommentTab',
+                                        data: {
+                                            uniqId: uniqId, 
+                                            refStructureId: jsonObj.mainIndicatorId, 
+                                            sourceId: postData.recordId, 
+                                            listMetaDataId: indicatorId
+                                        },
+                                        success: function(data) {
+                                            viewProcessComment_<?php echo $this->uniqId; ?>.append(data);
+                                            Core.unblockUI();
+                                        }
+                                    });
+                                } else {
+                                    Core.unblockUI();
+                                }
+
+                            });                            
                             
-                            if (isComment == '1' && postData.hasOwnProperty('recordId')) {
-                                
-                                viewProcessComment_<?php echo $this->uniqId; ?>.empty().append('<div style="font-weight: bold;padding: 10px 0 7px 0;">Сэтгэгдэл</div>');
-                                
-                                $.ajax({
-                                    type: 'post',
-                                    url: 'mdwebservice/renderEditModeBpCommentTab',
-                                    data: {
-                                        uniqId: uniqId, 
-                                        refStructureId: jsonObj.mainIndicatorId, 
-                                        sourceId: postData.recordId, 
-                                        listMetaDataId: indicatorId
-                                    },
-                                    success: function(data) {
-                                        viewProcessComment_<?php echo $this->uniqId; ?>.append(data);
-                                        Core.unblockUI();
+                        } else {                           
+
+                            viewProcess_<?php echo $this->uniqId; ?>.empty().append(html.join('')).promise().done(function() {
+
+                                if (viewMode_<?php echo $this->uniqId; ?> == 'view') {
+
+                                    var $render = viewProcess_<?php echo $this->uniqId; ?>;
+
+                                    $render.find('.bp-add-one-row').parent().remove();
+                                    $render.find('.bp-remove-row, button.red, button.bp-btn-save, button.green-meadow, button.bp-file-choose-btn, a[onclick*="bpFileChoosedRemove"], span.filename, a[onclick*="kpiIndicatorRelationRemoveRows"], div.input-group.quick-item-process').remove();
+                                    $render.find('input[type="text"], textarea').addClass('kpi-notfocus-readonly-input').attr('readonly', 'readonly');
+                                    $render.find("div[data-s-path]").addClass('select2-container-disabled kpi-notfocus-readonly-input');
+                                    $render.find('button[onclick*="dataViewSelectableGrid"], button[onclick*="chooseKpiIndicatorRowsFromBasket"]').prop('disabled', true);
+                                    $render.find('[data-action-name="exportexcel"]').removeClass('d-none');
+
+                                    var $radioElements = $render.find("input[type='radio']");
+                                    if ($radioElements.length) {
+                                        $radioElements.attr({'data-isdisabled': 'true', style: 'cursor: not-allowed', 'tabindex': '-1'});
+                                        $radioElements.closest('.radio').addClass('disabled');
                                     }
-                                });
-                            } else {
-                                Core.unblockUI();
-                            }
-                                                  
-                        });
+
+                                    var $checkElements = $render.find("input[type='checkbox']");
+                                    $checkElements.attr({'data-isdisabled': 'true', style: 'cursor: not-allowed', 'tabindex': '-1'});
+                                    $checkElements.closest('.checker').addClass('disabled');
+                                }
+
+                                if (isComment == '1' && postData.hasOwnProperty('recordId')) {
+
+                                    viewProcessComment_<?php echo $this->uniqId; ?>.empty().append('<div style="font-weight: bold;padding: 10px 0 7px 0;">Сэтгэгдэл</div>');
+
+                                    $.ajax({
+                                        type: 'post',
+                                        url: 'mdwebservice/renderEditModeBpCommentTab',
+                                        data: {
+                                            uniqId: uniqId, 
+                                            refStructureId: jsonObj.mainIndicatorId, 
+                                            sourceId: postData.recordId, 
+                                            listMetaDataId: indicatorId
+                                        },
+                                        success: function(data) {
+                                            viewProcessComment_<?php echo $this->uniqId; ?>.append(data);
+                                            Core.unblockUI();
+                                        }
+                                    });
+                                } else {
+                                    Core.unblockUI();
+                                }
+
+                            });
+                        }
                     }
                 });
                 
@@ -752,6 +925,13 @@ $(function() {
                 });            
                 
             } else {
+            
+                viewProcess_<?php echo $this->uniqId; ?>.find(".mv_checklist_render_all").addClass("hidden");
+                if (viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).length && viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).html().length) {       
+                    viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).removeClass("hidden");
+                    viewProcessComment_<?php echo $this->uniqId; ?>.empty();
+                    return;
+                }            
                 
                 var recordId = headerRecordId;
                 var postData = {
@@ -798,30 +978,63 @@ $(function() {
 
                                 html.push(renderHeader);
                                 html.push(dataHtml);
+                                
+                                if (viewProcessWindow_<?php echo $this->uniqId; ?>) {
 
-                                viewProcess_<?php echo $this->uniqId; ?>.empty().append(html.join('')).promise().done(function() {
-                                    if (postData.hasOwnProperty('isComment') && postData.isComment == '1') {
-
-                                        viewProcessComment_<?php echo $this->uniqId; ?>.empty().append('<div style="font-weight: bold;padding: 10px 0 7px 0;">Сэтгэгдэл</div>');
-
-                                        $.ajax({
-                                            type: 'post',
-                                            url: 'mdwebservice/renderEditModeBpCommentTab',
-                                            data: {
-                                                uniqId: uniqId, 
-                                                refStructureId: jsonObj.mainIndicatorId, 
-                                                sourceId: recordId, 
-                                                listMetaDataId: indicatorId
-                                            },
-                                            success: function(data) {
-                                                viewProcessComment_<?php echo $this->uniqId; ?>.append(data);
-                                                Core.unblockUI();
-                                            }
-                                        });
-                                    } else {
-                                        Core.unblockUI();
+                                    if (!viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).length) {
+                                        viewProcess_<?php echo $this->uniqId; ?>.append('<div class="mv_checklist_render_all" id="mv_checklist_id_'+metaDataId+'"></div>');
                                     }
-                                });
+                                    
+                                    viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).append(html.join('')).promise().done(function() {
+                                        if (postData.hasOwnProperty('isComment') && postData.isComment == '1') {
+
+                                            viewProcessComment_<?php echo $this->uniqId; ?>.empty().append('<div style="font-weight: bold;padding: 10px 0 7px 0;">Сэтгэгдэл</div>');
+
+                                            $.ajax({
+                                                type: 'post',
+                                                url: 'mdwebservice/renderEditModeBpCommentTab',
+                                                data: {
+                                                    uniqId: uniqId, 
+                                                    refStructureId: jsonObj.mainIndicatorId, 
+                                                    sourceId: recordId, 
+                                                    listMetaDataId: indicatorId
+                                                },
+                                                success: function(data) {
+                                                    viewProcessComment_<?php echo $this->uniqId; ?>.append(data);
+                                                    Core.unblockUI();
+                                                }
+                                            });
+                                        } else {
+                                            Core.unblockUI();
+                                        }
+                                    });                                    
+
+                                } else {                                         
+
+                                    viewProcess_<?php echo $this->uniqId; ?>.empty().append(html.join('')).promise().done(function() {
+                                        if (postData.hasOwnProperty('isComment') && postData.isComment == '1') {
+
+                                            viewProcessComment_<?php echo $this->uniqId; ?>.empty().append('<div style="font-weight: bold;padding: 10px 0 7px 0;">Сэтгэгдэл</div>');
+
+                                            $.ajax({
+                                                type: 'post',
+                                                url: 'mdwebservice/renderEditModeBpCommentTab',
+                                                data: {
+                                                    uniqId: uniqId, 
+                                                    refStructureId: jsonObj.mainIndicatorId, 
+                                                    sourceId: recordId, 
+                                                    listMetaDataId: indicatorId
+                                                },
+                                                success: function(data) {
+                                                    viewProcessComment_<?php echo $this->uniqId; ?>.append(data);
+                                                    Core.unblockUI();
+                                                }
+                                            });
+                                        } else {
+                                            Core.unblockUI();
+                                        }
+                                    });
+                                }
                             }
                         });      
                     }

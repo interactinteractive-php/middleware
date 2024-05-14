@@ -4400,7 +4400,7 @@ class Mdwidget extends Controller {
         }
         
         $this->view->rowData = $mdf->model->getDefaultFillDataModel($this->view->mainIndicatorId);
-        $this->view->fullExp = (new Mdform())->indicatorFullExpression($this->view->uniqId, $this->view->mainIndicatorId, $this->view->kpiTypeId);
+        $this->view->fullExp = (new Mdform())->indicatorFullExpression($this->view->uniqId, $this->view->indicatorId, $this->view->kpiTypeId);
         
         $response = array(
             'uniqId' => $this->view->uniqId, 
@@ -4414,6 +4414,7 @@ class Mdwidget extends Controller {
         
         if (Config::getFromCache('is_dev')) {
             $response['dataFirstRow'] = $dataFirstRow;
+            $response['fullExp'] = $this->view->fullExp;
             $response['data'] = $this->view->rowData;
             $response['relationComponentsConfigData'] = $this->view->relationComponentsConfigData;
         }
@@ -4514,7 +4515,7 @@ class Mdwidget extends Controller {
         return array('html' => $pageHtml, 'css' => $pageCss);
     }
     
-    public function renderWidgetContent ($body, $simpleData, $isSimpleData = '0') {
+    public function renderWidgetContent ($body) {
         global $db;
         (String) $pageHtml = $pageCss = '';
         foreach ($body as $row) {
@@ -4540,13 +4541,13 @@ class Mdwidget extends Controller {
                     
                     if (issetParamArray($row['content']['0']) && is_array($row['content']['0']) && issetParam($row['type']) !== '') {
                         $pageHtml .= '<' . $lowerType . $attrs . '>';
-                            $pageAttr = self::renderWidgetContent($row['content'], $simpleData, $isSimpleData);
+                            $pageAttr = self::renderWidgetContent($row['content']);
                             $pageHtml .= issetParam($pageAttr['html']);
                             $pageCss .= issetParam($pageAttr['css']);
                         $pageHtml .= '</' . $lowerType . '>';
                     } elseif(sizeOf(issetParamArray($row['content'])) > 1) {
                         $pageHtml .= '<' . $lowerType . $attrs . '>';
-                            $pageAttr = self::renderWidgetContent($row['content'], $simpleData, $isSimpleData);
+                            $pageAttr = self::renderWidgetContent($row['content']);
                             $pageHtml .= issetParam($pageAttr['html']);
                             $pageCss .= issetParam($pageAttr['css']);
                         $pageHtml .= '</' . $lowerType . '>';
@@ -4606,6 +4607,79 @@ class Mdwidget extends Controller {
         }
         
         return $jsTree;
+    }
+
+    
+    public function renderWidgetContentByHtml ($body, $simpleData, $isSimpleData = '0') {
+        global $db;
+        (String) $pageHtml = $pageCss = '';
+        foreach ($body as $row) {
+            if (is_array($row)) {
+                $lowerType = Str::lower($row['type']);
+
+                if ($lowerType !== 'script') {
+                    $attrs = $mainId = '';
+                    $chartData = array();
+                    if (issetParamArray($row['attributes'])) {
+                        unset($row['attributes']['data-id']);
+                        unset($row['attributes']['data-target']);
+                        unset($row['attributes']['data-name']);
+
+                        foreach ($row['attributes'] as $key =>  $attr) {
+                            if ($key === 'data-widgetid') {
+                                $chartData = $db->GetRow("SELECT * FROM KPI_INDICATOR WHERE ID = '". $attr ."'");
+                            }
+    
+                            if ($key === 'id') {
+                                $mainId = $attr;
+                            }
+    
+                            $attrs .= ' ' . $key . '="'. $attr . '"';
+                        }
+                    }
+                    
+                    if (issetParamArray($row['content']['0']) && is_array($row['content']['0']) && issetParam($row['type']) !== '') {
+                        $pageHtml .= '<' . $lowerType . $attrs . '>';
+                            $pageAttr = self::renderWidgetContentByHtml($row['content'], $simpleData, $isSimpleData);
+                            $pageHtml .= issetParam($pageAttr['html']);
+                            $pageCss .= issetParam($pageAttr['css']);
+                        $pageHtml .= '</' . $lowerType . '>';
+                    } elseif(sizeOf(issetParamArray($row['content'])) > 1) {
+                        $pageHtml .= '<' . $lowerType . $attrs . '>';
+                            $pageAttr = self::renderWidgetContentByHtml($row['content'], $simpleData, $isSimpleData);
+                            $pageHtml .= issetParam($pageAttr['html']);
+                            $pageCss .= issetParam($pageAttr['css']);
+                        $pageHtml .= '</' . $lowerType . '>';
+                    } else {
+                        $pageHtml .= '<' . $lowerType . $attrs . '>';
+                            if (issetParamArray($row['content']['0']) && !is_array($row['content']['0'])) {
+                                $pageHtml .= issetParam($row['content']['0']);
+                            }
+                        $pageHtml .= '</' . $lowerType . '>';
+                    }
+    
+                    $addHtml = '';
+    
+                    if ($chartData && $mainId) {
+                        $addHtml .= '<script type="text/javascript" data-id="'. $mainId .'">';
+                        $addHtml .= "var jsonConfig = ". $chartData['GRAPH_JSON'] .";
+                        
+                        var chartConfig = jsonConfig['chartConfig'];
+                        var option = JSON.parse(chartConfig['buildCharConfig']);
+                        $('#$mainId').empty();
+                        var chartDom$mainId = document.getElementById('". $mainId ."');
+                        var myChart$mainId = echarts.init(chartDom$mainId);
+                        option && myChart$mainId.setOption(option);";
+                        $addHtml .= '</script>';
+                    }
+    
+                    $pageHtml .= $addHtml;
+                }
+
+            }
+        }
+
+        return array('html' => $pageHtml, 'css' => $pageCss);
     }
 
     public function renderLayoutSection ($indicatorId) {
@@ -4705,6 +4779,7 @@ class Mdwidget extends Controller {
 
         $chartData = $this->db->GetAll("SELECT * FROM KPI_INDICATOR WHERE (ID  IN ('17152425086093', '17152425065583') OR PARENT_ID = '1711442445581777') AND GRAPH_JSON LIKE '%echart%'");
         $this->view->chartData = array();
+        
         foreach ($chartData as $key => $row) {
             $tmp = array(
                 'id' => $row['ID'],
@@ -4715,6 +4790,74 @@ class Mdwidget extends Controller {
                 'json' => $row['GRAPH_JSON'],
             );
             array_push($this->view->chartData, $tmp);
+        }
+        
+        $widgetSimpleDataJson = array (
+            'position1Value' => 'HawksBill',
+            'position2Value' => '<i class="fa fa-turtle"></i>',
+            'position3Value' => '10',
+            'position4Value' => 'Sea turtle',
+            'position5Value' => '#eb6f6f',
+        );
+
+        $widgetSimpleDataDtlJson = array(
+            array (
+                'position1Value' => 'Green',
+                'position2Value' => '<i class="fa fa-turtle"></i>',
+                'position3Value' => '12',
+                'position4Value' => 'Sea turtle',
+                'position5Value' => '#9c9ff1',
+                'backgroundColor' => '#9c9ff1',
+                'textColor' => '#FFF',
+            ),
+            array (
+                'position1Value' => 'Leatherback',
+                'position2Value' => '<i class="fa fa-turtle"></i>',
+                'position3Value' => '10',
+                'position4Value' => 'Sea turtle',
+                'position5Value' => '#9cf1ac',
+                'backgroundColor' => '#9cf1ac',
+                'textColor' => '#FFF',
+            ),
+            array (
+                'position1Value' => 'HawksBill',
+                'position2Value' => '<i class="fa fa-turtle"></i>',
+                'position3Value' => '10',
+                'position4Value' => 'Sea turtle',
+                'position5Value' => '#eb6f6f',
+                'backgroundColor' => '#eb6f6f',
+                'textColor' => '#FFF',
+            ),
+        );
+
+        $this->view->widgetSimpleDataJson = json_encode($widgetSimpleDataJson, JSON_PRETTY_PRINT);
+        $this->view->widgetSimpleDataDtlJson = json_encode($widgetSimpleDataDtlJson, JSON_PRETTY_PRINT);
+        $this->view->widgetDataJson = $this->model->widgetListDataWithJsonModel();  
+        
+       /*  $decodeHtml = html_entity_decode($this->view->widgetDataJson[1]['jsonconfig'], ENT_QUOTES, 'UTF-8');
+        $json = json_decode($decodeHtml, true);
+
+        var_dump($decodeHtml);
+die; */
+        foreach ($this->view->widgetDataJson as $key => $row) {
+            # code...
+            $decodeHtml = html_entity_decode($row['jsonconfig'], ENT_QUOTES, 'UTF-8');
+            $json = json_decode($decodeHtml, true);
+            if (issetParamArray($json['content'])) {
+                /* var_dump($json['content']);    */
+                $widgetContent = self::renderWidgetContentByHtml($json['content'], $widgetSimpleDataJson);
+                
+                $tmp = array (
+                    'id' => $row['id'],
+                    'name' => $row['name'],
+                    'text' => $row['name'],
+                    'content' => htmlentities('<div class="row">' . $widgetContent['html'] . '</div>', ENT_QUOTES, 'UTF-8'),
+                    'type' => 'html',
+                    'json' => '',
+                );
+                array_push($this->view->chartData, $tmp);
+            }
+
         }
 
         $this->view->fullUrlJs = array(
@@ -4759,8 +4902,7 @@ class Mdwidget extends Controller {
 
         $postData = Input::postData();
         $jsonConfig = $postData['json'];
-        /* var_dump($jsonConfig);
-        die; */
+
         $_POST = array (
             'param' =>  array (
                 'id' => issetParam($postData['indicatorId']),

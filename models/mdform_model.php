@@ -9706,7 +9706,7 @@ class Mdform_Model extends Model {
                 $this->load->model('mdform', 'middleware/models/');
             }
             
-            $fields = array();
+            $fields = [];
             
             foreach ($fieldObjs as $field) {
                 $fields[$field['name']] = $field['type'];
@@ -29683,9 +29683,9 @@ class Mdform_Model extends Model {
             
             if (Mdform::$isProductCheckPermission) {
                 
+                $sessionUserKeyId = Ue::sessionUserKeyId();
+                
                 if (DB_DRIVER == 'postgres9') {
-                    
-                    $sessionUserKeyId = Ue::sessionUserKeyId();
                     
                     $checkPermissionWithAs = ' 
                         WITH CTE_ROLES AS ( 
@@ -29698,7 +29698,7 @@ class Mdform_Model extends Model {
                                     SELECT
                                         ROLE_ID
                                     FROM UM_USER_ROLE
-                                    WHERE USER_ID = :USERID
+                                    WHERE USER_ID = :userId
                                 ) 
                                 
                                 UNION 
@@ -29722,7 +29722,7 @@ class Mdform_Model extends Model {
                             FROM UM_USER UU
                                 INNER JOIN UM_USER_ROLE UUR ON UU.USER_ID = UUR.USER_ID
                                 INNER JOIN UM_ROLE UR ON UUR.ROLE_ID = UR.ROLE_ID
-                            WHERE UU.USER_ID = :USERID
+                            WHERE UU.USER_ID = :userId
                                 AND (UU.SYSTEM_USER_ID = 1 OR UR.IS_ADMIN = 1 OR UR.ROLE_ID = 1)
                         ),
                         CTE_KI_PERMISSION AS (
@@ -29732,7 +29732,7 @@ class Mdform_Model extends Model {
                                 INNER JOIN UM_PERMISSION_KEY UPK ON 1 = 1
                                 LEFT JOIN CTE_ROLES CR ON UPK.ROLE_ID = CR.ROLE_ID
                             WHERE IA.IS_ADMIN = 0
-                                AND (CR.ROLE_ID IS NOT NULL OR UPK.USER_ID = :USERID)
+                                AND (CR.ROLE_ID IS NOT NULL OR UPK.USER_ID = :userId)
                         ),
                         CTE_META_PERMISSION AS (
                             SELECT
@@ -29741,18 +29741,55 @@ class Mdform_Model extends Model {
                                 INNER JOIN UM_META_PERMISSION UMP ON 1 = 1
                                 LEFT JOIN CTE_ROLES CR ON UMP.ROLE_ID = CR.ROLE_ID
                             WHERE IA.IS_ADMIN = 0
-                                AND (CR.ROLE_ID IS NOT NULL OR UMP.USER_ID = :USERID)
+                                AND (CR.ROLE_ID IS NOT NULL OR UMP.USER_ID = :userId)
                         ) ';
                     
-                    $checkPermissionJoin = ' 
-                        LEFT JOIN CTE_KI_PERMISSION CKP ON T2.ID = CKP.INDICATOR_ID 
-                        LEFT JOIN CTE_META_PERMISSION CMP ON T3.META_DATA_ID = CMP.META_DATA_ID 
-                        LEFT JOIN CTE_IS_ADMIN IA ON 1 = 1 '; 
+                } else {
                     
-                    $checkPermissionWhere = ' AND IA.IS_ADMIN + NVL(CKP.INDICATOR_ID, 0) + NVL(CMP.META_DATA_ID, 0) > 0 ';
-                    
-                    $checkPermissionWithAs = str_ireplace(':userId', $sessionUserKeyId, $checkPermissionWithAs);
+                    $checkPermissionWithAs = '
+                        WITH CTE_IS_ADMIN AS (
+                            SELECT
+                                CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END AS IS_ADMIN
+                            FROM UM_USER UU
+                                INNER JOIN UM_USER_ROLE UUR ON UU.USER_ID = UUR.USER_ID
+                                INNER JOIN UM_ROLE UR ON UUR.ROLE_ID = UR.ROLE_ID
+                            WHERE UU.USER_ID = :userId
+                                AND (UU.SYSTEM_USER_ID = 1 OR UR.IS_ADMIN = 1 OR UR.ROLE_ID = 1)
+                        ),
+                        CTE_ROLES AS (
+                            SELECT
+                                ROLE_ID
+                            FROM UM_ROLE
+                            START WITH ROLE_ID IN (SELECT ROLE_ID FROM UM_USER_ROLE WHERE USER_ID = :userId)
+                            CONNECT BY NOCYCLE PRIOR ROLE_ID = PARENT_ID
+                        ),
+                        CTE_KI_PERMISSION AS (
+                            SELECT 
+                                DISTINCT UPK.INDICATOR_ID
+                            FROM CTE_IS_ADMIN IA
+                                INNER JOIN UM_PERMISSION_KEY UPK ON 1 = 1
+                                LEFT JOIN CTE_ROLES CR ON UPK.ROLE_ID = CR.ROLE_ID
+                            WHERE IA.IS_ADMIN = 0
+                                AND (CR.ROLE_ID IS NOT NULL OR UPK.USER_ID = :userId)
+                        ),
+                        CTE_META_PERMISSION AS ( 
+                            SELECT 
+                                DISTINCT UMP.META_DATA_ID 
+                            FROM CTE_IS_ADMIN IA 
+                                INNER JOIN UM_META_PERMISSION UMP ON 1 = 1 
+                                LEFT JOIN CTE_ROLES CR ON UMP.ROLE_ID = CR.ROLE_ID 
+                            WHERE IA.IS_ADMIN = 0 
+                                AND (CR.ROLE_ID IS NOT NULL OR UMP.USER_ID = :userId)
+                        ) ';
                 }
+                
+                $checkPermissionJoin = ' 
+                    LEFT JOIN CTE_KI_PERMISSION CKP ON T2.ID = CKP.INDICATOR_ID 
+                    LEFT JOIN CTE_META_PERMISSION CMP ON T3.META_DATA_ID = CMP.META_DATA_ID 
+                    LEFT JOIN CTE_IS_ADMIN IA ON 1 = 1 '; 
+
+                $checkPermissionWhere = ' AND IA.IS_ADMIN + NVL(CKP.INDICATOR_ID, 0) + NVL(CMP.META_DATA_ID, 0) > 0 ';
+                $checkPermissionWithAs = str_ireplace(':userId', $sessionUserKeyId, $checkPermissionWithAs);
             }
 
             $data = $this->db->GetAll("

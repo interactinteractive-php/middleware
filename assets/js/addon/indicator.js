@@ -22,7 +22,7 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt, call
         }
     };  
 
-    var isNoDataview = false 
+    var isNoDataview = false;
     var fcSelectedRow = [];
     
     if ($this.hasClass('no-dataview') && $this.attr('data-rowdata')) {
@@ -2398,13 +2398,56 @@ function kpiIndicatorGoogleMapViewLoad(indicatorId, data, map) {
                         <div><i class="show_polygon_marker_btn fa fa-map-marker" style="color:'+(row.REGION_COLOR ? row.REGION_COLOR : '#575757')+'" title="marker"></i> '+(roId == 1 ? '<i class="edit_polygon_btn fa fa-edit ml-1" style="color:'+(row.REGION_COLOR ? row.REGION_COLOR : '#575757')+'" title="засах"></i>' : '')+'</div>\n\
                     </div>\n\
                 </div>');
+            
                 indicatorPolygon.addListener('click', function(event) {
-                    $('div[data-id="'+row.SEGMENTATION_ID+'"]').find('.edit_polygon_btn').trigger('click');                    
-                    var contentString = "name:" + row.SEGMENTATION_ID;
-                    infowindow.setContent(contentString);
-                    infowindow.setPosition(event.latLng);
-                    infowindow.open(map);                  
+                    $.ajax({
+                        type: 'post',
+                        url: 'mdobject/generateDataviewFields',
+                        dataType: "json",
+                        data: {metaDataId: "1714556994466811"},
+                        beforeSend: function () {
+                        },
+                        success: function (data) {             
+                            var dvFields = data;
+                            $.ajax({
+                                type: "post",
+                                url: "api/callDataview",
+                                data: {
+                                  dataviewId: "1714556994466811",
+                                  criteriaData: {
+                                    filterSegmentId: [{ operator: "=", operand: row.SEGMENTATION_ID }],
+                                  },
+                                },
+                                dataType: "json",
+                                async: false,
+                                success: function (data) {
+                                    if (data.status === "success" && data.result[0]) {                    
+                                        var tbl = [];
+                                        tbl.push('<table class="table table-bordered">');
+
+                                        for (var s = 0; s < dvFields.length; s++) {
+                                            tbl.push('<tr>');
+                                                tbl.push('<td style="background-color: #f5f5f5;">'+plang.get(dvFields[s]['LABEL_NAME'])+':</td>');
+                                                tbl.push('<td>'+dvFieldValueShow(data.result[0][dvFields[s]['FIELD_PATH']])+'</td>');
+                                            tbl.push('</tr>');
+                                        }
+
+                                        tbl.push('</table>');
+
+                                        $('div[data-id="'+row.SEGMENTATION_ID+'"]').find('.edit_polygon_btn').trigger('click');                    
+                                        infowindow.setContent(tbl.join(''));
+                                        infowindow.setPosition(event.latLng);
+                                        infowindow.open(map);                  
+                                    }
+                                }
+                            });          
+                        },
+                        error: function () {
+                            alert("Error");
+                        }
+                    });                    
                 });                
+                
             } catch(e) {}
         //}
         

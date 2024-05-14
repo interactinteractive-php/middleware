@@ -1173,11 +1173,6 @@ class Mdform extends Controller {
         jsonResponse($response);
     }
     
-    public function ddd() {
-        $rs = $this->model->getKpiIndicatorParamsModel(17022842288819);
-        var_dump($rs);die;
-    }
-    
     public function kpiIndicatorTemplateRender() {
         
         $postData = Input::postData();

@@ -377,4 +377,51 @@ class Mdwidget_Model extends Model {
         return issetParamArray($dataResult['result']);
         
     }
+
+    public function widgetListDataWithJsonModel() {
+        
+        $param = array(
+            'systemMetaGroupId' => '1712734693577209',
+            'showQuery' => 0, 
+            'pagingWithoutAggregate' => 1, 
+            'ignorePermission' => 1,  
+            'criteria' => array()
+        );      
+
+        
+        $param['criteria'] = array_merge($param['criteria'], array(
+            'kpytypeid' => array(
+                array(
+                    'operator' => '=',
+                    'operand' => '16606226258819'
+                )
+            )
+        ));     
+
+        $param['criteria'] = array_merge($param['criteria'], array(
+            'parentid' => array(
+                array(
+                    'operator' => '=',
+                    'operand' => '17127159444379'
+                )
+            )
+        ));     
+                
+        $param['criteria'] = array_merge($param['criteria'], array(
+            'name' => array(
+                array(
+                    'operator' => 'like',
+                    'operand' => '%Card%'
+                )
+            )
+        ));
+
+        $dataResult = $this->ws->runArrayResponse(GF_SERVICE_ADDRESS, Mddatamodel::$getDataViewCommand, $param);
+
+        unset($dataResult['result']['paging']);
+        unset($dataResult['result']['aggregatecolumns']);
+
+        return issetParamArray($dataResult['result']);
+        
+    }
 }

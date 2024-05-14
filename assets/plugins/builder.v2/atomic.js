@@ -473,9 +473,7 @@ var Atomic = function() {
                 text: function(event, api) {
                     var content = '';
                     content += '<p> '
-                        content += 'Энэ бол Boostrap '
-                        // content += 'This is the Bootstrap Row component.'; 
-                        content += '<b>' + $(event.currentTarget).attr('data-content') + '</b> component.';
+                        content += $(event.currentTarget).attr('data-content');
                     content += '</p>';
                     return content;
                 }
@@ -939,9 +937,14 @@ var Atomic = function() {
                         $('.temp_' + uniqId).children().attr('data-name', selectedRow['text']);
 
                         if (selectedRow.hasOwnProperty('type') && selectedRow.type) {
-                            $('.temp_' + uniqId).children().attr('id', 'chart_' + elementUniqId);
+                            $('.temp_' + uniqId).children().attr('id', selectedRow.type + elementUniqId);
                             $('.temp_' + uniqId).children().attr('data-type', selectedRow.type);
                             $('.temp_' + uniqId).children().attr('data-widgetid', selectedRow.id);
+                            switch (selectedRow.type) {
+                                case 'html':
+                                    console.log('here html');
+                                    break;
+                            }
                         }
                         break;
                 }
@@ -963,7 +966,7 @@ var Atomic = function() {
                                 var chartConfig = jsonConfig['chartConfig'];
                                 var option = JSON.parse(chartConfig['buildCharConfig']);
                                 
-                                var chartDom = document.getElementById('chart_' + elementUniqId);
+                                var chartDom = document.getElementById(selectedRow.type + elementUniqId);
                                 var myChart = echarts.init(chartDom);
                                 option && myChart.setOption(option);
 

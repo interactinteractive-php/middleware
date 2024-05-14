@@ -457,7 +457,8 @@
             align-items: center !important;
         }
 
-        input {
+        input,
+        textarea {
             background-color: var(--textbox-background);
             color: var(--text-color);
             border: none;
@@ -468,8 +469,8 @@
         }
         
         .input-group-sm {
-            min-width: 120px;
-            width: calc(95% - 120px);
+            min-width: 100px;
+            width: calc(95% - 140px);
         }
 
         .input-group-prepend {
