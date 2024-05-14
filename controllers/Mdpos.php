@@ -384,7 +384,7 @@ class Mdpos extends Controller {
         
         $cashierInfo = $this->model->getPosInfoModel($storeId, $posId, $cashierId);
         
-        $result = $this->model->setSessionPosByRow($cashierInfo);
+        $result = $this->model->setSessionPosByRow($cashierInfo, Config::getFromCache('IS_USE_POSAPI_V3'));
         
         if (issetParam($cashierInfo['isclosed']) === '1') {
             Message::add('i', $this->lang->line('isClosedPos'), URL . 'mdpos/message/pos');
