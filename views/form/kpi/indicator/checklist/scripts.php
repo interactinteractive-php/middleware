@@ -1202,6 +1202,24 @@ function checkListSaveKpiIndicatorForm(elem) {
         });
     }
 }
+function mvCheckListSidebarClose(elem) {
+    var $self = $(elem);    
+    if ($self.find("i").hasClass("fa-long-arrow-left")) {
+        $self.attr("title", "Sidebar нээх");
+        $self.closest(".sidebar").css("width", "30px").find(".sidebar-content").hide();
+        $self.find("i").removeClass("fa-long-arrow-left").addClass("fa-long-arrow-right");
+        var wcontw = $self.closest('.mv-checklist2-render-parent').width() - 40;
+        $self.closest('.mv-checklist2-render-parent').find('.checklist2-content-section').css('max-width', wcontw+'px');   
+        $(window).trigger("resize");
+    } else {
+        $self.attr("title", "Sidebar хураах");
+        $self.closest(".sidebar").css("width", "280px").find(".sidebar-content").show();
+        $self.find("i").removeClass("fa-long-arrow-right").addClass("fa-long-arrow-left");
+        var wcontw = $self.closest('.mv-checklist2-render-parent').width() - 290;
+        $self.closest('.mv-checklist2-render-parent').find('.checklist2-content-section').css('max-width', wcontw+'px');
+        $(window).trigger("resize");
+    }
+}
 function saveMvCheckListCheck(elem) {
     var $this = $(elem), 
         $parent = $this.closest('.mv-checklist-render-parent'), 

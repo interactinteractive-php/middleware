@@ -4609,7 +4609,6 @@ class Mdwidget extends Controller {
         return $jsTree;
     }
 
-    
     public function renderWidgetContentByHtml ($body, $simpleData, $isSimpleData = '0') {
         global $db;
         (String) $pageHtml = $pageCss = '';
@@ -4776,7 +4775,7 @@ class Mdwidget extends Controller {
         $this->view->json = issetParamArray($json);
         $this->view->js = array_unique(array_merge(array('custom/addon/admin/pages/scripts/app.js'), AssetNew::metaOtherJs()));
         $this->view->css = AssetNew::metaCss();
-
+        
         $chartData = $this->db->GetAll("SELECT * FROM KPI_INDICATOR WHERE (ID  IN ('17152425086093', '17152425065583') OR PARENT_ID = '1711442445581777') AND GRAPH_JSON LIKE '%echart%'");
         $this->view->chartData = array();
         
@@ -4834,31 +4833,39 @@ class Mdwidget extends Controller {
         $this->view->widgetSimpleDataDtlJson = json_encode($widgetSimpleDataDtlJson, JSON_PRETTY_PRINT);
         $this->view->widgetDataJson = $this->model->widgetListDataWithJsonModel();  
         
-       /*  $decodeHtml = html_entity_decode($this->view->widgetDataJson[1]['jsonconfig'], ENT_QUOTES, 'UTF-8');
-        $json = json_decode($decodeHtml, true);
-
-        var_dump($decodeHtml);
-die; */
         foreach ($this->view->widgetDataJson as $key => $row) {
-            # code...
             $decodeHtml = html_entity_decode($row['jsonconfig'], ENT_QUOTES, 'UTF-8');
             $json = json_decode($decodeHtml, true);
+            
             if (issetParamArray($json['content'])) {
-                /* var_dump($json['content']);    */
-                $widgetContent = self::renderWidgetContentByHtml($json['content'], $widgetSimpleDataJson);
+                $attrs = '';
+                if (issetParam($json['attributes']['style'])) {
+                    $attrs .= 'style="'. $json['attributes']['style'] . '"';
+                }
                 
+                $widgetContent = self::renderWidgetContentByHtml($json['content'], $widgetSimpleDataJson);
                 $tmp = array (
                     'id' => $row['id'],
                     'name' => $row['name'],
                     'text' => $row['name'],
-                    'content' => htmlentities('<div class="row">' . $widgetContent['html'] . '</div>', ENT_QUOTES, 'UTF-8'),
+                    'content' => htmlentities('<div class="row" '. $attrs .'>' . $widgetContent['html'] . '</div>', ENT_QUOTES, 'UTF-8'),
                     'type' => 'html',
                     'json' => '',
                 );
+
+                if (issetParam($row['picture']) && file_exists($row['picture'])) {
+                    $tmp['pic'] = $row['picture'];
+                } elseif(Config::getFromCache('is_dev'))/* if (issetParam($row['picture']) && file_exists('https://dev.veritech.mn/' . $row['picture']))  */{
+                    $tmp['pic'] = 'https://dev.veritech.mn/' . $row['picture'];
+                }
+                
                 array_push($this->view->chartData, $tmp);
             }
-
+            
         }
+        /* var_dump($this->view->widgetDataJson); */
+        /* var_dump($this->view->chartData);
+        die; */
 
         $this->view->fullUrlJs = array(
             'middleware/assets/plugins/builder.v2/moveable/moveable.js',
@@ -4896,7 +4903,7 @@ die; */
                     break;
             }
         }
-    }   
+    }
 
     public function createAtomic() {
 

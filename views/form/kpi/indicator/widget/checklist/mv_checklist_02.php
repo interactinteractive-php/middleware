@@ -14,7 +14,7 @@ $renderType = $this->methodRow['RENDER_THEME'];
             <img style="height: 24px" src="<?php echo $logoImage; ?>"/>
         </div>
         <div class="d-flex justify-content-center <?php echo $renderType == 'paper_main_window' ? 'hidden' : '' ?>">
-            <p class="mb-0 mt-1 ml-2" style="font-size: 20px;font-weight: bold;"><?php echo $this->title ?></p>
+            <p class="mb-0 mt-0 ml-2" style="font-size: 20px;font-weight: bold;"><?php echo $this->title ?></p>
         </div>
         <div class="row mv-checklist-render-parent mv-checklist2-render-parent" id="mv-checklist-render-parent-<?php echo $this->uniqId; ?>">
 
@@ -29,12 +29,12 @@ $renderType = $this->methodRow['RENDER_THEME'];
             ?>
 
             <div class="bp-tabs tabbable-line mv-main-tabs mv-checklist-tab w-100">
-                <ul class="nav nav-tabs">
+                <ul class="nav nav-tabs" style="padding-top: 3px !important;">
                     <?php
                     if (!$this->isIgnoreHeaderProcess) {
                     ?>
                     <li class="nav-item">
-                        <a href="#structabcustom_<?php echo $this->uniqId; ?>" class="nav-link active" data-toggle="tab" aria-expanded="false">
+                        <a style="padding-top: 0px;" href="#structabcustom_<?php echo $this->uniqId; ?>" class="nav-link active" data-toggle="tab" aria-expanded="false">
                             <?php echo checkDefaultVal($this->shortDescription, 'Хүсэлт') ?>                
                         </a>
                     </li>                        
@@ -44,7 +44,7 @@ $renderType = $this->methodRow['RENDER_THEME'];
                     foreach ($relationTabList as $groupName => $groupRow) {
                         if ($groupName != 'яяяrow') {
                             echo '<li class="nav-item">';
-                                echo '<a href="#maintabcustom_'.$this->uniqId.'_'.$tabId.'" class="nav-link '.($this->isIgnoreHeaderProcess ? ($tabId == 1 ? 'active' : '') : '').' mv-checklist-tab-link" data-toggle="tab" aria-expanded="false">';
+                                echo '<a style="padding-top: 3px;" href="#maintabcustom_'.$this->uniqId.'_'.$tabId.'" class="nav-link '.($this->isIgnoreHeaderProcess ? ($tabId == 1 ? 'active' : '') : '').' mv-checklist-tab-link" data-toggle="tab" aria-expanded="false">';
                                     echo $groupName;
                                 echo '</a>';
                             echo '</li>';
@@ -86,6 +86,9 @@ $renderType = $this->methodRow['RENDER_THEME'];
                         <div class="tab-pane <?php echo ($this->isIgnoreHeaderProcess ? ($tabId == 1 ? 'active' : '') : ''); ?>" id="maintabcustom_<?php echo $this->uniqId; ?>_<?php echo $tabId; ?>" style="padding-bottom: 0 !important;padding-top: 0 !important;padding-right: 0 !important;">
                             <div class="d-flex">
                                 <div class="sidebar sidebar-light sidebar-secondary sidebar-expand-md pr-2" style="width:280px">
+                                    <div class="d-flex justify-content-end">
+                                        <a href="javascript:;" title="Sidebar хураах" onclick="mvCheckListSidebarClose(this)" style="color: #333;font-size: 18px;line-height: 0;"><i class="far fa-long-arrow-left"></i></a>
+                                    </div>
                                     <div class="sidebar-content">
 
                                         <div class="card">
@@ -189,7 +192,7 @@ $renderType = $this->methodRow['RENDER_THEME'];
                                         </div>
                                     </div>
                                 </div>
-                                <div class="w-100 content-wrapper-<?php echo $renderType ?>" style="background-color: #f9f3ed; max-width: 1200px">
+                                <div class="w-100 checklist2-content-section content-wrapper-<?php echo $renderType ?>" style="background-color: #f9f3ed; max-width: 1205px">
                                     <div>
                                         <div class="content-wrapper pt-2 pl-3 pr-3 pb-2 mv-checklist-render">        
                                         </div>                
@@ -350,7 +353,7 @@ if ($renderType == 'paper_main_window') {
     margin-top: -6px;
 }
 .mv-checklist2-render-parent {
-    margin: -20px -15px 0px -15px!important;
+    margin: -33px -15px 0px -16px!important;
 }
 .mv-checklist2-render-parent button.bp-btn-save i {
     display: none;
@@ -530,7 +533,7 @@ if ($renderType == 'paper_main_window') {
     max-width: 500px;
 }
 .kpi-form-paper-portrait .mv-main-tabs {
-    margin-top: 1.25rem;
+    margin-top: 1.1rem;
 }
 .kpi-form-paper-portrait.paper_main_window .mv-main-tabs {
     margin-top: -3px !important;
@@ -761,7 +764,7 @@ $('#mv-checklist-render-parent-<?php echo $this->uniqId; ?>').on('shown.bs.tab',
             $tabPane.find('> .d-flex > .sidebar').show();
             var wcontw = $('#mv-checklist-render-parent-<?php echo $this->uniqId; ?>').width();
             if ($('#mv-checklist-render-parent-<?php echo $this->uniqId; ?>').find(".sidebar:visible").length) {
-                wcontw = wcontw - 300;
+                wcontw = wcontw - 290;
             }            
             $tabPane.find('> .d-flex > .w-100').css('max-width', wcontw+'px');
         }

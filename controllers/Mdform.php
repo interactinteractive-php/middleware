@@ -6964,4 +6964,78 @@ class Mdform extends Controller {
         convJson($response);
     }
     
+    public function ruleExpressionForm() {
+        
+        $this->view->uniqId = getUID();
+        $this->view->metaName = '';
+        $this->view->expression = '';
+        $this->view->metaList = '';
+        
+        $expression = Input::post('expression');
+        $metrics = $this->model->getMetricListModel();
+        
+        $search = ['==', '&&', '||']; 
+        $replace = ['=', 'and', 'or'];
+        
+        foreach ($metrics as $m => $metric) {
+            $this->view->metaList .= '<li data-code="'.$metric['ID'].'" title="'.$metric['NAME'].'">'.$metric['NAME'].'</li>';
+            $expression = str_replace('['.$metric['ID'].']', '<span class="p-exp-meta" contenteditable="false" data-code="'.$metric['ID'].'">'.$metric['NAME'].'<span class="p-exp-meta-remove" contenteditable="false">x</span></span>', $expression);
+        }
+        
+        $expression = str_replace($search, $replace, $expression);
+        $this->view->expression = $expression;
+        
+        if (Input::numeric('isFromExpression') == 1) {
+            $response = [
+                'status' => 'success', 
+                'expression' => $this->view->expression
+            ];
+        } else {
+            $response = [
+                'html' => $this->view->renderPrint('form/kpi/indicator/expression/ruleExpression', 'middleware/views/')
+            ];
+        }
+        
+        convJson($response);
+    }
+    
+    public function validateRuleExpression() {
+        
+        loadPhpQuery();
+        
+        $expressionContent = Input::postNonTags('expressionContent');
+        $htmlObj = phpQuery::newDocumentHTML($expressionContent);  
+        
+        $matches = $htmlObj->find('span.p-exp-meta:not(:empty)');
+
+        if ($matches->length) {
+
+            foreach ($matches as $tag) {
+                $metaCode = pq($tag)->attr('data-code');
+                pq($tag)->replaceWith('['.$metaCode.']');
+            }
+
+            $expressionContent = $htmlObj->html();
+        }
+        
+        $search  = ['=',  '&nbsp;', '\r\n', '\r', '\n', "\r\n", "\r", "\n"];
+        $replace = ['==', ' ',       '',     '',   '',   '',     '',   '']; 
+            
+        $expressionContent = html_entity_decode(trim(str_replace($search, $replace, strip_tags($expressionContent))));
+        $expressionContent = str_replace(["\xC2", "\xA0", '\u00a0', '<==', '>==', '!==', '== ==', '===='], [' ', ' ', '', '<=', '>=', '!=', '==', '=='], $expressionContent);
+        $expressionContent = Str::remove_doublewhitespace(Str::remove_whitespace_feed($expressionContent));
+        $expressionContent = trim($expressionContent, "\x20,\xC2,\xA0");
+        
+        $expressionContent = preg_replace('/\bor\b/u', ' or ', $expressionContent);
+        $expressionContent = preg_replace('/\bOR\b/u', ' or ', $expressionContent);
+        $expressionContent = preg_replace('/\bOr\b/u', ' or ', $expressionContent);
+        $expressionContent = preg_replace('/\band\b/u', ' AND ', $expressionContent);
+        $expressionContent = preg_replace('/\bAND\b/u', ' AND ', $expressionContent);
+        $expressionContent = preg_replace('/\bAnd\b/u', ' AND ', $expressionContent);
+        $expressionContent = Str::remove_doublewhitespace(Str::remove_whitespace_feed($expressionContent));
+        
+        $response = ['status' => 'success', 'message' => 'Success', 'expression' => $expressionContent];
+        convJson($response);
+    }
+    
 }

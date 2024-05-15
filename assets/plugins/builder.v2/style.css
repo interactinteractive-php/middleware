@@ -582,6 +582,13 @@
             width: 100%;
         }
 
+        div[class="header-elements"]:empty:before {
+            background-color: #eee;
+            content: 'Empty Addion';
+            font-size: 12px;
+            padding: 0 10px;
+        }
+
         div.col:empty:before {
             background-color: #eee;
             content: 'Empty Column';

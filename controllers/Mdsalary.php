@@ -583,12 +583,12 @@ class Mdsalary extends Controller {
             }
         }
         
-        $response = array(
+        $response = [
             'html' => $this->view->renderPrint('dialog/payrollExpressionForm', self::$viewPath),
             'title' => 'Томъёо тохируулах', 
             'check_btn' => $this->lang->line('Шалгах')
-        );
-        echo json_encode($response); exit;
+        ];
+        convJson($response);
     }
     
     public function validateExpression() {
@@ -654,7 +654,7 @@ class Mdsalary extends Controller {
             $response = $this->model->validateExpressionModel($expressionContent);
         }
         
-        echo json_encode($response); exit;
+        convJson($response);
     }
     
     public function getProcessRunList() {

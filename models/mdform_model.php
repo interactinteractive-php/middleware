@@ -31026,6 +31026,25 @@ class Mdform_Model extends Model {
         );        
         
         return Arr::changeKeyLower($data);
-    }        
+    }
+    
+    public function getMetricListModel() {
+        try {
+            $data = $this->db->GetAll("
+                SELECT 
+                    T0.ID,  
+                    T0.NAME 
+                FROM KPI_INDICATOR T0 
+                    INNER JOIN V_METRIC_CONFIG T1 ON T1.SRC_RECORD_ID = T0.ID 
+                WHERE T1.QUERY_STRING IS NOT NULL AND T0.DELETED_USER_ID IS NULL 
+                GROUP BY 
+                    T0.ID,  
+                    T0.NAME
+                ORDER BY T0.NAME ASC");
+            return $data;
+        } catch (Exception $ex) {
+            return [];
+        }
+    }
     
 }

@@ -2125,7 +2125,7 @@ class Mdwebservice extends Controller {
                 
                 return '<div class="input-group">
                             '.Form::text($attrArray).'
-                            <span class="input-group-append"><button class="btn grey-cascade" type="button" onclick="payrollExpression(this);" title="Томъёо тохируулах"><i class="fa fa-laptop"></i></button></span> 
+                            <span class="input-group-append"><button class="btn purple-plum" type="button" onclick="payrollExpression(this);" title="Томъёо тохируулах"><i class="fa fa-laptop"></i></button></span> 
                         </div>';
 
             } elseif ($typeCode == 'expense_expression') {
@@ -2138,7 +2138,7 @@ class Mdwebservice extends Controller {
                 
                 return '<div class="input-group">
                             '.Form::text($attrArray).'
-                            <span class="input-group-append"><button class="btn grey-cascade" type="button" onclick="expenseExpression(this);" title="Томъёо тохируулах"><i class="fa fa-laptop"></i></button></span> 
+                            <span class="input-group-append"><button class="btn purple-plum" type="button" onclick="expenseExpression(this);" title="Томъёо тохируулах"><i class="fa fa-laptop"></i></button></span> 
                         </div>';
 
             } elseif ($typeCode == 'expression_editor') {
@@ -2158,7 +2158,7 @@ class Mdwebservice extends Controller {
                 
                 return '<div class="input-group">
                             '.Form::textArea($attrArray).'
-                            <span class="input-group-append"><button class="btn grey-cascade" type="button" onclick="bpExpressionEditor(this);"><i class="far fa-code"></i></button></span> 
+                            <span class="input-group-append"><button class="btn purple-plum" type="button" onclick="bpExpressionEditor(this);"><i class="far fa-code"></i></button></span> 
                         </div>';
 
             } elseif ($typeCode == 'vexpression_editor') {
@@ -2179,9 +2179,20 @@ class Mdwebservice extends Controller {
                 
                 return '<div class="input-group">
                             '.Form::textArea($attrArray).'
-                            <span class="input-group-append"><button class="btn grey-cascade" type="button" onclick="bpVExpressionEditor(this);"><i class="far fa-code"></i></button></span> 
+                            <span class="input-group-append"><button class="btn purple-plum" type="button" onclick="bpVExpressionEditor(this);"><i class="far fa-code"></i></button></span> 
                         </div>';
 
+            } elseif ($typeCode == 'rule_expression') { 
+                
+                $attrArray['class'] = 'rule_expressionInit d-none';
+                $hidden = Form::textArea($attrArray);
+                
+                return '<div class="input-group">
+                            '.$hidden.'
+                            <div class="p-exp-area" style="position: relative;-ms-flex: 1 1 auto;flex: 1 1 auto;width: 1%;margin-bottom: 0;height: auto;min-height:40px;font-size: 15px;max-height: 396px;overflow: auto;border: 1px #ddd solid;margin: 0;padding: 10px;background-color: #FAFAFA;line-height: 28px;"></div>
+                            <span class="input-group-append"><button class="btn purple-plum" type="button" onclick="bpRuleExpressionEditor(this);"><i class="far fa-code"></i></button></span>
+                        </div>';
+                
             } elseif ($typeCode == 'account_segment') {
 
                 $attrArray['data-isclear'] = $param['IS_REFRESH'];

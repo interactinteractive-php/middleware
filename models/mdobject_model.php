@@ -7868,7 +7868,7 @@ class Mdobject_Model extends Model {
                     $result[$k]['children'] = $isChildRecordCount;
                     
                     if (issetParam($tree['icon'])) {
-                        $result[$k]['icon'] = $tree['icon'];
+                        $result[$k]['icon'] = $tree['icon'] . ' text-orange-300';
                     }
                     
                     if (issetParam($tree['isopen']) == '1' && $isChildRecordCount) {

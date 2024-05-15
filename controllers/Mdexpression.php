@@ -186,7 +186,7 @@ class Mdexpression extends Controller {
             } else {
                 $exp = str_replace($search, '$("input[data-path=\'' . $replace . '\']", ' . $mainSelector . ').val()', $exp);
             }
-        } elseif ($getMetaTypeCode == 'description' || $getMetaTypeCode == 'description_auto' || $getMetaTypeCode == 'textarea' || $getMetaTypeCode == 'text_editor') {
+        } elseif ($getMetaTypeCode == 'description' || $getMetaTypeCode == 'description_auto' || $getMetaTypeCode == 'textarea' || $getMetaTypeCode == 'text_editor' || $getMetaTypeCode == 'rule_expression') {
 
             if ($getMetaRow['parentId'] != '' && empty($sidebarExpression)) {
 
@@ -1154,7 +1154,7 @@ class Mdexpression extends Controller {
                         $valRowExp = str_replace($expEventCatch[0] . ".change()", $mainSelector . '.on("change", "input[data-path=\'' . $expEventCatch[1] . '\'].irs-hidden-input:not([data-isdisabled])", function(e)', $valRowExp);
                     } elseif ($eventFieldMetaRow['type'] == 'date' || $eventFieldMetaRow['type'] == 'datetime') {
                         $valRowExp = str_replace($expEventCatch[0] . ".change()", $mainSelector . '.on("changeDate", "input[data-path=\'' . $expEventCatch[1] . '\']", function(e)', $valRowExp);
-                    } elseif ($eventFieldMetaRow['type'] == 'description' || $eventFieldMetaRow['type'] == 'description_auto' || $eventFieldMetaRow['type'] == 'text_editor') {
+                    } elseif ($eventFieldMetaRow['type'] == 'description' || $eventFieldMetaRow['type'] == 'description_auto' || $eventFieldMetaRow['type'] == 'text_editor' || $eventFieldMetaRow['type'] == 'rule_expression') {
                         $valRowExp = str_replace($expEventCatch[0] . ".change()", $mainSelector . '.on("change", "textarea[data-path=\'' . $expEventCatch[1] . '\']", function(e)', $valRowExp);
                     } elseif ($eventFieldMetaRow['type'] == 'bigdecimal') {
                         $valRowExp = str_replace($expEventCatch[0] . ".change(){", $mainSelector . '.on("change", "input[data-path=\'' . $expEventCatch[1] . '\']", function(e){ if(typeof $jthis.attr("data-prevent-change") !== "undefined"){return;} eventDelay(function(){', $valRowExp);
@@ -1686,6 +1686,8 @@ class Mdexpression extends Controller {
                             $fullExpression = preg_replace('/\[' . $expSet[1] . '\]\s*=\s*' . $getReplaced . '/', 'setBpHdrParamLabel(' . $mainSelector . ', \'' . $expSet[1] . '\', (' . $exp . '))', $fullExpression);
                         } elseif ($typeCode == 'text_editor' && $getMetaRow['isShow'] == '1') {
                             $fullExpression = preg_replace('/\[' . $expSet[1] . '\]\s*=\s*' . $getReplaced . '/', 'setBpHdrParamTextEditor(' . $mainSelector . ', \'' . $expSet[1] . '\', (' . $exp . '))', $fullExpression);
+                        } elseif ($typeCode == 'rule_expression' && $getMetaRow['isShow'] == '1') {
+                            $fullExpression = preg_replace('/\[' . $expSet[1] . '\]\s*=\s*' . $getReplaced . '/', 'setBpHdrParamRuleExpression(' . $mainSelector . ', \'' . $expSet[1] . '\', (' . $exp . '))', $fullExpression);
                         } else {
 
                             if ($getMetaRow['LOOKUP_TYPE'] != '' && $getMetaRow['LOOKUP_META_DATA_ID'] != '' && $getMetaRow['isShow'] == '1') {
@@ -5562,9 +5564,10 @@ class Mdexpression extends Controller {
 
         $postArrData['kpiMainIndicatorId'] = $getObject['ID'];
         $postArrData['kpiDataTblName'] = $getObject['TABLE_NAME'];
-        $postArrData['kpiTbl'] = $objectFillData;
+//        $postArrData['kpiTbl'] = $objectFillData;
+        Mdform::$mvSaveParams = $objectFillData;
         $postArrData['isMicroFlow'] = true;
-        $resultSaveObject = $instanceExp->model->saveKpiDynamicDataModel(null, $postArrData);
+        $resultSaveObject = $instanceExp->model->saveMetaVerseDataModel(null, $postArrData);
 
         return $resultSaveObject;
     }
@@ -5586,11 +5589,12 @@ class Mdexpression extends Controller {
 
         $postArrData['kpiMainIndicatorId'] = $getObject['ID'];
         $postArrData['kpiDataTblName'] = $getObject['TABLE_NAME'];
-        $postArrData['kpiTbl'] = $objectFillData;
+        //$postArrData['kpiTbl'] = $objectFillData;
         $postArrData['kpiTblId'] = $id;
         $postArrData['isMicroFlow'] = true;
         $postArrData['customIdField'] = $customColumnName;
-        $instanceExp->model->saveKpiDynamicDataModel(null, $postArrData);
+        Mdform::$mvSaveParams = $objectFillData;
+        $instanceExp->model->saveMetaVerseDataModel(null, $postArrData);
     }
 
     public function microCallFunction()
@@ -6587,7 +6591,7 @@ class Mdexpression extends Controller {
             $executeScript .= '$pushMicroFlowMessage = [];'.PHP_EOL;
             //pa(self::microFlowExpression($indicatorId, $formData));
             $executeScript .= self::microFlowExpression($indicatorId, $formData);
-            //pa($executeScript);
+//            pa($executeScript);
             
             @eval($executeScript);
             
@@ -6606,13 +6610,13 @@ class Mdexpression extends Controller {
             self::clearCacheFlowchart();
 
         } catch (ParseError $p) {
-            return ['status' => 'error', 'message' => $p->getMessage()];
+            return ['status' => 'error', 'message' => $p->getMessage(), 'type' => 'ParseError'];
         } catch (Error $p) {
-            return ['status' => 'error', 'message' => $p->getMessage()];
+            return ['status' => 'error', 'message' => $p->getMessage(), 'type' => 'Error'];
         } catch (Throwable $p) {
-            return ['status' => 'error', 'message' => $p->getMessage()];
+            return ['status' => 'error', 'message' => $p->getMessage(), 'type' => 'Throwable'];
         } catch (Exception $p) {
-            return ['status' => 'error', 'message' => $p->getMessage()];
+            return ['status' => 'error', 'message' => $p->getMessage(), 'type' => 'Exception'];
         }       
     }    
 

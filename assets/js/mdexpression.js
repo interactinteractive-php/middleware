@@ -5019,6 +5019,41 @@ function setBpHdrParamTextEditor(mainSelector, fieldPath, content) {
     
     return;
 }
+function setBpHdrParamRuleExpression(mainSelector, fieldPath, expression) {  
+    
+    if (!pfFullExpSetFieldValue) {
+        return;
+    }
+    
+    var $getPathElement = mainSelector.find("textarea[data-path='" + fieldPath + "']");
+    
+    if (typeof $getPathElement !== 'undefined' && $getPathElement.length == 1) {
+        $getPathElement.val(expression);
+        var $parent = $getPathElement.closest('.input-group');
+        if (expression != '') {
+            $.ajax({
+                type: 'post',
+                url: 'mdform/ruleExpressionForm', 
+                data: {isFromExpression: 1, expression: expression}, 
+                dataType: 'json',
+                async: false,
+                beforeSend: function(){
+                    if (!$("link[href='middleware/assets/css/salary/expression.css?v=12']").length){
+                        $("head").append('<link rel="stylesheet" type="text/css" href="middleware/assets/css/salary/expression.css?v=12"/>');
+                    }
+                },
+                success: function (data) {
+                    if (data.status == 'success') {
+                        $parent.find('.p-exp-area').html(data.expression);
+                    }
+                }
+            });
+        } else {
+            $parent.find('.p-exp-area').empty();
+        }
+    }
+    return;
+}
 function setBpHdrRangeSlider(mainSelector, fieldPath, val) {  
     if (!pfFullExpSetFieldValue) {
         return;
@@ -8953,7 +8988,6 @@ function payrollExpression(elem) {
         var $rowMetaIdElement = $row.find("input[data-path='TMS_TEMPLATE_DTL.fieldPath']");
         var keyFieldName = 'TMS_TEMPLATE_DTL.fieldPath';
         isMetaList = true;
-        //hideButtonClass = 'hide';
         
     } else if (groupPath == 'PRL_VALIDATION_DTL_DV') {
         
@@ -9251,6 +9285,105 @@ function expenseExpression(elem) {
         error: function () {
             alert("Error");
         }
+    });
+}
+function bpRuleExpressionEditor(elem) {
+    PNotify.removeAll();
+    var $dialogName = 'dialog-ruleexp-'+getUniqueId(1);
+    if (!$("#" + $dialogName).length) {
+        $('<div id="' + $dialogName + '"></div>').appendTo('body');
+    }
+    var $dialog = $('#' + $dialogName);
+    
+    var $this = $(elem);
+    var $parent = $this.closest('.input-group');
+    var _expression = $parent.find('textarea').val();
+    var dialogWidth = 1100;
+    
+    var postData = {expression: _expression};
+    
+    $.ajax({
+        type: 'post',
+        url: 'mdform/ruleExpressionForm',
+        data: postData, 
+        dataType: 'json',
+        beforeSend: function(){
+            if (!$("link[href='middleware/assets/css/salary/expression.css?v=12']").length){
+                $("head").append('<link rel="stylesheet" type="text/css" href="middleware/assets/css/salary/expression.css?v=12"/>');
+            }
+            Core.blockUI({message: 'Loading...', boxed: true});
+        },
+        success: function (data) {
+            $dialog.empty().append(data.html);
+            $dialog.dialog({
+                cache: false,
+                resizable: true,
+                bgiframe: true,
+                autoOpen: false,
+                title: 'Rule expression',
+                width: dialogWidth,
+                height: 'auto',
+                modal: true,
+                close: function () {
+                    $dialog.dialog('destroy').remove();
+                },
+                buttons: [
+                    {text: plang.get('save_btn'), class: 'btn green-meadow btn-sm', click: function () {
+                        
+                        PNotify.removeAll();
+                        
+                        var expArea = $dialog.find('.p-exp-area');
+                        var expAreaContent = $.trim(expArea.html());
+                        
+                        if (expAreaContent != '') {
+                            
+                            $dialog.find('form').validate({ errorPlacement: function() {} });
+                            
+                            if ($dialog.find('form').valid()) {
+                                
+                                $.ajax({
+                                    type: 'post',
+                                    url: 'mdform/validateRuleExpression', 
+                                    data: {expressionContent: expAreaContent}, 
+                                    dataType: 'json',
+                                    beforeSend: function () {
+                                        Core.blockUI({message: 'Checking...', boxed: true});
+                                    },
+                                    success: function (checkData) {
+                                        new PNotify({
+                                            title: checkData.status,
+                                            text: checkData.message,
+                                            type: checkData.status,
+                                            addclass: pnotifyPosition,
+                                            sticker: false
+                                        });
+
+                                        if (checkData.status == 'success') {
+                                            $parent.find('textarea').val($.trim(checkData.expression)).trigger('change');
+                                            $parent.find('.p-exp-area').html(expAreaContent);
+                                            $dialog.dialog('close');
+                                        }
+                                        Core.unblockUI();
+                                    }
+                                });
+                            }
+                            
+                        } else {
+                            $parent.find('textarea').val('').trigger('change');
+                            $parent.find('.p-exp-area').empty();
+                            $dialog.dialog('close');
+                        }
+                    }}, 
+                    {text: plang.get('close_btn'), class: 'btn blue-hoki btn-sm', click: function () {
+                        $dialog.dialog('close');
+                    }}
+                ]
+            });
+            $dialog.dialog('open');
+            
+            Core.unblockUI();
+        },
+        error: function () { alert("Error"); }
     });
 }
 function bpCopyAllSubDetail(mainSelector, elem, groupPath) {

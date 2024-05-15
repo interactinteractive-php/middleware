@@ -1140,7 +1140,7 @@ class Mdstatement_model extends Model {
                         $bindParams     = $queryBindParam['bindParams'];
                     }
                     
-                    $reportConn     = (issetParam($getRowStatement['PROCESS_META_DATA_ID'])) ? array() : self::getReportDatabaseConnection();
+                    $reportConn     = (issetParam($getRowStatement['PROCESS_META_DATA_ID'])) ? [] : self::getReportDatabaseConnection();
                     
                     $sql = 'SELECT '. ((DB_DRIVER == 'postgres9') ? 'ROW_NUMBER () OVER ()' : 'ROWNUM') .' AS RID, PDD.* FROM ('.$query.') PDD';
 

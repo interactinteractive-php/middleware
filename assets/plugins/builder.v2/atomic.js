@@ -508,11 +508,18 @@ var Atomic = function() {
                     var nodeId = ($(event.currentTarget).attr('id')).replace('_anchor', '');
                     var node = $('#studioTreeView_'+ uniqId).jstree(true).get_node(nodeId);
                     var content = '';
-                    content += '<p> '
-                        content += 'Энэ бол Boostrap '
-                        // content += 'This is the Bootstrap Row component.'; 
-                        content += '<b>' + node.text+ '</b> component.';
-                    content += '</p>';
+                    console.log(node);
+                    if (typeof node.original !== 'undefined' && typeof node.original.pic !== 'undefined') {
+                        content += '<p> '
+                            content += '<img src="' + node.original.pic + '" width="150" />';
+                        content += '</p>';
+                    } else {
+                        content += '<p> '
+                            content += 'Энэ бол Boostrap '
+                            // content += 'This is the Bootstrap Row component.'; 
+                            content += '<b>' + node.text+ '</b> component.';
+                        content += '</p>';
+                    }
                     return content;
                 }
             },
@@ -957,7 +964,27 @@ var Atomic = function() {
                     $('#structureTreeView_' + uniqId).jstree().create_node(appendUniqId ,  { "id" : elementUniqId, "text" : elementName}, "last", function() {
                         console.log("added = " + elementUniqId);
                     });
-
+                    switch (selectedRow['text']) {
+                        case 'Accordion':
+                            console.log($(targetElement).data('id'));
+                            var tmpUniqId = getUniqueId(1);
+                            $('#structureTreeView_' + uniqId).jstree().create_node(elementUniqId ,  { "id" : tmpUniqId, "text" : "Header"}, "last", function() {
+                                console.log("added = Accordion header " + tmpUniqId);
+                                $('div[data-id="'+ appendUniqId +'"]').find('[data-name="Header"]:eq(0)').attr('data-id', tmpUniqId);
+                                tmpUniqId = getUniqueId(1);
+                                $('#structureTreeView_' + uniqId).jstree().create_node(elementUniqId ,  { "id" : tmpUniqId, "text" : "Header element"}, "last", function() {
+                                    console.log("added = Accordion header element" + tmpUniqId);
+                                    $('div[data-id="'+ appendUniqId +'"]').find('[data-name="Header element"]:eq(0)').attr('data-id', tmpUniqId);
+                                    tmpUniqId = getUniqueId(1);
+                                    $('#structureTreeView_' + uniqId).jstree().create_node(elementUniqId ,  { "id" : tmpUniqId, "text" : "Body"}, "last", function() {
+                                        console.log("added = " + tmpUniqId);
+                                        $('div[data-id="'+ appendUniqId +'"]').find('[data-name="Body"]:eq(0)').attr('data-id', tmpUniqId);
+                                    });
+                                });
+                                
+                            });
+                            break;
+                    }
                     //check selected Types
                     if (selectedRow.hasOwnProperty('type') && selectedRow.type) {
                         switch (selectedRow.type) {

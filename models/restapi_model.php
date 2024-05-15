@@ -320,11 +320,8 @@ class Restapi_Model extends Model {
                             
                             foreach ($expressionArr[1] as $ek => $ev) {
                                 
-                                $evArr = explode('.', $ev);
-                                
-                                if ($evArr && count($evArr) == 2) {
-                                    
-                                    $metricId = trim($evArr[0]);
+                                $metricId = trim($ev);
+                                if (is_numeric($metricId)) {
                                     $metricIds[$metricId] = 1;
                                 }
                             }
@@ -389,24 +386,20 @@ class Restapi_Model extends Model {
                             $metricResultRow = $this->db->GetRow($metricQryString, $bindParams);
                             
                             if ($metricResultRow) {
-                                $metricExecute[$metricId] = Arr::changeKeyLower($metricResultRow);
-                            } else {
-                                $this->load->model('mdform', 'middleware/models/');
                                 
-                                $metricQryTmp = '('.$metricQryTmp.')';
-                                $dbColumns = $this->model->table_exists($this->db, $metricQryTmp);
-                                
-                                if ($dbColumns) {
-                                    foreach ($dbColumns as $dbColumn => $dbColumnType) {
-                                        $metricExecute[$metricId] = [strtolower($dbColumn) => 0];
-                                    }
-                                } else {
-                                    $metricExecute[$metricId] = [];
+                                if (count($metricResultRow) > 1) {
+                                    throw new Exception($metricId . ' уг метрикээс олон баганаар үр дүн олдсон тул ажиллах боломжгүй!'); 
                                 }
+                                
+                                $metricResultFirstKey = array_key_first($metricResultRow);
+                                $metricExecute[$metricId] = $metricResultRow[$metricResultFirstKey];
+                                
+                            } else {
+                                $metricExecute[$metricId] = '0';
                             }
 
                         } catch (Exception $ex) {
-                            $metricExecute[$metricId] = [];
+                            throw new Exception($metricId . ' уг метрик дээр алдаа гарлаа! '.$ex->getMessage()); 
                         }
                     }
                 }
@@ -424,24 +417,38 @@ class Restapi_Model extends Model {
                             
                             foreach ($expressionArr[1] as $ek => $ev) {
                                 
-                                $evArr = explode('.', $ev);
+                                $metricId = trim($ev);
                                 
-                                if ($evArr && count($evArr) == 2) {
+                                if (is_numeric($metricId) && isset($metricExecute[$metricId])) {
                                     
-                                    $metricId = trim($evArr[0]);
-                                    $metricPath = trim($evArr[1]);
-                                    
-                                    if (isset($metricExecute[$metricId][$metricPath])) {
-                                        $ruleExpression = str_replace($expressionArr[0][$ek], Str::lower($metricExecute[$metricId][$metricPath]), $ruleExpression);
+                                    $replaceVal = Str::lower($metricExecute[$metricId]);
+                                    if (!is_numeric($replaceVal)) {
+                                        $replaceVal = "'".$replaceVal."'";
                                     }
+                                    
+                                    $ruleExpression = str_replace($expressionArr[0][$ek], $replaceVal, $ruleExpression);
                                 }
                             }
                         }
                     }
                     
-                    if (Mdcommon::expressionEvalFixWithReturn($ruleExpression)) {
-                        $executedRuleIds[] = $ruleId;
-                    }
+                    try {
+            
+                        $checkEval = @eval('return ('.$ruleExpression.');');
+                        
+                        if ($checkEval) {
+                            $executedRuleIds[] = $ruleId;
+                        }
+
+                    } catch (ParseError $p) {
+                        throw new Exception('RuleId: '.$ruleId.' / '.$ruleExpression.' / уг шалгуур дээр алдаа гарлаа! '.$p->getMessage()); 
+                    } catch (Error $p) {
+                        throw new Exception('RuleId: '.$ruleId.' / '.$ruleExpression.' / уг шалгуур дээр алдаа гарлаа! '.$p->getMessage()); 
+                    } catch (Exception $p) {
+                        throw new Exception('RuleId: '.$ruleId.' / '.$ruleExpression.' / уг шалгуур дээр алдаа гарлаа! '.$p->getMessage()); 
+                    } catch (Throwable $p) {
+                        throw new Exception('RuleId: '.$ruleId.' / '.$ruleExpression.' / уг шалгуур дээр алдаа гарлаа! '.$p->getMessage()); 
+                    } 
                 }
                 
                 if ($executedRuleIds) {

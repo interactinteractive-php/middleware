@@ -387,8 +387,7 @@ class Mdwidget_Model extends Model {
             'ignorePermission' => 1,  
             'criteria' => array()
         );      
-
-        
+                
         $param['criteria'] = array_merge($param['criteria'], array(
             'kpytypeid' => array(
                 array(
@@ -411,7 +410,7 @@ class Mdwidget_Model extends Model {
             'name' => array(
                 array(
                     'operator' => 'like',
-                    'operand' => '%Card%'
+                    'operand' => '%Widget%'
                 )
             )
         ));
@@ -424,4 +423,5 @@ class Mdwidget_Model extends Model {
         return issetParamArray($dataResult['result']);
         
     }
+    
 }
