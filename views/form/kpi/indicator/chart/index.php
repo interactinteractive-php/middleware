@@ -250,6 +250,10 @@ function kpiDataMartLoadChart_<?php echo $this->uniqId; ?>(isClick) {
             ?>
         }
         
+        if (!filterData.length) {
+            filterData = getChartFilterData_<?php echo $this->uniqId; ?>();   
+        }
+        
         $.ajax({
             type: 'post',
             url: 'mdform/filterKpiIndicatorValueChart',

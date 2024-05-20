@@ -578,18 +578,26 @@ function printsettlementkhaan(elem, processMetaDataId, dataViewId, selectedRow, 
                             return;
                         }
                         
-                        var setHtml = '<div>ОГНОО: '+getParse.response.date+' '+getParse.response.time+'</div>';
-                            setHtml += '<h3 style="margin-top:15px"><center>Khanbank setlement report</center></h3>';
-                        setHtml += '<table border="1" style="width: 100%;margin-top:15px;border-collapse: collapse">';
-                        setHtml += '<tr style="background:#E5E5E5"><td style="width:40%;padding:8px">ГҮЙЛГЭЭНИЙ ТӨРӨЛ</td>';
-                        setHtml += '<td style="width:30%;text-align: right;padding:8px">ТОО</td>';
-                        setHtml += '<td style="width:30%;text-align: right;padding:8px">ДҮН</td></tr>';                        
-                        setHtml += '<tr><td style="width:40%;padding:8px">ХУДАЛДАН АВАЛТ</td>';
-                        setHtml += '<td style="width:30%;text-align: right;padding:8px">'+pureNumberFormat(getParse.response.sale_count)+'</td>';
-                        setHtml += '<td style="width:30%;text-align: right;padding:8px">'+pureNumberFormat(getParse.response.sale_total.substr(0,10))+'</td></tr>';
-                        setHtml += '<tr><td style="width:40%;padding:8px">БУЦААЛТ</td>';
-                        setHtml += '<td style="width:30%;text-align: right;padding:8px">'+pureNumberFormat(getParse.response.void_count)+'</td>';
-                        setHtml += '<td style="width:30%;text-align: right;padding:8px">'+pureNumberFormat(getParse.response.void_total.substr(0,10))+'</td></tr>';                        
+                        var setHtml = '<h3 style="margin-top:15px"><center>ХААН БАНК</center></h3>';
+                        setHtml += '<div style="margin-top:15px">Terminal ID: '+data+'</div>';
+                        setHtml += '<div style="margin-bottom:15px">Огноо: '+getParse.response.date+' '+getParse.response.time+'</div>';
+                        setHtml += '<hr style="border-top: dotted 1px;"/>';
+                        setHtml += '<div>Сеттлемент</div>';
+                        setHtml += '<hr style="border-top: dotted 1px;"/>';
+                        setHtml += '<table border="0" style="width: 100%;margin-top:15px;border-collapse: collapse">';
+                        setHtml += '<tr style="">';
+                        setHtml += '<td style="width:50%;text-align: left;padding:8px">Борлуулалт<br> Тоо</td>';
+                        setHtml += '<td style="width:50%;text-align: right;padding:8px">Дүн</td></tr>';                        
+                        setHtml += '<tr>';
+                        setHtml += '<td style="width:50%;text-align: left;padding:8px">'+pureNumberFormat(getParse.response.sale_count)+'</td>';
+                        setHtml += '<td style="width:50%;text-align: right;padding:8px">'+pureNumberFormat(getParse.response.sale_total.substr(0,10))+'₮</td></tr>';
+                        setHtml += '</table>';                        
+                        setHtml += '<hr style="border-top: dotted 1px;margin-top:10px"/>';
+                        setHtml += '<table border="0" style="width: 100%;margin-top:10px;border-collapse: collapse">';
+                        setHtml += '<tr><td style="width:50%;padding:8px">Буцаалт<br> Тоо</td>';
+                        setHtml += '<td style="width:50%;text-align: right;padding:8px">Дүн</td></tr>';                        
+                        setHtml += '<td style="width:50%;text-align: left;padding:8px">'+pureNumberFormat(getParse.response.void_count)+'</td>';
+                        setHtml += '<td style="width:50%;text-align: right;padding:8px">'+pureNumberFormat(getParse.response.void_total.substr(0,10))+'₮</td></tr>';                        
                         setHtml += '</table>';                        
                         
                         if (!$("#" + $dialogName).length) {

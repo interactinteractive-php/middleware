@@ -108,7 +108,7 @@ var Atomic = function() {
         console.log(el);
         el.droppable({
             drop: function( event, ui ) {
-                var elementUniqId = getUniqueId(1);
+                var elementUniqId = getUniqueId('no');
                 var contentHtml = JSON.parse(html_entity_decode(ui.draggable.data('contenthtml')), 'ENT_QUOTES');
                 $('.temp_' + uniqId).empty().append(contentHtml).promise().done(function () {
                     $('.temp_' + uniqId).children().attr('data-id', elementUniqId);
@@ -182,7 +182,7 @@ var Atomic = function() {
         }
 
         var rowData = JSON.parse($(srcSection).find('img[data-rowdata]').attr('data-rowdata'));
-        var  frameUniqId = getUniqueId(1);
+        var  frameUniqId = getUniqueId('no');
         $trgSection.attr('data-widgetid', rowData['id']);
 
         if ($trgSection.find('input[data-path="rowState"]').length > 0) {
@@ -249,7 +249,7 @@ var Atomic = function() {
                 html+= '</div>';
                 break;
             case 'stats':
-                __html += '<div class="col standart-section zoomer-cover" data-section="stats" data-block-uniqid="'+ getUniqueId(1) +'">';
+                __html += '<div class="col standart-section zoomer-cover" data-section="stats" data-block-uniqid="'+ getUniqueId('no') +'">';
                     __html += '<div class="row" data-tagname="col" data-itemcount="'+ window['setDefaultRowData' + windowUniqId].length +'" data-colcount="2" style="width: 100%">';
                         $.each(window['setDefaultRowData' + windowUniqId], function (dataIndex, dataValue) {
                             __html += '<div class="col">';
@@ -268,14 +268,14 @@ var Atomic = function() {
                 __html += '</div>';
                 break;
             case 'badge':
-                __html += '<div class="col standart-section zoomer-cover" data-section="badge" data-block-uniqid="'+ getUniqueId(1) +'">';
+                __html += '<div class="col standart-section zoomer-cover" data-section="badge" data-block-uniqid="'+ getUniqueId('no') +'">';
                     __html += '<div class="row" data-tagname="col" data-itemcount="'+ window['setDefaultRowData' + windowUniqId].length +'" data-colcount="2" style="width: 100%">';
                         __html += '<span class="badge badge-primary w-100">Primary</span>';
                     __html += '</div>';
                 __html += '</div>';
                 break;
             case 'alert':
-                __html += '<div class="col standart-section zoomer-cover" data-section="alert" data-block-uniqid="'+ getUniqueId(1) +'">';
+                __html += '<div class="col standart-section zoomer-cover" data-section="alert" data-block-uniqid="'+ getUniqueId('no') +'">';
                     __html += '<div class="row" data-tagname="col" data-itemcount="'+ window['setDefaultRowData' + windowUniqId].length +'" data-colcount="2" style="width: 100%">';
                             __html += '<div class="alert alert-primary border-0 alert-dismissible w-100">';
                                 __html += '<button type="button" class="close" data-dismiss="alert"><span>×</span></button>';
@@ -285,7 +285,7 @@ var Atomic = function() {
                 __html += '</div>';
                 break;
             case 'progress':
-                __html += '<div class="col standart-section zoomer-cover" data-section="progress" data-block-uniqid="'+ getUniqueId(1) +'">';
+                __html += '<div class="col standart-section zoomer-cover" data-section="progress" data-block-uniqid="'+ getUniqueId('no') +'">';
                     __html += '<div class="row" data-tagname="col" data-itemcount="'+ window['setDefaultRowData' + windowUniqId].length +'" data-colcount="2" style="width: 100%">';
                         __html += '<div class="progress w-100">';
                             __html += '<div class="progress-bar" style="width: 50%">';
@@ -296,7 +296,7 @@ var Atomic = function() {
                 __html += '</div>';
                 break;
             case 'progress_circle':
-                __html += '<div class="col standart-section zoomer-cover" data-section="progress_circle" data-block-uniqid="'+ getUniqueId(1) +'">';
+                __html += '<div class="col standart-section zoomer-cover" data-section="progress_circle" data-block-uniqid="'+ getUniqueId('no') +'">';
                     __html += '<div class="row" data-tagname="col" data-itemcount="'+ window['setDefaultRowData' + windowUniqId].length +'" data-colcount="2" style="width: 100%">';
                         __html += '<div class="w-100">';
                             __html += '<div class="progress_circle" data-progress="36" style="--progress: 36deg;">36%</div>';
@@ -305,14 +305,14 @@ var Atomic = function() {
                 __html += '</div>';
                 break;
             case 'button':
-                __html += '<div class="col standart-section zoomer-cover" data-section="button" data-block-uniqid="'+ getUniqueId(1) +'">';
+                __html += '<div class="col standart-section zoomer-cover" data-section="button" data-block-uniqid="'+ getUniqueId('no') +'">';
                     __html += '<div class="row" data-tagname="col" data-itemcount="'+ window['setDefaultRowData' + windowUniqId].length +'" data-colcount="2" style="width: 100%">';
                         __html += '<button type="button" class="btn btn-outline-primary w-100">Hoverable</button>';
                     __html += '</div>';
                 __html += '</div>';
                 break;
             case 'logo':
-                __html += '<div class="col standart-section zoomer-cover" data-section="logo" data-block-uniqid="'+ getUniqueId(1) +'">';
+                __html += '<div class="col standart-section zoomer-cover" data-section="logo" data-block-uniqid="'+ getUniqueId('no') +'">';
                     __html += '<div class="row" data-tagname="col" data-itemcount="'+ window['setDefaultRowData' + windowUniqId].length +'" data-colcount="2" style="width: 100%">';
                         __html += '<img src="projects/assets/elements/logo.png" data-rowdata=""/>';
                     __html += '</div>';
@@ -359,7 +359,7 @@ var Atomic = function() {
                 __html += '</div>';
                 break;
             case 'table': 
-                __html += '<div class="col standart-section zoomer-cover" data-section="table" data-block-uniqid="'+ getUniqueId(1) +'">';
+                __html += '<div class="col standart-section zoomer-cover" data-section="table" data-block-uniqid="'+ getUniqueId('no') +'">';
                     __html += '<div class="table-responsive">';
                         __html += '<table class="table">';
                             __html += '<thead>';
@@ -382,22 +382,22 @@ var Atomic = function() {
                 
                 break;
             case 'col2':
-                __html += '<div class="col standart-section zoomer-cover" data-section="column" data-block-uniqid="'+ getUniqueId(1) +'"></div>';
-                __html += '<div class="col standart-section zoomer-cover" data-section="column" data-block-uniqid="'+ getUniqueId(1) +'"></div>';
+                __html += '<div class="col standart-section zoomer-cover" data-section="column" data-block-uniqid="'+ getUniqueId('no') +'"></div>';
+                __html += '<div class="col standart-section zoomer-cover" data-section="column" data-block-uniqid="'+ getUniqueId('no') +'"></div>';
                 break;
             case 'col3':
-                __html += '<div class="col standart-section zoomer-cover" data-section="column" data-block-uniqid="'+ getUniqueId(1) +'"></div>';
-                __html += '<div class="col standart-section zoomer-cover" data-section="column" data-block-uniqid="'+ getUniqueId(1) +'"></div>';
-                __html += '<div class="col standart-section zoomer-cover" data-section="column" data-block-uniqid="'+ getUniqueId(1) +'"></div>';
+                __html += '<div class="col standart-section zoomer-cover" data-section="column" data-block-uniqid="'+ getUniqueId('no') +'"></div>';
+                __html += '<div class="col standart-section zoomer-cover" data-section="column" data-block-uniqid="'+ getUniqueId('no') +'"></div>';
+                __html += '<div class="col standart-section zoomer-cover" data-section="column" data-block-uniqid="'+ getUniqueId('no') +'"></div>';
                 break;
             case 'col4':
-                __html += '<div class="col standart-section zoomer-cover" data-section="column" data-block-uniqid="'+ getUniqueId(1) +'"></div>';
-                __html += '<div class="col standart-section zoomer-cover" data-section="column" data-block-uniqid="'+ getUniqueId(1) +'"></div>';
-                __html += '<div class="col standart-section zoomer-cover" data-section="column" data-block-uniqid="'+ getUniqueId(1) +'"></div>';
-                __html += '<div class="col standart-section zoomer-cover" data-section="column" data-block-uniqid="'+ getUniqueId(1) +'"></div>';
+                __html += '<div class="col standart-section zoomer-cover" data-section="column" data-block-uniqid="'+ getUniqueId('no') +'"></div>';
+                __html += '<div class="col standart-section zoomer-cover" data-section="column" data-block-uniqid="'+ getUniqueId('no') +'"></div>';
+                __html += '<div class="col standart-section zoomer-cover" data-section="column" data-block-uniqid="'+ getUniqueId('no') +'"></div>';
+                __html += '<div class="col standart-section zoomer-cover" data-section="column" data-block-uniqid="'+ getUniqueId('no') +'"></div>';
                 break;
             default:
-                __html += '<div class="col standart-section zoomer-cover" data-section="column" data-block-uniqid="'+ getUniqueId(1) +'"></div>';
+                __html += '<div class="col standart-section zoomer-cover" data-section="column" data-block-uniqid="'+ getUniqueId('no') +'"></div>';
                 break;
         }
         return __html;
@@ -502,13 +502,20 @@ var Atomic = function() {
                 }
             }
         });
-        $('#layout-builder'+ uniqId +' .jstree-anchor').qtip({
+
+        qtipCallExtension('#layout-builder'+ uniqId +' .jstree-anchor', uniqId);
+
+    };
+
+    var qtipCallExtension = function (body, uniqId) {
+
+        $(body).qtip({
             content: {
                 text: function(event, api) {
                     var nodeId = ($(event.currentTarget).attr('id')).replace('_anchor', '');
                     var node = $('#studioTreeView_'+ uniqId).jstree(true).get_node(nodeId);
                     var content = '';
-                    console.log(node);
+                    
                     if (typeof node.original !== 'undefined' && typeof node.original.pic !== 'undefined') {
                         content += '<p> '
                             content += '<img src="' + node.original.pic + '" width="150" />';
@@ -520,6 +527,7 @@ var Atomic = function() {
                             content += '<b>' + node.text+ '</b> component.';
                         content += '</p>';
                     }
+
                     return content;
                 }
             },
@@ -547,7 +555,7 @@ var Atomic = function() {
                 }
             }
         });
-    };
+    }
 
     var buildHtmlByIndicators = function (kpiTypeIndicators, html, uniqId) {
         var defaultVal = '';
@@ -825,7 +833,7 @@ var Atomic = function() {
         /* moveable.updateTarget(); */
         moveable.updateSelectors();
         moveable.waitToChangeTarget().then(() => {
-            _this.css('clipPath', "inset(0px 0px 0px 0px)");
+            
         });
         
         moveable.on("dragStart", (t) =>  {
@@ -887,12 +895,6 @@ var Atomic = function() {
             _addWidth = $(t.target).width() + t.distX + 2;
             _addHeight = $(t.target).height() + t.distY + 2;
 
-            if (t.clipType === "rect") {
-                t.target.style.clip =  "inset(0px 0px 0px 0px)"; //t.clipStyle;
-            } else {
-                t.target.style.clipPath =  "inset(0px 0px 0px 0px)"; //t.clipStyle;
-            }
-
         }).on("clipEnd", (t) => {
             t.target.style.width = `${_addWidth}px`;
             t.target.style.height = `${_addHeight}px`;
@@ -926,95 +928,215 @@ var Atomic = function() {
 
     var initDropzone = function (uniqId, targetElement, selectedRow) {
         try {
-            var elementUniqId = getUniqueId(1);
-            var contentHtml = html_entity_decode(selectedRow['content']);
             
-            $('.temp_' + uniqId).empty().append(contentHtml).promise().done(function () {
-                switch (selectedRow['text']) {
-                    case 'Button':
-                        $('.temp_' + uniqId).children().children().attr('data-id', elementUniqId);
-                        $('.temp_' + uniqId).children().children().attr('data-target', 'target');
-                        $('.temp_' + uniqId).children().children().attr('data-name', selectedRow['text']);
-
-                        break;
+            if (typeof selectedRow['content'] !== 'undefined') {
+                var elementUniqId = getUniqueId('no');
+                var contentHtml = html_entity_decode(selectedRow['content']);
+                
+                $('.temp_' + uniqId).empty().append(contentHtml).promise().done(function () {
+                    switch (selectedRow['text']) {
+                       /*  case 'Button':
+                            $('.temp_' + uniqId).children().children().attr('data-id', elementUniqId);
+                            $('.temp_' + uniqId).children().children().attr('data-target', 'target');
+                            $('.temp_' + uniqId).children().children().attr('data-name', selectedRow['text']);
+    
+                            break;
+                         */
+                        default:
+                            $('.temp_' + uniqId).children().attr('data-id', elementUniqId);
+                            $('.temp_' + uniqId).children().attr('data-target', 'target');
+                            $('.temp_' + uniqId).children().attr('data-name', selectedRow['text']);
+    
+                            if (selectedRow.hasOwnProperty('type') && selectedRow.type) {
+                                $('.temp_' + uniqId).children().attr('id', selectedRow.type + elementUniqId);
+                                $('.temp_' + uniqId).children().attr('data-type', selectedRow.type);
+                                $('.temp_' + uniqId).children().attr('data-widgetid', selectedRow.id);
+                                switch (selectedRow.type) {
+                                    case 'html':
+                                        console.log('here html');
+                                        break;
+                                }
+                            }
+                            break;
+                    }
                     
-                    default:
-                        $('.temp_' + uniqId).children().attr('data-id', elementUniqId);
-                        $('.temp_' + uniqId).children().attr('data-target', 'target');
-                        $('.temp_' + uniqId).children().attr('data-name', selectedRow['text']);
-
+                    $(targetElement).append($('.temp_' + uniqId).html()).promise().done(function () {
+                        
+                        $('.temp_' + uniqId).empty();
+                        var elementName = selectedRow['text'];
+                        var appendUniqId = (typeof $(targetElement).data('id') !== 'undefined') ? $(targetElement).data('id') : uniqId;
+                        $('#structureTreeView_' + uniqId).jstree().create_node(appendUniqId ,  { "id" : elementUniqId, "text" : elementName}, "last", function() {
+                            console.log("added = " + elementUniqId);
+                        });
+                        switch (selectedRow['text']) {
+                            case 'Accordion':
+                                console.log($(targetElement).data('id'));
+                                var tmpUniqId = getUniqueId('no');
+                                $('#structureTreeView_' + uniqId).jstree().create_node(elementUniqId ,  { "id" : tmpUniqId, "text" : "Header"}, "last", function() {
+                                    console.log("added = Accordion header " + tmpUniqId);
+                                    $('div[data-id="'+ appendUniqId +'"]').find('[data-name="Header"]:eq(0)').attr('data-id', tmpUniqId);
+                                    tmpUniqId = getUniqueId('no');
+                                    $('#structureTreeView_' + uniqId).jstree().create_node(elementUniqId ,  { "id" : tmpUniqId, "text" : "Header element"}, "last", function() {
+                                        console.log("added = Accordion header element" + tmpUniqId);
+                                        $('div[data-id="'+ appendUniqId +'"]').find('[data-name="Header element"]:eq(0)').attr('data-id', tmpUniqId);
+                                        tmpUniqId = getUniqueId('no');
+                                        $('#structureTreeView_' + uniqId).jstree().create_node(elementUniqId ,  { "id" : tmpUniqId, "text" : "Body"}, "last", function() {
+                                            console.log("added = " + tmpUniqId);
+                                            $('div[data-id="'+ appendUniqId +'"]').find('[data-name="Body"]:eq(0)').attr('data-id', tmpUniqId);
+                                        });
+                                    });
+                                    
+                                });
+                                break;
+                        }
+                        //check selected Types
                         if (selectedRow.hasOwnProperty('type') && selectedRow.type) {
-                            $('.temp_' + uniqId).children().attr('id', selectedRow.type + elementUniqId);
-                            $('.temp_' + uniqId).children().attr('data-type', selectedRow.type);
-                            $('.temp_' + uniqId).children().attr('data-widgetid', selectedRow.id);
                             switch (selectedRow.type) {
-                                case 'html':
-                                    console.log('here html');
+                                case 'echart':
+                                    var jsonConfig = JSON.parse(selectedRow.json);
+                                    var chartConfig = jsonConfig['chartConfig'];
+                                    var option = JSON.parse(chartConfig['buildCharConfig']);
+                                    
+                                    var chartDom = document.getElementById(selectedRow.type + elementUniqId);
+                                    var myChart = echarts.init(chartDom);
+                                    option && myChart.setOption(option);
+    
+                                    break;
+                            
+                                default:
                                     break;
                             }
                         }
-                        break;
-                }
-                
-                $(targetElement).append($('.temp_' + uniqId).html()).promise().done(function () {
-                    
-                    $('.temp_' + uniqId).empty();
-                    var elementName = selectedRow['text'];
-                    var appendUniqId = (typeof $(targetElement).data('id') !== 'undefined') ? $(targetElement).data('id') : uniqId;
-                    $('#structureTreeView_' + uniqId).jstree().create_node(appendUniqId ,  { "id" : elementUniqId, "text" : elementName}, "last", function() {
-                        console.log("added = " + elementUniqId);
                     });
-                    switch (selectedRow['text']) {
-                        case 'Accordion':
-                            console.log($(targetElement).data('id'));
-                            var tmpUniqId = getUniqueId(1);
-                            $('#structureTreeView_' + uniqId).jstree().create_node(elementUniqId ,  { "id" : tmpUniqId, "text" : "Header"}, "last", function() {
-                                console.log("added = Accordion header " + tmpUniqId);
-                                $('div[data-id="'+ appendUniqId +'"]').find('[data-name="Header"]:eq(0)').attr('data-id', tmpUniqId);
-                                tmpUniqId = getUniqueId(1);
-                                $('#structureTreeView_' + uniqId).jstree().create_node(elementUniqId ,  { "id" : tmpUniqId, "text" : "Header element"}, "last", function() {
-                                    console.log("added = Accordion header element" + tmpUniqId);
-                                    $('div[data-id="'+ appendUniqId +'"]').find('[data-name="Header element"]:eq(0)').attr('data-id', tmpUniqId);
-                                    tmpUniqId = getUniqueId(1);
-                                    $('#structureTreeView_' + uniqId).jstree().create_node(elementUniqId ,  { "id" : tmpUniqId, "text" : "Body"}, "last", function() {
-                                        console.log("added = " + tmpUniqId);
-                                        $('div[data-id="'+ appendUniqId +'"]').find('[data-name="Body"]:eq(0)').attr('data-id', tmpUniqId);
-                                    });
-                                });
-                                
-                            });
-                            break;
-                    }
-                    //check selected Types
-                    if (selectedRow.hasOwnProperty('type') && selectedRow.type) {
-                        switch (selectedRow.type) {
-                            case 'echart':
-                                var jsonConfig = JSON.parse(selectedRow.json);
-                                var chartConfig = jsonConfig['chartConfig'];
-                                var option = JSON.parse(chartConfig['buildCharConfig']);
-                                
-                                var chartDom = document.getElementById(selectedRow.type + elementUniqId);
-                                var myChart = echarts.init(chartDom);
-                                option && myChart.setOption(option);
-
-                                break;
-                        
-                            default:
-                                break;
-                        }
-                    }
                 });
-            });
+            } else {
+                /* PNotify.removeAll();
+                new PNotify({
+                    title: ' Анхааруулга',
+                    text: 'Буруу өгө',
+                    type: responseData.status, 
+                    sticker: false
+                }); */
+
+            }
+
         } catch (error) {
             console.log(error);            
         }
-    }
+    };
+
+    var initOptionClearup = function (uniqId, $parent) {
+        $parent.find('.item-configration .text-options').hide();
+        $parent.find('.item-configration .dtl-options').hide();
+        $parent.find('.item-configration .button-options').hide();
+        $parent.find('.item-configration .image-options').hide();
+        $parent.find('.item-configration .chart-options').hide();
+        $parent.find('.item-configration .cicon-options').hide();
+        $parent.find('.item-configration .list-options').hide();
+        
+        $parent.find('.item-configration input').val('');
+        $parent.find('.item-configration select').val('');
+    };
+
+    var createAtomicInit = function (uniqId, $form) {
+        var json = mapDomHtmlConvert(document.querySelector('#page' + uniqId), true);
+        $form.ajaxSubmit({
+            type: 'post',
+            url: 'mdwidget/createAtomic',
+            dataType: 'json',
+            beforeSubmit: function(formData, jqForm, options) {
+                formData.push(
+                    { name: 'json', value: json }, 
+                );
+            },
+            success: function (responseData) {
+
+                PNotify.removeAll();
+                new PNotify({
+                    title: responseData.status,
+                    text: responseData.message,
+                    type: responseData.status, 
+                    sticker: false
+                });
+
+                if (responseData.status === 'success') {
+                    $.ajax({
+                        type: 'post',
+                        dataType: 'json',
+                        url: 'mdwidget/atomicBuild/' + responseData.rowId,
+                        beforeSend: function () {},
+                        success: function (response) {
+                            window['layoutBuilder' + uniqId].parent().empty().append(response.Html);
+                        },
+                        error: function(jqXHR, exception) {
+                            Core.unblockUI();
+                            Core.showErrorMessage(jqXHR, exception);
+                        }
+                    });
+                }
+
+                Core.unblockUI();
+            },
+            error: function(jqXHR, exception) {
+                Core.unblockUI();
+                Core.showErrorMessage(jqXHR, exception);
+            }
+        });
+    };
+
+    var mapDomHtmlConvert = function (element, json) {
+        var treeObject = {};
+            
+        // If string convert to document Node
+        if (typeof element === "string") {
+            if (window.DOMParser) {
+                parser = new DOMParser();
+                docNode = parser.parseFromString(element,"text/xml");
+            } else { // Microsoft strikes again
+                docNode = new ActiveXObject("Microsoft.XMLDOM");
+                docNode.async = false;
+                docNode.loadXML(element); 
+            } 
+            element = docNode.firstChild;
+        }
+        
+        //Recursively loop through DOM elements and assign properties to object
+        function treeHTML(element, object) {
+            object["type"] = element.nodeName;
+            var nodeList = element.childNodes;
+            if (nodeList != null) {
+                if (nodeList.length) {
+                    object["content"] = [];
+                    for (var i = 0; i < nodeList.length; i++) {
+                        if (nodeList[i].nodeType == 3) {
+                            object["content"].push(nodeList[i].nodeValue);
+                        } else {
+                            object["content"].push({});
+                            treeHTML(nodeList[i], object["content"][object["content"].length -1]);
+                        }
+                    }
+                }
+            }
+            if (element.attributes != null) {
+                if (element.attributes.length) {
+                    object["attributes"] = {};
+                    for (var i = 0; i < element.attributes.length; i++) {
+                        object["attributes"][element.attributes[i].nodeName] = element.attributes[i].nodeValue;
+                    }
+                }
+            }
+        }
+        treeHTML(element, treeObject);
+        
+        return (json) ? JSON.stringify(treeObject) : treeObject;
+    };
 
     return {
         initMoveable: function(element, options, uniqId) {
             initMoveable(element, options, uniqId);
         },
         init: function(uniqId) {
+            initOptionClearup(uniqId, $('#layout-builder'+ uniqId));
             main('#layout-builder'+ uniqId);
             pageEmpty('#layout-builder'+ uniqId);
             allEmpty('#layout-builder'+ uniqId);
@@ -1049,6 +1171,18 @@ var Atomic = function() {
         },
         initDropzone: function (uniqId, targetElement, selectedRow) {
             initDropzone(uniqId, targetElement, selectedRow);
+        },
+        initOptionClearup: function (uniqId, $parent) {
+            initOptionClearup(uniqId, $parent);
+        },
+        createAtomicInit: function (uniqId, $form) {
+            createAtomicInit(uniqId, $form);
+        },
+        mapDomHtmlConvert: function () {
+            mapDomHtmlConvert();
+        },
+        initQtipCallExtension: function (body, uniqId) {
+            qtipCallExtension(body, uniqId);
         }
     };
     

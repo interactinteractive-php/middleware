@@ -329,22 +329,31 @@ class Restapi_Model extends Model {
                     }
                     
                     $ruleList[] = ['ruleId' => $row['ID'], 'expression' => $expression];
-                    $checkAlreadyRule[$row['ID']] = 1;
                     $mapIds[] = $row['MAP_ID'];
+                    
+                    $checkAlreadyRule[$row['ID']] = 1;
                 }
                 
-                $metricExecute = $executedRuleIds = [];
+                $metricExecute = $executedRuleIds = $detailPath = [];
                 $discountPolicyIds = '';
                 
                 if ($metricIds) {
                     
                     $metricList = $this->db->GetAll("
                         SELECT 
-                            SRC_RECORD_ID, 
-                            QUERY_STRING 
-                        FROM V_METRIC_CONFIG 
-                        WHERE SRC_RECORD_ID IN (".implode(',', array_keys($metricIds)).") 
-                            AND QUERY_STRING IS NOT NULL");
+                            M.SRC_RECORD_ID, 
+                            M.QUERY_STRING, 
+                            (
+                                SELECT 
+                                    MAX(SHOW_TYPE) 
+                                FROM KPI_INDICATOR_INDICATOR_MAP 
+                                WHERE MAIN_INDICATOR_ID = M.SRC_RECORD_ID 
+                                    AND (IS_INPUT IS NULL OR IS_INPUT = 0) 
+                                    AND COLUMN_NAME IS NOT NULL 
+                            ) AS OUTPUT_TYPE 
+                        FROM V_METRIC_CONFIG M 
+                        WHERE M.SRC_RECORD_ID IN (".implode(',', array_keys($metricIds)).") 
+                            AND M.QUERY_STRING IS NOT NULL");
                     
                     $paramMap = $this->db->GetAll("
                         SELECT 
@@ -354,32 +363,68 @@ class Restapi_Model extends Model {
                         WHERE SRC_INDICATOR_MAP_ID IN (".implode(',', $mapIds).") 
                         GROUP BY SRC_INDICATOR_PATH, TRG_META_DATA_PATH");
                     
+                    foreach ($metricList as $m => $metricRow) {
+                        
+                        $metricList[$m]['QUERY_STRING'] = html_entity_decode($metricRow['QUERY_STRING'], ENT_QUOTES, 'UTF-8');
+                        $metricList[$m]['namedParams']  = DBSql::getQueryNamedParams($metricList[$m]['QUERY_STRING']);
+                        
+                        foreach ($paramMap as $p => $row) {
+
+                            $bpPath  = $row['TRG_META_DATA_PATH'];
+                            $qryPath = $row['SRC_INDICATOR_PATH'];
+
+                            if (strpos($bpPath, '.') !== false) {
+
+                                $bpPathArr = explode('.', $bpPath);
+                                $detailPath[$bpPathArr[0]]['params'][$qryPath] = $bpPathArr[1];
+                                
+                                foreach ($metricList[$m]['namedParams'] as $namedParam) {
+                                
+                                    if (strtolower($namedParam) == ':'.$qryPath) {
+                                        
+                                        $detailPath[$bpPathArr[0]]['metric'][] = $metricList[$m];
+                                        
+                                        foreach ($ruleList as $r => $ruleRow) {
+                                            if (strpos($ruleRow['expression'], '['.$metricRow['SRC_RECORD_ID'].']') !== false) {
+                                                $detailPath[$bpPathArr[0]]['rule'][] = $ruleRow;
+                                                unset($ruleList[$r]);
+                                            }
+                                        }
+                                        
+                                        unset($paramMap[$p]);
+                                        unset($metricList[$m]);
+                                
+                                        break;
+                                    }
+                                }
+                            } 
+                        }
+                    }
+                    
                     foreach ($metricList as $metricRow) {
                         
                         $metricId        = $metricRow['SRC_RECORD_ID'];
-                        $metricQryString = html_entity_decode($metricRow['QUERY_STRING'], ENT_QUOTES, 'UTF-8');
-                        $namedParams     = DBSql::getQueryNamedParams($metricQryString);
-                        $metricQryTmp    = $metricQryString;
+                        $metricQryString = $metricRow['QUERY_STRING'];
+                        $namedParams     = $metricRow['namedParams'];
                         
                         $tmpParams = $bindParams = [];
                         
                         foreach ($paramMap as $row) {
-                            $bpPath = $row['TRG_META_DATA_PATH'];
+                            
+                            $bpPath  = $row['TRG_META_DATA_PATH'];
                             $qryPath = $row['SRC_INDICATOR_PATH'];
                             
                             $tmpParams[$qryPath] = isset($parameters[$bpPath]) ? $parameters[$bpPath] : null;
                         }
                         
                         foreach ($namedParams as $matchParam) {
-                            $matchParam = str_replace(':', '', strtolower($matchParam));
+                            $matchParam = strtolower(str_replace(':', '', $matchParam));
                             
                             if (isset($tmpParams[$matchParam])) {
                                 $bindParams[$matchParam] = $tmpParams[$matchParam];
                             } else {
                                 $bindParams[$matchParam] = null;
                             }
-                            
-                            $metricQryTmp = str_ireplace(':'.$matchParam, 'null', $metricQryTmp);
                         }
                         
                         try {
@@ -392,7 +437,7 @@ class Restapi_Model extends Model {
                                 }
                                 
                                 $metricResultFirstKey = array_key_first($metricResultRow);
-                                $metricExecute[$metricId] = $metricResultRow[$metricResultFirstKey];
+                                $metricExecute[$metricId] = ($metricResultRow[$metricResultFirstKey] === null ? '0' : $metricResultRow[$metricResultFirstKey]);
                                 
                             } else {
                                 $metricExecute[$metricId] = '0';
@@ -419,11 +464,17 @@ class Restapi_Model extends Model {
                                 
                                 $metricId = trim($ev);
                                 
-                                if (is_numeric($metricId) && isset($metricExecute[$metricId])) {
+                                if (is_numeric($metricId)) {
                                     
-                                    $replaceVal = Str::lower($metricExecute[$metricId]);
-                                    if (!is_numeric($replaceVal)) {
-                                        $replaceVal = "'".$replaceVal."'";
+                                    if (isset($metricExecute[$metricId])) {
+                                        
+                                        $replaceVal = Str::lower($metricExecute[$metricId]);
+                                        if (!is_numeric($replaceVal)) {
+                                            $replaceVal = "'".$replaceVal."'";
+                                        }
+                                        
+                                    } else {
+                                        throw new Exception('RuleId: '.$ruleId.' / '.$ruleExpression.' / уг шалгуур дээр алдаа гарлаа!'); 
                                     }
                                     
                                     $ruleExpression = str_replace($expressionArr[0][$ek], $replaceVal, $ruleExpression);
@@ -433,9 +484,9 @@ class Restapi_Model extends Model {
                     }
                     
                     try {
-            
-                        $checkEval = @eval('return ('.$ruleExpression.');');
                         
+                        $checkEval = @eval('return ('.$ruleExpression.');');
+
                         if ($checkEval) {
                             $executedRuleIds[] = $ruleId;
                         }
@@ -449,6 +500,182 @@ class Restapi_Model extends Model {
                     } catch (Throwable $p) {
                         throw new Exception('RuleId: '.$ruleId.' / '.$ruleExpression.' / уг шалгуур дээр алдаа гарлаа! '.$p->getMessage()); 
                     } 
+                }
+                
+                if ($detailPath) {
+                    
+                    foreach ($detailPath as $dtlPath => $dtlPathConfig) {
+                        
+                        if (isset($parameters[$dtlPath])) {
+                            
+                            $dtlParams  = $dtlPathConfig['params'];
+                            $dtlRules   = $dtlPathConfig['rule'];
+                            $dtlMetrics = $dtlPathConfig['metric'];
+                            
+                            $allRowRuleExecute = $allRowMetricExecute = [];
+                            
+                            foreach ($parameters[$dtlPath] as $dtlRow) {
+                                
+                                $dtlMetricExecute = [];
+                                
+                                foreach ($dtlMetrics as $dtlMetric) {
+                                    
+                                    $dtlMetricId          = $dtlMetric['SRC_RECORD_ID'];
+                                    $dtlMetricQry         = $dtlMetric['QUERY_STRING'];
+                                    $dtlMetricOutput      = $dtlMetric['OUTPUT_TYPE'];
+                                    $dtlMetricNamedParams = $dtlMetric['namedParams'];
+                                    
+                                    $bindParams = [];
+                                    
+                                    foreach ($dtlMetricNamedParams as $matchParam) {
+                                        $matchParam = strtolower(str_replace(':', '', $matchParam));
+
+                                        if (isset($dtlParams[$matchParam])) {
+                                            $bindParams[$matchParam] = isset($dtlRow[$dtlParams[$matchParam]]) ? $dtlRow[$dtlParams[$matchParam]] : null;
+                                        } else {
+                                            
+                                            foreach ($paramMap as $pMap) {
+                                                $bpPath  = $pMap['TRG_META_DATA_PATH'];
+                                                $qryPath = $pMap['SRC_INDICATOR_PATH'];
+                                                
+                                                if ($qryPath == $matchParam) {
+                                                    $bindParams[$matchParam] = isset($parameters[$bpPath]) ? $parameters[$bpPath] : null;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    
+                                    try {
+                                        
+                                        $metricResultRow = $this->db->GetRow($dtlMetricQry, $bindParams);
+
+                                        if ($metricResultRow) {
+
+                                            if (count($metricResultRow) > 1) {
+                                                throw new Exception($dtlMetricId . ' уг метрикээс олон баганаар үр дүн олдсон тул ажиллах боломжгүй!'); 
+                                            }
+
+                                            $metricResultFirstKey = array_key_first($metricResultRow);
+                                            $dtlMetricExecute[$dtlMetricId] = ($metricResultRow[$metricResultFirstKey] === null ? 0 : $metricResultRow[$metricResultFirstKey]);
+
+                                        } else {
+                                            $dtlMetricExecute[$dtlMetricId] = 0;
+                                        }
+                                        
+                                        if ($dtlMetricOutput == 'decimal' 
+                                            || $dtlMetricOutput == 'decimal_zero' 
+                                            || $dtlMetricOutput == 'bigdecimal' 
+                                            || $dtlMetricOutput == 'bigdecimal_null' 
+                                            || $dtlMetricOutput == 'percent') {
+                                            
+                                            $allRowMetricExecute[$dtlMetricId][] = $dtlMetricExecute[$dtlMetricId];
+                                            unset($dtlMetricExecute[$dtlMetricId]);
+                                        }
+
+                                    } catch (Exception $ex) {
+                                        throw new Exception($dtlMetricId . ' уг метрик дээр алдаа гарлаа! '.$ex->getMessage()); 
+                                    }
+                                }
+                                
+                                foreach ($dtlRules as $dtlRule) {
+                                    
+                                    $ruleId         = $dtlRule['ruleId'];
+                                    $ruleExpression = $dtlRule['expression'];
+
+                                    if (strpos($ruleExpression, '[') !== false) {
+
+                                        preg_match_all('/\[([\w\W]*?)\]/i', $ruleExpression, $expressionArr);
+
+                                        if (count($expressionArr[0]) > 0) {
+
+                                            foreach ($expressionArr[1] as $ek => $ev) {
+
+                                                $metricId = trim($ev);
+
+                                                if (is_numeric($metricId) && isset($dtlMetricExecute[$metricId])) {
+
+                                                    $replaceVal = Str::lower($dtlMetricExecute[$metricId]);
+                                                    if (!is_numeric($replaceVal)) {
+                                                        $replaceVal = "'".$replaceVal."'";
+                                                    }
+
+                                                    $ruleExpression = str_replace($expressionArr[0][$ek], $replaceVal, $ruleExpression);
+                                                }
+                                            }
+                                        }
+                                        
+                                        preg_match_all('/\[([\w\W]*?)\]/i', $ruleExpression, $expressionArr);
+                                        
+                                        if (count($expressionArr[0]) > 0) {
+                                            $allRowRuleExecute[$ruleId] = $ruleExpression;
+                                            continue;
+                                        }
+                                    }
+
+                                    try {
+
+                                        $checkEval = @eval('return ('.$ruleExpression.');');
+
+                                        if ($checkEval) {
+                                            $executedRuleIds[] = $ruleId;
+                                        }
+
+                                    } catch (ParseError $p) {
+                                        throw new Exception('RuleId: '.$ruleId.' / '.$ruleExpression.' / уг шалгуур дээр алдаа гарлаа! '.$p->getMessage()); 
+                                    } catch (Error $p) {
+                                        throw new Exception('RuleId: '.$ruleId.' / '.$ruleExpression.' / уг шалгуур дээр алдаа гарлаа! '.$p->getMessage()); 
+                                    } catch (Exception $p) {
+                                        throw new Exception('RuleId: '.$ruleId.' / '.$ruleExpression.' / уг шалгуур дээр алдаа гарлаа! '.$p->getMessage()); 
+                                    } catch (Throwable $p) {
+                                        throw new Exception('RuleId: '.$ruleId.' / '.$ruleExpression.' / уг шалгуур дээр алдаа гарлаа! '.$p->getMessage()); 
+                                    } 
+                                }
+                            }
+                            
+                            if ($allRowRuleExecute) {
+                                
+                                foreach ($allRowRuleExecute as $ruleId => $ruleExpression) {
+                                    
+                                    if (strpos($ruleExpression, '[') !== false) {
+
+                                        preg_match_all('/\[([\w\W]*?)\]/i', $ruleExpression, $expressionArr);
+
+                                        if (count($expressionArr[0]) > 0) {
+
+                                            foreach ($expressionArr[1] as $ek => $ev) {
+
+                                                $metricId = trim($ev);
+
+                                                if (is_numeric($metricId) && isset($allRowMetricExecute[$metricId])) {
+
+                                                    $replaceVal = array_sum($allRowMetricExecute[$metricId]);
+                                                    $ruleExpression = str_replace($expressionArr[0][$ek], $replaceVal, $ruleExpression);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    
+                                    try {
+
+                                        $checkEval = @eval('return ('.$ruleExpression.');');
+
+                                        if ($checkEval) {
+                                            $executedRuleIds[] = $ruleId;
+                                        }
+
+                                    } catch (ParseError $p) {
+                                        throw new Exception('RuleId: '.$ruleId.' / '.$ruleExpression.' / уг шалгуур дээр алдаа гарлаа! '.$p->getMessage()); 
+                                    } catch (Error $p) {
+                                        throw new Exception('RuleId: '.$ruleId.' / '.$ruleExpression.' / уг шалгуур дээр алдаа гарлаа! '.$p->getMessage()); 
+                                    } catch (Exception $p) {
+                                        throw new Exception('RuleId: '.$ruleId.' / '.$ruleExpression.' / уг шалгуур дээр алдаа гарлаа! '.$p->getMessage()); 
+                                    } catch (Throwable $p) {
+                                        throw new Exception('RuleId: '.$ruleId.' / '.$ruleExpression.' / уг шалгуур дээр алдаа гарлаа! '.$p->getMessage()); 
+                                    } 
+                                }
+                            }
+                        }
+                    }
                 }
                 
                 if ($executedRuleIds) {

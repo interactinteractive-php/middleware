@@ -2975,7 +2975,7 @@ class Mdpos_Model extends Model {
 
             $paymentDetail .= str_replace(array('{labelName}', '{amount}'), array('Qpay', self::posAmount($qpayAmount)), $paymentDtlTemplate);
             
-            $nonCashAmount += $candyAmount;
+            $nonCashAmount += $qpayAmount;
         }
         
         $upointPart = '';

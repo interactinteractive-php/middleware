@@ -19026,6 +19026,10 @@ function drillDownStatement(elem, rowStr) {
         var rId = 'iframe', uniqId = '';
         var glbookid = '', glbookRecordType = '';
         var filterParams = $('#dataview-statement-search-' + statementId + ' form:eq(0)').serialize();
+        
+        if (rowData && rowData.hasOwnProperty(0)) {
+            rowData = rowData[0];
+        }
 
     } else {
 

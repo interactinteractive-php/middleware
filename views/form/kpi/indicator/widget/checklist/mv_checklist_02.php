@@ -726,8 +726,8 @@ input.kpi-notfocus-readonly-input::placeholder {
     max-width: none!important;
 }
 .fileinput-button .big {
-    font-size: 70px;
-    line-height: 112px;
+    font-size: 40px;
+    line-height: 90px;
     text-align: center;
     color: #ddd;    
 }

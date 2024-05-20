@@ -31,7 +31,8 @@
                         <div class="row" id="headerFilterParam">
                             <div class="col-md-4">
                                 <?php
-                                if (Config::getFromCache('IS_HIDE_FILTER_CLOUD_DEPR') != 1) {
+                                $filterConfig = Config::getFromCache('IS_HIDE_FILTER_CLOUD_DEPR');
+                                if ($filterConfig != 1) {
                                 ?>                                
                                 <div class="form-group row fom-row">
                                     <?php echo Form::label(array('text' => Lang::lineDefault('PL_0317', 'Салбар нэгж'), 'for' => 'departmentCode_displayField', 'class' => 'col-form-label col-md-3 custom-label', 'required' => 'required', 'style' => 'font-size: 12px !important')); ?>
@@ -175,25 +176,28 @@
                                     </div>    
                                 </div>  
                             </div>
-                            <div class="col-md-4">
-                                <div class="form-group row fom-row">
-                                    <?php echo Form::label(array('text' => Lang::lineDefault('PL_2030', 'Байршил'), 'for' => 'location', 'class' => 'col-form-label col-md-3 custom-label', 'style' => 'font-size: 12px !important')); ?>
-                                    <div class="col-md-9">
-                                        <div class="input-group double-between-input" data-section-path="fa_asset_location_list">
-                                            <?php 
-                                            echo Form::hidden(array('name' => 'locationId', 'id' => 'locationId_valueField')); 
-                                            echo Form::text(array('name' => 'locationCode', 'id' => 'locationCode_displayField', 'class' => 'form-control form-control-sm meta-autocomplete glCode-autocomplete assetdepr-code-ac', 'placeholder' => 'кодоор хайх')); 
-                                            ?>
-                                            <span class="input-group-btn">
-                                                <button type="button" class="btn default btn-bordered form-control-sm mr0" onclick="dataViewCustomSelectableGrid('fa_asset_location_list', 'multi', 'locationSelectableGrid', '', this);"><i class="fa fa-list-ul"></i></button>
-                                            </span>     
-                                            <span class="input-group-btn">
-                                                <?php echo Form::text(array('name' => 'locationName', 'id' => 'locationName_nameField', 'class' => 'form-control form-control-sm meta-name-autocomplete glName-autocomplete assetdepr-name-ac', 'placeholder' => 'нэрээр хайх')); ?>    
-                                            </span>     
+                            <div class="col-md-4<?php echo $filterConfig != 1 && !$this->IS_NOT_SHOW_EMPLOYEE_IN_DEPR 
+                                    && !$this->IS_NOT_SHOW_CUSTOMER_IN_DEPR && !$this->IS_NOT_SHOW_CAT_IN_DEPR ? ' hidden' : '' ?>">
+                                <?php if ($filterConfig != 1) { ?>
+                                    <div class="form-group row fom-row">
+                                        <?php echo Form::label(array('text' => Lang::lineDefault('PL_2030', 'Байршил'), 'for' => 'location', 'class' => 'col-form-label col-md-3 custom-label', 'style' => 'font-size: 12px !important')); ?>
+                                        <div class="col-md-9">
+                                            <div class="input-group double-between-input" data-section-path="fa_asset_location_list">
+                                                <?php 
+                                                echo Form::hidden(array('name' => 'locationId', 'id' => 'locationId_valueField')); 
+                                                echo Form::text(array('name' => 'locationCode', 'id' => 'locationCode_displayField', 'class' => 'form-control form-control-sm meta-autocomplete glCode-autocomplete assetdepr-code-ac', 'placeholder' => 'кодоор хайх')); 
+                                                ?>
+                                                <span class="input-group-btn">
+                                                    <button type="button" class="btn default btn-bordered form-control-sm mr0" onclick="dataViewCustomSelectableGrid('fa_asset_location_list', 'multi', 'locationSelectableGrid', '', this);"><i class="fa fa-list-ul"></i></button>
+                                                </span>     
+                                                <span class="input-group-btn">
+                                                    <?php echo Form::text(array('name' => 'locationName', 'id' => 'locationName_nameField', 'class' => 'form-control form-control-sm meta-name-autocomplete glName-autocomplete assetdepr-name-ac', 'placeholder' => 'нэрээр хайх')); ?>    
+                                                </span>     
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
                                 <?php
+                                }
                                 if (!$this->IS_NOT_SHOW_EMPLOYEE_IN_DEPR) {
                                 ?>
                                 <div class="form-group row fom-row">
@@ -258,6 +262,7 @@
                                 <?php
                                 }
                                 ?>
+                                <?php if ($filterConfig != 1) { ?>
                                 <div class="form-group row fom-row">
                                     <?php echo Form::label(array('text' => Lang::lineDefault('PL_2034', 'Хөрөнгө'), 'for' => 'filterAssetId', 'class' => 'col-form-label col-md-3 custom-label', 'style' => 'font-size: 12px !important')); ?>
                                     <div class="col-md-9">
@@ -292,6 +297,7 @@
                                         </div>
                                     </div>
                                 </div>
+                                <?php } ?>
                             </div>   
                             <div class="col-md-4">
                                 <div class="form-group row fom-row">
@@ -309,6 +315,7 @@
                                         </div>
                                     </div>
                                 </div>
+                                <?php if ($filterConfig != 1) { ?>
                                 <div class="form-group row fom-row">
                                     <?php echo Form::label(array('text' => Lang::lineDefault('FIN_01340', 'Баркод'), 'for' => 'bookDate', 'class' => 'col-form-label col-md-3 custom-label', 'style' => 'font-size: 12px !important')); ?>
                                     <div class="col-md-9">
@@ -322,13 +329,16 @@
                                         <?php echo Form::hidden(array('name' => 'filterSystemTypeId', 'id' => 'filterSystemTypeId', 'value' => issetParam($this->filterSystemTypeId))); ?>
                                     </div>
                                 </div>
+                                <?php } ?>
+                            </div>
+                            <div class="col-12">
                                 <div class="form-group row fom-row mt10 header-filter-param-btns">
                                     <div class="col text-right">
                                         <button type="button" class="btn btn-sm btn-circle green" onclick="getAssetDv();"><?php echo Lang::lineDefault('FIN_1020', 'Шүүх / Бодох'); ?></button>                        
                                         <button type="button" class="btn btn-sm btn-circle default" onclick="resetHeader();"><?php echo Lang::lineDefault('FIN_00879', 'Цэвэрлэх'); ?></button>                    
                                     </div>
-                                </div>
-                            </div>
+                                </div>                                
+                            </div>                       
                         </div>    
                     </fieldset>    
                     <div class="clearfix w-100"></div>

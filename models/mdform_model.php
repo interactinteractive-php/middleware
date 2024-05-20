@@ -11512,7 +11512,7 @@ class Mdform_Model extends Model {
             }
             
             $newId = getUIDAdd(self::$uniqIdIndex);
-            $saveData = $dbField = $clobField = $dbIndex = $subTables = $addonForm = [];
+            $saveData = $dbField = $clobField = $dbIndex = $subTables = [];
             $kpiTranslationRow = '';
             
             $sfId = issetVar($postData['sf']['ID']);
@@ -12191,11 +12191,7 @@ class Mdform_Model extends Model {
                     }
                 }
                 
-                Mdform::$mvDbParams['header']['data']['CREATED_DATE'] = Date::currentDate('Y-m-d H:i:s');
-                Mdform::$mvDbParams['header']['data']['CREATED_USER_ID'] = $sessionUserKeyId;
-                Mdform::$mvDbParams['header']['data']['CREATED_USER_NAME'] = $sessionName;
-                
-                if (isset($isTblCreated['INDICATOR_ID'])) {
+                if (isset($isTblCreated['INDICATOR_ID']) && !array_key_exists('INDICATOR_ID', Mdform::$mvDbParams['header']['data'])) {
                     
                     Mdform::$mvDbParams['header']['data']['INDICATOR_ID'] = $kpiMainIndicatorId;
 
@@ -12203,6 +12199,10 @@ class Mdform_Model extends Model {
                         Mdform::$mvDbParams['header']['data']['SRC_RECORD_ID'] = $sourceRecordId;
                     }
                 }
+                
+                Mdform::$mvDbParams['header']['data']['CREATED_DATE'] = Date::currentDate('Y-m-d H:i:s');
+                Mdform::$mvDbParams['header']['data']['CREATED_USER_ID'] = $sessionUserKeyId;
+                Mdform::$mvDbParams['header']['data']['CREATED_USER_NAME'] = $sessionName;
                 
                 if ($configRow['IS_USE_WORKFLOW'] == '1' && !Input::numeric('isRunAutoSave')) {
 
@@ -12529,75 +12529,6 @@ class Mdform_Model extends Model {
                         
                         unset($_POST['isRunAutoSave']);
                     }
-                }
-            }
-            
-            if ($addonForm) {
-                
-                unset($_POST['isKpiComponent']);
-                unset($_POST['kpiTblId']);
-                unset($_POST['recordMap']);
-                
-                $a = 1;
-                
-                foreach ($addonForm as $addonIndicatorId => $addonParams) {
-                    
-                    unset($_FILES);
-                    
-                    if (isset($fileParamData) && isset($fileParamData['name']['addonForm'][$addonIndicatorId])) {
-                        
-                        $addonFiles = $fileParamData['name']['addonForm'][$addonIndicatorId];
-                        
-                        foreach ($addonFiles as $addonFileCol => $addonFileName) {
-                            $_FILES['mvFile']['name'][$addonFileCol] = $addonFileName;
-                            $_FILES['mvFile']['type'][$addonFileCol] = $fileParamData['type']['addonForm'][$addonIndicatorId][$addonFileCol];
-                            $_FILES['mvFile']['tmp_name'][$addonFileCol] = $fileParamData['tmp_name']['addonForm'][$addonIndicatorId][$addonFileCol];
-                            $_FILES['mvFile']['error'][$addonFileCol] = $fileParamData['error']['addonForm'][$addonIndicatorId][$addonFileCol];
-                            $_FILES['mvFile']['size'][$addonFileCol] = $fileParamData['size']['addonForm'][$addonIndicatorId][$addonFileCol];
-                        }
-                    }
-                    
-                    $addonRecordId = Input::param($_POST['kpiAddonForm'][$addonIndicatorId]);
-                    $addonIndicatorIdArr = explode('_', $addonIndicatorId);
-                    $addonIndicatorId = $addonIndicatorIdArr[0];
-                    
-                    $_POST['kpiMainIndicatorId'] = $addonIndicatorId;
-                    $_POST['kpiTblIdField']      = 'ID';
-                    $_POST['isExcelImport']      = 1;
-                    $_POST['isRunAutoSave']      = 1;
-                    $_POST['kpiTblId']           = $addonRecordId;
-                    
-                    Mdform::$mvSaveParams = Mdform::$mvDbParams = [];
-                    
-                    unset($_POST['mvParam']);
-                    $_POST['mvParam'] = $addonParams;
-
-                    self::$uniqIdIndex = $a;
-
-                    $result = self::saveMetaVerseDataModel($addonRecordId ? null : $rowId);
-
-                    if ($result['status'] != 'success') {
-                        
-                        throw new Exception($result['message']); 
-                        
-                    } else if (!$addonRecordId) {
-                        
-                        $insertMapRow = array(
-                            'ID'                   => getUIDAdd($a), 
-                            'SRC_REF_STRUCTURE_ID' => $kpiMainIndicatorId, 
-                            'TRG_REF_STRUCTURE_ID' => $addonIndicatorId, 
-                            'SRC_RECORD_ID'        => $rowId, 
-                            'TRG_RECORD_ID'        => $result['rowId'], 
-                            'CREATED_DATE'         => Date::currentDate(), 
-                            'CREATED_USER_ID'      => $sessionUserKeyId
-                        );
-
-                        $this->db->AutoExecute('META_DM_RECORD_MAP', $insertMapRow);
-                    }
-                    
-                    unset($_POST['isRunAutoSave']);
-                    
-                    $a ++;
                 }
             }
             
@@ -14711,7 +14642,7 @@ class Mdform_Model extends Model {
                         
                         foreach ($criterias as $criteriaColumn => $criteria) {
                             if (':'.strtolower($criteriaColumn) == $matchLower) {
-                                $replaceVal = ($criteria[0]['operand'] != '') ? "'".$criteria[0]['operand']."'" : 'NULL';
+                                $replaceVal = (isset($criteria[0]['operand']) && isset($criteria[0]['operator']) && $criteria[0]['operand'] != '') ? "'".$criteria[0]['operand']."'" : 'NULL';
                                 $isReplaceVal = true;
                                 unset($_POST['criteria'][$criteriaColumn]);
                             }
@@ -15418,7 +15349,7 @@ class Mdform_Model extends Model {
                             }
                         }
                         
-                    } elseif (isset($filterColVals[0]['operator'])) { 
+                    } elseif (isset($filterColVals[0]['operator']) && isset($filterColVals[0]['operand'])) { 
                         
                         $orCriteria = '';
                         
@@ -15594,10 +15525,8 @@ class Mdform_Model extends Model {
                             MWA.DESCRIPTION, 
                             MWA.USER_STATUS_ID, 
                             NULL AS TRANSLATION_VALUE 
-                        FROM 
-                            META_WFM_ASSIGNMENT MWA 
-                        WHERE 
-                            MWA.REF_STRUCTURE_ID = $structureIndicatorId 
+                        FROM META_WFM_ASSIGNMENT MWA 
+                        WHERE MWA.REF_STRUCTURE_ID = $structureIndicatorId 
                             AND COALESCE(MWA.IS_TRANSFERED, 0) = 0 
                             AND COALESCE(MWA.IS_ACTIVE, 1) = 1 
                             AND COALESCE(MWA.IS_EDIT, 2) = 2 
@@ -15613,10 +15542,8 @@ class Mdform_Model extends Model {
                             TO_MWA.RECORD_ID, 
                             TO_MWA.WFM_STATUS_ID, 
                             COUNT(1) AS CNT 
-                        FROM 
-                            META_WFM_ASSIGNMENT TO_MWA 
-                        WHERE 
-                            TO_MWA.REF_STRUCTURE_ID = $structureIndicatorId 
+                        FROM META_WFM_ASSIGNMENT TO_MWA 
+                        WHERE TO_MWA.REF_STRUCTURE_ID = $structureIndicatorId 
                             AND COALESCE(TO_MWA.IS_ACTIVE, 1) = 1 
                             AND COALESCE(TO_MWA.IS_EDIT, 2) = 2 
                             AND TO_MWA.ASSIGNED_USER_ID = $sessionUserKeyId  
@@ -23313,28 +23240,28 @@ class Mdform_Model extends Model {
                     PK.ROLE_ID,
                     K.META_DATA_ID,
                     SUM(
-                    CASE WHEN U.ACTION_ID = 300101010000006
-                        THEN 1
-                        ELSE 0
-                    END
+                        CASE WHEN U.ACTION_ID = 300101010000006
+                            THEN 1
+                            ELSE 0
+                        END
                     ) AS IS_LIST,
                     SUM(
-                    CASE WHEN U.ACTION_ID = 300101010000001
-                        THEN 1
-                        ELSE 0
-                    END
+                        CASE WHEN U.ACTION_ID = 300101010000001
+                            THEN 1
+                            ELSE 0
+                        END
                     ) AS IS_CREATE,
                     SUM(
-                    CASE WHEN U.ACTION_ID = 300101010000002
-                        THEN 1
-                        ELSE 0
-                    END
+                        CASE WHEN U.ACTION_ID = 300101010000002
+                            THEN 1
+                            ELSE 0
+                        END
                     ) AS IS_UPDATE,
                     SUM(
-                    CASE WHEN U.ACTION_ID = 300101010000003
-                        THEN 1
-                        ELSE 0
-                    END
+                        CASE WHEN U.ACTION_ID = 300101010000003
+                            THEN 1
+                            ELSE 0
+                        END
                     ) AS IS_DELETE
                 FROM KPI_MENU K 
                     LEFT JOIN UM_PERMISSION_KEY PK ON K.SRC_RECORD_ID = PK.INDICATOR_ID

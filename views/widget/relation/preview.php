@@ -116,34 +116,40 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
 
 
     function videoToImageFn<?php echo $this->uniqId ?>(param) {
-        var $self = $(param);
-            dataId = $self.attr('data-id'),
-            startTimer = parseInt($(param).closest('.detail_cart_slider_imagevideo<?php echo $this->uniqId ?>').attr('data-starttime'));
-
-            myvideo<?php echo $this->uniqId ?> = document.getElementById('video_' + dataId),
-            myvideo<?php echo $this->uniqId ?>.currentTime = startTimer;
+        try {
+            var $self = $(param);
+                dataId = $self.attr('data-id'),
+                startTimer = parseInt($(param).closest('.detail_cart_slider_imagevideo<?php echo $this->uniqId ?>').attr('data-starttime'));
+            if (startTimer > 0) {
+                /* if (typeof startTimer === '') */
+                    myvideo<?php echo $this->uniqId ?> = document.getElementById('video_' + dataId),
+                    myvideo<?php echo $this->uniqId ?>.currentTime = startTimer;
+                    
+    
+                setTimeout(function() {
+                    canvas = document.getElementById('canvas_' + dataId);
+                    canvas.getContext('2d').drawImage(myvideo<?php echo $this->uniqId ?>, 0, 0, 125, 125);	
+                    var img = canvas.toDataURL('image/png');
+                    $(param).closest('.detail_cart_slider_imagevideo<?php echo $this->uniqId ?>').css('background-image', "url('"+img+"')");
+    
+                    canvasLg = document.getElementById('canvaslg_' + dataId);
+                    canvasLg.getContext('2d').drawImage(myvideo<?php echo $this->uniqId ?>, 0, 0, 940, 500);
+                    var imgLg = canvasLg.toDataURL('image/png');		
+                                
+                    if (dc<?php echo $this->uniqId ?> === 0) {
+                        $('#main_video_<?php echo $this->uniqId ?>').closest('.detail_cart_slider_imagevideo').css('background-image', "url('"+imgLg+"')");
+                    }
+    
+                    dc<?php echo $this->uniqId ?>++;
+                    if (dc<?php echo $this->uniqId ?> == dtlRowCount<?php echo $this->uniqId ?>) {            
+                        clearInterval(videoToImageCheckInterval<?php echo $this->uniqId ?>);
+                        myvideo<?php echo $this->uniqId ?>.currentTime = 0;
+                    }
+                }, 500);
+            }
+        } catch (error) {
             
-
-        setTimeout(function() {
-            canvas = document.getElementById('canvas_' + dataId);
-            canvas.getContext('2d').drawImage(myvideo<?php echo $this->uniqId ?>, 0, 0, 125, 125);	
-            var img = canvas.toDataURL('image/png');
-            $(param).closest('.detail_cart_slider_imagevideo<?php echo $this->uniqId ?>').css('background-image', "url('"+img+"')");
-
-            canvasLg = document.getElementById('canvaslg_' + dataId);
-            canvasLg.getContext('2d').drawImage(myvideo<?php echo $this->uniqId ?>, 0, 0, 940, 500);
-            var imgLg = canvasLg.toDataURL('image/png');		
-            			
-            if (dc<?php echo $this->uniqId ?> === 0) {
-                $('#main_video_<?php echo $this->uniqId ?>').closest('.detail_cart_slider_imagevideo').css('background-image', "url('"+imgLg+"')");
-            }
-
-            dc<?php echo $this->uniqId ?>++;
-            if (dc<?php echo $this->uniqId ?> == dtlRowCount<?php echo $this->uniqId ?>) {            
-                clearInterval(videoToImageCheckInterval<?php echo $this->uniqId ?>);
-                myvideo<?php echo $this->uniqId ?>.currentTime = 0;
-            }
-        }, 500);
+        }
     }
 
     $('body').on('click', '.detail_cart_slider_mainvideo<?php echo $this->uniqId ?>', function (e) {

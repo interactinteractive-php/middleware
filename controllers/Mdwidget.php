@@ -4389,6 +4389,14 @@ class Mdwidget extends Controller {
             case 'exam_resultlist':
                 $htmlPath = 'relation/result';
                 break;
+            case 'preview_calendar':
+                $htmlPath = 'relation/calendar';
+                $title = $this->view->title;
+                $width = 'auto';
+                $maximize = false;
+                $this->view->uniqCss = $this->view->renderPrint('relation/uniqCss', self::$viewPath);
+                $this->view->uniqJs = $this->view->renderPrint('relation/uniqJs', self::$viewPath);
+                break;
             default:
                 $htmlPath = 'relation/preview';
                 $title = $this->view->title;
@@ -4515,68 +4523,186 @@ class Mdwidget extends Controller {
         return array('html' => $pageHtml, 'css' => $pageCss);
     }
     
-    public function renderWidgetContent ($body) {
+    public function renderWidgetContent ($body, $json, $fillDataRow, $fillDataArr) {
         global $db;
         (String) $pageHtml = $pageCss = '';
-        foreach ($body as $row) {
-            if (is_array($row)) {
-                $lowerType = Str::lower($row['type']);
 
-                if ($lowerType !== 'script') {
-                    $attrs = $mainId = '';
-                    $chartData = array();
-                    if (issetParamArray($row['attributes'])) {
-                        foreach ($row['attributes'] as $key =>  $attr) {
+        if (1 == 0 && issetParamArray($body['0']['attributes']) && issetParam($body['0']['attributes']['data-isrepeatlist']) == '1') {
+            $widgetSimpleDataRow = $fillDataRow;
+            $widgetSimpleDataRows = $fillDataArr;
+
+            $rowParent = $body['0'];
+            $row = $rowParent['content']['0'];
+
+            $listCount = sizeOf($fillDataArr);
+
+            if (issetParam($rowParent['attributes']['data-widgetid']) !== '') {
+                $_POST['indicatorId'] = $rowParent['attributes']['data-widgetid'];
+                $mdf = &getInstance();
+                $mdf->load->model('mdform', 'middleware/models/');
+                $dataList = $mdf->model->indicatorDataGridModel();
+                
+                $widgetSimpleDataRow = issetParamArray($dataList['rows'][0]);
+                $widgetSimpleDataRows = issetParamArray($dataList['rows']);
+            }
+            
+            if (issetParam($rowParent['attributes']['data-listcount']) !== '' && $listCount > issetParam($rowParent['attributes']['data-listcount'])) {
+                $listCount = issetParam($rowParent['attributes']['data-listcount']);
+            }
+            
+            $lowerType = Str::lower($row['type']);
+            $attrs = $mainId = '';
+
+            if ($lowerType !== 'script') {
+
+                $parentAttrs = $mainId = '';
+                
+                if (issetParamArray($rowParent['attributes'])) {
+                    foreach ($rowParent['attributes'] as $key =>  $attr) {
+                        if (issetParam($rowParent['attributes']['data-type']) === 'chart' || issetParam($rowParent['attributes']['data-type']) === 'echart') {
                             if ($key === 'data-widgetid') {
                                 $chartData = $db->GetRow("SELECT * FROM KPI_INDICATOR WHERE ID = '". $attr ."'");
                             }
-    
-                            if ($key === 'id') {
-                                $mainId = $attr;
-                            }
-    
-                            $attrs .= ' ' . $key . '="'. $attr . '"';
                         }
-                    }
-                    
-                    if (issetParamArray($row['content']['0']) && is_array($row['content']['0']) && issetParam($row['type']) !== '') {
-                        $pageHtml .= '<' . $lowerType . $attrs . '>';
-                            $pageAttr = self::renderWidgetContent($row['content']);
-                            $pageHtml .= issetParam($pageAttr['html']);
-                            $pageCss .= issetParam($pageAttr['css']);
-                        $pageHtml .= '</' . $lowerType . '>';
-                    } elseif(sizeOf(issetParamArray($row['content'])) > 1) {
-                        $pageHtml .= '<' . $lowerType . $attrs . '>';
-                            $pageAttr = self::renderWidgetContent($row['content']);
-                            $pageHtml .= issetParam($pageAttr['html']);
-                            $pageCss .= issetParam($pageAttr['css']);
-                        $pageHtml .= '</' . $lowerType . '>';
-                    } else {
-                        $pageHtml .= '<' . $lowerType . $attrs . '>';
-                            if (issetParamArray($row['content']['0']) && !is_array($row['content']['0'])) {
-                                $pageHtml .= issetParam($row['content']['0']);
-                            }
-                        $pageHtml .= '</' . $lowerType . '>';
-                    }
-    
-                    $addHtml = '';
-    
-                    if ($chartData && $mainId) {
-                        $addHtml .= '<script type="text/javascript" data-id="'. $mainId .'">';
-                        $addHtml .= "var jsonConfig = ". $chartData['GRAPH_JSON'] .";
                         
-                        var chartConfig = jsonConfig['chartConfig'];
-                        var option = JSON.parse(chartConfig['buildCharConfig']);
-                        $('#$mainId').empty();
-                        var chartDom$mainId = document.getElementById('". $mainId ."');
-                        var myChart$mainId = echarts.init(chartDom$mainId);
-                        option && myChart$mainId.setOption(option);";
-                        $addHtml .= '</script>';
+                        if ($key === 'id') {
+                            $mainId = $attr;
+                        }
+
+                        $parentAttrs .= ' ' . $key . '="'. $attr . '"';
                     }
-    
-                    $pageHtml .= $addHtml;
                 }
 
+                $parentLowerType = Str::lower($rowParent['type']);
+                $pageHtml .= '<' . $parentLowerType . $parentAttrs . '>';
+
+                $lowerType = Str::lower($row['type']);
+                $attrs = $mainId = '';
+                $chartData = array();
+
+                if (issetParamArray($row['attributes'])) {
+                    foreach ($row['attributes'] as $key =>  $attr) {
+                        if (issetParam($row['attributes']['data-type']) === 'chart' || issetParam($row['attributes']['data-type']) === 'echart') {
+                            if ($key === 'data-widgetid') {
+                                $chartData = $db->GetRow("SELECT * FROM KPI_INDICATOR WHERE ID = '". $attr ."'");
+                            }
+                        }
+                        
+                        if ($key === 'id') {
+                            $mainId = $attr;
+                        }
+
+                        $attrs .= ' ' . $key . '="'. $attr . '"';
+                    }
+                }
+                
+                for ($i = 0; $i < $listCount; $i ++) {
+                    $pageHtml .= '<' . $lowerType . $attrs . '>';
+                        $pageAttr = self::renderWidgetContent($row['content']['0']['content'], $row, $widgetSimpleDataRows[$i], $widgetSimpleDataRows);
+                        $pageHtml .= issetParam($pageAttr['html']);
+                        $pageCss .= issetParam($pageAttr['css']);
+                    $pageHtml .= '</' . $lowerType . '>';
+                }
+                
+                $pageHtml .= '</' . $parentLowerType . '>';
+            }
+        } else {
+            foreach ($body as $row) {
+                if (is_array($row)) {
+                    $lowerType = Str::lower($row['type']);
+                    $widgetSimpleDataRow = $fillDataRow;
+                    $widgetSimpleDataRows = $fillDataArr;
+
+                    if ($lowerType !== 'script') {
+                        $attrs = $mainId = '';
+                        $chartData = array();
+                        if (issetParamArray($row['attributes'])) {
+
+                            if (issetParam($row['attributes']['data-widgetid']) !== '') {
+                                $_POST['indicatorId'] = $row['attributes']['data-widgetid'];
+                                $mdf = &getInstance();
+                                $mdf->load->model('mdform', 'middleware/models/');
+                                $dataList = $mdf->model->indicatorDataGridModel();
+                                
+                                $widgetSimpleDataRow = issetParamArray($dataList['rows'][0]);
+                                $widgetSimpleDataRows = issetParamArray($dataList['rows']);
+                            }
+
+                            foreach ($row['attributes'] as $key =>  $attr) {
+                                if (issetParam($row['attributes']['data-type']) === 'chart' || issetParam($row['attributes']['data-type']) === 'echart') {
+                                    if ($key === 'data-widgetid') {
+                                        $chartData = $db->GetRow("SELECT * FROM KPI_INDICATOR WHERE ID = '". $attr ."'");
+                                    }
+                                }
+                                
+                                if ($key === 'id') {
+                                    $mainId = $attr;
+                                }
+        
+                                $attrs .= ' ' . $key . '="'. $attr . '"';
+                            }
+                        }
+                        
+                        if (issetParamArray($row['content']['0']) && is_array($row['content']['0']) && issetParam($row['type']) !== '') {
+                            $pageHtml .= '<' . $lowerType . $attrs . '>';
+                                $pageAttr = self::renderWidgetContent($row['content'], $row, $widgetSimpleDataRow, $widgetSimpleDataRows);
+                                $pageHtml .= issetParam($pageAttr['html']);
+                                $pageCss .= issetParam($pageAttr['css']);
+                            $pageHtml .= '</' . $lowerType . '>';
+                        } elseif(sizeOf(issetParamArray($row['content'])) > 1) {
+                            $pageHtml .= '<' . $lowerType . $attrs . '>';
+                                $pageAttr = self::renderWidgetContent($row['content'], $row, $widgetSimpleDataRow, $widgetSimpleDataRows);
+                                $pageHtml .= issetParam($pageAttr['html']);
+                                $pageCss .= issetParam($pageAttr['css']);
+                            $pageHtml .= '</' . $lowerType . '>';
+                        } else {
+                            switch ($lowerType) {
+                                case 'i':
+                                    if (issetParam($row['attributes']['data-positionpath']) !== '' && issetParam($widgetSimpleDataRow[$row['attributes']['data-positionpath']]) !== '') {
+                                        $pageHtml .= $widgetSimpleDataRow[$row['attributes']['data-positionpath']];
+                                    } else {
+                                        $pageHtml .= '<' . $lowerType . $attrs . '>';
+                                            if (issetParam($row['attributes']['data-positionpath']) !== '' && issetParam($widgetSimpleDataRow[$row['attributes']['data-positionpath']]) !== '') {
+                                                $pageHtml .= $widgetSimpleDataRow[$row['attributes']['data-positionpath']];
+                                            } elseif (issetParamArray($row['content']['0']) && !is_array($row['content']['0'])) {
+                                                $pageHtml .= issetParam($row['content']['0']);
+                                            }
+                                        $pageHtml .= '</' . $lowerType . '>';
+                                    }
+                                    break;
+                                
+                                default:
+                                    $pageHtml .= '<' . $lowerType . $attrs . '>';
+                                        if (issetParam($row['attributes']['data-positionpath']) !== '' && issetParam($widgetSimpleDataRow[$row['attributes']['data-positionpath']]) !== '') {
+                                            $pageHtml .= $widgetSimpleDataRow[$row['attributes']['data-positionpath']];
+                                        } elseif (issetParamArray($row['content']['0']) && !is_array($row['content']['0'])) {
+                                            $pageHtml .= issetParam($row['content']['0']);
+                                        }
+                                    $pageHtml .= '</' . $lowerType . '>';
+                                    break;
+                            }
+                        }
+    
+        
+                        $addHtml = '';
+                        
+                        if ($chartData && $mainId) {
+                            $addHtml .= '<script type="text/javascript" data-id="'. $mainId .'">';
+                            $addHtml .= "var jsonConfig = ". checkDefaultVal($chartData['GRAPH_JSON'], '[]') .";
+                            
+                            var chartConfig = jsonConfig['chartConfig'];
+                            var option = JSON.parse(chartConfig['buildCharConfig']);
+                            $('#$mainId').empty();
+                            var chartDom$mainId = document.getElementById('". $mainId ."');
+                            var myChart$mainId = echarts.init(chartDom$mainId);
+                            option && myChart$mainId.setOption(option);";
+                            $addHtml .= '</script>';
+                        }
+        
+                        $pageHtml .= $addHtml;
+                    }
+    
+                }
             }
         }
 
@@ -4680,83 +4806,23 @@ class Mdwidget extends Controller {
 
         return array('html' => $pageHtml, 'css' => $pageCss);
     }
-
-    public function renderLayoutSection ($indicatorId) {
-        $this->load->model('mdwidget', 'middleware/models/');
-        $pageConfig = $this->model->getIndicatorWidgetModel($indicatorId);
-
-        $layoutHtml = '<div class="row">        
-            <div class="col">
-                <div class="kpipage-data-top-filter-col my-2 mt0"></div>
-            </div>
-        </div>'.$pageConfig['layouthtml'];
-        
-        $layoutHtml = html_entity_decode($layoutHtml, ENT_QUOTES, 'UTF-8');      
-        
-        if ($pageConfig['pageindicatormap']) {
-            foreach ($pageConfig['pageindicatormap'] as $row) {
-                
-                if ($row['kpitypeid'] == '16641793815766') {
-                    $mdf = &getInstance();
-                    $mdf->load->model('mdform', 'middleware/models/');                    
-                    $_POST['relationComponents'] = $mdf->model->getKpiIndicatorMapWithBuilderModel($row['srcindicatorid'], '10000000,10000001,10000009', issetParam($row['metainfoindicatorid']));
-                    $_POST['isAjax'] = true;
-                    $listHtml = (new Mdform())->indicatorList(issetParam($row['metainfoindicatorid']), true);
-                    $layoutHtml = str_replace('{'. $row['trgindicatorid'] . '}', $listHtml['html'], $layoutHtml);        
-                    
-                } elseif ($row['widgetconfig']) {
-                                        
-                    $chartJson = json_decode($row['widgetconfig'], true);
-                    $mainIndicator = isset($chartJson['mainIndicatorId']) ? $chartJson['mainIndicatorId'] : '17126384673849';
-                    $getChart = (new Mdform)->indicatorChartList($mainIndicator, true);
-                    $layoutHtml = str_replace('{'. $row['trgindicatorid'] . '}', $getChart['html'], $layoutHtml); 
-                }
-            }
-        }
-        
-        convJson(['html' => $layoutHtml]);
-    }   
     
-    public function renderLayoutSectionNew ($indicatorId) {
-        $this->load->model('mdwidget', 'middleware/models/');
-        $pageConfig = $this->model->getIndicatorWidgetModel($indicatorId);
+    public function renderv2 ($indicatorId) {
+
+        $this->view->indicatorId = $indicatorId;
         
-        $layoutHtml = '<div class="row">        
-            <div class="col pl-0 pr-0">
-                <div class="kpipage-data-top-filter-col pr-1 mt10"></div>
-            </div>
-        </div>'.$pageConfig['layouthtml'];
-        $layoutHtml = html_entity_decode($layoutHtml, ENT_QUOTES, 'UTF-8');      
-        
-        if ($pageConfig['pageindicatormap']) {
-            foreach ($pageConfig['pageindicatormap'] as $row) {
+        $dataSetFirstRow = array();
+        $dataSetList = array(); 
                 
-                if ($row['kpitypeid'] == '16641793815766') {
-                    $mdf = &getInstance();
-                    $mdf->load->model('mdform', 'middleware/models/');                    
-                    $_POST['relationComponents'] = $mdf->model->getKpiIndicatorMapWithBuilderModel($row['srcindicatorid'], '10000000,10000001,10000009', issetParam($row['metainfoindicatorid']));
-                    $_POST['isAjax'] = true;
-                    $listHtml = (new Mdform())->indicatorList(issetParam($row['metainfoindicatorid']), true);
-                    $layoutHtml = str_replace('{'. $row['trgindicatorid'] . '}', $listHtml['html'], $layoutHtml);        
-                    
-                } elseif ($row['widgetconfig']) {
-                                        
-                    $chartJson = json_decode($row['widgetconfig'], true);
-                    $mainIndicator = isset($chartJson['mainIndicatorId']) ? $chartJson['mainIndicatorId'] : '17126384673849';
-                    $getChart = (new Mdform)->indicatorChartList($mainIndicator, true);
-                    $layoutHtml = str_replace('{'. $row['trgindicatorid'] . '}', $getChart['html'], $layoutHtml); 
-                }
-            }
-        }
+        self::atomicBuild ($indicatorId, 'layout', $dataSetFirstRow, $dataSetList);
         
-        convJson(['html' => $layoutHtml]);
-    }    
+    }
 
     public function builderAtomicWidget ($id = '', $returnType = '') {
         self::atomicBuild($id, $returnType);
-    }   
+    }
 
-    public function atomicBuild ($id = '', $returnType = '') {
+    public function atomicBuild ($id = '', $returnType = '', $widgetSimpleDataJson = array(), $widgetSimpleDataDtlJson = array()) {
 
         $selectedRow = Arr::decode(Input::post('selectedRow'));
         $this->view->indicatorId = issetParam($selectedRow['dataRow']['id']);
@@ -4766,20 +4832,54 @@ class Mdwidget extends Controller {
             $this->view->indicatorId = $id;
         }
 
+        $this->view->standartField = array();
         $this->view->uniqId = getUID();
         $this->view->isAjax = is_ajax_request();
-        
         $this->view->mainData = $this->ws->runSerializeResponse(GF_SERVICE_ADDRESS, 'indicatorWidgetConfig_004', array('id' => $this->view->indicatorId));  
+        $this->view->widgetDataAggs = array();
+        $notAggs = array('ID', 'id', 'DELETED_USER_ID', 'DELETED_DATE', 'MODIFIED_USER_ID', 'MODIFIED_DATE', 'CREATED_USER_ID', 'CREATED_DATE');
+        
+        if ($this->view->indicatorId && !($widgetSimpleDataJson && $widgetSimpleDataDtlJson)) {
+            $_POST['indicatorId'] = $this->view->indicatorId;
+            $mdf = &getInstance();
+            $mdf->load->model('mdform', 'middleware/models/');
+        
+            $this->view->standartField = $mdf->model->getKpiIndicatorStandartFieldModel($this->view->indicatorId);
+            $dataList = $mdf->model->indicatorDataGridModel();
+            
+            if (sizeOf(issetParamArray($dataList['rows'])) == 1) {
+                $widgetSimpleDataJson = issetParamArray($dataList['rows'][0]);
+            } else {
+                $widgetSimpleDataDtlJson = issetParamArray($dataList['rows']);
+            }
+        }
+
+        if ($widgetSimpleDataDtlJson) {
+            $this->view->widgetDataAggs = array();
+            foreach ($widgetSimpleDataDtlJson as $key => $row) {
+                # code...
+                $temp = array(
+                    'id' => $key,
+                    'name' => checkDefaultVal($row[$this->view->standartField['nameField']], $key)
+                );
+                array_push($this->view->widgetDataAggs, $temp);
+            }
+        }
+        
+        $mdw = &getInstance();
+        $mdw->load->model('mdwidget', 'middleware/models/');
+
         $json = json_decode(html_entity_decode(issetParam($this->view->mainData['result']['widgetdtl']['widgetconfig']), ENT_QUOTES, 'UTF-8'), true);
 
         $this->view->json = issetParamArray($json);
         $this->view->js = array_unique(array_merge(array('custom/addon/admin/pages/scripts/app.js'), AssetNew::metaOtherJs()));
         $this->view->css = AssetNew::metaCss();
         
+        /* UI options */
         $chartData = $this->db->GetAll("SELECT * FROM KPI_INDICATOR WHERE (ID  IN ('17152425086093', '17152425065583') OR PARENT_ID = '1711442445581777') AND GRAPH_JSON LIKE '%echart%'");
         $this->view->chartData = array();
         
-        foreach ($chartData as $key => $row) {
+        /* foreach ($chartData as $key => $row) {
             $tmp = array(
                 'id' => $row['ID'],
                 'name' => $row['NAME'],
@@ -4789,61 +4889,53 @@ class Mdwidget extends Controller {
                 'json' => $row['GRAPH_JSON'],
             );
             array_push($this->view->chartData, $tmp);
-        }
+        } */
         
-        $widgetSimpleDataJson = array (
-            'position1Value' => 'HawksBill',
-            'position2Value' => '<i class="fa fa-turtle"></i>',
-            'position3Value' => '10',
-            'position4Value' => 'Sea turtle',
-            'position5Value' => '#eb6f6f',
-        );
-
-        $widgetSimpleDataDtlJson = array(
-            array (
-                'position1Value' => 'Green',
-                'position2Value' => '<i class="fa fa-turtle"></i>',
-                'position3Value' => '12',
-                'position4Value' => 'Sea turtle',
-                'position5Value' => '#9c9ff1',
-                'backgroundColor' => '#9c9ff1',
-                'textColor' => '#FFF',
-            ),
-            array (
-                'position1Value' => 'Leatherback',
-                'position2Value' => '<i class="fa fa-turtle"></i>',
-                'position3Value' => '10',
-                'position4Value' => 'Sea turtle',
-                'position5Value' => '#9cf1ac',
-                'backgroundColor' => '#9cf1ac',
-                'textColor' => '#FFF',
-            ),
-            array (
-                'position1Value' => 'HawksBill',
-                'position2Value' => '<i class="fa fa-turtle"></i>',
-                'position3Value' => '10',
-                'position4Value' => 'Sea turtle',
-                'position5Value' => '#eb6f6f',
-                'backgroundColor' => '#eb6f6f',
-                'textColor' => '#FFF',
-            ),
-        );
-
         $this->view->widgetSimpleDataJson = json_encode($widgetSimpleDataJson, JSON_PRETTY_PRINT);
         $this->view->widgetSimpleDataDtlJson = json_encode($widgetSimpleDataDtlJson, JSON_PRETTY_PRINT);
-        $this->view->widgetDataJson = $this->model->widgetListDataWithJsonModel();  
-        
-        foreach ($this->view->widgetDataJson as $key => $row) {
-            $decodeHtml = html_entity_decode($row['jsonconfig'], ENT_QUOTES, 'UTF-8');
-            $json = json_decode($decodeHtml, true);
-            
-            if (issetParamArray($json['content'])) {
+
+        $this->view->widgetSimpleDataArr = $widgetSimpleDataJson;
+        $this->view->widgetSimpleDataDtlArr = $widgetSimpleDataDtlJson;
+        $this->view->widgetDataJson = $mdw->model->widgetListDataWithJsonModel();  
+
+        $this->view->widgetDataJson = Arr::groupByArrayOnlyRows($this->view->widgetDataJson, 'parentname', false);
+        /* var_dump($this->view->widgetDataJson);
+        die; */
+
+        foreach ($this->view->widgetDataJson as $parentKey => $widgetDataJson) {
+            $tmpParent = array (
+                'id' => getUID(),
+                'name' => $parentKey,
+                'text' => $parentKey,
+                'children' => array(),
+                'type' => 'parent',
+            );
+
+            foreach ($widgetDataJson as $key => $row) {
+
+                $decodeHtml = html_entity_decode($row['jsonconfig'], ENT_QUOTES, 'UTF-8');
+                $json = json_decode($decodeHtml, true);
+                
                 $attrs = '';
                 if (issetParam($json['attributes']['style'])) {
                     $attrs .= 'style="'. $json['attributes']['style'] . '"';
                 }
                 
-                $widgetContent = self::renderWidgetContentByHtml($json['content'], $widgetSimpleDataJson);
+                if (issetParamArray($json['content'])) {
+                    $widgetContent = self::renderWidgetContentByHtml($json['content'], $widgetSimpleDataJson);
+                } else {
+    
+                    $widgetContent = array();
+                    if (issetParam($row['picture']) && file_exists($row['picture'])) {
+                        $widgetContent['html'] = $row['picture'];
+                    } elseif(Config::getFromCache('is_dev')) /* if (issetParam($row['picture']) && file_exists('https://dev.veritech.mn/' . $row['picture']))  */{
+                        $widgetContent['html'] = 'https://dev.veritech.mn/' . $row['picture'];
+                    }
+    
+                    $widgetContent['html'] = '<img src="' . $widgetContent['html'] . '" data-target="target" />';
+                    
+                }
+    
                 $tmp = array (
                     'id' => $row['id'],
                     'name' => $row['name'],
@@ -4851,21 +4943,20 @@ class Mdwidget extends Controller {
                     'content' => htmlentities('<div class="row" '. $attrs .'>' . $widgetContent['html'] . '</div>', ENT_QUOTES, 'UTF-8'),
                     'type' => 'html',
                     'json' => '',
+                    'isjson' => issetParamArray($json['content']) ? '1' : '0',
                 );
-
+    
                 if (issetParam($row['picture']) && file_exists($row['picture'])) {
                     $tmp['pic'] = $row['picture'];
                 } elseif(Config::getFromCache('is_dev'))/* if (issetParam($row['picture']) && file_exists('https://dev.veritech.mn/' . $row['picture']))  */{
                     $tmp['pic'] = 'https://dev.veritech.mn/' . $row['picture'];
                 }
-                
-                array_push($this->view->chartData, $tmp);
+
+                array_push($tmpParent['children'], $tmp);
             }
             
+            array_push($this->view->chartData, $tmpParent);
         }
-        /* var_dump($this->view->widgetDataJson); */
-        /* var_dump($this->view->chartData);
-        die; */
 
         $this->view->fullUrlJs = array(
             'middleware/assets/plugins/builder.v2/moveable/moveable.js',
@@ -4888,6 +4979,10 @@ class Mdwidget extends Controller {
                     break;
                 case 'html':
                     $this->view->render('/widget/index', "projects/views/contentui/build");
+                case 'layout':
+                    $this->view->render('header');
+                    $this->view->render('/widget/layout', "projects/views/contentui/build");
+                    $this->view->render('footer');
                     break;
                 default:
                     $response = array(
@@ -4903,6 +4998,7 @@ class Mdwidget extends Controller {
                     break;
             }
         }
+
     }
 
     public function createAtomic() {
@@ -4910,6 +5006,11 @@ class Mdwidget extends Controller {
         $postData = Input::postData();
         $jsonConfig = $postData['json'];
 
+        $checkJson = json_decode(html_entity_decode($jsonConfig, ENT_QUOTES, 'UTF-8'), true);
+        $checkWidgetId = array();
+
+        array_walk_recursive($checkJson, function ($item, $key) use (&$checkWidgetId) { if ($key === 'data-widgetid' && $item) { $checkWidgetId[$key] = $item; }  });
+        
         $_POST = array (
             'param' =>  array (
                 'id' => issetParam($postData['indicatorId']),
@@ -4952,6 +5053,10 @@ class Mdwidget extends Controller {
             'windowSessionId' => getUID(),
         );
 
+        if (issetParam($checkWidgetId['data-widgetid']) !== '') {
+            $_POST['param']['kpiTypeId'] = '2020';
+        }
+        
         $response = (new Mdwebservice())->runProcess();
         convJson($response);
     }

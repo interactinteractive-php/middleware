@@ -148,15 +148,22 @@ if (issetParam($this->rowData['tablepolicylist'])) {
         ?>
         <tr data-single-policy-price="<?php echo $rulePolicyList['namedprice']; ?>" data-single-policy-id="<?php echo $rulePolicyList['policyid']; ?>">
             <td style="font-weight: 700">
-                <?php 
-                if ($countPolicyList > 1) {
-                ?>
-                <label class="bold"><input type="checkbox" class="single-policy-price-checkbox"> <?php echo $rulePolicyList['policyname']; ?></label>
-                <?php
-                } else {
-                    echo $rulePolicyList['policyname']; 
-                }
-                ?>
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <?php 
+                        if ($countPolicyList > 1) {
+                        ?>
+                        <label class="bold"><input type="checkbox" class="single-policy-price-checkbox"> <?php echo $rulePolicyList['policyname']; ?></label>
+                        <?php
+                        } else {
+                            echo $rulePolicyList['policyname']; 
+                        }
+                        ?>
+                    </div>
+                    <div>
+                        <?php echo Number::formatMoney($rulePolicyList['namedprice']); ?>
+                    </div>
+                </div>
             </td>
         </tr>
         <?php
