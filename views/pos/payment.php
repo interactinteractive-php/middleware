@@ -149,6 +149,27 @@
                         </div>                      
                     </div>                    
                     
+                    <div data-config-column="tokipay-amount"<?php echo Config::getFromCache('CONFIG_POS_PAYMENT_QPAY') === '1' ? '' : ' class="hidden"' ?>>
+                        <hr/>
+
+                        <div class="form-group row fom-row mb5">
+                            <label class="col-md-3 col-form-label text-right uppercase" for="postokiAmt" style="padding-left: 0;">TOKIPAY:</label>
+                            <div class="col-md-9">
+                                <div class="row pos-tokipay-row">
+                                    <div class="pos-payment-amount-col">
+                                        <input type="text" name="postokipayAmt" class="form-control form-control-sm bigdecimalInit posUserAmount posKeyAmount" placeholder="TOKIPAY" id="postokipayAmt" value="">
+                                        <input type="hidden" name="tokipay_bill_no" value="" />
+                                        <input type="hidden" name="tokipay_traceNo" value="" />
+                                    </div> 
+                                    <div class="float-left pl15">
+                                        <button type="button" class="btn btn-circle btn-sm blue" title="QR code үүсгэх" onclick="posSearchTokipay(this);"><i class="fa fa-qrcode"></i></button>
+                                    </div>                              
+                                </div>                              
+                            </div>                              
+                            <div class="clearfix w-100"></div>
+                        </div>                      
+                    </div>                    
+                    
                     <div data-config-column="socialpay-amount"<?php echo Config::getFromCache('isPosSocialPay') === '1' ? '' : ' class="hidden"' ?>>
                         <hr/>
 

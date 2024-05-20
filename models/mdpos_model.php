@@ -1407,6 +1407,7 @@ class Mdpos_Model extends Model {
         $emdAmount              = Number::decimal($paymentData['posEmdAmt']);
         $candyAmount            = Number::decimal(issetParam($paymentData['posCandyAmt']));
         $qpayAmount             = Number::decimal(issetParam($paymentData['posqpayAmt']));
+        $tokipayAmount          = Number::decimal(issetParam($paymentData['postokipayAmt']));
         $upointAmount           = Number::decimal(issetParam($paymentData['posUpointAmt']));
         $candyCouponAmount      = Number::decimal(issetParam($paymentData['posCandyCouponAmt']));
         $deliveryAmount         = Number::decimal(issetParam($paymentData['posDeliveryAmt']));
@@ -2976,6 +2977,19 @@ class Mdpos_Model extends Model {
             $paymentDetail .= str_replace(array('{labelName}', '{amount}'), array('Qpay', self::posAmount($qpayAmount)), $paymentDtlTemplate);
             
             $nonCashAmount += $qpayAmount;
+        }
+        
+        if ($tokipayAmount > 0) {
+            
+            $paymentDtl[] = array(
+                'paymentTypeId' => 44, 
+                'amount'        => $tokipayAmount,
+                'extTransactionId' => $paymentData['tokipay_traceNo'],
+            );
+
+            $paymentDetail .= str_replace(array('{labelName}', '{amount}'), array('Tokipay', self::posAmount($tokipayAmount)), $paymentDtlTemplate);
+            
+            $nonCashAmount += $tokipayAmount;
         }
         
         $upointPart = '';
@@ -10222,7 +10236,7 @@ class Mdpos_Model extends Model {
                 }
             }
                 
-            $topTitle        = Config::getFromCache('POS_HEADER_NAME');
+            $topTitle       = Session::get(SESSION_PREFIX.'posHeaderName');
             $vatNumber       = Session::get(SESSION_PREFIX.'vatNumber');
             $contactInfo     = Config::get('POS_CONTACT_INFO', 'departmentId='.$departmentId.';');
             $sessionPosLogo = Session::get(SESSION_PREFIX.'posLogo');
@@ -10491,7 +10505,9 @@ class Mdpos_Model extends Model {
                 '{bonusCardBeginAmount}'    => '', 
                 '{bonusCardDiffAmount}'     => '', 
                 '{bonusCardPlusAmount}'     => '', 
-                '{bonusCardEndAmount}'      => ''
+                '{bonusCardEndAmount}'      => '',
+                '{renderreporttemplate}'    => '',
+                '{discountCard}'            => ''
             );
 
             $internalContent = strtr($templateContent, $replacing);
@@ -14009,7 +14025,7 @@ class Mdpos_Model extends Model {
         $departmentId = $hdr['DEPARTMENT_ID'];            
         $billId       = $hdr['BILL_ID']; 
 
-        $topTitle        = Config::getFromCache('POS_HEADER_NAME');
+        $topTitle       = Session::get(SESSION_PREFIX.'posHeaderName');
         $vatNumber       = Session::get(SESSION_PREFIX.'vatNumber');
         $contactInfo     = Config::get('POS_CONTACT_INFO', 'departmentId='.$departmentId.';');
         $sessionPosLogo = Session::get(SESSION_PREFIX.'posLogo');
@@ -18920,11 +18936,36 @@ class Mdpos_Model extends Model {
         }
     }    
     
+    public function tokiPayGetInvoiceQrModel($params) {
+        $result = $this->ws->runSerializeResponse(self::$gfServiceAddress, 'tokiPayGenerateQrAPI', $params);
+
+        if ($result['status'] == 'success') {
+            return array('status' => 'success', 'qrcode' => self::getQrCodeImg($result['result']['data']['requestid'], '250px'), 'traceNo' => $result['result']['data']['requestid']);
+        } else {
+            return array('status' => 'error', 'message' => $this->ws->getResponseMessage($result));
+        }
+    }    
+    
     public function qpayCheckQrCodeModel($params) {
         $result = $this->ws->runSerializeResponse(self::$gfServiceAddress, 'qpay_v2_checkPayment', $params);
 
         if ($result['status'] == 'success') {
             if ($result['result']['count']) {
+                return array('status' => 'success', 'message' => 'Successfully');
+            } else {
+                return array('status' => 'error', 'message' => 'Waiting');
+            }
+        } else {
+            return array('status' => 'error', 'message' => $this->ws->getResponseMessage($result));
+        }
+    }    
+    
+    public function tokipayCheckQrCodeModel($params) {
+        $result = $this->ws->runSerializeResponse(self::$gfServiceAddress, 'tokiPayGetPaymentStatusAPI', $params);
+        pa($result);
+
+        if ($result['status'] == 'success') {
+            if ($result['result']['data']['status'] !== 'PENDING') {
                 return array('status' => 'success', 'message' => 'Successfully');
             } else {
                 return array('status' => 'error', 'message' => 'Waiting');

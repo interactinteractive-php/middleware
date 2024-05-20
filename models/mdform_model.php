@@ -4310,6 +4310,7 @@ class Mdform_Model extends Model {
                         KI.IS_ADDON_FILE, 
                         KI.IS_ADDON_PHOTO,
                         KI.GRAPH_JSON, 
+                        KI.JSON_CONFIG, 
                         KI.GRID_OPTION, 
                         KI.WIDGET_ID, 
                         KI.METHOD_WIDGET_ID, 

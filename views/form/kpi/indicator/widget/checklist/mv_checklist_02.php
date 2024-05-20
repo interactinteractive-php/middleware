@@ -746,8 +746,12 @@ if ($checkListTabLink.length == 1) {
     var $selTbLength = $selTb.length;
     if ($selTbLength == 1) {
         var $tabPane = $selTb.find('> .tab-pane');
-        $tabPane.find('> .d-flex > .sidebar').hide();
-        $tabPane.find('> .d-flex > .w-100').css('max-width', '');
+        var $tabInsideMenu = $tabPane.find('li.nav-item:not(.d-none) > .mv_checklist_02_sub.nav-link'), tabInsideMenuLength = $tabInsideMenu.length;
+        
+        if (tabInsideMenuLength == 1) {
+            $tabPane.find('> .d-flex > .sidebar').hide();
+            $tabPane.find('> .d-flex > .w-100').css('max-width', '');
+        }
     } 
 }
 

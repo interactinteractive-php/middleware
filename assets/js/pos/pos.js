@@ -3,6 +3,7 @@ var isClickF5 = false;
 var isAcceptPrintPos = true;
 var posCandyQrCheckInterval;
 var posQpayQrCheckInterval;
+var posTokipayQrCheckInterval;
 var posSocialPayQrCheckInterval;
 var globalLoopPrint = 1,
   coldF9 = true,
@@ -3274,7 +3275,7 @@ $(function () {
     "change",
     '#pos-payment-form input[data-path="serviceCustomerId"]',
     function () {
-        return;
+      return;
       var $deliveryPanel = $(".pos-payment-delivery-header");
       var $this = $(this),
         rowData = JSON.parse($this.attr("data-row-data"));
@@ -9241,7 +9242,7 @@ function posTableSetHeight(h) {
       ($("#pos-bottom-bar").length
         ? $("#pos-bottom-bar").height()
         : $("#pos-card-bar").height()) -
-      (typeof h !== 'undefined' ? h : 3)    
+      (typeof h !== 'undefined' ? h : 3)
     );
   }
 
@@ -10042,25 +10043,25 @@ function posSelectedCustomer(
 function posInvoiceList(elem, metaId) {
   if (metaId != 0) {
     if (isUserPosV3) {
-        dataViewSelectableGrid(
-          "nullmeta",
-          "0",
-          metaId,
-          "single",
-          "nullmeta",
-          elem,
-          "casherCheck"
-        );
+      dataViewSelectableGrid(
+        "nullmeta",
+        "0",
+        metaId,
+        "single",
+        "nullmeta",
+        elem,
+        "casherCheck"
+      );
     } else {
-        dataViewSelectableGrid(
-          "nullmeta",
-          "0",
-          metaId,
-          "single",
-          "nullmeta",
-          elem,
-          "createBillResultDataFromInvoice"
-        );
+      dataViewSelectableGrid(
+        "nullmeta",
+        "0",
+        metaId,
+        "single",
+        "nullmeta",
+        elem,
+        "createBillResultDataFromInvoice"
+      );
     }
   } else {
     dataViewSelectableGrid(
@@ -20933,7 +20934,7 @@ function appendItem(itemPostData, renderType, callback) {
 
         if (isConfigItemCheckDuplicate) {
           var $addedRow = $tbody.find('tr[data-item-code="' + concatItemName + '"]');
-          
+
           if (posTypeCode == "3") {
             $addedRow = $tbody.find(
               'tr[data-item-id-customer-id="' +
@@ -24444,7 +24445,7 @@ function createBillResultDataFromInvoice(
   isMetaGroup
 ) {
   var row = rows[0];
-  
+
   var invoiceId = row.salesinvoiceid;
 
   if (invoiceId) {
@@ -24624,6 +24625,59 @@ function posSearchQpay(elem) {
   });
 }
 
+function posSearchTokipay(elem) {
+  var $this = $(elem),
+    $row = $this.closest(".pos-tokipay-row");
+
+  var monAmount = $row.find(".bigdecimalInit").autoNumeric("get");
+  if (!monAmount) {
+    PNotify.removeAll();
+    new PNotify({
+      title: 'Warning',
+      text: 'Qpay төлөх дүнгээ оруулна уу!',
+      type: 'warning',
+      sticker: false,
+      addclass: "pnotify-center",
+    });
+    return;
+  }
+
+  $.ajax({
+    type: "post",
+    url: "mdpos/tokipayGenerateQrCode",
+    data: { amount: monAmount },
+    dataType: "json",
+    beforeSend: function () {
+      Core.blockUI({
+        message: "Generating...",
+        boxed: true,
+      });
+    },
+    success: function (dataQrCode) {
+      Core.unblockUI();
+
+      if (dataQrCode.status == "success") {
+        candyQrUuid = dataQrCode.bill_no;
+        tokipayQRCodeShow($row, monAmount, dataQrCode);
+        $('input[name="tokipay_bill_no"]').val(dataQrCode.bill_no);
+        $('input[name="tokipay_traceNo"]').val(dataQrCode.traceNo);
+
+        posTokipayQrCheckInterval = setInterval(function () {
+          tokipayCheckQrCode(dataQrCode.traceNo, monAmount, $row);
+        }, 3000);
+      } else {
+        new PNotify({
+          title: dataQrCode.status,
+          text: dataQrCode.message,
+          type: dataQrCode.status,
+          sticker: false,
+          addclass: "pnotify-center"
+        });
+      }
+    },
+  });
+}
+
 function qpayQRCodeShow(row, amount, data) {
   var $dialogName = "dialog-pos-qpayqr";
   $('<div id="' + $dialogName + '"></div>').appendTo("body");
@@ -24659,6 +24713,41 @@ function qpayQRCodeShow(row, amount, data) {
   $dialog.dialog("open");
 }
 
+function tokipayQRCodeShow(row, amount, data) {
+  var $dialogName = "dialog-pos-tokipayqr";
+  $('<div id="' + $dialogName + '"></div>').appendTo("body");
+  var $dialog = $("#" + $dialogName);
+
+  $dialog.empty().append(data.html);
+
+  $dialog.dialog({
+    cache: false,
+    resizable: false,
+    bgiframe: true,
+    autoOpen: false,
+    title: data.title,
+    width: 420,
+    minWidth: 420,
+    height: "auto",
+    modal: true,
+    dialogClass: "pos-payment-dialog",
+    closeOnEscape: isCloseOnEscape,
+    close: function () {
+      clearInterval(posTokipayQrCheckInterval);
+      $dialog.empty().dialog("destroy").remove();
+    },
+    buttons: [{
+      text: data.close_btn,
+      class: "btn btn-sm blue-hoki",
+      click: function () {
+        $dialog.dialog("close");
+        clearInterval(posQpayQrCheckInterval);
+      },
+    }],
+  });
+  $dialog.dialog("open");
+}
+
 function qpayCheckQrCode(uuid, amount, row) {
   $.ajax({
     type: "post",
@@ -24670,6 +24759,22 @@ function qpayCheckQrCode(uuid, amount, row) {
       if (dataQrCode.status == "success") {
         clearInterval(posQpayQrCheckInterval);
         $("#dialog-pos-qpayqr").html('<h3 style="color: green;padding: 20px 20px 20px 0px;">Төлбөр амжилттай төлөгдлөө.</h3>')
+      }
+    },
+  });
+}
+
+function tokipayCheckQrCode(uuid, amount, row) {
+  $.ajax({
+    type: "post",
+    url: "mdpos/tokipayCheckQrCode",
+    data: { uuid: uuid },
+    dataType: "json",
+    success: function (dataQrCode) {
+      Core.unblockUI();
+      if (dataQrCode.status == "success") {
+        clearInterval(posTokipayQrCheckInterval);
+        $("#dialog-pos-tokipayqr").html('<h3 style="color: green;padding: 20px 20px 20px 0px;">Төлбөр амжилттай төлөгдлөө.</h3>')
       }
     },
   });

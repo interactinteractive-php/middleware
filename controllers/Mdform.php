@@ -6057,7 +6057,7 @@ class Mdform extends Controller {
     }
     
     public function runPivotDataMartTest() {
-        $rs = $this->model->runPivotDataMartModel('17138563935611');
+        $rs = $this->model->runPivotDataMartModel('17156785288353');
         var_dump($rs);
     }
     

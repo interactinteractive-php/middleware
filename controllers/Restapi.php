@@ -80,9 +80,14 @@ class Restapi extends Controller {
                                 'code'      => $configRow['CODE'],
                                 'name'      => $configRow['NAME'],
                                 'kpiTypeId' => $configRow['KPI_TYPE_ID'], 
-                                'isUseWorkflow' => $configRow['IS_USE_WORKFLOW'], 
-                                'metaStructureId' => null
+                                'isUseWorkflow'   => $configRow['IS_USE_WORKFLOW'], 
+                                'metaStructureId' => null, 
+                                'jsonConfig'      => null
                             ];
+                            
+                            if ($configRow['JSON_CONFIG'] != '') {
+                                $result['jsonConfig'] = json_decode($configRow['JSON_CONFIG'], true);
+                            }
                             
                             if ($kpiMainIndicatorId == '17095242488819') {
                                 $result['metaStructureId'] = 1505450297170;

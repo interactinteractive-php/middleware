@@ -3718,6 +3718,38 @@ class Mdpos extends Controller {
         echo json_encode($response); exit;
     }    
     
+    public function tokipayGenerateQrCode() {
+        
+        $sPrefix        = SESSION_PREFIX;
+        $storeId        = Session::get($sPrefix.'storeId');
+        $cashRegisterId = Session::get($sPrefix.'cashRegisterId');        
+        $cashRegisterCode = Session::get($sPrefix.'cashRegisterCode');        
+        $bill_no = getUID();
+        $params = [
+            'amount' => Input::post('amount'),
+            'storeId' => $storeId,
+            'orderId' => $bill_no,
+            'notes' => 'Veritech erp ' . $cashRegisterCode
+        ];        
+        $response = $this->model->tokiPayGetInvoiceQrModel($params);
+        
+        if ($response['status'] == 'success') {
+            
+            $this->view->base64QrCodeImg = $response['qrcode'];
+            
+            $response = array( 
+                'status' => 'success', 
+                'html'   => $this->view->renderPrint('candy/tokipayQrCode', self::$viewPath), 
+                'traceNo'=> $response['traceNo'], 
+                'bill_no' => $bill_no,
+                'title'  => 'TOKIPAY QR', 
+                'close_btn' => $this->lang->line('close_btn')
+            );
+        } 
+        
+        echo json_encode($response); exit;
+    }    
+    
     public function qpayCheckQrCode() {
         $sPrefix        = SESSION_PREFIX;
         $storeId        = Session::get($sPrefix.'storeId');        
@@ -3730,6 +3762,18 @@ class Mdpos extends Controller {
             'object_id' => Input::post('uuid')
         ];             
         $response = $this->model->qpayCheckQrCodeModel($params);
+        echo json_encode($response); exit;
+    }    
+    
+    public function tokipayCheckQrCode() {
+        $sPrefix        = SESSION_PREFIX;
+        $storeId        = Session::get($sPrefix.'storeId');        
+        
+        $params = [
+            'storeId' => $storeId,
+            'requestId' => Input::post('uuid')
+        ];             
+        $response = $this->model->tokipayCheckQrCodeModel($params);
         echo json_encode($response); exit;
     }    
 

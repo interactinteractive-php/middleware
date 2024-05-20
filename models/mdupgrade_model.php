@@ -7823,4 +7823,13 @@ class Mdupgrade_Model extends Model {
         return false;
     }
     
+    public function getPatchListModel() {
+        try {
+            $data = $this->db->GetAll("SELECT ID, DESCRIPTION FROM META_BUG_FIXING WHERE DESCRIPTION IS NOT NULL ORDER BY CREATED_DATE DESC");
+            return array('status' => 'success', 'data' => $data);
+        } catch (Exception $ex) {
+            return array('status' => 'error', 'message' => $ex->getMessage());
+        }     
+    }
+    
 }

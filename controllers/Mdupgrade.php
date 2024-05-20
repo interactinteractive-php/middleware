@@ -36,8 +36,7 @@ class Mdupgrade extends Controller {
         Auth::handleLogin();
         
         $result = $this->model->bugfixDatagridModel();
-        
-        jsonResponse($result);
+        convJson($result);
     }
     
     public function updatingBugFixing() {
@@ -45,8 +44,7 @@ class Mdupgrade extends Controller {
         Auth::handleLogin();
         
         $response = $this->model->updatingBugFixingModel(); 
-        
-        jsonResponse($response);
+        convJson($response);
     }
     
     public function downloadBugFixing() {
@@ -162,7 +160,7 @@ class Mdupgrade extends Controller {
             'import_btn' => 'Уншуулах', 
             'close_btn' => $this->lang->line('close_btn')
         );
-        jsonResponse($response);
+        convJson($response);
     }
     
     public function importMetaFile() {
@@ -170,7 +168,7 @@ class Mdupgrade extends Controller {
         Auth::handleLogin();
         
         $result = $this->model->importMetaFileModel();
-        jsonResponse($result);
+        convJson($result);
     }
     
     public function importAnotherServerForm() {
@@ -240,14 +238,14 @@ class Mdupgrade extends Controller {
             $isImportBtn = false;
         }
         
-        $response = array(
+        $response = [
             'html'          => $this->view->renderPrint('meta/importAnotherServer', self::$viewPath),
             'title'         => 'Upgrade',
             'is_import_btn' => $isImportBtn,
             'import_btn'    => 'Үндсэн систем рүү шинэчлэх', 
             'close_btn'     => $this->lang->line('close_btn')
-        );
-        jsonResponse($response);
+        ];
+        convJson($response);
     }
     
     public function importAnotherServer() {
@@ -255,13 +253,13 @@ class Mdupgrade extends Controller {
         Auth::handleLogin();
         
         $result = $this->model->importAnotherServerModel();
-        jsonResponse($result);
+        convJson($result);
     }
     
     public function encryptedFileImport() {
         
         $result = $this->model->encryptedFileImportModel();
-        echo json_encode($result, JSON_UNESCAPED_UNICODE);
+        convJson($result);
     }
     
     public function exportObject() {
@@ -342,11 +340,8 @@ class Mdupgrade extends Controller {
         
         Auth::handleLogin();
         
-        $response = array(
-            'html' => $this->view->renderPrint('system/sysUpdatePopup', self::$viewPath)
-        );
-        
-        jsonResponse($response);
+        $response = ['html' => $this->view->renderPrint('system/sysUpdatePopup', self::$viewPath)];
+        convJson($response);
     }
     
     public function sysUpdateAccessByPass() {
@@ -356,21 +351,21 @@ class Mdupgrade extends Controller {
         $result = $this->model->sysUpdateAccessByPassModel();
         
         if ($result) {
-            $response = array(
+            $response = [
                 'status' => 'success', 
                 'html' => $this->view->renderPrint('system/confirmDb', self::$viewPath)
-            );
+            ];
         } else {
-            $response = array('status' => 'error', 'message' => 'Нууц үг буруу байна!');
+            $response = ['status' => 'error', 'message' => 'Нууц үг буруу байна!'];
         }
         
-        jsonResponse($response);
+        convJson($response);
     }
     
     public function sysUpdate() {
         Auth::handleLogin();
         $response = $this->model->sysUpdateModel();
-        jsonResponse($response);
+        convJson($response);
     }
     
     public static function phpImportServiceAddr() {
@@ -390,7 +385,7 @@ class Mdupgrade extends Controller {
         $param    = json_decode($jsonBody, true);
         
         $commandName = Input::param(issetParam($param['commandName']));
-        $response    = array('status' => 'error', 'message' => 'Undefined commandName!');
+        $response    = ['status' => 'error', 'message' => 'Undefined commandName!'];
         
         if ($commandName) {
             
@@ -426,18 +421,21 @@ class Mdupgrade extends Controller {
                 $param = Input::param($param['param']);
                 
                 $response = $this->model->getBugFixingKnowledgeModel($param['id']);
+                
+            } elseif ($commandName == 'getpatch') {
+                
+                $response = $this->model->getPatchListModel($param['id']);
             }
         }
         
-        header('Content-Type: application/json');
-        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+        convJson($response);
     }
     
-    public static function getBugfixDataByCommand($command, $param = array()) {
+    public static function getBugfixDataByCommand($command, $param = []) {
         
         $url = self::phpImportServiceAddr();
 
-        $data = (new WebService())->curlRequest($url, array('commandName' => $command, 'param' => $param));
+        $data = (new WebService())->curlRequest($url, ['commandName' => $command, 'param' => $param]);
         
         return $data;
     }
@@ -445,7 +443,7 @@ class Mdupgrade extends Controller {
     public function metaConfigReplace() {
         Auth::handleLogin();
         $response = $this->model->metaConfigReplaceModel();
-        jsonResponse($response);
+        convJson($response);
     }
     
     public function knowMetasInFile() {
@@ -453,7 +451,7 @@ class Mdupgrade extends Controller {
         Auth::handleLogin();
         
         $result = $this->model->knowMetasInFileModel();
-        jsonResponse($result);
+        convJson($result);
     }
     
     public function metaSendToRunLoop() {
@@ -498,7 +496,7 @@ class Mdupgrade extends Controller {
             
             try {
 
-                $params = array('encryptedSource' => $exportData['result']); 
+                $params = ['encryptedSource' => $exportData['result']]; 
 
                 $curl_handle = curl_init();
 
@@ -510,11 +508,11 @@ class Mdupgrade extends Controller {
                 curl_setopt($curl_handle, CURLOPT_SSL_VERIFYHOST, false);        
                 curl_setopt($curl_handle, CURLOPT_SSL_VERIFYPEER, false);        
                 curl_setopt($curl_handle, CURLOPT_HEADER, false);
-                curl_setopt($curl_handle, CURLOPT_HTTPHEADER, array(
+                curl_setopt($curl_handle, CURLOPT_HTTPHEADER, [
                     'User-Agent: Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36',
                     'Cache-Control: no-cache', 
                     'Content-Type: application/json'
-                ));
+                ]);
 
                 $buffer = curl_exec($curl_handle);
                 curl_close($curl_handle);
@@ -522,14 +520,14 @@ class Mdupgrade extends Controller {
                 $response = json_decode(remove_utf8_bom($buffer), true);
 
             } catch (Exception $ex) {
-                $response = array('status' => 'error', 'message' => $ex->getMessage());
+                $response = ['status' => 'error', 'message' => $ex->getMessage()];
             }
             
         } else {
-            $response = array('status' => 'error', 'message' => $exportData['message']);
+            $response = ['status' => 'error', 'message' => $exportData['message']];
         }
         
-        jsonResponse($response);
+        convJson($response);
     }
     
     public function sendToMetaByIds() {
@@ -545,7 +543,7 @@ class Mdupgrade extends Controller {
             self::metaSendToRunLoop();
             
         } else {
-            jsonResponse(array('status' => 'error', 'message' => 'No domain config!'));
+            convJson(['status' => 'error', 'message' => 'No domain config!']);
         }
     }
     
@@ -657,7 +655,7 @@ class Mdupgrade extends Controller {
         Auth::handleLogin();
         
         $response = $this->model->metaImportCopyFileModel();
-        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+        convJson($response);
     }
     
     public function getBugFixingScript() {
@@ -665,9 +663,9 @@ class Mdupgrade extends Controller {
         Auth::handleLogin();
         
         $id = Input::numeric('bugfixId');
-        $response = Mdupgrade::getBugfixDataByCommand('getScript', array('id' => $id));
+        $response = Mdupgrade::getBugfixDataByCommand('getScript', ['id' => $id]);
         
-        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+        convJson($response);
     }
     
     public function getBugFixingKnowledge() {
@@ -675,9 +673,9 @@ class Mdupgrade extends Controller {
         Auth::handleLogin();
         
         $id = Input::numeric('bugfixId');
-        $response = Mdupgrade::getBugfixDataByCommand('getKnowledge', array('id' => $id));
+        $response = Mdupgrade::getBugfixDataByCommand('getKnowledge', ['id' => $id]);
         
-        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+        convJson($response);
     }
     
     public function metaCopyReplaceForm() {
@@ -702,7 +700,7 @@ class Mdupgrade extends Controller {
         Auth::handleLogin();
         
         $response = $this->model->metaCopyReplaceModel();
-        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+        convJson($response);
     }
     
     public function metaReplaceForm() {
@@ -722,7 +720,7 @@ class Mdupgrade extends Controller {
         Auth::handleLogin();
         
         $response = $this->model->metaReplaceModel();
-        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+        convJson($response);
     }
     
     public function decryptFile() {
@@ -737,6 +735,14 @@ class Mdupgrade extends Controller {
         $fileContent = Compression::gzdeflate(file_get_contents('platfrom_db_scripts.txt'));
         
         file_put_contents('DB_COMPARE_PLATFORM.txt', $fileContent);die;
+    }
+    
+    public function getCloudPatchList() {
+        Auth::handleLogin();
+        
+        $url = 'http://192.168.193.200:81/mdupgrade/bugfixservice';
+        $response = (new WebService())->curlRequest($url, ['commandName' => 'getPatch']);
+        convJson($response);
     }
     
 }
