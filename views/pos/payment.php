@@ -149,15 +149,15 @@
                         </div>                      
                     </div>                    
                     
-                    <div data-config-column="tokipay-amount"<?php echo Config::getFromCache('CONFIG_POS_PAYMENT_QPAY') === '1' ? '' : ' class="hidden"' ?>>
+                    <div data-config-column="tokipay-amount"<?php echo Config::getFromCache('CONFIG_POS_PAYMENT_TOKI_PAY') === '1' ? '' : ' class="hidden"' ?>>
                         <hr/>
 
                         <div class="form-group row fom-row mb5">
-                            <label class="col-md-3 col-form-label text-right uppercase" for="postokiAmt" style="padding-left: 0;">TOKIPAY:</label>
+                            <label class="col-md-3 col-form-label text-right uppercase" for="postokiAmt" style="padding-left: 0;"><?php echo $this->lang->line('POS_00056'); ?>:</label>
                             <div class="col-md-9">
                                 <div class="row pos-tokipay-row">
                                     <div class="pos-payment-amount-col">
-                                        <input type="text" name="postokipayAmt" class="form-control form-control-sm bigdecimalInit posUserAmount posKeyAmount" placeholder="TOKIPAY" id="postokipayAmt" value="">
+                                        <input type="text" name="postokipayAmt" class="form-control form-control-sm bigdecimalInit posUserAmount posKeyAmount" placeholder="<?php echo $this->lang->line('POS_00056'); ?>" id="postokipayAmt" value="">
                                         <input type="hidden" name="tokipay_bill_no" value="" />
                                         <input type="hidden" name="tokipay_traceNo" value="" />
                                     </div> 

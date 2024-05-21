@@ -15370,21 +15370,21 @@ class Mdform_Model extends Model {
                                 $filterColVal = self::fixFilterColValue($filterColVal['operand']);
                                 
                                 if ($operator == 'in') {
-                                    $orCriteria .= "LOWER($filterColName) IN (".Str::lower($filterColVal).") AND ";
+                                    $orCriteria .= "LOWER($filterColName) IN (".Str::lower($filterColVal).") OR ";
                                 } else {
                                     if (in_array($filterShowType, Mdform::$numberTypes)) {
                                         if ($filterColVal != '') {
                                             $filterColVal = Number::decimal($filterColVal);
-                                            $orCriteria .= "$filterColName $operator ".$filterColVal." AND ";
+                                            $orCriteria .= "$filterColName $operator ".$filterColVal." OR ";
                                         }
                                     } else {
-                                        $orCriteria .= "LOWER($filterColName) $operator '".Str::lower($filterColVal)."' AND ";
+                                        $orCriteria .= "LOWER($filterColName) $operator '".Str::lower($filterColVal)."' OR ";
                                     }
                                 }
                             }
                         }
                         
-                        $orCriteria = rtrim(trim($orCriteria), ' AND');
+                        $orCriteria = rtrim(trim($orCriteria), ' OR');
                         $subCondition .= " AND ($orCriteria)";
                         
                     } elseif (!is_array($filterColVals)) {
@@ -20361,6 +20361,11 @@ class Mdform_Model extends Model {
                 "COMPANY_DEPARTMENT_ID" NUMBER(18,0), 
                 "GENERATED_DATE" DATE 
             )';
+            
+            if (DB_DRIVER == 'postgres9') {
+                $createTableScript = str_replace(' CHAR)', ')', $createTableScript);
+                $createTableScript = str_replace('"', '', $createTableScript);
+            }
 
             $this->db->Execute($createTableScript);
             

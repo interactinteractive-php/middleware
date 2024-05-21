@@ -1645,7 +1645,7 @@ class Mdform extends Controller {
     
     public function saveKpiDynamicDataByList() {
         $response = self::saveKpiDynamicData();
-        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+        convJson($response);
     }
     
     public function removeKpiDynamicData() {
@@ -6618,7 +6618,7 @@ class Mdform extends Controller {
                             
                             $criteria = trim(rtrim($concatCriteria, '||'));
                             
-                        } else {
+                        } elseif (is_array($sv)) {
                             
                             foreach ($sv as $childKey => $childVal) {
                             

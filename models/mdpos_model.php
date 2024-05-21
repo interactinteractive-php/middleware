@@ -2982,7 +2982,7 @@ class Mdpos_Model extends Model {
         if ($tokipayAmount > 0) {
             
             $paymentDtl[] = array(
-                'paymentTypeId' => 44, 
+                'paymentTypeId' => 56, 
                 'amount'        => $tokipayAmount,
                 'extTransactionId' => $paymentData['tokipay_traceNo'],
             );
