@@ -5020,7 +5020,6 @@ class Mdwidget extends Controller {
                 'id' => issetParam($postData['indicatorId']),
                 'name' => checkDefaultVal($postData['widgetName'], 'Widget : ' . Str::upper(Str::random_string('alpha', '4'))),
                 'code' => checkDefaultVal($postData['widgetCode'], 'Widget : ' . Str::upper(Str::random_string('alpha', '4'))),
-                'jsonConfig' => issetParam($jsonConfig),
                 'widgetDtl.id' =>  array (
                     array (
                         0 => issetParam($postData['widgetdtlId']),
@@ -5031,11 +5030,11 @@ class Mdwidget extends Controller {
                         0 => issetParam($postData['indicatorId']),
                     ),
                 ),
-                /* 'widgetDtl.widgetConfig' =>  array (
+                'widgetDtl.widgetConfig' =>  array (
                     array (
                     0 => issetParam($jsonConfig),
                     ),
-                ), */
+                ),
                 'categoryMap.id' =>  array (
                     array (
                         0 => issetParam($postData['categoryMapId']),

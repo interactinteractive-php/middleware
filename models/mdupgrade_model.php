@@ -4873,7 +4873,7 @@ class Mdupgrade_Model extends Model {
             
             if (strpos($fileSource, '_alteredUserId') !== false) {
                 
-                preg_match('/VALUES\(([\w\W]*?)\, _alteredUserId/i', $fileSource, $dbLogIdMatch);
+                preg_match('/VALUES\(([0-9]*?)\, _alteredUserId/i', $fileSource, $dbLogIdMatch);
                 $dbLogId = $dbLogIdMatch[1];
                 
                 if (self::checkEisArcScriptLog($dbLogId)) {
@@ -4986,7 +4986,7 @@ class Mdupgrade_Model extends Model {
                     }
 
                     self::previousTranslateList($isCustomerServer, $metaDataId, $metaTypeId);
-                    
+
                     $skipError    = issetParam($metaAttributes['skipError']);
                     $skipErrorTbl = array();
                     
@@ -5039,7 +5039,7 @@ class Mdupgrade_Model extends Model {
                                 
                             }
                         }
-                    } 
+                    }
                     
                     if (isset($meta['createTables']['createTable'])) {
                         
