@@ -4818,14 +4818,16 @@ class Mdwidget extends Controller {
         
     }
 
-    public function builderAtomicWidget ($id = '', $returnType = '') {
-        self::atomicBuild($id, $returnType);
+    public function pageBuild ($id = '', $returnType = '', $widgetSimpleDataJson = array(), $widgetSimpleDataDtlJson = array()) {
+        self::atomicBuild($id, $returnType, $widgetSimpleDataJson, $widgetSimpleDataDtlJson, '2020');
     }
 
-    public function atomicBuild ($id = '', $returnType = '', $widgetSimpleDataJson = array(), $widgetSimpleDataDtlJson = array()) {
+    public function atomicBuild ($id = '', $returnType = '', $widgetSimpleDataJson = array(), $widgetSimpleDataDtlJson = array(), $kpiTypeId = '') {
 
         $selectedRow = Arr::decode(Input::post('selectedRow'));
         $this->view->indicatorId = issetParam($selectedRow['dataRow']['id']);
+        $this->view->kpiTypeId = $kpiTypeId;
+
         if ($this->view->indicatorId) {
             $returnType = 'html';
         } else {
@@ -5006,16 +5008,19 @@ class Mdwidget extends Controller {
         $postData = Input::postData();
         $jsonConfig = $postData['json'];
 
+        /* 
         $checkJson = json_decode(html_entity_decode($jsonConfig, ENT_QUOTES, 'UTF-8'), true);
         $checkWidgetId = array();
 
         array_walk_recursive($checkJson, function ($item, $key) use (&$checkWidgetId) { if ($key === 'data-widgetid' && $item) { $checkWidgetId[$key] = $item; }  });
-        
+        */
+
         $_POST = array (
             'param' =>  array (
                 'id' => issetParam($postData['indicatorId']),
                 'name' => checkDefaultVal($postData['widgetName'], 'Widget : ' . Str::upper(Str::random_string('alpha', '4'))),
                 'code' => checkDefaultVal($postData['widgetCode'], 'Widget : ' . Str::upper(Str::random_string('alpha', '4'))),
+                'jsonConfig' => issetParam($jsonConfig),
                 'widgetDtl.id' =>  array (
                     array (
                         0 => issetParam($postData['widgetdtlId']),
@@ -5026,11 +5031,11 @@ class Mdwidget extends Controller {
                         0 => issetParam($postData['indicatorId']),
                     ),
                 ),
-                'widgetDtl.widgetConfig' =>  array (
+                /* 'widgetDtl.widgetConfig' =>  array (
                     array (
                     0 => issetParam($jsonConfig),
                     ),
-                ),
+                ), */
                 'categoryMap.id' =>  array (
                     array (
                         0 => issetParam($postData['categoryMapId']),
@@ -5053,8 +5058,8 @@ class Mdwidget extends Controller {
             'windowSessionId' => getUID(),
         );
 
-        if (issetParam($checkWidgetId['data-widgetid']) !== '') {
-            $_POST['param']['kpiTypeId'] = '2020';
+        if (issetParam($postData['kpiTypeId']) !== '') {
+            $_POST['param']['kpiTypeId'] = $postData['kpiTypeId'];
         }
         
         $response = (new Mdwebservice())->runProcess();

@@ -18962,10 +18962,9 @@ class Mdpos_Model extends Model {
     
     public function tokipayCheckQrCodeModel($params) {
         $result = $this->ws->runSerializeResponse(self::$gfServiceAddress, 'tokiPayGetPaymentStatusAPI', $params);
-        pa($result);
 
         if ($result['status'] == 'success') {
-            if ($result['result']['data']['status'] !== 'PENDING') {
+            if ($result['result']['data']['status'] == 'COMPLETED') {
                 return array('status' => 'success', 'message' => 'Successfully');
             } else {
                 return array('status' => 'error', 'message' => 'Waiting');

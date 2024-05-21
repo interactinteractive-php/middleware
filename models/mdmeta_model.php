@@ -1485,9 +1485,9 @@ class Mdmeta_Model extends Model {
 
     public function metaImportFileModel() {
 
-        if (!Mdmeta::isAccessMetaImport()) {
+        /*if (!Mdmeta::isAccessMetaImport()) {
             return array('status' => 'error', 'message' => 'Импорт хийх боломжгүй байна.');
-        }
+        }*/
 
         set_time_limit(0);
         ini_set('memory_limit', '-1');
