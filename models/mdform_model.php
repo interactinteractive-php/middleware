@@ -1526,7 +1526,11 @@ class Mdform_Model extends Model {
                     $datas = self::getComboKpiModel($lookupMetaDataId, $lookupCriteria);
                     $isTranslateField = '';
                     
-                    if (Lang::isUseMultiLang() && Mdform::$isOnlyKpiMultiLang && is_array($datas['data']) && array_key_exists('pftranslationjson', $datas['data'][0])) {
+                    if (Lang::isUseMultiLang() 
+                        && Mdform::$isOnlyKpiMultiLang 
+                        && is_array($datas['data']) 
+                        && array_key_exists(0, $datas['data']) 
+                        && array_key_exists('pftranslationjson', $datas['data'][0])) {
                         
                         $required['pftranslationjson'] = $datas['nameColumnName'];
                         $isTranslateField = '<input type="hidden" name="param['.$paramRealPath.'_isTranslate]['.$rowIndex.'][]" data-path="'.$paramRealPath.'_isTranslate" value="1">';
@@ -14245,9 +14249,10 @@ class Mdform_Model extends Model {
                     if ($isUseWorkflow && $column['COLUMN_NAME'] == 'WFM_STATUS_NAME') {
 
                         $width = $column['COLUMN_WIDTH'] ? $column['COLUMN_WIDTH'] : 200;
+                        $bodyAlign = checkDefaultVal($column['BODY_ALIGN'], 'center');
 
                         $columns[] = "{field: 'wfmstatusname', title: '".Lang::line($column['LABEL_NAME'])."', sortable: true, fixed: true, width: '$width', halign: 'center', ".$rowspan;
-                        $columns[] = "align: 'center', ";
+                        $columns[] = "align: '$bodyAlign', ";
                         $columns[] = "formatter: function(v, r, i) {return dataViewWfmStatusName(v, r, i, '$indicatorId', '$indicatorId');},";
 
                     } else {
@@ -16116,6 +16121,8 @@ class Mdform_Model extends Model {
                     } elseif ($selectedRows = Input::post('fillSelectedRow')) {
                         $rows = $selectedRows;
                     } elseif ($selectedRows = Input::post('fillDynamicSelectedRow')) {
+                        $rows = $selectedRows;
+                    } elseif ($selectedRows = Input::post('consolidateFillSelectedRows')) {
                         $rows = $selectedRows;
                     }
                 }

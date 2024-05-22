@@ -3620,8 +3620,8 @@ class Mdgl_Model extends Model {
                 NAME,
                 IS_DEBIT
             FROM FIN_CASH_FLOW_SUB_CATEGORY 
-            WHERE IS_DEBIT != ".$this->db->Param(1)." AND CASH_FLOW_SUB_CATEGORY_ID = ".$this->db->Param(0), 
-            array($id, $type)
+            WHERE IS_DEBIT != ".$this->db->Param(0)." AND CASH_FLOW_SUB_CATEGORY_ID = ".$this->db->Param(1), 
+            array($type, $id)
         );        
         
         return $row;

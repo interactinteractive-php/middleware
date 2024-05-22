@@ -53,7 +53,7 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
     }
 }
 ?>
-<div class="wg-form-paper <?php echo $this->uniqId ?> " id="mv-checklist-render<?php echo $this->uniqId ?>">
+<div class="d-none wg-form-paper <?php echo $this->uniqId ?> " id="mv-checklist-render<?php echo $this->uniqId ?>">
     <div class="card p-3 h-100 bl-sectioncode1-card">
         <div class="card-header">
             <h6 class="card-title"><?php echo $this->title; ?></h6>
@@ -61,13 +61,13 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
         <div class="card-body" data-section-code="1">
             <div class="row">
                 <?php 
-                if ($headerArray) {
+                /* if ($headerArray) {
                     for ($i = 1; $i <= sizeOf($headerArray)/2; $i++) {
                         if (issetParam($headerArray['position-'. $i .'-label'])) {
                             ?>
                             <div class="col-md-12" style="-ms-flex: 0 0 450px;flex: 0 0 450px;max-width: 450px;">
                                 <div class="form-group row align-items-center">
-                                    <label class="col-form-label col-md-3 pr-0 line-height-normal text-left" style=""><?php echo issetParam($headerArray['position-'. $i .'-label']['default_value']) ?> <span class="label-colon">:</span>
+                                    <label class="col-form-label col-md-3 pr-0 line-height-normal text-left"`><?php echo issetParam($headerArray['position-'. $i .'-label']['default_value']) ?> <span class="label-colon">:</span>
                                     </label>
                                     <div class="col-md-9 col-form-control bp-header-param">
                                         <div style="margin-right: auto;">
@@ -78,9 +78,38 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                             </div>
                         <?php }
                     }
-                }
+                } */
                 ?>
+                
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="card p-2 w-100">
+    <div class="card-header" style="height: 25px; ">
+        <h6 class="card-title">
+            <a class="text-default font-weight-bold" data-toggle="collapse" href="#collapse-item-default2" aria-expanded="true">Шалгалт</a>
+        </h6>
+    </div>
+    <div id="collapse-item-default2" class="pt-2 collapse show"`>
+        <div class="card-body">
+            <table class="table table-borderless"`>
+                <tbody>
+                    <tr>
+                        <td colspan="2" class="font-weight-bold" style="border-bottom: 1px solid #333; ">Үндсэн анги</td>
+                    </tr>
+                    <tr>
+                        <td>Сургалт: </td>
+                        <td>Менежерийн ажил горилогчийн сургалт</td>
+                    </tr>
+                    <tr>
+                        <td>Хугацаа: </td>
+                        <td>14:00-15:00</td>
+                    </tr>
+                </tbody>
+            </table>
+            <hr>
         </div>
     </div>
 </div>

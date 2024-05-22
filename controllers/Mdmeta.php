@@ -3146,7 +3146,7 @@ class Mdmeta extends Controller {
         
         $this->load->model('mdmetadata', 'middleware/models/');
         
-        if ($changeLogResponse = $this->model->isCheckChangeLogMetaModel($this->view->metaDataId)) {
+        if (Input::post('codeFrom') != 'allinone' && $changeLogResponse = $this->model->isCheckChangeLogMetaModel($this->view->metaDataId)) {
             echo json_encode($changeLogResponse, JSON_UNESCAPED_UNICODE); exit;
         }
         
@@ -3205,15 +3205,15 @@ class Mdmeta extends Controller {
         $this->view->cacheExpressionList = $this->view->expRow['cacheExp'];
         $this->view->cacheExpressionForm = $this->view->renderPrint('system/link/process/fullexpression/cacheVersion', self::$viewPath);
         
-        $response = array(
+        $response = [
             'Html' => $this->view->renderPrint('system/link/process/setProcessFullExpressionCriteria', self::$viewPath),
             'Title' => $title,
             'status' => 'success', 
             'create_version_btn' => 'Хувилбар үүсгэх',
             'save_btn' => $this->lang->line('save_btn'),
             'close_btn' => $this->lang->line('close_btn')
-        );
-        echo json_encode($response, JSON_UNESCAPED_UNICODE); 
+        ];
+        convJson($response);
     }    
     
     public function tempProcessFullExpressionForm() {

@@ -123,6 +123,7 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                                                         $position1PathArr = explode('.', $rowsArray['position-1']['src_indicator_path']);
                                                         if (issetParamArray($this->rowData[$position1PathArr['0']])) {
                                                             
+                                                            $number = 1;
                                                             $position1GroupArray = Arr::groupByArrayOnlyRows($this->rowData[$position1PathArr['0']], $position1PathArr['1']);
                                                             foreach ($position1GroupArray as $position1Key => $position1Group) {
                                                                 ?>
@@ -149,10 +150,10 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                                                                             
                                                                             if (issetParam($rVal[$positionSetConfirm]) === '1') {
                                                                                 $addinClass = 'confirm-type';
-                                                                                $iClass = 'fa-check-circle';
+                                                                                $iClass = 'icon-checkbox-checked2';
                                                                             } else {
                                                                                 $addinClass = 'unconfirm-type';
-                                                                                $iClass = 'fa-times-circle';
+                                                                                $iClass = 'icon-cancel-square2';
                                                                             }
 
                                                                             array_push($tmparr, $tmp);
@@ -166,6 +167,7 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                                                                         <li class="nav-item checklistmenu-item <?php echo $addinClass; ?>">
                                                                             <a href="javascript:;" class="mv_checklist_02_sub nav-link" onclick="checkMenuFnc<?php echo $this->uniqId ?>(this)" data-uniqid="<?php echo $this->uniqId; ?>" data-json="<?php echo $rowJson; ?>" data-paramhidden="<?php echo $hideRowJson; ?>" data-iscomment="1" data-stepid="<?php echo $this->uniqId . '_' . $index++; ?>">
                                                                                 <i class="far <?php echo $iClass ?>"></i>
+                                                                                <span class="number"><?php echo $number++ . '. '; ?></span>
                                                                                 <span class="pt1 q-text"><?php echo $position2Key; ?></span>
                                                                             </a>
                                                                         </li>
@@ -263,7 +265,7 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                                                             } ?>
                                                             <script type="text/javascript">
                                                                 $(function () {
-                                                                    Core.initFancybox($('#mv-checklist-render<?php echo $this->uniqId ?> div[data-stepkey="<?php echo $this->uniqId . '_' . $groupIndex . '_' . $index; ?>"]'));
+                                                                    Core.initFancybox($('#mv-checklist-render<?php echo $this->uniqId ?> div[data-stepkey="<?php echo $this->uniqId . '_' .  $index; ?>"]'));
                                                                 });
                                                             </script>
                                                             <div class="row">
@@ -282,6 +284,10 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
 
                                                                         if ($addinClass === '' && issetParam($row[$positionSetChecked]) === '0' && issetParam($row[$positionSetCorrect]) === '1') {
                                                                             $addinClass= 'correct-type';
+                                                                        }
+                                                                        
+                                                                        if (issetParam($row[$positionSetChecked]) === '1') {
+                                                                            $addinClass .= ' selected';
                                                                         }
 
                                                                         ?>
@@ -366,6 +372,15 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
 
                 .correct-type {
                     background: linear-gradient(90deg, #39E0CF 0%, rgba(57, 224, 207, 0.52) 100%);
+                    
+                }
+
+                .correct-type.selected {
+                    border-color: #25D4C3 !important;
+                }
+
+                .uncorrect-type.selected {
+                    border-color: #FF7E79 !important;
                 }
                 
                 .uncorrect-type {
@@ -374,6 +389,7 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
 
                 .confirm-type {
                     .far,
+                    .number,
                     .q-text {
                         color: #3EE1D0 !important;
                     }
@@ -381,6 +397,7 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
 
                 .unconfirm-type {
                     .far,
+                    .number,
                     .q-text {
                         color: #FF7F7A !important;
                     }
@@ -526,7 +543,14 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                             color: #1B84FF;
                             margin-top: 2px;
                             font-size: 18px;    
-                            margin-right: 13px;
+                            margin-right: 5px;
+                        }   
+                        .nav-link.mv_checklist_02_sub .number {
+                            color: #1B84FF;
+                            padding-top: 2px;
+                            padding-bottom: 2px;
+                            font-size: 12px;
+                            margin-right: 5px;
                         }    
                     }
                     
@@ -583,6 +607,7 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                             border-color: #FFF;
                             color: #585858 !important;
                             width: 100%;
+                            border: 4px solid #FFF;
                         }
 
                         .answer-txt.active,

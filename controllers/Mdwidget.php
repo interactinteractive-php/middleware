@@ -4315,6 +4315,7 @@ class Mdwidget extends Controller {
 
         $data = $mdf->model->getKpiIndicatorTemplateModel($this->view->indicatorId);
         $this->view->form = '';
+        $this->view->uniqId = getUID();   
 
         if ($data) {
             
@@ -4325,8 +4326,7 @@ class Mdwidget extends Controller {
             $this->view->uxFlowIndicatorId = issetParam($paramData['uxFlowIndicatorId']); 
             $this->view->isKpiIndicatorRender = issetParam($paramData['isKpiIndicatorRender']); 
             $this->view->actionType = 'update'; //issetParam($paramData['actionType']); 
-            $this->view->recordMapRender = '';
-            $this->view->uniqId = getUID();                  
+            $this->view->recordMapRender = '';               
             
             if (isset($structureIndicatorRow)) {
                 
@@ -4359,7 +4359,16 @@ class Mdwidget extends Controller {
         $this->view->relationComponents = Arr::groupByArrayOnlyRow($this->view->relationComponents, 'ID', false);
         
         if ($this->view->relationComponents) {
-            $this->view->relationComponentsConfigData = $mdf->model->getRelationComponentsContentConfigModel($this->view->relationComponents[$this->view->methodIndicatorId]['MAP_ID'], 'TRG_META_DATA_PATH', 'LEFT');
+            if (issetParam($this->view->relationComponents[$this->view->methodIndicatorId]['MAP_ID'])) {
+                $this->view->relationComponentsConfigData = $mdf->model->getRelationComponentsContentConfigModel($this->view->relationComponents[$this->view->methodIndicatorId]['MAP_ID'], 'TRG_META_DATA_PATH', 'LEFT');
+            } else {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Өгөгдөл олдсонгүй.'
+                );
+                echo json_encode($response, JSON_UNESCAPED_UNICODE);
+                die;
+            }
         } else {
             $this->view->relationComponentsConfigData = array();
         }
@@ -4854,7 +4863,7 @@ class Mdwidget extends Controller {
             } else {
                 $widgetSimpleDataDtlJson = issetParamArray($dataList['rows']);
             }
-        }
+        }        
 
         if ($widgetSimpleDataDtlJson) {
             $this->view->widgetDataAggs = array();

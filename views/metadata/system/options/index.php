@@ -338,7 +338,7 @@ $(function() {
                     $.ajax({
                         type: 'post',
                         url: 'mdmeta/setProcessFullExpressionCriteria',
-                        data: {metaDataId: '<?php echo $this->metaDataId; ?>'},
+                        data: {metaDataId: '<?php echo $this->metaDataId; ?>', codeFrom: 'allinone'},
                         dataType: 'json',
                         success: function(data) {
                             $content.append('<div data-opt-code="'+optCode+'">'+data.Html+'</div>').promise().done(function() {

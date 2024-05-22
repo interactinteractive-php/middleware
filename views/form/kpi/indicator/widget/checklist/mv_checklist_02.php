@@ -87,7 +87,7 @@ $renderType = $this->methodRow['RENDER_THEME'];
                             <div class="d-flex">
                                 <div class="sidebar sidebar-light sidebar-secondary sidebar-expand-md pr-2" style="width:280px">
                                     <div class="d-flex justify-content-end">
-                                        <a href="javascript:;" title="Sidebar хураах" onclick="mvCheckListSidebarClose(this)" style="color: #333;font-size: 18px;line-height: 0;"><i class="far fa-long-arrow-left"></i></a>
+                                        <a href="javascript:;" title="Sidebar хураах" onclick="mvCheckListSidebarClose(this)" style="color: #333;font-size: 15px;line-height: 0;"><i class="far fa-long-arrow-left"></i></a>
                                     </div>
                                     <div class="sidebar-content">
 
@@ -149,9 +149,9 @@ $renderType = $this->methodRow['RENDER_THEME'];
                                                             ]);
                                                             $hiddenParams = htmlentities($hiddenParams, ENT_QUOTES, 'UTF-8');
 
-                                                            $iconName = 'far fa-square';
+                                                            $iconName = 'far fa-file';
                                                             
-                                                            if ($renderType == 'paper_main_window') {
+                                                            if (issetParam($row['ICON'])) {
                                                                 $iconName = 'far '.$row['ICON'];
                                                             }
 

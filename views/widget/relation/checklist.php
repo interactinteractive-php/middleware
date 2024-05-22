@@ -228,6 +228,10 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                                                                 }
                                                             }
                                                             
+                                                            if (issetParam($rowsArray['position-showtype']) && $rowsArray['position-showtype']['default_value'] === 'star') {
+                                                                $tmp['showtype'] = 'star';
+                                                            }
+                                                            
                                                             array_push($tmparr, $tmp);
                                                             array_push($hideTmparr, $rVal);
                                                         }
@@ -276,51 +280,77 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                                                                 </script>
                                                             <?php } ?>
                                                             <div class="row">
-                                                                <div class="col-md-12 column-grap">
-                                                                    <?php foreach ($tmparr as $i => $row) {
-                                                                        if (issetParam($row['usedesc']) === '1') { ?>
-                                                                            <div class="hide-param d-none">
-                                                                                <input type="hidden" name="mvParam[<?php echo $position2PathArr['0'] . '.rowState' ?>][<?php echo $counter; ?>]" data-path="<?php echo $position2PathArr['0'] . '.rowState' ?>" data-col-path="rowState" value="add" >
-                                                                                <input type="hidden" name="mvParam[<?php echo $position2PathArr['0'] . '.rowCount' ?>][<?php echo $counter; ?>]" data-path="<?php echo $position2PathArr['0'] . '.rowCount' ?>" data-col-path="rowCount" value="0" >
-                                                                                <?php foreach ($hideTmparr[$i] as $key => $value) { 
-                                                                                    if (!is_array($value) && (Str::lower($key) !== 'description')) {
-                                                                                        ?>
-                                                                                        <input type="hidden" name="mvParam[<?php echo $position2PathArr['0'] . '.' .$key ?>][<?php echo $counter; ?>]" data-path="<?php echo $position2PathArr['0'] . '.' .$key ?>" data-col-path="<?php echo $key ?>" value="<?php echo $value ?>" >
-                                                                                    <?php 
-                                                                                    }
-                                                                                } ?>
-                                                                            </div>
-                                                                            <textarea class="form-control form-control-sm description_autoInit" name="mvParam[<?php echo $position2PathArr['0'] . '.DESCRIPTION' ?>][<?php echo $counter; ?>]"></textarea>
+                                                                <div class="col-md-12 <?php echo issetParam($tmparr['0']['showtype']) === 'star' ? '' : 'column-grap' ?>">
+                                                                    <?php 
+                                                                    
+                                                                    if (issetParam($tmparr['0']['showtype']) === 'star') {
+                                                                        ?>
+                                                                        <div class="hide-param d-none">
+                                                                            <input type="hidden" name="mvParam[<?php echo $position2PathArr['0'] . '.rowState' ?>][<?php echo $counter; ?>]" data-path="<?php echo $position2PathArr['0'] . '.rowState' ?>" data-col-path="rowState" value="add" >
+                                                                            <input type="hidden" name="mvParam[<?php echo $position2PathArr['0'] . '.rowCount' ?>][<?php echo $counter; ?>]" data-path="<?php echo $position2PathArr['0'] . '.rowCount' ?>" data-col-path="rowCount" value="0" >
+                                                                            <?php foreach ($hideTmparr['0'] as $key => $value) { 
+                                                                                if (!is_array($value) && $position2PathArr['0'] . '.' .$key !== $positionSetCorrectPath) {
+                                                                                    ?>
+                                                                                    <input type="hidden" name="mvParam[<?php echo $position2PathArr['0'] . '.' .$key ?>][<?php echo $counter; ?>]" data-path="<?php echo $position2PathArr['0'] . '.' .$key ?>" data-col-path="<?php echo $key ?>" value="<?php echo $value ?>" >
+                                                                                <?php 
+                                                                                }
+                                                                            } ?>
+                                                                        </div>
+                                                                        <ul class="nav navbar-nav star-rating" style="display: -webkit-inline-box;">
+                                                                            <input type="hidden" name="mvParam[<?php echo $positionSetCorrectPath; ?>]['0']" class="form-control form-control-sm" data-path="<?php echo $positionSetCorrectPath; ?>" data-field-name="<?php echo $positionSetCorrectPath; ?>" data-isclear="0" value="0">
+                                                                            <li data-id="1" title="1">
+                                                                                <i class="icon-star-empty3" style="color: #ccc; cursor: pointer;"></i>
+                                                                            </li>
+                                                                            <li data-id="2" title="2">
+                                                                                <i class="icon-star-empty3" style="color: #ccc; cursor: pointer;"></i>
+                                                                            </li>
+                                                                            <li data-id="3" title="3">
+                                                                                <i class="icon-star-empty3" style="color: #ccc; cursor: pointer;"></i>
+                                                                            </li>
+                                                                            <li data-id="4" title="4">
+                                                                                <i class="icon-star-empty3" style="color: #ccc; cursor: pointer;"></i>
+                                                                            </li>
+                                                                            <li data-id="5" title="5">
+                                                                                <i class="icon-star-empty3" style="color: #ccc; cursor: pointer;"></i>
+                                                                            </li>
+                                                                        </ul>
                                                                         <?php
-                                                                        } else {
-                                                                            ?>
-                                                                            <button type="button" data-checktype="<?php echo $row['checkType'] ?>" class="btn text-left answer-txt <?php echo issetParam($row['filePath']) ? 'bg-none' : ''; ?>" onclick="activeAnswer_<?php echo $this->uniqId ?>(this)">
+                                                                    } else {
+                                                                        foreach ($tmparr as $i => $row) {
+                                                                            if (issetParam($row['usedesc']) === '1') { ?>
                                                                                 <div class="hide-param d-none">
                                                                                     <input type="hidden" name="mvParam[<?php echo $position2PathArr['0'] . '.rowState' ?>][<?php echo $counter; ?>]" data-path="<?php echo $position2PathArr['0'] . '.rowState' ?>" data-col-path="rowState" value="add" >
                                                                                     <input type="hidden" name="mvParam[<?php echo $position2PathArr['0'] . '.rowCount' ?>][<?php echo $counter; ?>]" data-path="<?php echo $position2PathArr['0'] . '.rowCount' ?>" data-col-path="rowCount" value="0" >
                                                                                     <?php foreach ($hideTmparr[$i] as $key => $value) { 
-                                                                                        if (!is_array($value)) {
+                                                                                        if (!is_array($value) && (Str::lower($key) !== 'description')) {
                                                                                             ?>
                                                                                             <input type="hidden" name="mvParam[<?php echo $position2PathArr['0'] . '.' .$key ?>][<?php echo $counter; ?>]" data-path="<?php echo $position2PathArr['0'] . '.' .$key ?>" data-col-path="<?php echo $key ?>" value="<?php echo $value ?>" >
                                                                                         <?php 
                                                                                         }
                                                                                     } ?>
                                                                                 </div>
-                                                                                <?php if (issetParam($row['filePath'])) { 
-                                                                                    $checkBoxType = ($row['checkType'] === '1') ? "checkbox" : "radio";
-                                                                                    ?>
-                                                                                    <input type="<?php echo $checkBoxType ?>" class="booleanInit" id="answer_<?php echo $this->uniqId. '_' . $index . '_' . $i ?>" name="answer_<?php echo $this->uniqId. '_' . $index ?>" />
-                                                                                    <label class="mb-2" for="answer_<?php echo $this->uniqId. '_' . $index . '_' . $i ?>"><?php echo $row['position4'] ?></label>
-                                                                                    <label class="w-100 mw-100" for="answer_<?php echo $this->uniqId. '_' . $index . '_' . $i ?>">
-                                                                                        <img src="<?php echo $row['filePath']; ?>" class="file-rounded w-100 mw-100" />
-                                                                                    </labe>
-                                                                                <?php } else { ?>
-                                                                                    <?php echo $row['position4'] ?>
-                                                                                <?php } ?>
-                                                                            </button>
-                                                                        <?php 
+                                                                                <textarea class="form-control form-control-sm description_autoInit" name="mvParam[<?php echo $position2PathArr['0'] . '.DESCRIPTION' ?>][<?php echo $counter; ?>]"></textarea>
+                                                                            <?php
+                                                                            } else {
+                                                                                ?>
+                                                                                <button type="button" data-checktype="<?php echo $row['checkType'] ?>" class="btn text-left answer-txt <?php echo issetParam($row['filePath']) ? 'bg-none' : ''; ?>" onclick="activeAnswer_<?php echo $this->uniqId ?>(this)">
+                                                                                    
+                                                                                    <?php if (issetParam($row['filePath'])) { 
+                                                                                        $checkBoxType = ($row['checkType'] === '1') ? "checkbox" : "radio";
+                                                                                        ?>
+                                                                                        <input type="<?php echo $checkBoxType ?>" class="booleanInit" id="answer_<?php echo $this->uniqId. '_' . $index . '_' . $i ?>" name="answer_<?php echo $this->uniqId. '_' . $index ?>" />
+                                                                                        <label class="mb-2" for="answer_<?php echo $this->uniqId. '_' . $index . '_' . $i ?>"><?php echo $row['position4'] ?></label>
+                                                                                        <label class="w-100 mw-100" for="answer_<?php echo $this->uniqId. '_' . $index . '_' . $i ?>">
+                                                                                            <img src="<?php echo $row['filePath']; ?>" class="file-rounded w-100 mw-100" />
+                                                                                        </labe>
+                                                                                    <?php } else { ?>
+                                                                                        <?php echo $row['position4'] ?>
+                                                                                    <?php } ?>
+                                                                                </button>
+                                                                            <?php 
+                                                                            }
+                                                                            $counter++;
                                                                         }
-                                                                        $counter++;
                                                                     }
                                                                     ?>
                                                                 </div>
