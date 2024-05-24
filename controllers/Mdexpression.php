@@ -451,7 +451,8 @@ class Mdexpression extends Controller {
 
                     $getMetaRow = $this->model->getMetaTypeCode($processId, $expSet[1]);
                     $typeCode = $getMetaRow['type'];
-
+                    $isAcceptTranslate = false;
+                    
                     if ($getMetaRow['IS_TRANSLATE'] == '1' && !empty($expGet[1]) && count($expGet[1]) == 1) {
                         $getMetaRowGet = $this->model->getMetaTypeCode($processId, $expGet[1][0]);
                         if ($getMetaRowGet['IS_TRANSLATE'] == '1') {
@@ -464,7 +465,7 @@ class Mdexpression extends Controller {
 
                     $getReplace = $exp;
 
-                    if (!empty($expGet[1]) && !isset($isAcceptTranslate)) {
+                    if (!empty($expGet[1]) && !$isAcceptTranslate) {
                         foreach ($expGet[1] as $key => $valGetPath) {
                             if (strpos($expExplode[1], '.val()') !== false) {
                                 $getMetaRow2 = $this->model->getMetaTypeCode($processId, $valGetPath);
@@ -475,7 +476,7 @@ class Mdexpression extends Controller {
 
                     $getReplaced = strtr($getReplace, array("(" => "\(", ")" => "\)", "|" => "\|", "'" => "\'", "*" => "\*", "[" => "\[", "]" => "\]", "/" => "\/", "+" => "\+", "=" => "\=", ":" => "\:", '$' => '\$', '?' => '\?'));
 
-                    if (isset($isAcceptTranslate)) {
+                    if ($isAcceptTranslate) {
 
                         $valRowExp = preg_replace('/\[' . $expSet[1] . '\]\s*=\s*' . $getReplaced . ';/', 'setBpTranslateFieldVal(' . $mainSelector . ', $(this), \'' . $expSet[1] . '\', getBpElement(' . $mainSelector . ', $(this), \'' . $expGet[1][0] . '\'));', $valRowExp);
 
@@ -1579,7 +1580,7 @@ class Mdexpression extends Controller {
         preg_match_all('/\[[\w.]+\].focus\(\);/', $fullExpression, $parseExpressionFocus);
 
         // <editor-fold defaultstate="collapsed" desc="CONVERT JS WITHOUT EVENT">
-        if (!empty($parseExpressionEqual[0])) {
+        if (is_array($parseExpressionEqual) && isset($parseExpressionEqual[0]) && !empty($parseExpressionEqual[0])) {
             foreach ($parseExpressionEqual[0] as $expVal) {
 
                 $expExplode = explode('=', $expVal);
@@ -1589,7 +1590,8 @@ class Mdexpression extends Controller {
 
                 $getMetaRow = $this->model->getMetaTypeCode($processId, $expSet[1]);
                 $typeCode = $getMetaRow['type'];
-
+                $isAcceptTranslate = false;
+                
                 if ($getMetaRow['IS_TRANSLATE'] == '1' && !empty($expGet[1]) && count($expGet[1]) == 1) {
                     $getMetaRowGet = $this->model->getMetaTypeCode($processId, $expGet[1][0]);
                     if ($getMetaRowGet['IS_TRANSLATE'] == '1') {
@@ -1602,7 +1604,7 @@ class Mdexpression extends Controller {
 
                 $getReplace = $exp;
 
-                if (!empty($expGet[1]) && !isset($isAcceptTranslate)) {
+                if (!empty($expGet[1]) && !$isAcceptTranslate) {
                     foreach ($expGet[1] as $key => $valGetPath) {
                         if (strpos($expExplode[1], '.val()') !== false) {
                             $getMetaRow2 = $this->model->getMetaTypeCode($processId, $valGetPath);
@@ -1613,7 +1615,7 @@ class Mdexpression extends Controller {
 
                 $getReplaced = strtr($getReplace, array("(" => "\(", ")" => "\)", "|" => "\|", "'" => "\'", "*" => "\*", "[" => "\[", "]" => "\]", "/" => "\/", "+" => "\+", "=" => "\=", ":" => "\:"));
 
-                if (isset($isAcceptTranslate)) {
+                if ($isAcceptTranslate) {
 
                     $fullExpression = preg_replace('/\[' . $expSet[1] . '\]\s*=\s*' . $getReplaced . ';/', 'setBpTranslateFieldVal(' . $mainSelector . ', (typeof element === \'undefined\' ? \'open\' : element), \'' . $expSet[1] . '\', getBpElement(' . $mainSelector . ', (typeof element === \'undefined\' ? \'open\' : element), \'' . $expGet[1][0] . '\'));', $fullExpression);
 
