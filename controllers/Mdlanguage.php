@@ -33,7 +33,7 @@ class Mdlanguage extends Controller {
     
     public function generateLanguageFile() {
         $result = $this->model->generateLanguageFileModel();
-        echo json_encode($result); exit;
+        convJson($result);
     }
     
     public function index() {

@@ -37,6 +37,8 @@ class Mdupgrade_Model extends Model {
     private static $isInsertData = true;
     private static $isCreateRollback = false;
     private static $isKpiDbSchemaNameReplace = false;
+    private static $isGenerateLanguageFile = false;
+    private static $isGlobeDictionaryPersist = false;
 
     public function __construct() {
         parent::__construct();
@@ -4917,6 +4919,11 @@ class Mdupgrade_Model extends Model {
                                 }
                             }
                             
+                            if (self::$isGenerateLanguageFile && !self::$isGlobeDictionaryPersist && stripos($scrpt, 'globe_dictionary') !== false) {
+                                
+                                self::$isGlobeDictionaryPersist = true;
+                            }
+                            
                             try {
                                 
                                 $this->db->Execute($scrpt);
@@ -4988,7 +4995,7 @@ class Mdupgrade_Model extends Model {
                     self::previousTranslateList($isCustomerServer, $metaDataId, $metaTypeId);
 
                     $skipError    = issetParam($metaAttributes['skipError']);
-                    $skipErrorTbl = array();
+                    $skipErrorTbl = [];
                     
                     $scripts     = $meta['scripts']['@cdata'];
                     $scriptsList = explode(Mdcommon::$separator, $scripts);
@@ -5006,6 +5013,11 @@ class Mdupgrade_Model extends Model {
                                 if ($skipError == '1' || (isset($parseTblName[1][0]) && $parseTblName[1][0] && in_array(trim($parseTblName[1][0]), self::$ignoreDeleteScriptTables))) {
                                     $script = 'DO $$ BEGIN '.$script.'; EXCEPTION WHEN others THEN END; $$;';
                                 }
+                            }
+                            
+                            if (self::$isGenerateLanguageFile && !self::$isGlobeDictionaryPersist && stripos($script, 'globe_dictionary') !== false) {
+                                
+                                self::$isGlobeDictionaryPersist = true;
                             }
 
                             try {
@@ -5033,7 +5045,7 @@ class Mdupgrade_Model extends Model {
                                     if (!isset($parseTblName[1][0]) || (isset($parseTblName[1][0]) && $parseTblName[1][0] && !in_array(trim($parseTblName[1][0]), self::$ignoreDeleteScriptTables))) {
 
                                         $this->db->RollbackTrans();
-                                        return array('status' => 'error', 'message' => $message, 'logs' => $logs);
+                                        return ['status' => 'error', 'message' => $message, 'logs' => $logs];
                                     }
                                 }
                                 
@@ -5132,7 +5144,7 @@ class Mdupgrade_Model extends Model {
                                     $logs .= $message. '<br />';
                                     $logs .= '=====================================================================<br />';
 
-                                    return array('status' => 'error', 'message' => $message, 'logs' => $logs);
+                                    return ['status' => 'error', 'message' => $message, 'logs' => $logs];
                                 }
                             }
                         }
@@ -5176,7 +5188,7 @@ class Mdupgrade_Model extends Model {
                                 $logs .= $message. '<br />';
                                 $logs .= '=====================================================================<br />';
 
-                                return array('status' => 'error', 'message' => $message, 'logs' => $logs);
+                                return ['status' => 'error', 'message' => $message, 'logs' => $logs];
                             }
                         }
                     }
@@ -5185,11 +5197,11 @@ class Mdupgrade_Model extends Model {
                         $translateList[$metaDataId] = $meta['translatelist']['@cdata'];
                     }
                     
-                    $successMetas[$metaTypeId . '_' . $metaDataId] = array(
+                    $successMetas[$metaTypeId . '_' . $metaDataId] = [
                         'metaTypeId' => $metaTypeId, 
                         'metaDataId' => $metaDataId, 
                         'metaCode'   => $metaCode
-                    );
+                    ];
                 }
             } 
         }
@@ -5217,28 +5229,34 @@ class Mdupgrade_Model extends Model {
                         (new Mdmeta())->clearCacheKpiTemplateById($keyMeta['metaDataId']);
                     }
                 }
+                
+                if (self::$isGenerateLanguageFile && self::$isGlobeDictionaryPersist) {
+                    
+                    $this->load->model('mdlanguage', 'middleware/models/');
+                    $this->model->generateLanguageFileModel();
+                }
             }
 
             if ($metaCount == $metaLockedCount) {
 
                 if ($metaCount == 1) {
-                    $response = array('status' => 'error', 'message' => rtrim($lockedMetaMessage, ', ') . ' кодтой уг үзүүлэлт түгжээтэй байгаа учир шинэчлэх боломжгүй байна!', 'logs' => $logs);
+                    $response = ['status' => 'error', 'message' => rtrim($lockedMetaMessage, ', ') . ' кодтой уг үзүүлэлт түгжээтэй байгаа учир шинэчлэх боломжгүй байна!', 'logs' => $logs];
                 } else {
-                    $response = array('status' => 'error', 'message' => "Нийт $metaCount үзүүлэлтээс түгжигдсэн үзүүлэлт: " . rtrim($lockedMetaMessage, ', '), 'logs' => $logs);
+                    $response = ['status' => 'error', 'message' => "Нийт $metaCount үзүүлэлтээс түгжигдсэн үзүүлэлт: " . rtrim($lockedMetaMessage, ', '), 'logs' => $logs];
                 }
 
             } else {
 
                 if ($metaLockedCount > 0) {
                     $doneMetaCount = $metaCount - $metaLockedCount;
-                    $response = array('status' => 'success', 'message' => "Нийт $metaCount үзүүлэлтээс $doneMetaCount шинэчлэгдлээ. Түгжигдсэн үзүүлэлт: " . rtrim($lockedMetaMessage, ', '), 'logs' => $logs);
+                    $response = ['status' => 'success', 'message' => "Нийт $metaCount үзүүлэлтээс $doneMetaCount шинэчлэгдлээ. Түгжигдсэн үзүүлэлт: " . rtrim($lockedMetaMessage, ', '), 'logs' => $logs];
                 } else {
-                    $response = array('status' => 'success', 'message' => 'Амжилттай', 'logs' => $logs);
+                    $response = ['status' => 'success', 'message' => 'Амжилттай', 'logs' => $logs];
                 }
             }
             
         } else {
-            $response = array('status' => 'success', 'metaDataId' => $metaDataId);
+            $response = ['status' => 'success', 'metaDataId' => $metaDataId];
         }
 
         return $response;
@@ -5247,6 +5265,8 @@ class Mdupgrade_Model extends Model {
     public function upgradeGlobeDictionary($translateList) {
         
         if ($translateList) {
+            
+            self::$isGlobeDictionaryPersist = true;
             
             foreach ($translateList as $metaId => $arrayStr) {
                 
@@ -5259,7 +5279,7 @@ class Mdupgrade_Model extends Model {
 
                     unset($updateArray['CODE']);
 
-                    $cols = array();
+                    $cols = [];
 
                     foreach ($updateArray as $key => $val) {
                         if ($val != '') { 
@@ -5272,7 +5292,6 @@ class Mdupgrade_Model extends Model {
                     $affectedCount = self::executeQueryStr("UPDATE GLOBE_DICTIONARY SET ".implode(', ', $cols)." WHERE LOWER(CODE) = '$globeCode' AND IS_CUSTOM = 0");
 
                     if (!$affectedCount) {
-                        
                         self::insertExecute($row);
                     }
                 }
@@ -7834,7 +7853,7 @@ class Mdupgrade_Model extends Model {
     
     public function installCloudPatchDownloadModel() {
         
-        $url = 'http://192.168.193.200:81/mdupgrade/bugfixservice';
+        $url = $url = Mdupgrade::getCloudInstallUrl();
         $patchId = Input::numeric('patchId');
         
         $response = (new WebService())->curlRequest($url, ['commandName' => 'download', 'param' => ['ids' => $patchId]]);
@@ -7884,9 +7903,10 @@ class Mdupgrade_Model extends Model {
     
     public function installCloudPatchImportModel() {
         
-        $domain = Input::post('domain');
-        $domain = rtrim($domain, '/') . '/';
-        $fileId = Input::numeric('fileId');
+        $domain    = Input::post('domain');
+        $domainUrl = rtrim($domain, '/') . '/mdupgrade/externalCloudPatchImport';
+        $fileId    = Input::numeric('fileId');
+        $patchId   = Input::numeric('patchId');
         
         $cacheTmpDir = Mdcommon::getCacheDirectory();
         $cacheDir    = $cacheTmpDir . '/cloud_patch';
@@ -7894,7 +7914,51 @@ class Mdupgrade_Model extends Model {
         
         $fileContent = file_get_contents($cachePath);
         
-        return ['status' => 'success'];
+        $ch = curl_init($domainUrl);
+            
+        curl_setopt($ch, CURLOPT_URL, $domainUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $fileContent);
+        curl_setopt($ch, CURLOPT_HEADER, 0);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 0); 
+        curl_setopt($ch, CURLOPT_TIMEOUT, 300);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'User-Agent: Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36', 
+            'Accept: application/json', 
+            'Content-Type: application/json;charset=UTF-8'
+        ]);
+
+        $response = curl_exec($ch);
+
+        if (curl_errno($ch)) {
+
+            $msg = curl_error($ch);
+            curl_close($ch);
+
+            return ['status' => 'error', 'message' => $msg];
+        }
+
+        curl_close($ch); 
+        
+        return json_decode(remove_utf8_bom($response), true);
+    }
+    
+    public function externalCloudPatchImportModel() {
+        
+        $inputContent = file_get_contents('php://input');
+        $fileContent  = Compression::gzinflate($inputContent);
+
+        if ($fileContent && strpos($fileContent, '<meta id="') === false) {
+            return ['status' => 'error', 'message' => 'PHP export хийсэн файл уншуулна уу!', 'logs' => ''];
+        } 
+        
+        self::$isGenerateLanguageFile = true;
+        $response = self::executeUpgradeScript([$fileContent]);
+        
+        return $response;
     }
     
 }

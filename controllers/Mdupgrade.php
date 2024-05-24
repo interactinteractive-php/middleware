@@ -717,10 +717,14 @@ class Mdupgrade extends Controller {
         file_put_contents('DB_COMPARE_PLATFORM.txt', $fileContent);die;
     }
     
+    public static function getCloudInstallUrl() {
+        return 'http://192.168.193.200:81/mdupgrade/bugfixservice';
+    }
+    
     public function getCloudPatchList() {
         Auth::handleLogin();
         
-        $url = 'http://192.168.193.200:81/mdupgrade/bugfixservice';
+        $url = self::getCloudInstallUrl();
         $response = (new WebService())->curlRequest($url, ['commandName' => 'getPatchList']);
         convJson($response);
     }
@@ -736,6 +740,11 @@ class Mdupgrade extends Controller {
         Auth::handleLogin();
         
         $response = $this->model->installCloudPatchImportModel();
+        convJson($response);
+    }
+    
+    public function externalCloudPatchImport() {
+        $response = $this->model->externalCloudPatchImportModel();
         convJson($response);
     }
     

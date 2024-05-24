@@ -388,11 +388,11 @@ class Mdtemplate_model extends Model {
         
         if ($dataViewId) {
             
-            if (Mdstatement::$isKpiIndicator) {
+            if (Mdtemplate::$isKpiIndicator) {
                 
                 $data = $this->db->GetAll("
                     SELECT 
-                        LOWER(KIIM.COLUMN_NAME) AS FIELD_PATH, 
+                        LOWER(KIIM.COLUMN_NAME_PATH) AS FIELD_PATH, 
                         KIIM.SHOW_TYPE AS META_TYPE_CODE, 
                         null AS LOOKUP_TYPE, 
                         KIIM.TRG_INDICATOR_ID AS LOOKUP_META_DATA_ID, 
@@ -401,13 +401,12 @@ class Mdtemplate_model extends Model {
                         LEFT JOIN KPI_INDICATOR KI ON KIIM.TRG_INDICATOR_ID = KI.ID 
                         LEFT JOIN META_SEMANTIC_TYPE MST ON KIIM.SEMANTIC_TYPE_ID = MST.ID 
                     WHERE KIIM.MAIN_INDICATOR_ID = ".$this->db->Param(0)." 
-                        AND KIIM.PARENT_ID IS NULL 
                         AND ".$this->db->IfNull('KIIM.IS_INPUT', '0')." = 1 
                         AND KIIM.SHOW_TYPE NOT IN ('row', 'rows') 
                         AND KIIM.COLUMN_NAME IS NOT NULL 
                         AND KIIM.COLUMN_NAME <> 'ID' 
                     ORDER BY KIIM.ORDER_NUMBER ASC", 
-                    array($dataViewId)
+                    [$dataViewId]
                 );
                 
             } else {
@@ -422,7 +421,7 @@ class Mdtemplate_model extends Model {
                     FROM META_GROUP_CONFIG 
                     WHERE COLUMN_NAME IS NOT NULL 
                         AND MAIN_META_DATA_ID = ".$this->db->Param(0), 
-                    array($dataViewId)
+                    [$dataViewId]
                 ); 
             }
 

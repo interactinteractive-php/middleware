@@ -1340,6 +1340,7 @@ function metaPatchToCloudApps(elem, processMetaDataId, dataViewId) {
                     width: 800,
                     height: 'auto',
                     modal: true,
+                    position: {my: 'top', at: 'top+30'}, 
                     open: function () {
                         Core.initSelect2($dialog);
                     },
@@ -1403,16 +1404,16 @@ function importPatchToCloudApps(elem) {
                         $.ajax({
                             type: 'post',
                             url: 'mdupgrade/installCloudPatchImport', 
-                            data: {domain: domain, fileId: fileId}, 
+                            data: {domain: domain, patchId: patchId, fileId: fileId}, 
                             dataType: 'json', 
                             beforeSend: function () {
                                 $statusCell.html('<i class="icon-spinner4 spinner-sm mr-1"></i>');
                             },
                             success: function (dataSub) {
                                 if (dataSub.status == 'success') {
-                                    $statusCell.html('<span class="badge badge-success font-size-12">Success</span>');
+                                    $statusCell.html('<span class="badge bg-success font-size-12">Success</span>');
                                 } else {
-                                    $statusCell.html('<span class="badge badge-warning font-size-12">'+data.message+'</span>');
+                                    $statusCell.html('<span class="badge bg-success font-size-12">'+dataSub.message+'</span>');
                                 }
                             }
                         });
