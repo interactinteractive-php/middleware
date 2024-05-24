@@ -1050,6 +1050,10 @@ $(function() {
         echo Mdform::checkListRelationCriteriaScript($this->rowData, $this->relationList, $this->uniqId);
     }
     ?>
+
+    var wcontw = $checkList_<?php echo $this->uniqId; ?>.width() - 290;
+    $checkList_<?php echo $this->uniqId; ?>.find('.checklist2-content-section').css('max-width', wcontw+'px');
+    $(window).trigger("resize");    
     
 });
 

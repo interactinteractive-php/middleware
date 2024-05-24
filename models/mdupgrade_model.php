@@ -5213,28 +5213,30 @@ class Mdupgrade_Model extends Model {
             if ($successMetas) {
                 
                 self::upgradeGlobeDictionary($translateList);
-
+                
+                $metaClass = new Mdmeta();
+                
                 foreach ($successMetas as $keyMeta) {
 
                     if ($keyMeta['metaTypeId'] == Mdmetadata::$businessProcessMetaTypeId) {
 
-                        (new Mdmeta())->bpParamsClearCache($keyMeta['metaDataId'], $keyMeta['metaCode'], true);
+                        $metaClass->bpParamsClearCache($keyMeta['metaDataId'], $keyMeta['metaCode'], true);
 
                     } elseif ($keyMeta['metaTypeId'] == Mdmetadata::$metaGroupMetaTypeId) {
 
-                        (new Mdmeta())->dvCacheClearByMetaId($keyMeta['metaDataId'], true);
+                        $metaClass->dvCacheClearByMetaId($keyMeta['metaDataId'], true);
 
                     } elseif ($keyMeta['metaTypeId'] == 'kpi' || $keyMeta['metaTypeId'] == 'kpiindicator') {
 
-                        (new Mdmeta())->clearCacheKpiTemplateById($keyMeta['metaDataId']);
+                        $metaClass->clearCacheKpiTemplateById($keyMeta['metaDataId']);
                     }
                 }
-                
-                if (self::$isGenerateLanguageFile && self::$isGlobeDictionaryPersist) {
+            }
+            
+            if (self::$isGenerateLanguageFile && self::$isGlobeDictionaryPersist) {
                     
-                    $this->load->model('mdlanguage', 'middleware/models/');
-                    $this->model->generateLanguageFileModel();
-                }
+                $this->load->model('mdlanguage', 'middleware/models/');
+                $this->model->generateLanguageFileModel();
             }
 
             if ($metaCount == $metaLockedCount) {
@@ -7904,7 +7906,8 @@ class Mdupgrade_Model extends Model {
     public function installCloudPatchImportModel() {
         
         $domain    = Input::post('domain');
-        $domainUrl = 'https://' . rtrim($domain, '/') . '/mdupgrade/externalCloudPatchImport';
+        //$domainUrl = 'https://' . rtrim($domain, '/') . '/mdupgrade/externalCloudPatchImport';
+        $domainUrl = 'http://localhost/erp/mdupgrade/externalCloudPatchImport';
         $fileId    = Input::numeric('fileId');
         $patchId   = Input::numeric('patchId');
         
@@ -7923,12 +7926,12 @@ class Mdupgrade_Model extends Model {
         curl_setopt($ch, CURLOPT_HEADER, 0);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 0); 
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5); 
         curl_setopt($ch, CURLOPT_TIMEOUT, 300);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'User-Agent: Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36', 
-            'Accept: application/json', 
-            'Content-Type: application/json;charset=UTF-8'
+            'User-Agent: Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36',
+            'Cache-Control: no-cache', 
+            'Content-Type: application/json'
         ]);
 
         $response = curl_exec($ch);
@@ -7959,6 +7962,15 @@ class Mdupgrade_Model extends Model {
         if ($fileContent && strpos($fileContent, '<meta id="') === false) {
             return ['status' => 'error', 'message' => 'PHP export хийсэн файл уншуулна уу!', 'logs' => ''];
         } 
+        
+        $logged = Session::isCheck(SESSION_PREFIX.'LoggedIn');
+
+        if ($logged == false) {
+            Session::set(SESSION_PREFIX . 'LoggedIn', true);
+            Session::set(SESSION_PREFIX . 'lastTime', time());
+        }
+
+        $_POST['nult'] = true;
         
         self::$isGenerateLanguageFile = true;
         $response = self::executeUpgradeScript([$fileContent]);

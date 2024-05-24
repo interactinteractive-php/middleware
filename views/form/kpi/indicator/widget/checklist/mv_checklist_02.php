@@ -497,7 +497,8 @@ if ($renderType == 'paper_main_window') {
 }
 .kpi-form-paper-portrait .kpi-form-paper-portrait-child {
     position: relative;
-    width: <?php echo $this->windowWidth ? $this->windowWidth: '1200px'; ?>;
+    /* width: <?php //echo $this->windowWidth ? $this->windowWidth: '1200px'; ?>; */
+    width: 90%;
     min-height: calc(100vh - 126px);
     margin-top: 10px;
     margin-left: auto;
