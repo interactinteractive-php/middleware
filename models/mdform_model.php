@@ -7087,7 +7087,7 @@ class Mdform_Model extends Model {
             
             case 'radio':
             {    
-                if ($row['TRG_TABLE_NAME']) {
+                if ($row['FILTER_INDICATOR_ID']) {
 
                     $row['isData'] = true;
                     $row['value'] = $value;
@@ -24088,7 +24088,13 @@ class Mdform_Model extends Model {
                         $className = 'btn green btn-circle btn-sm';
                         $buttonName = $processName;
                         $onClick = "mvDataViewSendMailBySelectionRowsInit(this, '$crudIndicatorId', '$indicatorId', '');";
-                    }
+                        
+                    } elseif ($typeCode == 'import') {
+
+                        $className = 'btn green btn-circle btn-sm';
+                        $buttonName = '<i class="far fa-file-import"></i> '.Lang::line('Импорт');
+                        $onClick = "dataImportKpiIndicatorValue(this, '$srcIndicatorId', '$indicatorId');";
+                    } 
                 }
 
                 $buttons[] = html_tag('a', [ 
@@ -29660,8 +29666,8 @@ class Mdform_Model extends Model {
                                     ELSE 0
                                 END AS IS_ADMIN
                             FROM UM_USER UU
-                                INNER JOIN UM_USER_ROLE UUR ON UU.USER_ID = UUR.USER_ID
-                                INNER JOIN UM_ROLE UR ON UUR.ROLE_ID = UR.ROLE_ID
+                                LEFT JOIN UM_USER_ROLE UUR ON UU.USER_ID = UUR.USER_ID
+                                LEFT JOIN UM_ROLE UR ON UUR.ROLE_ID = UR.ROLE_ID
                             WHERE UU.USER_ID = :userId
                                 AND (UU.SYSTEM_USER_ID = 1 OR UR.IS_ADMIN = 1 OR UR.ROLE_ID = 1)
                         ),
@@ -29691,8 +29697,8 @@ class Mdform_Model extends Model {
                             SELECT
                                 CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END AS IS_ADMIN
                             FROM UM_USER UU
-                                INNER JOIN UM_USER_ROLE UUR ON UU.USER_ID = UUR.USER_ID
-                                INNER JOIN UM_ROLE UR ON UUR.ROLE_ID = UR.ROLE_ID
+                                LEFT JOIN UM_USER_ROLE UUR ON UU.USER_ID = UUR.USER_ID
+                                LEFT JOIN UM_ROLE UR ON UUR.ROLE_ID = UR.ROLE_ID
                             WHERE UU.USER_ID = :userId
                                 AND (UU.SYSTEM_USER_ID = 1 OR UR.IS_ADMIN = 1 OR UR.ROLE_ID = 1)
                         ),

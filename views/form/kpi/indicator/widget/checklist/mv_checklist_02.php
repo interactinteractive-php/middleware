@@ -29,7 +29,7 @@ $renderType = $this->methodRow['RENDER_THEME'];
             ?>
 
             <div class="bp-tabs tabbable-line mv-main-tabs mv-checklist-tab w-100">
-                <ul class="nav nav-tabs" style="padding-top: 3px !important;">
+                <ul class="nav nav-tabs" style="padding-top: <?php echo $renderType == 'paper_main_window' ? '15px' : '3px' ?> !important;">
                     <?php
                     if (!$this->isIgnoreHeaderProcess) {
                     ?>
@@ -52,7 +52,10 @@ $renderType = $this->methodRow['RENDER_THEME'];
                         }
                     }                    
                     ?>
-                </ul>        
+                </ul>
+                <?php if ($renderType == 'paper_main_window') { ?>
+                    <div style="position: absolute;right: 15px;top: 15px;"><a title="Хаах" href="javascript:window.location.reload(true)"><i style="font-size: 15px;color:#737373" class="far fa-times"></i></a></div>        
+                <?php } ?>
                 <div class="tab-content" style="padding-top: 0px;padding-bottom: 0px;"> 
                     <?php
                     if (!$this->isIgnoreHeaderProcess) {
@@ -192,7 +195,7 @@ $renderType = $this->methodRow['RENDER_THEME'];
                                         </div>
                                     </div>
                                 </div>
-                                <div class="w-100 checklist2-content-section content-wrapper-<?php echo $renderType ?>" style="background-color: #f9f3ed; max-width: 1205px">
+                                <div class="w-100 checklist2-content-section content-wrapper-<?php echo $renderType ?>" style="background-color: #f4f4f4; max-width: 1205px">
                                     <div>
                                         <div class="content-wrapper pt-2 pl-3 pr-3 pb-2 mv-checklist-render">        
                                         </div>                

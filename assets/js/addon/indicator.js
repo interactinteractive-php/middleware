@@ -1252,11 +1252,11 @@ function exportExcelOneLineKpiIndicatorValue(elem, indicatorId) {
         return;
     }
 }
-function dataImportKpiIndicatorValue(elem, indicatorId) {
+function dataImportKpiIndicatorValue(elem, indicatorId, listIndicatorId) {
     $.ajax({
         type: 'post',
         url: 'mdform/importManagePopup',
-        data: {mainIndicatorId: indicatorId},
+        data: {mainIndicatorId: indicatorId, dataViewId: (typeof listIndicatorId != 'undefined') ? listIndicatorId : null},
         dataType: 'html',
         beforeSend: function() {
             Core.blockUI({message: 'Loading...', boxed: true});

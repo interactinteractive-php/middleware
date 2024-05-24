@@ -1,6 +1,7 @@
 <?php if (!defined('_VALID_PHP')) exit('Direct access to this location is not allowed.'); ?> 
 <?php 
-$tmparr = $hideTmparr = array();
+$tmparr = array();
+$groupPathName = 'COURSE_NAME';
 $headerPathArray = $rowsArray = $position1GroupArray = array();
 if (issetParamArray($this->relationComponentsConfigData['header'])) {
     $headerPathArray = $this->relationComponentsConfigData['header'];
@@ -13,10 +14,10 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
     
     $position1PathArr = explode('.', $rowsArray['position-1']['src_indicator_path']);
     $position1GroupArray = Arr::groupByArrayOnlyRows($this->rowData[$position1PathArr['0']], $position1PathArr['1']);
-    $index= $counter= 0;
+    $tmparr = array();
+
     foreach ($position1GroupArray as $position1Key =>  $position1Grp) { 
         $position1Group = $position1Grp['0'];
-        $tmparr = $hideTmparr = array();
         foreach ($position1Grp as $rKey => $rVal) {
             
             for ($c=1; $c<=10; $c++) {
@@ -46,73 +47,89 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
 
                 $tmp['position-endtime'] = $timeSecond;
             }
-            
+
+            $tmp['rowdata'] = $rVal;
             array_push($tmparr, $tmp);
-            array_push($hideTmparr, $rVal);
         }
     }
 }
-?>
-<div class="d-none wg-form-paper <?php echo $this->uniqId ?> " id="mv-checklist-render<?php echo $this->uniqId ?>">
-    <div class="card p-3 h-100 bl-sectioncode1-card">
-        <div class="card-header">
-            <h6 class="card-title"><?php echo $this->title; ?></h6>
+foreach ($tmparr as $key => $row) { 
+    $uId = getUID();
+    ?>
+    <div class="card p-2 w-100">
+        <div class="card-header" style="height: 25px; ">
+            <h6 class="card-title">
+                <a class="text-default font-weight-bold" data-toggle="collapse" href="#collapse-item-default<?php echo $uId ?>" aria-expanded="true"><?php echo issetParam($row['position1']) ?></a>
+            </h6>
         </div>
-        <div class="card-body" data-section-code="1">
-            <div class="row">
-                <?php 
-                /* if ($headerArray) {
-                    for ($i = 1; $i <= sizeOf($headerArray)/2; $i++) {
-                        if (issetParam($headerArray['position-'. $i .'-label'])) {
-                            ?>
-                            <div class="col-md-12" style="-ms-flex: 0 0 450px;flex: 0 0 450px;max-width: 450px;">
-                                <div class="form-group row align-items-center">
-                                    <label class="col-form-label col-md-3 pr-0 line-height-normal text-left"`><?php echo issetParam($headerArray['position-'. $i .'-label']['default_value']) ?> <span class="label-colon">:</span>
-                                    </label>
-                                    <div class="col-md-9 col-form-control bp-header-param">
-                                        <div style="margin-right: auto;">
-                                            <span><?php echo is_array(issetParam($this->rowData[$headerArray['position-'. $i]['src_indicator_path']])) ? '' : issetParam($this->rowData[$headerArray['position-'. $i]['src_indicator_path']]); ?></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        <?php }
+        <div id="collapse-item-default<?php echo $uId ?>" class="pt-2 collapse show"`>
+            <div class="card-body">
+                <?php
+                    $subTmparr = $subTmp = array();
+                    if (issetParamArray($this->relationComponentsConfigData['subrows'])) {
+
+                        $subRowsPathArray = $this->relationComponentsConfigData['subrows'];
+                        $subRowsArray = Arr::groupByArrayOnlyRow($subRowsPathArray, 'trg_indicator_path', false);
+                        $subPosition1PathArr = explode('.', $subRowsArray['position-1']['src_indicator_path']);
+                        
+                        $subPosition1GroupArray = Arr::groupByArrayOnlyRows($row['rowdata'][$subPosition1PathArr['1']], $subPosition1PathArr['2']);
+                        
+                        /* var_dump($subPosition1GroupArray);
+                        die; */
+                        $subTmparr = $subTmp = array();
+                        if ($groupPathName) {
+                            $subTmparr[$groupPathName] = array();
+                        }
+                        foreach ($subPosition1GroupArray as $subPosition1Key =>  $subPosition1Grp) { 
+                            foreach ($subPosition1Grp as $rKey => $rVal) {
+                                for ($c=1; $c<=10; $c++) {
+                                    if (issetParam($subRowsArray['position-' . $c]['src_indicator_path'])) {
+                                        $subPosition1PathArr = explode('.', $subRowsArray['position-' . $c]['src_indicator_path']);
+                                        if (issetParam($subPosition1PathArr['2'])) {
+                                            $subTmp['position' . $c] = issetParam($rVal[$subPosition1PathArr['2']]);
+                                            $subTmp['position' . $c . '-label'] = issetParam($subRowsArray['position-' . $c . '-label']['default_value']);
+                                        }
+                                    }
+                                }
+
+                                if (issetParam($subRowsArray['position-group']['src_indicator_path'])) {
+                                    $subGroupPosition1PathArr = explode('.', $subRowsArray['position-group']['src_indicator_path']);
+                                    $subTmp['position-group'] = issetParam($rVal[$subGroupPosition1PathArr['2']]);
+                                }
+
+                                array_push($subTmparr, $subTmp);
+                            }
+                        }
                     }
-                } */
                 ?>
-                
+                <table class="table table-borderless"`>
+                    <tbody>
+                        <?php 
+                        if ($subTmparr) {
+                            foreach ($subTmparr as $key => $subRow) { 
+                                if (issetParam($subRow['position-group'])) { ?> 
+                                <tr>
+                                    <td colspan="2" class="font-weight-bold" style="border-bottom: 1px solid #333; "><?php echo $subRow['position-group']; ?></td>
+                                </tr>
+                            <?php }
+                            for ($ii = 1; $ii <= sizeOf($subRow)/2; $ii++) {
+                                if (issetParam($subRow['position'. $ii .'-label']) !== '') { ?>
+                                    <tr>
+                                        <td><?php echo issetParam($subRow['position'. $ii .'-label']) ?> </td>
+                                        <td><?php echo issetParam($subRow['position'. $ii]) ?> </td>
+                                    </tr>
+                                <?php }
+                            }
+                        }
+                        } ?>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
-</div>
-
-<div class="card p-2 w-100">
-    <div class="card-header" style="height: 25px; ">
-        <h6 class="card-title">
-            <a class="text-default font-weight-bold" data-toggle="collapse" href="#collapse-item-default2" aria-expanded="true">Шалгалт</a>
-        </h6>
-    </div>
-    <div id="collapse-item-default2" class="pt-2 collapse show"`>
-        <div class="card-body">
-            <table class="table table-borderless"`>
-                <tbody>
-                    <tr>
-                        <td colspan="2" class="font-weight-bold" style="border-bottom: 1px solid #333; ">Үндсэн анги</td>
-                    </tr>
-                    <tr>
-                        <td>Сургалт: </td>
-                        <td>Менежерийн ажил горилогчийн сургалт</td>
-                    </tr>
-                    <tr>
-                        <td>Хугацаа: </td>
-                        <td>14:00-15:00</td>
-                    </tr>
-                </tbody>
-            </table>
-            <hr>
-        </div>
-    </div>
-</div>
+    <?php 
+}
+?>
 
 <?php echo issetParam($this->uniqCss) ?>
 <?php echo issetParam($this->uniqJs) ?>

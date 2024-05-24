@@ -81,7 +81,7 @@ $(function() {
                             viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).append(data.Html).promise().done(function () {
                                 viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).find('.bp-btn-back, .bpTestCaseSaveButton').remove();
                                 viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).find('.meta-toolbar').addClass('not-sticky');
-                                viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).addClass('bp-render-checklist');
+                                viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).addClass('mv-checklist-render bp-render-checklist');
 
                                 var $saveAddBtn = viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).find('.bp-btn-saveadd:visible');
                                 if ($saveAddBtn.length) {
@@ -575,8 +575,8 @@ $(function() {
             if (kpiTypeId == '2008' || isMartRender > 0) { 
             
                 viewProcess_<?php echo $this->uniqId; ?>.find(".mv_checklist_render_all").addClass("hidden");
-                if (viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).length && viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).html().length) {       
-                    viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).removeClass("hidden");
+                if (viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+indicatorId).length && viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+indicatorId).html().length) {       
+                    viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+indicatorId).removeClass("hidden");
                     viewProcessComment_<?php echo $this->uniqId; ?>.empty();
                     return;
                 }                   
@@ -633,14 +633,14 @@ $(function() {
                         
                         if (viewProcessWindow_<?php echo $this->uniqId; ?>) {
                             
-                            if (!viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).length) {
-                                viewProcess_<?php echo $this->uniqId; ?>.append('<div class="mv_checklist_render_all" id="mv_checklist_id_'+metaDataId+'"></div>');
+                            if (!viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+indicatorId).length) {
+                                viewProcess_<?php echo $this->uniqId; ?>.append('<div class="mv_checklist_render_all" id="mv_checklist_id_'+indicatorId+'"></div>');
                             }
-                            viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).append(html.join('')).promise().done(function() {
+                            viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+indicatorId).append(html.join('')).promise().done(function() {
 
                                 if (viewMode_<?php echo $this->uniqId; ?> == 'view') {
 
-                                    var $render = viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId);
+                                    var $render = viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+indicatorId);
 
                                     $render.find('.bp-add-one-row').parent().remove();
                                     $render.find('.bp-remove-row, button.red, button.bp-btn-save, button.green-meadow, button.bp-file-choose-btn, a[onclick*="bpFileChoosedRemove"], span.filename, a[onclick*="kpiIndicatorRelationRemoveRows"], div.input-group.quick-item-process').remove();
@@ -927,8 +927,8 @@ $(function() {
             } else {
             
                 viewProcess_<?php echo $this->uniqId; ?>.find(".mv_checklist_render_all").addClass("hidden");
-                if (viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).length && viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).html().length) {       
-                    viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).removeClass("hidden");
+                if (viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+indicatorId).length && viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+indicatorId).html().length) {       
+                    viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+indicatorId).removeClass("hidden");
                     viewProcessComment_<?php echo $this->uniqId; ?>.empty();
                     return;
                 }            
@@ -981,11 +981,11 @@ $(function() {
                                 
                                 if (viewProcessWindow_<?php echo $this->uniqId; ?>) {
 
-                                    if (!viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).length) {
-                                        viewProcess_<?php echo $this->uniqId; ?>.append('<div class="mv_checklist_render_all" id="mv_checklist_id_'+metaDataId+'"></div>');
+                                    if (!viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+indicatorId).length) {
+                                        viewProcess_<?php echo $this->uniqId; ?>.append('<div class="mv_checklist_render_all" id="mv_checklist_id_'+indicatorId+'"></div>');
                                     }
                                     
-                                    viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).append(html.join('')).promise().done(function() {
+                                    viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+indicatorId).append(html.join('')).promise().done(function() {
                                         if (postData.hasOwnProperty('isComment') && postData.isComment == '1') {
 
                                             viewProcessComment_<?php echo $this->uniqId; ?>.empty().append('<div style="font-weight: bold;padding: 10px 0 7px 0;">Сэтгэгдэл</div>');
@@ -1206,9 +1206,9 @@ function mvCheckListSidebarClose(elem) {
     var $self = $(elem);    
     if ($self.find("i").hasClass("fa-long-arrow-left")) {
         $self.attr("title", "Sidebar нээх");
-        $self.closest(".sidebar").css("width", "30px").find(".sidebar-content").hide();
+        $self.closest(".sidebar").css("width", "20px").find(".sidebar-content").hide();
         $self.find("i").removeClass("fa-long-arrow-left").addClass("fa-long-arrow-right");
-        var wcontw = $self.closest('.mv-checklist2-render-parent').width() - 40;
+        var wcontw = $self.closest('.mv-checklist2-render-parent').width() - 50;
         $self.closest('.mv-checklist2-render-parent').find('.checklist2-content-section').css('max-width', wcontw+'px');   
         $(window).trigger("resize");
     } else {
