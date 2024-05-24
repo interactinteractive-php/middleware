@@ -7950,6 +7950,9 @@ class Mdupgrade_Model extends Model {
         
         includeLib('Compress/Compression');
         
+        set_time_limit(0);
+        ini_set('memory_limit', '-1');
+        
         $inputContent = file_get_contents('php://input');
         $fileContent  = Compression::gzinflate($inputContent);
 
