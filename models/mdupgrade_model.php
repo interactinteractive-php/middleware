@@ -7853,7 +7853,7 @@ class Mdupgrade_Model extends Model {
     
     public function installCloudPatchDownloadModel() {
         
-        $url = $url = Mdupgrade::getCloudInstallUrl();
+        $url = Mdupgrade::getCloudInstallUrl();
         $patchId = Input::numeric('patchId');
         
         $response = (new WebService())->curlRequest($url, ['commandName' => 'download', 'param' => ['ids' => $patchId]]);
