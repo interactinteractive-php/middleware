@@ -7904,7 +7904,7 @@ class Mdupgrade_Model extends Model {
     public function installCloudPatchImportModel() {
         
         $domain    = Input::post('domain');
-        $domainUrl = rtrim($domain, '/') . '/mdupgrade/externalCloudPatchImport';
+        $domainUrl = 'https://' . rtrim($domain, '/') . '/mdupgrade/externalCloudPatchImport';
         $fileId    = Input::numeric('fileId');
         $patchId   = Input::numeric('patchId');
         
@@ -7947,6 +7947,8 @@ class Mdupgrade_Model extends Model {
     }
     
     public function externalCloudPatchImportModel() {
+        
+        includeLib('Compress/Compression');
         
         $inputContent = file_get_contents('php://input');
         $fileContent  = Compression::gzinflate($inputContent);

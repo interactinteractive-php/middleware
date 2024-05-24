@@ -1410,10 +1410,15 @@ function importPatchToCloudApps(elem) {
                                 $statusCell.html('<i class="icon-spinner4 spinner-sm mr-1"></i>');
                             },
                             success: function (dataSub) {
-                                if (dataSub.status == 'success') {
-                                    $statusCell.html('<span class="badge bg-success font-size-12">Success</span>');
+                                
+                                if (dataSub) {
+                                    if (dataSub.status == 'success') {
+                                        $statusCell.html('<span class="badge bg-success font-size-12">Success</span>');
+                                    } else {
+                                        $statusCell.html('<span class="badge badge-danger font-size-12">'+dataSub.message+'</span>');
+                                    }
                                 } else {
-                                    $statusCell.html('<span class="badge bg-success font-size-12">'+dataSub.message+'</span>');
+                                    $statusCell.html('<span class="badge badge-warning font-size-12">Unkhown error!</span>');
                                 }
                             }
                         });
