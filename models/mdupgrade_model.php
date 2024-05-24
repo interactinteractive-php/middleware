@@ -4859,6 +4859,7 @@ class Mdupgrade_Model extends Model {
         
         $kpiDbSchemaName = $kpiDbSchemaName ? $kpiDbSchemaName . '.' : '';
         $sessionUserId = Ue::sessionUserId();
+        $sessionUserId = $sessionUserId ? $sessionUserId : 1;
         $metaCount = $metaLockedCount = 0;
         $lockedMetaMessage = $logs = '';
         $successMetas = $translateList = [];
