@@ -6768,7 +6768,7 @@ function mvProductRender(elem, url, indicatorId) {
             if (data.status == 'success') {
                 
                 if (data.renderType == 'paper_main_window') {
-                    appMultiTabByContent({ metaDataId: indicatorId, title: data.title, type: 'indicator', content: data.html });
+                    window.location.href = URL_APP + 'appmenu/mvmodule/' + indicatorId;
                 } else {
                     var $dialogName = 'dialog-valuemap-'+indicatorId;
                     if (!$("#" + $dialogName).length) {

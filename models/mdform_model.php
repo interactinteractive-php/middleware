@@ -6139,9 +6139,10 @@ class Mdform_Model extends Model {
                 Mdform::$firstTplId = $rowId;
             }
             
-        } elseif ((Mdform::$defaultTplSavedId && $dataTableName) || (Mdform::$defaultTplSavedId && !$dataTableName && Mdform::$inputId == 'idField')) {
+        } elseif ((Mdform::$defaultTplSavedId && $dataTableName) || (Mdform::$defaultTplSavedId && !$dataTableName && Mdform::$inputId)) {
             
             $getData = self::getMetaVerseDataModel($indicatorId, ['recordId' => Mdform::$defaultTplSavedId]);
+
             Mdform::$kpiDmMart = issetParam($getData['data']);
             
         } elseif (Mdform::$recordId && $dataTableName) { 
@@ -13640,7 +13641,7 @@ class Mdform_Model extends Model {
                 
                 $row['name'] = strtoupper($row['name']);
                 
-                if ($row['name'] == 'ID' || $row['name'] == 'NAME') {
+                if (in_array($row['name'], ['ID', 'INDICATOR_ID', 'SRC_RECORD_ID', 'DATA', 'NAME', 'WFM_STATUS_ID', 'CREATED_DATE', 'CREATED_USER_ID', 'CREATED_USER_NAME', 'MODIFIED_DATE', 'MODIFIED_USER_ID', 'MODIFIED_USER_NAME'])) {
                     continue;
                 }
                 

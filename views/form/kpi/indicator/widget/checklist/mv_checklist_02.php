@@ -13,8 +13,18 @@ $renderType = $this->methodRow['RENDER_THEME'];
             ?>            
             <img style="height: 24px" src="<?php echo $logoImage; ?>"/>
         </div>
-        <div class="d-flex justify-content-center <?php echo $renderType == 'paper_main_window' ? 'hidden' : '' ?>">
-            <p class="mb-0 mt-0 ml-2" style="font-size: 20px;font-weight: bold;"><?php echo $this->title ?></p>
+        <?php $headerTitleCss = ''; 
+            if ($renderType == 'paper_main_window') { 
+                $headerTitleCss = 'position: absolute;
+                top: -48px;
+                z-index: 999;
+                left: 300px;
+                font-size: 16px;
+                font-weight: 600;'; 
+            } 
+        ?>        
+        <div class="d-flex justify-content-center">
+            <p class="mb-0 mt-0 ml-2" style="font-size: 20px;font-weight: bold;<?php echo $headerTitleCss ?>"><?php echo $this->title ?></p>
         </div>
         <div class="row mv-checklist-render-parent mv-checklist2-render-parent" id="mv-checklist-render-parent-<?php echo $this->uniqId; ?>">
 
@@ -54,7 +64,7 @@ $renderType = $this->methodRow['RENDER_THEME'];
                     ?>
                 </ul>
                 <?php if ($renderType == 'paper_main_window') { ?>
-                    <div style="position: absolute;right: 15px;top: 15px;"><a title="Хаах" href="javascript:window.location.reload(true)"><i style="font-size: 15px;color:#737373" class="far fa-times"></i></a></div>        
+                    <div style="position: absolute;right: 15px;top: 15px;"><a title="Хаах" href="javascript:history.go(-1)"><i style="font-size: 15px;color:#737373" class="far fa-times"></i></a></div>        
                 <?php } ?>
                 <div class="tab-content" style="padding-top: 0px;padding-bottom: 0px;"> 
                     <?php

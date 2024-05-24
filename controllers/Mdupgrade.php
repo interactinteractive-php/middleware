@@ -9,7 +9,6 @@ class Mdupgrade extends Controller {
     }
     
     public function bugfix() {
-        
         Auth::handleLogin();
         Uri::isUrlAuth();
         
@@ -32,7 +31,6 @@ class Mdupgrade extends Controller {
     }
     
     public function bugfixDatagrid() {
-        
         Auth::handleLogin();
         
         $result = $this->model->bugfixDatagridModel();
@@ -40,7 +38,6 @@ class Mdupgrade extends Controller {
     }
     
     public function updatingBugFixing() {
-        
         Auth::handleLogin();
         
         $response = $this->model->updatingBugFixingModel(); 
@@ -48,12 +45,11 @@ class Mdupgrade extends Controller {
     }
     
     public function downloadBugFixing() {
-        
         Auth::handleLogin();
         
         $ids = rtrim(Input::post('bugfixIds'), ',');
         
-        $exportData = Mdupgrade::getBugfixDataByCommand('download', array('ids' => $ids));
+        $exportData = Mdupgrade::getBugfixDataByCommand('download', ['ids' => $ids]);
 
         if ($exportData['status'] == 'success') {
                 
@@ -80,7 +76,6 @@ class Mdupgrade extends Controller {
     }
     
     public function clientDownloadBugFixing() {
-        
         Auth::handleLogin();
         
         $ids = rtrim(Input::post('bugfixIds'), ',');
@@ -112,7 +107,6 @@ class Mdupgrade extends Controller {
     }
     
     public function exportMeta() {
-        
         Auth::handleLogin();
         
         if (Config::getFromCache('is_dev') && Ue::sessionUserId() != '1453998999913') {
@@ -151,20 +145,18 @@ class Mdupgrade extends Controller {
     }
     
     public function importMeta() {
-        
         Auth::handleLogin();
         
-        $response = array(
+        $response = [
             'html' => $this->view->renderPrint('meta/import', self::$viewPath),
             'title' => 'Шинэчлэлийн файл уншуулах', 
             'import_btn' => 'Уншуулах', 
             'close_btn' => $this->lang->line('close_btn')
-        );
+        ];
         convJson($response);
     }
     
     public function importMetaFile() {
-        
         Auth::handleLogin();
         
         $result = $this->model->importMetaFileModel();
@@ -172,7 +164,6 @@ class Mdupgrade extends Controller {
     }
     
     public function importAnotherServerForm() {
-        
         Auth::handleLogin();
         
         $id = Input::post('metaId');
@@ -249,7 +240,6 @@ class Mdupgrade extends Controller {
     }
     
     public function importAnotherServer() {
-        
         Auth::handleLogin();
         
         $result = $this->model->importAnotherServerModel();
@@ -257,13 +247,11 @@ class Mdupgrade extends Controller {
     }
     
     public function encryptedFileImport() {
-        
         $result = $this->model->encryptedFileImportModel();
         convJson($result);
     }
     
     public function exportObject() {
-        
         Auth::handleLogin();
         
         $exportData = $this->model->exportObjectModel();
@@ -422,7 +410,7 @@ class Mdupgrade extends Controller {
                 
                 $response = $this->model->getBugFixingKnowledgeModel($param['id']);
                 
-            } elseif ($commandName == 'getpatch') {
+            } elseif ($commandName == 'getpatchlist') {
                 
                 $response = $this->model->getPatchListModel($param['id']);
             }
@@ -442,16 +430,16 @@ class Mdupgrade extends Controller {
     
     public function metaConfigReplace() {
         Auth::handleLogin();
+        
         $response = $this->model->metaConfigReplaceModel();
         convJson($response);
     }
     
     public function knowMetasInFile() {
-        
         Auth::handleLogin();
         
-        $result = $this->model->knowMetasInFileModel();
-        convJson($result);
+        $response = $this->model->knowMetasInFileModel();
+        convJson($response);
     }
     
     public function metaSendToRunLoop() {
@@ -639,7 +627,6 @@ class Mdupgrade extends Controller {
     }
     
     public function metaImportCopy() {
-        
         Auth::handleLogin();
         
         $this->load->model('mdmetadata', 'middleware/models/');
@@ -651,7 +638,6 @@ class Mdupgrade extends Controller {
     }
     
     public function metaImportCopyFile() {
-        
         Auth::handleLogin();
         
         $response = $this->model->metaImportCopyFileModel();
@@ -659,7 +645,6 @@ class Mdupgrade extends Controller {
     }
     
     public function getBugFixingScript() {
-        
         Auth::handleLogin();
         
         $id = Input::numeric('bugfixId');
@@ -669,7 +654,6 @@ class Mdupgrade extends Controller {
     }
     
     public function getBugFixingKnowledge() {
-        
         Auth::handleLogin();
         
         $id = Input::numeric('bugfixId');
@@ -679,7 +663,6 @@ class Mdupgrade extends Controller {
     }
     
     public function metaCopyReplaceForm() {
-        
         Auth::handleLogin();
         
         $this->load->model('mdmetadata', 'middleware/models/');
@@ -696,7 +679,6 @@ class Mdupgrade extends Controller {
     }
     
     public function metaCopyReplace() {
-        
         Auth::handleLogin();
         
         $response = $this->model->metaCopyReplaceModel();
@@ -704,7 +686,6 @@ class Mdupgrade extends Controller {
     }
     
     public function metaReplaceForm() {
-        
         Auth::handleLogin();
         
         $this->load->model('mdmetadata', 'middleware/models/');
@@ -716,7 +697,6 @@ class Mdupgrade extends Controller {
     }
     
     public function metaReplace() {
-        
         Auth::handleLogin();
         
         $response = $this->model->metaReplaceModel();
@@ -741,7 +721,21 @@ class Mdupgrade extends Controller {
         Auth::handleLogin();
         
         $url = 'http://192.168.193.200:81/mdupgrade/bugfixservice';
-        $response = (new WebService())->curlRequest($url, ['commandName' => 'getPatch']);
+        $response = (new WebService())->curlRequest($url, ['commandName' => 'getPatchList']);
+        convJson($response);
+    }
+    
+    public function installCloudPatchDownload() {
+        Auth::handleLogin();
+        
+        $response = $this->model->installCloudPatchDownloadModel();
+        convJson($response);
+    }
+    
+    public function installCloudPatchImport() {
+        Auth::handleLogin();
+        
+        $response = $this->model->installCloudPatchImportModel();
         convJson($response);
     }
     

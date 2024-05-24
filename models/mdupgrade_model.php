@@ -7832,4 +7832,69 @@ class Mdupgrade_Model extends Model {
         }     
     }
     
+    public function installCloudPatchDownloadModel() {
+        
+        $url = 'http://192.168.193.200:81/mdupgrade/bugfixservice';
+        $patchId = Input::numeric('patchId');
+        
+        $response = (new WebService())->curlRequest($url, ['commandName' => 'download', 'param' => ['ids' => $patchId]]);
+        
+        if ($response['status'] == 'success') {
+            
+            $fileContent = $response['result'];
+            $fileId = getUID();
+        
+            $cacheTmpDir = Mdcommon::getCacheDirectory();
+            $cacheDir    = $cacheTmpDir . '/cloud_patch';
+            $cachePath   = $cacheDir . '/' . $fileId . '.txt';
+
+            if (!is_dir($cacheDir)) {
+
+                mkdir($cacheDir, 0777);
+
+            } else {
+
+                $currentHour = (int) Date::currentDate('H');
+
+                /* Оройны 14 цагаас 19 цагийн хооронд шалгаж өмнө нь үүссэн файлуудыг устгана */
+                if ($currentHour >= 14 && $currentHour <= 19) { 
+
+                    $files = glob($cacheDir.'/*');
+                    $now   = time();
+                    $day   = 0.5;
+
+                    foreach ($files as $file) {
+                        if (is_file($file) && ($now - filemtime($file) >= 60 * 60 * 24 * $day)) {
+                            @unlink($file);
+                        } 
+                    }
+                }
+            }
+
+            file_put_contents($cachePath, $fileContent);
+            
+            $result = ['status' => 'success', 'fileId' => $fileId];
+            
+        } else {
+            $result = $response;
+        }
+        
+        return $result;
+    }
+    
+    public function installCloudPatchImportModel() {
+        
+        $domain = Input::post('domain');
+        $domain = rtrim($domain, '/') . '/';
+        $fileId = Input::numeric('fileId');
+        
+        $cacheTmpDir = Mdcommon::getCacheDirectory();
+        $cacheDir    = $cacheTmpDir . '/cloud_patch';
+        $cachePath   = $cacheDir . '/' . $fileId . '.txt';
+        
+        $fileContent = file_get_contents($cachePath);
+        
+        return ['status' => 'success'];
+    }
+    
 }

@@ -2395,6 +2395,18 @@ function urlRedirectByDataView(elem, processMetaDataId, url, target, dataViewId,
             
             return;
 
+        } else if (urlLower == 'patchtocloudapps') {
+            
+            if (typeof isMetaUpgrade === 'undefined') {
+                $.getScript('middleware/assets/js/upgrade/script.js').done(function() {
+                    metaPatchToCloudApps(elem, processMetaDataId, dataViewId)
+                });
+            } else {
+                metaPatchToCloudApps(elem, processMetaDataId, dataViewId);
+            }
+            
+            return;
+
         } else if (urlLower == 'doctopdfupload' || urlLower == 'redoctopdfupload') {
             
             var paramObject = paramDataToObject(paramData);

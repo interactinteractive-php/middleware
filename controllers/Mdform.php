@@ -6829,6 +6829,11 @@ class Mdform extends Controller {
     public function mvProductRender() {
         
         $indicatorId = Input::numeric('indicatorId');
+
+        if (!isset($this->model)) {
+            $this->load->model('mdform', 'middleware/models/');
+            $this->model = new Mdform_Model();
+        }            
         
         Mdform::$isProductCheckPermission = true;
         $relationList = $this->model->getChildRenderStructureModel($indicatorId, [Mdform::$semanticTypes['normal'], Mdform::$semanticTypes['config']]);
