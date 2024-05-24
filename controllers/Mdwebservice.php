@@ -2348,6 +2348,7 @@ class Mdwebservice extends Controller {
                 
                 $dateInputClass = $attrArray['class'];
                 $lowerDefaultValue = strtolower($param['DEFAULT_VALUE']);
+                $renderType = issetParam($param['RENDER_TYPE']);
                 
                 $attrArray['data-isclear'] = $param['IS_REFRESH'];
                 $attrArray['value'] = Mdmetadata::setDefaultValue($param['DEFAULT_VALUE']);
@@ -2392,7 +2393,7 @@ class Mdwebservice extends Controller {
                     $attrArray['data-out-param'] = $param['GROUP_CONFIG_FIELD_PATH'];
                 }
                 
-                if (issetParam($param['RENDER_TYPE']) == 'calendar') {
+                if ($renderType == 'calendar') {
                     
                     $divInline = array(
                         'class' => 'pf-inline-datepicker', 
@@ -2403,6 +2404,21 @@ class Mdwebservice extends Controller {
                     $attrArray['class'] = str_replace('dateInit', 'inlineDateInit', $attrArray['class']);
                     
                     return html_tag('div', $divInline, Form::hidden($attrArray), true);
+                            
+                } elseif ($renderType == 'yearmonth') {
+                    
+                    $attrArray['placeholder'] = Lang::line($param['PLACEHOLDER_NAME']);
+                    $attrArray['class'] = str_replace('dateInit', 'monthInit', $attrArray['class']);
+                    
+                    if ($focusTooltip = issetParam($param['JSON_CONFIG']['focus_tooltip'])) {
+                        $attrArray['data-qtip-focus'] = $focusTooltip;
+                    }
+
+                    return html_tag('div', array(
+                            'class' => 'dateElement input-group',
+                            'data-section-path' => $paramRealPath
+                        ), Form::text($attrArray) . '<span class="input-group-btn"><button tabindex="-1" onclick="return false;" class="btn"><i class="fal fa-calendar"></i></button></span>', true
+                    );
                             
                 } else {
 

@@ -8103,6 +8103,7 @@ class Mdobject_Model extends Model {
                     GC.IS_PASS_FILTER, 
                     GC.REF_STRUCTURE_ID,                     
                     GC.IS_NOT_SHOW_CRITERIA,
+                    GC.RENDER_TYPE,
                     ".$this->db->IfNull('GC.PLACEHOLDER_NAME', 'GC.LABEL_NAME')." AS PLACEHOLDER_NAME, 
                     (
                         SELECT 

@@ -44,7 +44,7 @@ $renderType = $this->methodRow['RENDER_THEME'];
                     if (!$this->isIgnoreHeaderProcess) {
                     ?>
                     <li class="nav-item">
-                        <a style="padding-top: 0px;" href="#structabcustom_<?php echo $this->uniqId; ?>" class="nav-link active" data-toggle="tab" aria-expanded="false">
+                        <a style="padding-top: 3px;" href="#structabcustom_<?php echo $this->uniqId; ?>" class="nav-link active" data-toggle="tab" aria-expanded="false">
                             <?php echo checkDefaultVal($this->shortDescription, 'Хүсэлт') ?>                
                         </a>
                     </li>                        
@@ -71,7 +71,7 @@ $renderType = $this->methodRow['RENDER_THEME'];
                     if (!$this->isIgnoreHeaderProcess) {
                     ?>
                     <div class="tab-pane active" id="structabcustom_<?php echo $this->uniqId; ?>">
-                        <div class="mv-checklist-main-render" style="background-color: #f9f3ed; width: 100%; padding: 10px 20px;">
+                        <div class="mv-checklist-main-render" style="background-color: rgb(244, 244, 244); width: 100%; padding: 10px 20px;">
                             <form method="post" enctype="multipart/form-data">
                                 <div class="meta-toolbar is-bp-open-">
                                     <div class="main-process-text">
