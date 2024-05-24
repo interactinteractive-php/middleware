@@ -81,7 +81,7 @@ $(function() {
                             viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).append(data.Html).promise().done(function () {
                                 viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).find('.bp-btn-back, .bpTestCaseSaveButton').remove();
                                 viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).find('.meta-toolbar').addClass('not-sticky');
-                                viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).addClass('mv-checklist-render bp-render-checklist');
+                                viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).addClass('bp-render-checklist');
 
                                 var $saveAddBtn = viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).find('.bp-btn-saveadd:visible');
                                 if ($saveAddBtn.length) {
@@ -135,17 +135,19 @@ $(function() {
                             if (!viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).length) {
                                 viewProcess_<?php echo $this->uniqId; ?>.append('<div class="mv_checklist_render_all" id="mv_checklist_id_'+metaDataId+'"></div>');
                             }
-                            if (data.hasOwnProperty('Html')) {
-                                viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).append(data.Html).promise().done(function () {
-                                    viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).find('> .row > .col-md-12:eq(0)').remove();
-                                    Core.unblockUI();
-                                });
-                            } else {
-                                viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).removeClass('pl-3 pr-3').addClass('pl5 pr5');
-                                viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).append(data.html).promise().done(function () {
-                                    Core.unblockUI();
-                                });
-                            }       
+                            setTimeout(function () {
+                                if (data.hasOwnProperty('Html')) {
+                                    viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).append(data.Html).promise().done(function () {
+                                        viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).find('> .row > .col-md-12:eq(0)').remove();
+                                        Core.unblockUI();
+                                    });
+                                } else {
+                                    viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).removeClass('pl-3 pr-3').addClass('pl5 pr5');
+                                    viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).append(data.html).promise().done(function () {
+                                        Core.unblockUI();
+                                    });
+                                }       
+                            }, 100);
                         } else {                        
                             if (data.hasOwnProperty('Html')) {
                                 viewProcess_<?php echo $this->uniqId; ?>.empty().append(data.Html).promise().done(function () {
