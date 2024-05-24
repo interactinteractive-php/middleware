@@ -7906,8 +7906,7 @@ class Mdupgrade_Model extends Model {
     public function installCloudPatchImportModel() {
         
         $domain    = Input::post('domain');
-        //$domainUrl = 'https://' . rtrim($domain, '/') . '/mdupgrade/externalCloudPatchImport';
-        $domainUrl = 'http://localhost/erp/mdupgrade/externalCloudPatchImport';
+        $domainUrl = 'https://' . rtrim($domain, '/') . '/mdupgrade/externalCloudPatchImport';
         $fileId    = Input::numeric('fileId');
         $patchId   = Input::numeric('patchId');
         
