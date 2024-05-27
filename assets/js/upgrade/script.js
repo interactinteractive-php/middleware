@@ -1379,7 +1379,9 @@ function importPatchToCloudApps(elem) {
     
     if (patchId != '') {
         $patchCombo.removeClass('error');
-        var $domainRows = $parent.find('table > tbody > tr');
+        var $domainRows = $parent.find('table > tbody > tr'), 
+            $selected = $patchCombo.find('option:selected'), 
+            patchName = $selected.text();
         
         $.ajax({
             type: 'post',
@@ -1404,7 +1406,7 @@ function importPatchToCloudApps(elem) {
                         $.ajax({
                             type: 'post',
                             url: 'mdupgrade/installCloudPatchImport', 
-                            data: {domain: domain, patchId: patchId, fileId: fileId}, 
+                            data: {domain: domain, patchId: patchId, fileId: fileId, patchName: patchName}, 
                             dataType: 'json', 
                             beforeSend: function () {
                                 $statusCell.html('<i class="icon-spinner4 spinner-sm mr-1"></i>');

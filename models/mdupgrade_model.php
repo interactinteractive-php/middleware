@@ -7910,6 +7910,7 @@ class Mdupgrade_Model extends Model {
         $domainUrl = 'https://' . rtrim($domain, '/') . '/mdupgrade/externalCloudPatchImport';
         $fileId    = Input::numeric('fileId');
         $patchId   = Input::numeric('patchId');
+        $patchName = Input::post('patchName');
         
         $cacheTmpDir = Mdcommon::getCacheDirectory();
         $cacheDir    = $cacheTmpDir . '/cloud_patch';
@@ -7941,12 +7942,24 @@ class Mdupgrade_Model extends Model {
             $msg = curl_error($ch);
             curl_close($ch);
 
-            return ['status' => 'error', 'message' => $msg];
+            $result = ['status' => 'error', 'message' => $msg];
+            
+        } else {
+            curl_close($ch); 
+            $result = json_decode(remove_utf8_bom($response), true);
         }
-
-        curl_close($ch); 
         
-        return json_decode(remove_utf8_bom($response), true);
+        self::createCustomerBugFixedWithDomain([
+            'patchResult' => $result, 
+            'domainAttr' => [
+                'domain'     => $domain, 
+                'customerId' => null, 
+                'patchId'    => $patchId, 
+                'patchName'  => $patchName 
+            ]
+        ]);
+        
+        return $result;
     }
     
     public function externalCloudPatchImportModel() {
@@ -7976,6 +7989,31 @@ class Mdupgrade_Model extends Model {
         $response = self::executeUpgradeScript([$fileContent]);
         
         return $response;
+    }
+    
+    public function createCustomerBugFixedWithDomain($input) {
+        try {
+            $data = [
+                'ID'                 => getUID(), 
+                'CREATED_USER_ID'    => Ue::sessionUserKeyId(), 
+                'CREATED_DATE'       => Date::currentDate(),
+                'META_BUG_FIXING_ID' => $input['domainAttr']['patchId'], 
+                'DESCRIPTION'        => $input['domainAttr']['patchName'], 
+                'CUSTOMER_ID'        => $input['domainAttr']['customerId'], 
+                'DOMAIN_NAME'        => $input['domainAttr']['domain'], 
+                'STATUS'             => $input['patchResult']['status']
+            ];
+            
+            if ($data['STATUS'] != 'success' && isset($input['patchResult']['message'])) {
+                $data['ERROR_MSG'] = mb_substr($input['patchResult']['message'], 0, 1024);
+            }
+            
+            $this->db->AutoExecute('CUSTOMER_BUG_FIXED', $data);
+            return true;
+            
+        } catch (Exception $ex) {
+            return false;
+        }
     }
     
 }

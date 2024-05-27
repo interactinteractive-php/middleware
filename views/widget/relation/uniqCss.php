@@ -159,7 +159,7 @@
                             margin: 0 auto;
                         }
                         
-                        .answer-txt {
+                        .answer-txt:not(.answer-txt-nopadding) {
                             font-size: 12px;
                             font-weight: 400;
                             line-height: 14px;
@@ -172,6 +172,9 @@
                             background-color: #FFF !important;
                             border-color: #FFF;
                             color: #585858 !important;
+                        }
+                        .answer-txt-nopadding {
+                            padding: 0 0 0 0.5rem !important;
                         }
                         .answer-txt:hover {
                             color: #FFF !important;

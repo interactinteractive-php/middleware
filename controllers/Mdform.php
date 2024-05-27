@@ -1782,7 +1782,8 @@ class Mdform extends Controller {
             $this->view->relationComponents = $this->model->getKpiIndicatorMapWithoutTypeModel($this->view->indicatorId, '10000000,10000001,10000009');
         }
         $this->view->relationComponents = Arr::groupByArrayOnlyRow($this->view->relationComponents, 'NAME', false);
-        $defaultListView = 'kpi/indicator/list'; 
+        $this->view->relationWidgetComponents = Arr::groupByArrayOnlyRow($this->view->relationComponents, 'WIDGET_ID', false);
+        $defaultListView = 'kpi/indicator/list';
         
         if ($this->view->row['KPI_TYPE_ID'] == '2016') {
             
@@ -1824,12 +1825,18 @@ class Mdform extends Controller {
                 }
                 $this->view->renderGrid = $this->view->renderPrint('kpi/indicator/widget/grid/calendar', self::$viewPath);
             }
-            
-            if (Mdwidget::mvDataSetAvailableWidgets($this->view->row['WIDGET_ID']) || $widgetInfo = Mdwidget::mvDataSetAvailableWidgets($this->view->relationComponents)) {                            
+
+            if (Mdwidget::mvDataSetAvailableWidgets($this->view->row['WIDGET_ID']) 
+                || $widgetInfo = Mdwidget::mvDataSetAvailableWidgets($this->view->relationComponents) 
+                || $widgetWInfo = Mdwidget::mvDataSetAvailableWidgets($this->view->relationWidgetComponents)) {                            
                 if ($this->view->viewType !== 'list') {
                     $this->load->model('mdform', 'middleware/models/');
-                    
-                    $this->view->relationComponentsConfigData = $this->model->getRelationComponentsConfigModel($this->view->relationComponents[$widgetInfo['name']]['MAP_ID']);
+
+                    if ($widgetWInfo) {
+                        $this->view->relationComponentsConfigData = $this->model->getRelationComponentsConfigModel($widgetWInfo['mapId']);                        
+                    } else {
+                        $this->view->relationComponentsConfigData = $this->model->getRelationComponentsConfigModel($this->view->relationComponents[$widgetInfo['name']]['MAP_ID']);
+                    }
                     $this->view->relationColumnData = Arr::groupByArrayOnlyRow($this->view->columnsData, 'COLUMN_NAME', false);
 
                     foreach ($this->view->relationComponentsConfigData as $rk => $rrow) {
@@ -1842,7 +1849,7 @@ class Mdform extends Controller {
 
                     $this->view->renderGridList = $this->view->renderPrint('kpi/indicator/renderGrid', self::$viewPath);
                     
-                    $this->view->renderGrid = self::renderWidgetDataSet($this->view->row, $widgetInfo);
+                    $this->view->renderGrid = self::renderWidgetDataSet($this->view->row, $widgetWInfo ? $widgetWInfo : $widgetInfo);
                 }
             }            
         }

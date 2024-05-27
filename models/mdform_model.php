@@ -28398,6 +28398,7 @@ class Mdform_Model extends Model {
                     T0.SEMANTIC_TYPE_ID, 
                     T0.LOOKUP_META_DATA_ID, 
                     T0.CREATED_USER_ID, 
+                    T0.WIDGET_ID, 
                     T0.CRITERIA, 
                     T0.TAB_NAME, 
                     T0.GROUP_NAME, 
@@ -28421,6 +28422,7 @@ class Mdform_Model extends Model {
                             MAX(KIIM.SEMANTIC_TYPE_ICON) AS SEMANTIC_TYPE_ICON, 
                             MAX(KIIM.SEMANTIC_TYPE_ID) AS SEMANTIC_TYPE_ID, 
                             MAX(KIIM.CREATED_USER_ID) AS CREATED_USER_ID, 
+                            MAX(KIIM.WIDGET_ID) AS WIDGET_ID, 
                             KIIM.SRC_INDICATOR_ID, 
                             KIIM.TRG_INDICATOR_ID, 
                             KIIM.META_INFO_INDICATOR_ID, 
@@ -28445,6 +28447,7 @@ class Mdform_Model extends Model {
                                 ST.ICON AS SEMANTIC_TYPE_ICON, 
                                 KIIM.SEMANTIC_TYPE_ID, 
                                 KIIM.CREATED_USER_ID, 
+                                KIIM.WIDGET_ID, 
                                 (
                                     SELECT 
                                         COUNT(1) 

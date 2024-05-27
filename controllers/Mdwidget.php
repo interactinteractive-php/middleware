@@ -138,6 +138,7 @@ class Mdwidget extends Controller {
     }
     
     public static function mvDataSetAvailableWidgets($widgetCode) {
+        $mapId = '';
         if (is_array($widgetCode)) {            
             if (isset($widgetCode['mv_card_with_list_widget'])) {
                 $widgetCode = 'mv_card_with_list_widget';
@@ -149,6 +150,9 @@ class Mdwidget extends Controller {
                 $widgetCode = 'mv_tablelist_001';                
             } elseif (isset($widgetCode['mv_tiny_card_with_list_widget'])) {
                 $widgetCode = 'mv_tiny_card_with_list_widget';                
+            } elseif (isset($widgetCode['161769400565213'])) {
+                $mapId = $widgetCode['161769400565213']['MAP_ID'];          
+                $widgetCode = '161769400565213';      
             } else {
                 $widgetCode = '';
             }
@@ -159,6 +163,18 @@ class Mdwidget extends Controller {
                 'topAddRow' => true, 
                 'topAddOneRow' => true,
                 'name' => 'fileView'
+            ),            
+            '161769400565213' => array(
+                'topAddRow' => true, 
+                'topAddOneRow' => true,
+                'name' => 'fileViewDynamic',
+                'mapId' => $mapId
+            ),            
+            'fileViewDynamic' => array(
+                'topAddRow' => true, 
+                'topAddOneRow' => true,
+                'name' => 'fileViewDynamic',
+                'mapId' => $mapId
             ),            
             'mv_card_with_list_widget' => array(
                 'topAddRow' => true, 

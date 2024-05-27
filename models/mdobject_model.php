@@ -1384,7 +1384,7 @@ class Mdobject_Model extends Model {
     public function drilldownParams($drilldownRows) {
         
         $array_linkmetadataid_cc = $array_linkcriteria = $array_metatypecode = $array_dialogWidth = 
-        $array_dialogHeight = $array_linkmetadataid = $array_param = array();
+        $array_dialogHeight = $array_linkmetadataid = $array_param = [];
         $clinkMetadataId = -1;
         
         foreach ($drilldownRows as $key => $dvalue) {
@@ -1421,6 +1421,9 @@ class Mdobject_Model extends Model {
         $link_param = '';
         foreach ($array_param as $a) {
             $link_param .= strval($a) . ',';
+        }
+        if ($link_param && strpos($link_param, ',') !== false) {
+            $link_param = rtrim($link_param, ',');
         }
 
         return array('LINK_METADATAID' => $link_linkmetadataid, 'DIALOG_HEIGHT' => $link_dialogHeight, 'DIALOG_WIDTH' => $link_dialogWidth, 'LINK_CRITERIA' => $link_linkcriteria, 'LINK_METATYPECODE' => $link_metatypecode, 'LINK_COUNT' => $clinkMetadataId, 'LINK_PARAM' => $link_param);

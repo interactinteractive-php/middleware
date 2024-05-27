@@ -15,9 +15,9 @@ $renderType = $this->methodRow['RENDER_THEME'];
         </div>
         <?php $headerTitleCss = ''; 
             if ($renderType == 'paper_main_window') { 
-                $headerTitleCss = 'position: absolute;
-                top: -48px;
-                z-index: 999;
+                $headerTitleCss = 'position: fixed;
+                top: 12px;
+                z-index: 99;
                 left: 300px;
                 font-size: 16px;
                 font-weight: 600;'; 
