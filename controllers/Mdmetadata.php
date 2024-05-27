@@ -2312,11 +2312,11 @@ class Mdmetadata extends Controller {
         if ($this->view->metaDataId) {
             
             if ($accessResponse = $this->model->isAccessMetaModel($this->view->metaDataId)) {
-                echo json_encode($accessResponse, JSON_UNESCAPED_UNICODE); exit;
+                jsonResponse($accessResponse);
             }
             
             if ($changeLogResponse = $this->model->isCheckChangeLogMetaModel($this->view->metaDataId)) {
-                echo json_encode($changeLogResponse, JSON_UNESCAPED_UNICODE); exit;
+                jsonResponse($changeLogResponse);
             }
             
             $this->view->metaRow = $this->model->getMetaDataBySystem($this->view->metaDataId);
@@ -2348,19 +2348,19 @@ class Mdmetadata extends Controller {
             
             $title .= ' - ' . $this->view->metaRow['META_DATA_NAME'];
         
-            $response = array(
+            $response = [
                 'status' => 'success', 
                 'title'  => $title,
                 'html'   => $this->view->renderPrint('system/options/index', self::$viewPath),
                 'uniqId' => $this->view->uniqId, 
                 'type'   => $this->view->metaRow['META_TYPE_CODE']
-            );
+            ];
         
         } else {
-            $response = array('status' => 'error', 'Invalid id!');
+            $response = ['status' => 'error', 'Invalid id!'];
         }
         
-        echo json_encode($response); exit;
+        convJson($response);
     }
     
     public function dvDataListWithProcess() {

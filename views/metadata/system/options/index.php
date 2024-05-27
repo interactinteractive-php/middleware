@@ -262,7 +262,7 @@ $('#metav2-sidebar').append(metaV2RenderSidebar);
 
 $(function() {
 
-    App.initNavigations();
+    App.initNavigations($('#bp-settings-tab1'));
     new ClipboardJS('[data-clipboard]');   
 
     $('#window-size').change(function() {

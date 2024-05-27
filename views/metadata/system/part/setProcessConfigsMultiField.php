@@ -73,4 +73,13 @@
             <input type="checkbox" value="1" class="notuniform row-control-toggle"/>
         </div>
     </div>
+    <div class="form-group row" data-path="isRefresh" data-sidebar="1">
+        <label class="col-form-label col-md-4 text-right pr0" for="dv_isRefresh"><?php echo $this->lang->line('META_00006'); ?>:</label>
+        <div class="col-md-6" data-control="1">
+            <input type="checkbox" id="dv_isRefresh" class="notuniform" disabled="disabled"/>
+        </div>
+        <div class="col-md-2">
+            <input type="checkbox" value="1" class="notuniform row-control-toggle"/>
+        </div>
+    </div>
 </div>
