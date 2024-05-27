@@ -6785,10 +6785,50 @@ function mvProductRender(elem, url, indicatorId) {
                         width: 1000,
                         height: 'auto',
                         modal: true,
+                        closeOnEscape: false,
                         open: function() {
                             $dialog.append(data.html);
                         },
+                        beforeClose: function() {
+                            
+                            if ($dialog.data('can-close')) {
+                                $dialog.removeData('can-close');
+                                return true;
+                            }
+    
+                            var dialogNameConfirm = '#dialog-mvproduct-confirm';
+                            if (!$(dialogNameConfirm).length) {
+                                $('<div id="' + dialogNameConfirm.replace('#', '') + '"></div>').appendTo('body');
+                            }
+                            var $dialogConfirm = $(dialogNameConfirm);
+
+                            $dialogConfirm.html(plang.get('Та гарахдаа итгэлтэй байна уу?'));
+                            $dialogConfirm.dialog({
+                                cache: false,
+                                resizable: true,
+                                bgiframe: true,
+                                autoOpen: false,
+                                title: plang.get('msg_title_confirm'), 
+                                width: 300,
+                                height: 'auto',
+                                modal: true,
+                                buttons: [
+                                    {text: plang.get('yes_btn'), class: 'btn green-meadow btn-sm', click: function() {
+                                        $dialogConfirm.dialog('close');
+                                        $dialog.data('can-close', true);
+                                        $dialog.dialog('close');
+                                    }},
+                                    {text: plang.get('no_btn'), class: 'btn blue-madison btn-sm', click: function () {
+                                        $dialogConfirm.dialog('close');
+                                    }}
+                                ]
+                            });
+                            $dialogConfirm.dialog('open');
+
+                            return false;
+                        },
                         close: function() {
+                            removeHtmlEditorByElement($dialog);
                             $dialog.empty().dialog('destroy').remove();
                         },
                         buttons: [

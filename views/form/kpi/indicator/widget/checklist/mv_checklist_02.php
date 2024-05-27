@@ -345,11 +345,14 @@ if ($renderType == 'paper_main_window') {
 .mv-checklist2-render-parent .nav-group-sub .nav-link {
     padding-left: 20px;
 }
-.mv-checklist2-render-parent .mv-checklist-render button.bp-add-one-row {
-    background-color: #eee;
+.mv-checklist2-render-parent .mv-checklist-render button.bp-add-one-row,
+.mv-checklist2-render-parent .mv-checklist-render button.btn-xs.green-meadow {
+    background-color: #eee !important;
     color: #252F4A;
     font-size: 12px;
     padding: 0px 5px 0px 5px;
+    height: 21px !important;
+    min-height: 21px !important;    
 }    
 .mv-checklist2-render-parent .main-process-text-description {
     color: #99A1B7;
