@@ -2779,7 +2779,7 @@ class Mdwebservice extends Controller {
                 if ($fillParamValue = self::findRowKeyValFillData($fillParamData, $lowerParamName)) {
                     $attrArray['value'] = $fillParamValue;
                 }
-                return html_tag('div', array('class' => 'input-group gmap-set-coordinate-control'), Form::text($attrArray) . '<span class="input-group-btn"><button onclick="setGMapCoordinate(this); return false;" class="btn btn-primary  mr0" data-fix-coordinate-pos="1" style="position: absolute; right: 0;"><i class="fa fa-map-marker"></i></button></span>', true);
+                return html_tag('div', array('class' => 'input-group gmap-set-coordinate-control'), Form::text($attrArray) . '<span class="input-group-btn"><button onclick="setGMapCoordinate(this); return false;" class="btn btn-primary mr0" data-fix-coordinate-pos="1" style="position: absolute; right: 0;"><i class="fa fa-map-marker"></i></button></span>', true);
 
             } elseif ($typeCode == 'region') {
                 

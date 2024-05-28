@@ -473,7 +473,8 @@ if ($renderType == 'paper_main_window') {
 }
 .mv-checklist2-render-parent .sectiongidseperator {
     height: 15px;
-    background-color: #f9f3ed;
+    background-color: rgb(244, 244, 244);
+    width: 100%;
 }
 .mv-checklist2-render-parent > .sidebar .card-body .nav-sidebar a.nav-link i {
     font-size: 18px;

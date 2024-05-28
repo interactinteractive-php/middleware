@@ -1318,7 +1318,7 @@ function metaPatchToCloudApps(elem, processMetaDataId, dataViewId) {
 
                             tbl.push('<tr>');
                                 tbl.push('<td>'+n+'.</td>');;
-                                tbl.push('<td>'+selectedRows[s]['customername']+'</td>');
+                                tbl.push('<td data-id="'+selectedRows[s]['customerid']+'">'+selectedRows[s]['customername']+'</td>');
                                 tbl.push('<td data-col="domain">'+selectedRows[s]['domainname']+'</td>');
                                 tbl.push('<td data-col="status"></td>');
                             tbl.push('</tr>');
@@ -1379,6 +1379,7 @@ function importPatchToCloudApps(elem) {
     
     if (patchId != '') {
         $patchCombo.removeClass('error');
+        
         var $domainRows = $parent.find('table > tbody > tr'), 
             $selected = $patchCombo.find('option:selected'), 
             patchName = $selected.text();
@@ -1400,13 +1401,14 @@ function importPatchToCloudApps(elem) {
                     
                     $domainRows.each(function() {
                         var $thisRow = $(this);
+                        var customerId = $thisRow.find('td[data-id]').attr('data-id');
                         var domain = $thisRow.find('td[data-col="domain"]').text();
                         var $statusCell = $thisRow.find('td[data-col="status"]');
                         
                         $.ajax({
                             type: 'post',
                             url: 'mdupgrade/installCloudPatchImport', 
-                            data: {domain: domain, patchId: patchId, fileId: fileId, patchName: patchName}, 
+                            data: {customerId: customerId, domain: domain, patchId: patchId, fileId: fileId, patchName: patchName}, 
                             dataType: 'json', 
                             beforeSend: function () {
                                 $statusCell.html('<i class="icon-spinner4 spinner-sm mr-1"></i>');

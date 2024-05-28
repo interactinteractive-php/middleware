@@ -2,7 +2,7 @@
 
 class Mdupgrade_Model extends Model {
     
-    private static $exportIgnoreColumns = ['CREATED_USER_ID', 'MODIFIED_USER_ID', 'EXPORT_SCRIPT', 'COPY_COUNT'];
+    private static $exportIgnoreColumns = ['CREATED_USER_ID', 'MODIFIED_USER_ID', 'EXPORT_SCRIPT', 'COPY_COUNT', 'COMPANY_DEPARTMENT_ID'];
     private static $exportIgnoreTableColumns = ['META_PROCESS_RULE' => ['IS_ACTIVE' => 1]];
     private static $ignoreDeleteScriptTables = ['UM_SYSTEM', 'META_PROCESS_RULE'];
     private static $executedTables = [];
@@ -2675,7 +2675,7 @@ class Mdupgrade_Model extends Model {
                 $isUseMetaUserId = Config::getFromCache('IS_USE_META_CREATED_MODIFIED_USER_ID');
             
                 if ($isUseMetaUserId == '1') {
-                    self::$exportIgnoreColumns = ['EXPORT_SCRIPT', 'COPY_COUNT'];
+                    self::$exportIgnoreColumns = ['EXPORT_SCRIPT', 'COPY_COUNT', 'COMPANY_DEPARTMENT_ID'];
                 }
 
                 foreach ($metas as $meta) {
@@ -2870,7 +2870,7 @@ class Mdupgrade_Model extends Model {
             $isUseMetaUserId = Config::getFromCache('IS_USE_META_CREATED_MODIFIED_USER_ID');
             
             if ($isUseMetaUserId == '1') {
-                self::$exportIgnoreColumns = array('EXPORT_SCRIPT', 'COPY_COUNT');
+                self::$exportIgnoreColumns = ['EXPORT_SCRIPT', 'COPY_COUNT', 'COMPANY_DEPARTMENT_ID'];
             }
             
             $metaXml = null;
@@ -2904,7 +2904,7 @@ class Mdupgrade_Model extends Model {
             }
         }
         
-        return isset($result) ? $result : array('status' => 'error', 'message' => 'Татах өгөгдөл олдсонгүй!');
+        return isset($result) ? $result : ['status' => 'error', 'message' => 'Татах өгөгдөл олдсонгүй!'];
     }
     
     public function upgradeXmlHeader() {
@@ -6264,7 +6264,7 @@ class Mdupgrade_Model extends Model {
             $isUseMetaUserId = Config::getFromCache('IS_USE_META_CREATED_MODIFIED_USER_ID');
             
             if ($isUseMetaUserId == '1') {
-                self::$exportIgnoreColumns = array('EXPORT_SCRIPT', 'COPY_COUNT');
+                self::$exportIgnoreColumns = ['EXPORT_SCRIPT', 'COPY_COUNT'];
             }
             
             $metaXml = null;
@@ -6294,7 +6294,7 @@ class Mdupgrade_Model extends Model {
             }
         } 
         
-        return isset($result) ? $result : array('status' => 'error', 'message' => 'Татах өгөгдөл олдсонгүй!');
+        return isset($result) ? $result : ['status' => 'error', 'message' => 'Татах өгөгдөл олдсонгүй!'];
     }
     
     public function getMetaUpgradeInfoModel($metaId) {
@@ -6426,7 +6426,7 @@ class Mdupgrade_Model extends Model {
                 $isUseMetaUserId = Config::getFromCache('IS_USE_META_CREATED_MODIFIED_USER_ID');
             
                 if ($isUseMetaUserId == '1') {
-                    self::$exportIgnoreColumns = array('EXPORT_SCRIPT', 'COPY_COUNT');
+                    self::$exportIgnoreColumns = ['EXPORT_SCRIPT', 'COPY_COUNT'];
                 }
             
                 self::$isIgnoreMetaFolder = true;
@@ -7906,11 +7906,19 @@ class Mdupgrade_Model extends Model {
     
     public function installCloudPatchImportModel() {
         
-        $domain    = Input::post('domain');
-        $domainUrl = 'https://' . rtrim($domain, '/') . '/mdupgrade/externalCloudPatchImport';
-        $fileId    = Input::numeric('fileId');
-        $patchId   = Input::numeric('patchId');
-        $patchName = Input::post('patchName');
+        $domain = strtolower(Input::post('domain'));
+        
+        if (strpos($domain, 'https:') !== false || strpos($domain, 'http:') !== false) {
+            $domainFix = rtrim($domain, '/');
+        } else {
+            $domainFix = 'https://' . rtrim($domain, '/');
+        }
+        
+        $domainUrl  = $domainFix . '/mdupgrade/externalCloudPatchImport';
+        $fileId     = Input::numeric('fileId');
+        $patchId    = Input::numeric('patchId');
+        $customerId = Input::numeric('customerId');
+        $patchName  = Input::post('patchName');
         
         $cacheTmpDir = Mdcommon::getCacheDirectory();
         $cacheDir    = $cacheTmpDir . '/cloud_patch';
@@ -7953,7 +7961,7 @@ class Mdupgrade_Model extends Model {
             'patchResult' => $result, 
             'domainAttr' => [
                 'domain'     => $domain, 
-                'customerId' => null, 
+                'customerId' => $customerId, 
                 'patchId'    => $patchId, 
                 'patchName'  => $patchName 
             ]
@@ -7996,7 +8004,7 @@ class Mdupgrade_Model extends Model {
             $data = [
                 'ID'                 => getUID(), 
                 'CREATED_USER_ID'    => Ue::sessionUserKeyId(), 
-                'CREATED_DATE'       => Date::currentDate(),
+                'CREATED_DATE'       => Date::currentDate(), 
                 'META_BUG_FIXING_ID' => $input['domainAttr']['patchId'], 
                 'DESCRIPTION'        => $input['domainAttr']['patchName'], 
                 'CUSTOMER_ID'        => $input['domainAttr']['customerId'], 
