@@ -1348,4 +1348,7 @@ function checkListParentMenuShowHide(uniqId, $parent) {
         }
     }, 1);
 }
+function checklistCloseDialog () {
+    $('#dialog-valuemap-<?php echo $this->indicatorId ?>').dialog('close');
+}
 </script>

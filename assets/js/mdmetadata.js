@@ -19032,16 +19032,12 @@ function drillDownStatement(elem, rowStr) {
     
     if (typeof rowStr !== 'undefined') {
 
-        var rowData = qryStrToObj(rowStr);
+        var rowData = qryStrToObjUniqueKey(rowStr);
         var statementId = rowData['CLICK_DRILL_LAYOUT_ID'];
         var columnName = (rowData['CLICK_DRILL_FIELD_NAME']).toLowerCase();
         var rId = 'iframe', uniqId = '';
         var glbookid = '', glbookRecordType = '';
         var filterParams = $('#dataview-statement-search-' + statementId + ' form:eq(0)').serialize();
-        
-        if (rowData && rowData.hasOwnProperty(0)) {
-            rowData = rowData[0];
-        }
 
     } else {
 

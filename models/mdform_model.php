@@ -12544,7 +12544,7 @@ class Mdform_Model extends Model {
                 
                 if (isset($endToEndLog['hdrId'])) {
                     $endToEndLogResult = self::saveEndToEndLog(issetVar($endToEndLog['listIndicatorId']), issetVar($endToEndLog['stepIndicatorId']), $kpiMainIndicatorId, issetVar($endToEndLog['recordId']), $rowId, Mdform::$mvDbParams['header']['data'], issetVar($endToEndLog['hdrId']));
-                    
+
                     if ($endToEndLogResult['status'] == 'success') {
                         Mdform::$mvDbParams['header']['data']['endToEndLogHdrId'] = $endToEndLogResult['endToEndLogHdrId'];
                         Mdform::$mvDbParams['header']['data']['checkListStatus']  = $endToEndLogResult['checkListStatus'];
@@ -12774,7 +12774,7 @@ class Mdform_Model extends Model {
             return ['status' => 'success', 'endToEndLogHdrId' => $endToEndLogHdrId, 'checkListStatus' => $checkListStatus];
             
         } catch (Exception $ex) {
-            return ['status' => 'error'];
+            return ['status' => 'error', 'message' => $ex->getMessage()];
         }
     }
     
@@ -15333,6 +15333,11 @@ class Mdform_Model extends Model {
                     
                     unset($filterNamedParams[$filterColName]);
                     
+                    if ($filterColName == 'FILTERNEXTWFMUSERID' && $filterColVals) {
+                        $filterNextWfmUserId = $filterColVals;
+                        continue;
+                    }
+                    
                     $filterShowType = issetDefaultVal($columnsConfig[$filterColName]['showType'], 'text');
                     
                     if (isset($filterColVals[0]['begin'])) {
@@ -15559,6 +15564,17 @@ class Mdform_Model extends Model {
                             TO_MWA.WFM_STATUS_ID
                     ) TO_MWA ON T0.$idField = TO_MWA.RECORD_ID AND T0.WFM_STATUS_ID = TO_MWA.WFM_STATUS_ID 
                     LEFT JOIN META_WFM_STATUS MWFS ON COALESCE(MWA.USER_STATUS_ID, T0.WFM_STATUS_ID) = MWFS.ID";
+                
+                if (isset($filterNextWfmUserId)) { 
+                    
+                    $joinCriteria = self::getNextWfmUserCriteriaModel($structureIndicatorId, $filterNextWfmUserId); 
+                    
+                    if ($joinCriteria['status'] == 'success') { 
+                        $subCondition .= ' AND '.$joinCriteria['criteria'];
+                    } else {
+                        return ['status' => 'error', 'message' => $joinCriteria['message'], 'rows' => [], 'total' => 0];
+                    }
+                }
                 
                 $selectCount = "
                     SELECT 
@@ -15849,6 +15865,28 @@ class Mdform_Model extends Model {
             }
         }
         return null;
+    }
+    
+    public function getNextWfmUserCriteriaModel($structureIndicatorId, $filterNextWfmUserId) {
+        $param = [
+            'indicatorId'         => $structureIndicatorId, 
+            'refMetaGroupId'      => $structureIndicatorId, 
+            'filterNextWfmUserId' => $filterNextWfmUserId
+        ];
+
+        $result = $this->ws->runSerializeResponse(self::$gfServiceAddress, 'get_filteruser_criteria', $param); 
+
+        if ($result['status'] == 'success') {
+            if (isset($result['result'])) {
+                $response = ['status' => 'success', 'criteria' => $result['result']];
+            } else {
+                $response = ['status' => 'error', 'message' => 'get_filteruser_criteria is null!'];
+            }
+        } else {
+            $response = ['status' => 'error', 'message' => $this->ws->getResponseMessage($result)];
+        }
+        
+        return $response;
     }
     
     public function getWorkSpaceParamMapModel($dmMetaDataId, $workSpaceId) {

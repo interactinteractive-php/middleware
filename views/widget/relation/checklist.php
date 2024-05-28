@@ -334,7 +334,7 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                                                                             } else {
                                                                                 if (issetParam($row['filePath'])) { 
                                                                                     $checkBoxType = ($row['checkType'] === '1') ? "icon-checkbox-unchecked2" : "icon-radio-unchecked"; ?>
-                                                                                    <div class="w-100">
+                                                                                    <div class="w-100 file-parent">
                                                                                         <button type="button" data-checktype="<?php echo $row['checkType'] ?>" class="col-md-12 btn text-left answer-txt answer-txt-nopadding <?php echo issetParam($row['filePath']) ? 'bg-none' : ''; ?>" onclick="activeAnswer_<?php echo $this->uniqId ?>(this)">
                                                                                             <div class="hide-param d-none">
                                                                                                 <input type="hidden" name="mvParam[<?php echo $position2PathArr['0'] . '.rowState' ?>][<?php echo $counter; ?>]" data-path="<?php echo $position2PathArr['0'] . '.rowState' ?>" data-col-path="rowState" value="add" >
@@ -362,6 +362,17 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                                                                                     </div>
                                                                                 <?php } else { ?>
                                                                                 <button type="button" data-checktype="<?php echo $row['checkType'] ?>" class="btn text-left answer-txt <?php echo issetParam($row['filePath']) ? 'bg-none' : ''; ?>" onclick="activeAnswer_<?php echo $this->uniqId ?>(this)">
+                                                                                    <div class="hide-param d-none">
+                                                                                        <input type="hidden" name="mvParam[<?php echo $position2PathArr['0'] . '.rowState' ?>][<?php echo $counter; ?>]" data-path="<?php echo $position2PathArr['0'] . '.rowState' ?>" data-col-path="rowState" value="add" >
+                                                                                        <input type="hidden" name="mvParam[<?php echo $position2PathArr['0'] . '.rowCount' ?>][<?php echo $counter; ?>]" data-path="<?php echo $position2PathArr['0'] . '.rowCount' ?>" data-col-path="rowCount" value="0" >
+                                                                                        <?php foreach ($hideTmparr[$i] as $key => $value) { 
+                                                                                            if (!is_array($value)) {
+                                                                                                ?>
+                                                                                                <input type="hidden" name="mvParam[<?php echo $position2PathArr['0'] . '.' .$key ?>][<?php echo $counter; ?>]" data-path="<?php echo $position2PathArr['0'] . '.' .$key ?>" data-col-path="<?php echo $key ?>" value="<?php echo $value ?>" >
+                                                                                            <?php 
+                                                                                            }
+                                                                                        } ?>
+                                                                                    </div>
                                                                                     <?php echo $row['position4'] ?>
                                                                                 </button>
                                                                                 <?php } ?>
@@ -685,7 +696,6 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                             column-gap: 10px;
                             column-count: 2;
                         }
-                        
 
                         .answer-txt:not(.answer-txt-nopadding) {
                             font-size: 12px;
@@ -1361,11 +1371,11 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
             if (_this.hasClass('active')) {
                 _this.removeClass('active');
                 _this.find('input[data-path="<?php echo $positionSetCorrectPath; ?>"]').val('0');
-                _this.closest('.w-100').find('.file-rounded').removeClass('active');
+                _this.closest('.file-parent').find('.file-rounded').removeClass('active');
                 _this.find('.far').removeClass('icon-checkbox-checked2').addClass('icon-checkbox-unchecked2');
             } else {
                 _this.addClass('active');
-                _this.closest('.w-100').find('.file-rounded').addClass('active');
+                _this.closest('.file-parent').find('.file-rounded').addClass('active');
                 _this.find('input[data-path="<?php echo $positionSetCorrectPath; ?>"]').val('1');
                 _this.find('.far').removeClass('icon-checkbox-unchecked2').addClass('icon-checkbox-checked2');
             }
@@ -1378,7 +1388,7 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
             _this.find('input[data-path="<?php echo $positionSetCorrectPath; ?>"]').val('1');
             _this.find('.far').removeClass('icon-radio-unchecked').addClass('icon-radio-checked');
             _this.find('.far').removeClass('icon-radio-unchecked').addClass('icon-radio-checked');
-            _this.closest('.w-100').find('.file-rounded').addClass('active');
+            _this.closest('.file-parent').find('.file-rounded').addClass('active');
             _this.addClass('active');
 
         }

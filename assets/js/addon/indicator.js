@@ -6788,6 +6788,10 @@ function mvProductRender(elem, url, indicatorId) {
                         closeOnEscape: false,
                         open: function() {
                             $dialog.append(data.html);
+                            $dialog.parent().find(">.ui-dialog-buttonpane").remove();
+                            $dialog.parent().find(">.ui-dialog-titlebar").remove();
+                            var dh = $dialog.parent().find(">.ui-dialog-content").height() + 110;
+                            $dialog.parent().find(">.ui-dialog-content").css("height", dh+"px");
                         },
                         beforeClose: function() {
                             

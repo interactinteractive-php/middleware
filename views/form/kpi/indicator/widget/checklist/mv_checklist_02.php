@@ -3,16 +3,6 @@ $renderType = $this->methodRow['RENDER_THEME'];
 ?>
 <div class="kpi-form-paper-portrait <?php echo $renderType ?>">
     <div class="kpi-form-paper-portrait-child">    
-        <div class="d-flex justify-content-between <?php echo $renderType == 'paper_main_window' ? 'hidden' : '' ?>">
-            <?php                 
-                $logoImage = 'assets/custom/img/new_veritech_black_logo.png';
-
-                if (isset($this->logoImage) && file_exists($this->logoImage)) {
-                    $logoImage = $this->logoImage;
-                }
-            ?>            
-            <img style="height: 24px" src="<?php echo $logoImage; ?>"/>
-        </div>
         <?php $headerTitleCss = ''; 
             if ($renderType == 'paper_main_window') { 
                 $headerTitleCss = 'position: fixed;
@@ -22,10 +12,24 @@ $renderType = $this->methodRow['RENDER_THEME'];
                 font-size: 16px;
                 font-weight: 600;'; 
             } 
-        ?>        
-        <div class="d-flex justify-content-center">
-            <p class="mb-0 mt-0 ml-2" style="font-size: 20px;font-weight: bold;<?php echo $headerTitleCss ?>"><?php echo $this->title ?></p>
-        </div>
+        ?>             
+        <div class="mb-1 d-flex justify-content-between <?php echo $renderType == 'paper_main_window' ? 'hidden' : '' ?>">
+            <?php                 
+                $logoImage = 'assets/custom/img/new_veritech_black_logo.png';
+
+                if (isset($this->logoImage) && file_exists($this->logoImage)) {
+                    $logoImage = $this->logoImage;
+                }
+            ?>            
+            <img style="height: 24px" src="<?php echo $logoImage; ?>"/>
+            <p class="mb-0 mt-0" style="font-size: 20px;font-weight: bold;<?php echo $headerTitleCss ?>"><?php echo $this->title ?></p>
+            <a title="Хаах" href="javascript:;" onclick="checklistCloseDialog()">
+                <i style="font-size: 16px;color:#737373" class="far fa-times"></i>
+            </a>
+        </div>   
+        <?php if ($renderType == 'paper_main_window') { ?>
+            <p class="mb-0 mt-0" style="font-size: 20px;font-weight: bold;<?php echo $headerTitleCss ?>"><?php echo $this->title ?></p>
+        <?php } ?>
         <div class="row mv-checklist-render-parent mv-checklist2-render-parent" id="mv-checklist-render-parent-<?php echo $this->uniqId; ?>">
 
             <?php 

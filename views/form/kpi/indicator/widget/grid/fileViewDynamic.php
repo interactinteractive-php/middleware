@@ -322,7 +322,7 @@ foreach ($dataResult as $groupName => $groupRow) {
 ?>
     <div class="mb-2" style="font-weight: bold;">        
         <?php 
-            echo $groupName . (issetParam($groupRow['row'][$this->relationViewConfig['position5']]) ? '<div style="font-weight: normal;color: #a9a9a9;font-size: 11px;">'.$groupRow['row'][$this->relationViewConfig['position5']].'</div>' : ''); 
+            echo $groupName . (issetParam($groupRow['row'][issetParam($this->relationViewConfig['position5'])]) ? '<div style="font-weight: normal;color: #a9a9a9;font-size: 11px;">'.$groupRow['row'][$this->relationViewConfig['position5']].'</div>' : ''); 
         ?>            
     </div>
     <div class="d-flex flex-wrap">
@@ -331,17 +331,17 @@ foreach ($dataResult as $groupName => $groupRow) {
         $rowJson = htmlentities(json_encode($row), ENT_QUOTES, 'UTF-8');
         if (issetParam($row[$this->relationViewConfig['position4']])) {
     ?>
-    <a href="javascript:;" class="mv-cardview" title="<?php echo $row[$this->relationViewConfig['position2']]; ?>">
+    <a href="javascript:;" class="mv-cardview" title="<?php echo issetParam($row[$this->relationViewConfig['position2']]); ?>">
         <div class="no-dataview" data-crud-indicatorid="<?php echo $deleteCrudId ?>" data-rowdata="<?php echo $rowJson; ?>" style="position: absolute;z-index: 10;margin-left: 80px;display: none" onclick="<?php echo $deleteClickAction ?>">
             <i class="far fa-times" style="font-size: 13px;color: red;"></i>
         </div>
         <div class="card" style="border: none;box-shadow: none;">
             <div class="card-body">
-                <div class="card-img-actions mb-2 mt-2" onclick="bpFilePreview(this);" data-fileurl="<?php echo $row[$this->relationViewConfig['position4']] ?>" data-filename="<?php echo $row[$this->relationViewConfig['position2']] ?>" data-extension="<?php echo $row[$this->relationViewConfig['position3']] ?>">
+                <div class="card-img-actions mb-2 mt-2" onclick="bpFilePreview(this);" data-fileurl="<?php echo $row[$this->relationViewConfig['position4']] ?>" data-filename="<?php echo issetParam($row[$this->relationViewConfig['position2']]) ?>" data-extension="<?php echo $row[$this->relationViewConfig['position3']] ?>">
                     <img class="directory-img ml20" style="height: 70px;" src="assets/core/global/img/document/big/pdf2.png"/>
                 </div>
                 <h5>
-                    <?php echo $row[$this->relationViewConfig['position2']]; ?>
+                    <?php echo issetParam($row[$this->relationViewConfig['position2']]); ?>
                 </h5>
             </div>
         </div>
