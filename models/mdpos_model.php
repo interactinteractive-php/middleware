@@ -855,7 +855,7 @@ class Mdpos_Model extends Model {
         parse_str($tempPost['paymentData'], $paymentData);
         parse_str($tempPost['itemData'], $itemData);
 
-        @file_put_contents('log/pos_payment_data.txt', Date::currentDate().' '.json_encode($paymentData)."\n\n", FILE_APPEND);
+        //@file_put_contents('log/pos_payment_data.txt', Date::currentDate().' '.json_encode($paymentData)."\n\n", FILE_APPEND);
 
         $itemIds = $itemData['itemId'];
         $merchantItems = array();
@@ -1030,6 +1030,7 @@ class Mdpos_Model extends Model {
             $paymentAmoutKeys['cashAmount'] = $paymentData['cashAmount'];
             $paymentAmoutKeys['bankAmountDtl'] = $paymentData['bankAmountDtl'];
             $paymentAmoutKeys['posSocialpayAmt'] = $paymentData['posSocialpayAmt'];
+            $paymentAmoutKeys['posqpayAmt'] = $paymentData['posqpayAmt'];
             $paymentAmoutKeys['voucher2DtlAmount'] = $paymentData['voucher2DtlAmount'];
             $paymentAmoutKeys['voucherDtlAmount'] = $paymentData['voucherDtlAmount'];
             $paymentAmoutKeys['accountTransferAmountDtl'] = $paymentData['accountTransferAmountDtl'];
@@ -1201,6 +1202,10 @@ class Mdpos_Model extends Model {
                                     $tempPaymentData[$merchant]['posSocialpayApprovalCode'] = $paymentData['posSocialpayApprovalCode'];
                                     $tempPaymentData[$merchant]['posSocialpayCardNumber'] = $paymentData['posSocialpayCardNumber'];
                                     $tempPaymentData[$merchant]['posSocialpayTerminal'] = $paymentData['posSocialpayTerminal'];
+                                }
+
+                                if ($pkey === 'posqpayAmt') {
+                                    $tempPaymentData[$merchant]['qpay_traceNo'] = $paymentData['qpay_traceNo'];
                                 }
 
                             } else {

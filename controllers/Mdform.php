@@ -6415,7 +6415,12 @@ class Mdform extends Controller {
                 }     
                 
                 foreach ($mapData as $mapRow) {
-                    $getParams[strtoupper($mapRow['TRG_INDICATOR_PATH'])] = issetParam($selectedRow[strtolower($mapRow['SRC_INDICATOR_PATH'])]);
+                    if ($mapRow['SRC_INDICATOR_PATH'] == '' && $mapRow['DEFAULT_VALUE'] != '') {
+                        $setValue = Mdmetadata::setDefaultValue($mapRow['DEFAULT_VALUE']);
+                    } else {
+                        $setValue = issetParam($selectedRow[strtolower($mapRow['SRC_INDICATOR_PATH'])]);
+                    }
+                    $getParams[strtoupper($mapRow['TRG_INDICATOR_PATH'])] = $setValue;
                 }
                 
                 $getDetailData = $this->model->getMetaVerseDataModel($trgRefStructureId, $getParams);

@@ -30163,14 +30163,15 @@ class Mdform_Model extends Model {
             SELECT 
                 SRC_INDICATOR_PATH, 
                 TRG_INDICATOR_PATH, 
+                DEFAULT_VALUE, 
                 CRITERIA 
             FROM KPI_INDICATOR_INDICATOR_MAP 
             WHERE SRC_INDICATOR_MAP_ID = ".$this->db->Param(0)." 
                 AND TRG_INDICATOR_ID = ".$this->db->Param(1)." 
-                AND SRC_INDICATOR_PATH IS NOT NULL 
                 AND TRG_INDICATOR_PATH IS NOT NULL 
+                AND (SRC_INDICATOR_PATH IS NOT NULL OR DEFAULT_VALUE IS NOT NULL) 
             GROUP BY 
-                SRC_INDICATOR_PATH, TRG_INDICATOR_PATH, CRITERIA", 
+                SRC_INDICATOR_PATH, TRG_INDICATOR_PATH, DEFAULT_VALUE, CRITERIA", 
             [$srcMapId, $trgIndicatorId]
         );
         
