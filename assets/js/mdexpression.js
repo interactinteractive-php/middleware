@@ -18838,14 +18838,59 @@ function bankSetlementIpTerminal(terminalId, deviceType, callback) {
         console.log(JSON.stringify(resultJson));
       }    
 }
-function bpRunKpiIndicatorDataMart(mainSelector, elem, indicatorId, isAsync) {
+function bpRunKpiIndicatorDataMart(mainSelector, elem, indicatorId, isAsync, paramsPath) {
+    
+    var paramData = {};
+    
+    if (typeof paramsPath != 'undefined') {
+        
+        var paramsPathArr = paramsPath.split('|');
+        var paramsLength = paramsPathArr.length;
+
+        for (var i = 0; i < paramsLength; i++) {
+            var fieldPathArr = paramsPathArr[i].split('@');
+            var fieldPath = fieldPathArr[0].trim();
+            var inputPath = fieldPathArr[1].trim();
+            var fieldValue = '';
+
+            var $bpElem = getBpElement(mainSelector, elem, fieldPath);
+
+            if ($bpElem) {
+                if ($bpElem.hasClass('base64Init') || $bpElem.hasClass('fileInit')) {
+                    var fileUrl = $bpElem.val();
+                    if (fileUrl) {
+                        var ext = fileUrl.substring(fileUrl.lastIndexOf('.') + 1).toLowerCase();
+                        var formData = new FormData();
+                        formData.append('file_1', $bpElem.get(0).files[0]); 
+                        $.ajax({
+                            type: 'post',
+                            url: 'api/getBase64FromFile',
+                            data: formData,
+                            processData: false,
+                            contentType: false,
+                            async: false,
+                            success: function(data) {
+                                fieldValue = ext + '♠' + data;
+                            }
+                        });
+                    }
+                } else {
+                    fieldValue = getBpRowParamNum(mainSelector, elem, fieldPath);
+                }
+            } else {
+                fieldValue = fieldPath;
+            }
+            
+            paramData[inputPath] = fieldValue;
+        }
+    }
     
     if (isAsync) {
         
         var response = $.ajax({
             type: 'post',
             url: 'mdform/generateKpiDataMartByPost',
-            data: {indicatorId: indicatorId},
+            data: {indicatorId: indicatorId, isFromRunExpression: 1, inputData: paramData},
             dataType: 'json',
             async: false
         });
@@ -18857,7 +18902,7 @@ function bpRunKpiIndicatorDataMart(mainSelector, elem, indicatorId, isAsync) {
         $.ajax({
             type: 'post',
             url: 'mdform/generateKpiDataMartByPost',
-            data: {indicatorId: indicatorId},
+            data: {indicatorId: indicatorId, isFromRunExpression: 1, inputData: paramData},
             dataType: 'json',
             success: function(data) {
                 console.log('runKpiIndicatorDataMart = ' + indicatorId);

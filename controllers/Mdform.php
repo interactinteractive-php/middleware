@@ -2183,26 +2183,43 @@ class Mdform extends Controller {
         } elseif (Input::numeric('isSqlResult') == 1) {
             $response = $this->model->generateKpiRelationDataMartNewModel($indicatorId);
         } else {
-            Mdform::$currentKpiTypeId = 1044;
-            $data = $this->model->getKpiIndicatorTemplateModel($indicatorId);
-            
-            if ($data && isset($data[1])) {
-            
-                $_POST['isResponseArray'] = 1;
-                $_POST['param']['indicatorId'] = $indicatorId;
-                $_POST['param']['actionType'] = 'create';
 
-                $response = self::kpiIndicatorTemplateRender(); 
-
+            $isRunDataMart = false;
+            $inputParameters = [];
+            
+            if (Input::numeric('isFromRunExpression') == 1) {
+                
+                $isRunDataMart = true;
+                $inputParameters = Input::post('inputData');
+                
             } else {
-                $response = $this->model->runAllKpiDataMartByIndicatorIdModel($indicatorId);
+                
+                Mdform::$currentKpiTypeId = 1044;
+                $data = $this->model->getKpiIndicatorTemplateModel($indicatorId);
+
+                if ($data && isset($data[1])) {
+
+                    $_POST['isResponseArray'] = 1;
+                    $_POST['param']['indicatorId'] = $indicatorId;
+                    $_POST['param']['actionType'] = 'create';
+                    
+                    $isRunDataMart = false;
+                    $response = self::kpiIndicatorTemplateRender(); 
+
+                } else {
+                    $isRunDataMart = true;
+                }
+            }
+            
+            if ($isRunDataMart) {
+                $response = $this->model->runAllKpiDataMartByIndicatorIdModel($indicatorId, $inputParameters);
             }
         }
         
         if ($isArrayResponce) {
             return $response;
         } else {        
-            echo json_encode($response, JSON_UNESCAPED_UNICODE);
+            convJson($response);
         }
     }
     

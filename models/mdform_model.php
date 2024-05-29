@@ -25260,11 +25260,11 @@ class Mdform_Model extends Model {
         return $response;
     }
     
-    public function runAllKpiDataMartByIndicatorIdModel($indicatorId, $parameters = array()) {
+    public function runAllKpiDataMartByIndicatorIdModel($indicatorId, $parameters = []) {
         
         $idPh = $this->db->Param(0);
         
-        $data = $this->db->GetAll("
+        $sql = "
             SELECT
                 ID,
                 NAME,
@@ -25325,7 +25325,7 @@ class Mdform_Model extends Model {
                         WHERE KI.KPI_TYPE_ID IN (1040, 1044) 
                             AND TKI.KPI_TYPE_ID IN (1040, 1044) 
                             AND KI.DELETED_USER_ID IS NULL 
-                    )
+                    ) 
                     START WITH PARENT_ID = $idPh 
                     CONNECT BY NOCYCLE PRIOR ID = PARENT_ID
                 ) 
@@ -25333,9 +25333,13 @@ class Mdform_Model extends Model {
                     ID, 
                     NAME, 
                     KPI_TYPE_ID 
-            )", 
-            array($indicatorId)
-        );
+            )";
+        
+        if (DB_DRIVER == 'postgres9') {
+            $sql = str_replace(' NOCYCLE ', ' ', $sql);
+        }
+        
+        $data = $this->db->GetAll($sql, [$indicatorId]);
         
         $result = $calculateCheck = [];
         $isThroughCalculate = Input::numeric('isThroughCalculate');
