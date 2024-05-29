@@ -331,6 +331,8 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt, call
                             var $form = $dialog.find('form');    
                             var $dialogSaveBtn = $(e.target);
                             
+                            $dialogSaveBtn.attr('disabled', 'disabled').prepend('<i class="fa fa-spinner fa-pulse fa-fw"></i>');
+                            
                             if (bpFormValidate($form) && window['kpiIndicatorBeforeSave_' + uniqId]($dialogSaveBtn)) {
 
                                 $form.ajaxSubmit({

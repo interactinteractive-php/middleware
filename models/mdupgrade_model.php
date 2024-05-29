@@ -6971,31 +6971,38 @@ class Mdupgrade_Model extends Model {
                 $response = self::executeUpgradeScript([$fileContent]);
 
                 if ($response['status'] == 'success') {
+                    
+                    $isOnlyLastLoadLog = Config::getFromCache('PF_IS_PATCH_LOAD_ONLY_LAST_LOG');
+                    $currentDate       = Date::currentDate('Y-m-d H:i:s');
 
-                    $currentDate = Date::currentDate('Y-m-d H:i:s');
-
-                    $fixedData = array(
+                    $fixedData = [
                         'ID'                 => getUID(), 
                         'META_BUG_FIXING_ID' => $bugFixId, 
                         'CREATED_USER_ID'    => Ue::sessionUserKeyId(), 
                         'STATUS_ID'          => 1, 
                         'CREATED_DATE'       => $currentDate, 
                         'MODIFIED_DATE'      => $currentDate
-                    );
+                    ];
 
                     $dbResult = $this->db->AutoExecute('CUSTOMER_BUG_FIXED', $fixedData);
 
                     if ($dbResult) {
                         
                         self::$isCreateRollback = true;
+                        $clobResult = true;
                         
-                        $result = self::downloadBugFixingModel($bugFixId);
-                        $oldPatch = isset($result['result']) ? $result['result'] : null;
-                        
-                        if ($oldPatch) {
-                            $clobResult = $this->db->UpdateClob('CUSTOMER_BUG_FIXED', 'OLD_PATCH', $oldPatch, 'ID = '.$fixedData['ID']);
+                        if ($isOnlyLastLoadLog) {
+                            
+                            $this->db->Execute("DELETE FROM CUSTOMER_BUG_FIXED WHERE META_BUG_FIXING_ID = $bugFixId AND ID <> ".$fixedData['ID']);
+                            
                         } else {
-                            $clobResult = true;
+                        
+                            $result = self::downloadBugFixingModel($bugFixId);
+                            $oldPatch = isset($result['result']) ? $result['result'] : null;
+
+                            if ($oldPatch) {
+                                $clobResult = $this->db->UpdateClob('CUSTOMER_BUG_FIXED', 'OLD_PATCH', $oldPatch, 'ID = '.$fixedData['ID']);
+                            } 
                         }
 
                         if ($clobResult) {
