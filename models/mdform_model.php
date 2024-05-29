@@ -11703,7 +11703,7 @@ class Mdform_Model extends Model {
             $isTblCreated = self::table_exists($this->db, $tblName);
             $isIgnoreAlter = self::isCheckSystemTable($tblName, $isTblCreated);
             
-            Mdform::$currentKpiTypeId = $kpiTypeId;
+            Mdform::$currentKpiTypeId = ($sourceRecordId ? null : $kpiTypeId);
             Mdform::$mvParamsConfig = self::getKpiIndicatorParamsModel($kpiMainIndicatorId);
             
             $kpiTblId = issetVar($postData['kpiTblId']);
@@ -12049,7 +12049,7 @@ class Mdform_Model extends Model {
                         
                         foreach (['ROW_ID', 'ROW_INDEX'] as $templateColumnName) {
                             if ($isTblCreated == false || ($isTblCreated && !isset($isTblCreated[$templateColumnName]))) {
-                                $dbField[] = array('type' => 'long', 'name' => $templateColumnName);
+                                $dbField[] = ['type' => 'long', 'name' => $templateColumnName];
                             } 
                         }
                     }
@@ -12252,7 +12252,7 @@ class Mdform_Model extends Model {
                     $createTblStatus = self::dbCreatedTblKpiDynamic($tblName, $dbField);
 
                     if ($createTblStatus['status'] == 'error') {
-                        return array('status' => 'error', 'message' => 'Create table: ' . $createTblStatus['message']);
+                        return ['status' => 'error', 'message' => 'Create table: ' . $createTblStatus['message']];
                     } else {
                         self::updateKpiIndicatorTblName($kpiMainIndicatorId, $tblName);
                     }
@@ -12265,7 +12265,7 @@ class Mdform_Model extends Model {
 
                         if (!isset($isTblCreated[$standardField['name']])) {
 
-                            $dbField[] = array('type' => $standardField['type'], 'name' => $standardField['name']);
+                            $dbField[] = ['type' => $standardField['type'], 'name' => $standardField['name']];
                         }
                     }
 
@@ -12273,8 +12273,8 @@ class Mdform_Model extends Model {
 
                         $alterTblStatus = self::dbAlterTblKpiDynamic($tblName, $dbField);
 
-                        if ($alterTblStatus['status'] == 'error') {
-                            return array('status' => 'error', 'message' => 'Alter table: ' . $alterTblStatus['message']);
+                        if ($alterTblStatus['status'] == 'error' && strpos($alterTblStatus['message'], 'already exists') === false) {
+                            return ['status' => 'error', 'message' => 'Alter table: ' . $alterTblStatus['message']];
                         }
                     }
                 }
@@ -13989,6 +13989,8 @@ class Mdform_Model extends Model {
                     $alter = str_replace('))', ')', $alter);
                     $alter = str_replace('CLOB)', 'CLOB', $alter);
                     $alter = str_replace('DATE)', 'DATE', $alter);
+                    
+                    $alter = 'DO $$ BEGIN '.$alter.'; EXCEPTION WHEN others THEN END; $$;';
                 }
                 
                 $this->db->Execute($alter);
@@ -14012,7 +14014,13 @@ class Mdform_Model extends Model {
                 try {
                 
                     $indexId = getUIDAdd($k);
-                    $this->db->Execute("CREATE INDEX V_IX$indexId ON $tblName ($colName)");
+                    $script = "CREATE INDEX V_IX$indexId ON $tblName ($colName)";
+                    
+                    if (DB_DRIVER == 'postgres9') {
+                        $alter = 'DO $$ BEGIN '.$script.'; EXCEPTION WHEN others THEN END; $$;';
+                    }
+                    
+                    $this->db->Execute($script);
 
                 } catch (Exception $ex) {}
             }

@@ -180,11 +180,22 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
         }
 
         mainVideo<?php echo $this->uniqId ?>.pause();
-        mainVideo<?php echo $this->uniqId ?>.currentTime = start;
+        mainVideo<?php echo $this->uniqId ?>.currentTime = start;        
         setTimeout(function () {
             mainVideo<?php echo $this->uniqId ?>.play();
             checkTime();
         }, 100);
+        
+        $.ajax({
+            type: "post",
+            url: "mdcontentui/contentVisitorLog",
+            data: { recordId: _this.attr('data-recordid'), duration: mainVideo<?php echo $this->uniqId ?>.currentTime },
+            success: function (data) {                   
+                if (!data && Config::getFromCache('IS_CONTENT_VIEW')) {
+                    mainVideo<?php echo $this->uniqId ?>.controls = false;
+                }
+            }
+        });         
 
         if (typeof _this.attr('data-recordid') !== 'undefined' && _this.attr('data-recordid')) {
             videoTimeToSaveInterval<?php echo $this->uniqId ?> = setInterval(function () {
@@ -192,7 +203,7 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                     type: "post",
                     url: "mdcontentui/contentVisitorLog",
                     data: { recordId: _this.attr('data-recordid'), duration: mainVideo<?php echo $this->uniqId ?>.currentTime },
-                    success: function (data) {                    
+                    success: function (data) {                   
                     }
                 });             
                 e.preventDefault();

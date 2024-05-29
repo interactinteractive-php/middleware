@@ -1832,9 +1832,9 @@ class Mdform extends Controller {
                 if ($this->view->viewType !== 'list') {
                     $this->load->model('mdform', 'middleware/models/');
 
-                    if ($widgetWInfo) {
+                    if (issetParam($widgetWInfo)) {
                         $this->view->relationComponentsConfigData = $this->model->getRelationComponentsConfigModel($widgetWInfo['mapId']);                        
-                    } else {
+                    } elseif (issetParam($widgetInfo)) {
                         $this->view->relationComponentsConfigData = $this->model->getRelationComponentsConfigModel($this->view->relationComponents[$widgetInfo['name']]['MAP_ID']);
                     }
                     $this->view->relationColumnData = Arr::groupByArrayOnlyRow($this->view->columnsData, 'COLUMN_NAME', false);

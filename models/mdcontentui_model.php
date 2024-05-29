@@ -1218,7 +1218,7 @@ class Mdcontentui_model extends Model {
                 $this->db->AutoExecute('ECM_CONTENT_VISITOR', $data, 'INSERT');
             }
             
-            return true;
+            return $isExist ? 1 : 0;
         } catch (Exception $exc) {
             return false;
         }
