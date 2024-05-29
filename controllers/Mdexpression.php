@@ -6408,7 +6408,7 @@ class Mdexpression extends Controller {
         $instanceExp->load->model('mdform', 'middleware/models/');
         Mdform::$isIndicatorRendering = true;
         $getExp = $instanceExp->model->getKpiIndicatorExpressionModel($indicatorId);
-        $rowExp = $getExp['VAR_FNC_EXPRESSION_STRING'];
+        $rowExp = issetParam($getExp['VAR_FNC_EXPRESSION_STRING']);
         
         if (empty($rowExp) || empty($getExp['VAR_FNC_EXPRESSION_STRING_JSON'])) {
             return '';

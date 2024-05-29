@@ -347,8 +347,16 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt, call
                                             formData.push({name: 'mapHidden[selectedRow]', value: postData.param.mapHiddenSelectedRow});
                                         }
                                         if (isSrcMap) {
-                                            formData.push({name: 'mapSrc[mapSrcMapId]', value: postData.param.mapSrcMapId});
-                                            formData.push({name: 'mapSrc[mapSelectedRow]', value: postData.param.mapSelectedRow});
+                                            formData.push({name: 'mapSrc[mapSrcMapId]', value: postData.mapSrcMapId});
+                                            formData.push({name: 'mapSrc[mapSelectedRow]', value: postData.mapSelectedRow});
+                                        }
+                                        if (isListRelation && $this.closest('.mv-checklist-render-parent').length) {
+                                            var $checkListParent = $this.closest('.mv-checklist-render-parent');
+                                            var $checkListActive = $checkListParent.find('ul.nav-sidebar a.nav-link.active[data-json]');
+                                            var checkListRowJson = JSON.parse(html_entity_decode($checkListActive.attr('data-json'), 'ENT_QUOTES'));
+
+                                            formData.push({name: 'mapSrc[mapSrcMapId]', value: checkListRowJson.mapId});
+                                            formData.push({name: 'mapSrc[mapSelectedRow]', value: $checkListParent.find('input[data-path="headerParams"]').val()});
                                         }
                                     },
                                     beforeSend: function () {
@@ -552,6 +560,10 @@ function mvNormalRelationRender(elem, kpiTypeId, mainIndicatorId, opt) {
                             $checkElements.attr({'data-isdisabled': 'true', style: 'cursor: not-allowed', 'tabindex': '-1'});
                             $checkElements.closest('.checker').addClass('disabled');
                         }
+                        $dialog.parent().find(">.ui-dialog-buttonpane").remove();
+                        $dialog.parent().find(">.ui-dialog-titlebar").remove();
+                        var dh = $dialog.parent().find(">.ui-dialog-content").height() + 110;
+                        $dialog.parent().find(">.ui-dialog-content").css("height", dh+"px");                        
                     },
                     close: function() {
                         $dialog.empty().dialog('destroy').remove();

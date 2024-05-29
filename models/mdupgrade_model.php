@@ -7304,231 +7304,233 @@ class Mdupgrade_Model extends Model {
             $idPh1 = $this->db->Param(0);
             $idPh2 = $this->db->Param(1);
             
+            $bindIds = [$newMetaId, $oldMetaId];
+            
             if (Mdmetadata::$metaGroupMetaTypeId == $metaTypeId) { 
                 
                 $oldMetaGroupLinkId = $param['oldMetaGroupLinkId'];
                 $newMetaGroupLinkId = $param['newMetaGroupLinkId'];
                 
-                $this->db->Execute("UPDATE CUSTOMER_DV_FILTER SET DV_META_DATA_ID = $idPh1 WHERE DV_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE CUSTOMER_DV_HDR_FTR SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE CUSTOMER_DV_IGNORE_LOAD SET DV_META_DATA_ID = $idPh1 WHERE DV_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE CUSTOMER_TEMPLATE SET DATA_VIEW_ID = $idPh1 WHERE DATA_VIEW_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE CUSTOMER_TEMPLATE_MAP SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE CUSTOMER_DV_FILTER SET DV_META_DATA_ID = $idPh1 WHERE DV_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE CUSTOMER_DV_HDR_FTR SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE CUSTOMER_DV_IGNORE_LOAD SET DV_META_DATA_ID = $idPh1 WHERE DV_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE CUSTOMER_TEMPLATE SET DATA_VIEW_ID = $idPh1 WHERE DATA_VIEW_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE CUSTOMER_TEMPLATE_MAP SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE META_BUSINESS_PROCESS_LINK SET REF_META_GROUP_ID = $idPh1 WHERE REF_META_GROUP_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_BUSINESS_PROCESS_LINK SET SYSTEM_META_GROUP_ID = $idPh1 WHERE SYSTEM_META_GROUP_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_BUSINESS_PROCESS_LINK SET COMMENT_STRUCTURE_ID = $idPh1 WHERE COMMENT_STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_BUSINESS_PROCESS_LINK SET REF_META_GROUP_ID = $idPh1 WHERE REF_META_GROUP_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_BUSINESS_PROCESS_LINK SET SYSTEM_META_GROUP_ID = $idPh1 WHERE SYSTEM_META_GROUP_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_BUSINESS_PROCESS_LINK SET COMMENT_STRUCTURE_ID = $idPh1 WHERE COMMENT_STRUCTURE_ID = $idPh2", $bindIds);
 
-                $this->db->Execute("UPDATE META_CARD SET DATA_VIEW_ID = $idPh1 WHERE DATA_VIEW_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_CARD SET CHART_DATA_VIEW_ID = $idPh1 WHERE CHART_DATA_VIEW_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_CARD SET DATA_VIEW_ID = $idPh1 WHERE DATA_VIEW_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_CARD SET CHART_DATA_VIEW_ID = $idPh1 WHERE CHART_DATA_VIEW_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE META_DATAMART_COLUMN SET META_GROUP_ID = $idPh1 WHERE META_GROUP_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_DM_PROCESS_DTL SET AUTO_MAP_DATAVIEW_ID = $idPh1 WHERE AUTO_MAP_DATAVIEW_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_DATAMART_COLUMN SET META_GROUP_ID = $idPh1 WHERE META_GROUP_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_DM_PROCESS_DTL SET AUTO_MAP_DATAVIEW_ID = $idPh1 WHERE AUTO_MAP_DATAVIEW_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE META_GROUP_CONFIG_USER SET MAIN_META_DATA_ID = $idPh1 WHERE MAIN_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_GROUP_CRITERIA_TEMPLATE SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_GROUP_LINK SET REF_META_GROUP_ID = $idPh1 WHERE REF_META_GROUP_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_GROUP_LINK SET DATA_LEGEND_DV_ID = $idPh1 WHERE DATA_LEGEND_DV_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_GROUP_LINK SET QS_META_DATA_ID = $idPh1 WHERE QS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_GROUP_LINK SET EXTERNAL_META_DATA_ID = $idPh1 WHERE EXTERNAL_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_GROUP_LINK SET BANNER_META_DATA_ID = $idPh1 WHERE BANNER_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_GROUP_CONFIG SET LOOKUP_KEY_META_DATA_ID = $idPh1 WHERE LOOKUP_KEY_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_GROUP_CONFIG SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_GROUP_CONFIG SET LOOKUP_META_DATA_ID = $idPh1 WHERE LOOKUP_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_GROUP_PARAM_CONFIG SET LOOKUP_META_DATA_ID = $idPh1 WHERE LOOKUP_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_GROUP_PARAM_CONFIG SET PARAM_META_DATA_ID = $idPh1 WHERE PARAM_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_GROUP_PRINT_USER SET DV_META_DATA_ID = $idPh1 WHERE DV_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_GROUP_RELATION SET SRC_META_GROUP_ID = $idPh1 WHERE SRC_META_GROUP_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_GROUP_RELATION SET TRG_META_GROUP_ID = $idPh1 WHERE TRG_META_GROUP_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_LAYOUT_LINK SET CRITERIA_DATA_VIEW_ID = $idPh1 WHERE CRITERIA_DATA_VIEW_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_PARAM_VALUES SET LOOKUP_META_DATA_ID = $idPh1 WHERE LOOKUP_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_PROCESS_LOOKUP_MAP SET LOOKUP_META_ID = $idPh1 WHERE LOOKUP_META_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_PROCESS_LOOKUP_MAP SET GROUP_META_DATA_ID = $idPh1 WHERE GROUP_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_PROCESS_NTF SET SYSTEM_META_GROUP_ID = $idPh1 WHERE SYSTEM_META_GROUP_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_GROUP_CONFIG_USER SET MAIN_META_DATA_ID = $idPh1 WHERE MAIN_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_GROUP_CRITERIA_TEMPLATE SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_GROUP_LINK SET REF_META_GROUP_ID = $idPh1 WHERE REF_META_GROUP_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_GROUP_LINK SET DATA_LEGEND_DV_ID = $idPh1 WHERE DATA_LEGEND_DV_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_GROUP_LINK SET QS_META_DATA_ID = $idPh1 WHERE QS_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_GROUP_LINK SET EXTERNAL_META_DATA_ID = $idPh1 WHERE EXTERNAL_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_GROUP_LINK SET BANNER_META_DATA_ID = $idPh1 WHERE BANNER_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_GROUP_CONFIG SET LOOKUP_KEY_META_DATA_ID = $idPh1 WHERE LOOKUP_KEY_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_GROUP_CONFIG SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_GROUP_CONFIG SET LOOKUP_META_DATA_ID = $idPh1 WHERE LOOKUP_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_GROUP_PARAM_CONFIG SET LOOKUP_META_DATA_ID = $idPh1 WHERE LOOKUP_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_GROUP_PARAM_CONFIG SET PARAM_META_DATA_ID = $idPh1 WHERE PARAM_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_GROUP_PRINT_USER SET DV_META_DATA_ID = $idPh1 WHERE DV_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_GROUP_RELATION SET SRC_META_GROUP_ID = $idPh1 WHERE SRC_META_GROUP_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_GROUP_RELATION SET TRG_META_GROUP_ID = $idPh1 WHERE TRG_META_GROUP_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_LAYOUT_LINK SET CRITERIA_DATA_VIEW_ID = $idPh1 WHERE CRITERIA_DATA_VIEW_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_PARAM_VALUES SET LOOKUP_META_DATA_ID = $idPh1 WHERE LOOKUP_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_PROCESS_LOOKUP_MAP SET LOOKUP_META_ID = $idPh1 WHERE LOOKUP_META_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_PROCESS_LOOKUP_MAP SET GROUP_META_DATA_ID = $idPh1 WHERE GROUP_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_PROCESS_NTF SET SYSTEM_META_GROUP_ID = $idPh1 WHERE SYSTEM_META_GROUP_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE META_PROCESS_PARAM_ATTR_LINK SET LOOKUP_KEY_META_DATA_ID = $idPh1 WHERE LOOKUP_KEY_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_PROCESS_PARAM_ATTR_LINK SET LOOKUP_META_DATA_ID = $idPh1 WHERE LOOKUP_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_PROCESS_PARAM_ATTR_LINK SET LOOKUP_KEY_META_DATA_ID = $idPh1 WHERE LOOKUP_KEY_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_PROCESS_PARAM_ATTR_LINK SET LOOKUP_META_DATA_ID = $idPh1 WHERE LOOKUP_META_DATA_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE META_PROCESS_SCHEDULE SET DATAVIEW_ID = $idPh1 WHERE DATAVIEW_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_REPORT_TEMPLATE_LINK SET DATA_MODEL_ID = $idPh1 WHERE DATA_MODEL_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_STATEMENT_LINK SET GROUP_DATA_VIEW_ID = $idPh1 WHERE GROUP_DATA_VIEW_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_STATEMENT_LINK SET ROW_DATA_VIEW_ID = $idPh1 WHERE ROW_DATA_VIEW_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_STATEMENT_LINK SET DATA_VIEW_ID = $idPh1 WHERE DATA_VIEW_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_PROCESS_SCHEDULE SET DATAVIEW_ID = $idPh1 WHERE DATAVIEW_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_REPORT_TEMPLATE_LINK SET DATA_MODEL_ID = $idPh1 WHERE DATA_MODEL_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_STATEMENT_LINK SET GROUP_DATA_VIEW_ID = $idPh1 WHERE GROUP_DATA_VIEW_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_STATEMENT_LINK SET ROW_DATA_VIEW_ID = $idPh1 WHERE ROW_DATA_VIEW_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_STATEMENT_LINK SET DATA_VIEW_ID = $idPh1 WHERE DATA_VIEW_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE META_WFM_ASSIGNMENT SET SYSTEM_META_GROUP_ID = $idPh1 WHERE SYSTEM_META_GROUP_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_WFM_FIELD SET SELECT_META_DATA_ID = $idPh1 WHERE SELECT_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_WFM_FIELD SET LOOKUP_META_DATA_ID = $idPh1 WHERE LOOKUP_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_WFM_STATUS SET ASSIGN_DATAVIEW_ID = $idPh1 WHERE ASSIGN_DATAVIEW_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_WORKSPACE_LINK SET ROW_DATAVIEW_ID = $idPh1 WHERE ROW_DATAVIEW_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_WORKSPACE_LINK SET GROUP_META_DATA_ID = $idPh1 WHERE GROUP_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_WFM_ASSIGNMENT SET SYSTEM_META_GROUP_ID = $idPh1 WHERE SYSTEM_META_GROUP_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_WFM_FIELD SET SELECT_META_DATA_ID = $idPh1 WHERE SELECT_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_WFM_FIELD SET LOOKUP_META_DATA_ID = $idPh1 WHERE LOOKUP_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_WFM_STATUS SET ASSIGN_DATAVIEW_ID = $idPh1 WHERE ASSIGN_DATAVIEW_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_WORKSPACE_LINK SET ROW_DATAVIEW_ID = $idPh1 WHERE ROW_DATAVIEW_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_WORKSPACE_LINK SET GROUP_META_DATA_ID = $idPh1 WHERE GROUP_META_DATA_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE META_DM_TEMPLATE_DTL SET META_GROUP_LINK_ID = $idPh1 WHERE META_GROUP_LINK_ID = $idPh2", array($newMetaGroupLinkId, $oldMetaGroupLinkId));
+                $this->db->Execute("UPDATE META_DM_TEMPLATE_DTL SET META_GROUP_LINK_ID = $idPh1 WHERE META_GROUP_LINK_ID = $idPh2", [$newMetaGroupLinkId, $oldMetaGroupLinkId]);
                 
-                $this->db->Execute("UPDATE KPI_TEMPLATE SET LIST_META_DATA_ID = $idPh1 WHERE LIST_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE KPI_TEMPLATE_FACT SET LOOKUP_META_DATA_ID = $idPh1 WHERE LOOKUP_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE KPI_TEMPLATE_FACT SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE KPI_TEMPLATE_DTL_FACT SET LOOKUP_META_DATA_ID = $idPh1 WHERE LOOKUP_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE KPI_INDICATOR_FACT SET LOOKUP_META_DATA_ID = $idPh1 WHERE LOOKUP_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE KPI_INDICATOR_FACT SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE KPI_INDICATOR_INDICATOR_FACT SET LOOKUP_META_DATA_ID = $idPh1 WHERE LOOKUP_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE KPI_TEMPLATE SET LIST_META_DATA_ID = $idPh1 WHERE LIST_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE KPI_TEMPLATE_FACT SET LOOKUP_META_DATA_ID = $idPh1 WHERE LOOKUP_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE KPI_TEMPLATE_FACT SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE KPI_TEMPLATE_DTL_FACT SET LOOKUP_META_DATA_ID = $idPh1 WHERE LOOKUP_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE KPI_INDICATOR_FACT SET LOOKUP_META_DATA_ID = $idPh1 WHERE LOOKUP_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE KPI_INDICATOR_FACT SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE KPI_INDICATOR_INDICATOR_FACT SET LOOKUP_META_DATA_ID = $idPh1 WHERE LOOKUP_META_DATA_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE KPI_INDICATOR SET LIST_META_DATA_ID = $idPh1 WHERE LIST_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE KPI_INDICATOR SET LOOKUP_META_DATA_ID = $idPh1 WHERE LOOKUP_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE KPI_INDICATOR SET LIST_META_DATA_ID = $idPh1 WHERE LIST_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE KPI_INDICATOR SET LOOKUP_META_DATA_ID = $idPh1 WHERE LOOKUP_META_DATA_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE FIN_ACCOUNT_TYPE_BP_CONFIG SET DATAVIEW_ID = $idPh1 WHERE DATAVIEW_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE FIN_ACCOUNT_TYPE_BP_CONFIG SET CHECK_DATAVIEW_ID = $idPh1 WHERE CHECK_DATAVIEW_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE REP_FIN_GENERAL_LEDGER_MAP SET DATA_VIEW_ID = $idPh1 WHERE DATA_VIEW_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE FIN_ACCOUNT_TYPE_BP_CONFIG SET DATAVIEW_ID = $idPh1 WHERE DATAVIEW_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE FIN_ACCOUNT_TYPE_BP_CONFIG SET CHECK_DATAVIEW_ID = $idPh1 WHERE CHECK_DATAVIEW_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE REP_FIN_GENERAL_LEDGER_MAP SET DATA_VIEW_ID = $idPh1 WHERE DATA_VIEW_ID = $idPh2", $bindIds);
                 $this->db->Execute("UPDATE FIN_GENERAL_LEDGER_TMP SET CRITERIA = REPLACE(CRITERIA, '$oldMetaId', '$newMetaId') WHERE CRITERIA LIKE '%$oldMetaId%'");
                 
                 /*
-                $this->db->Execute("UPDATE UM_USER_ALIAS SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_WFM_LOG SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_DATAMART_LINK SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_GROUP_LINK SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_SEMANTIC_CONFIG SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_WFM_ALIAS_LOG SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_WFM_ASSIGNMENT SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_WFM_ASSIGNMENT SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_WFM_AUTO_TRANSITION SET STRUCTURE_ID = $idPh1 WHERE STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_WFM_CRITERIA SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_WFM_FIELD SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_WFM_INHERITANCE SET SRC_REF_STRUCTURE_ID = $idPh1 WHERE SRC_REF_STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_WFM_INHERITANCE SET TRG_REF_STRUCTURE_ID = $idPh1 WHERE TRG_REF_STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_WFM_PENDING_LOG SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_WFM_STATUS_LINK SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_WFM_WORKFLOW SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE UM_USER_ALIAS SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_WFM_LOG SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_DATAMART_LINK SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_GROUP_LINK SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_SEMANTIC_CONFIG SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_WFM_ALIAS_LOG SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_WFM_ASSIGNMENT SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_WFM_ASSIGNMENT SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_WFM_AUTO_TRANSITION SET STRUCTURE_ID = $idPh1 WHERE STRUCTURE_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_WFM_CRITERIA SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_WFM_FIELD SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_WFM_INHERITANCE SET SRC_REF_STRUCTURE_ID = $idPh1 WHERE SRC_REF_STRUCTURE_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_WFM_INHERITANCE SET TRG_REF_STRUCTURE_ID = $idPh1 WHERE TRG_REF_STRUCTURE_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_WFM_PENDING_LOG SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_WFM_STATUS_LINK SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_WFM_WORKFLOW SET REF_STRUCTURE_ID = $idPh1 WHERE REF_STRUCTURE_ID = $idPh2", $bindIds);
                 */
                 
             } elseif (Mdmetadata::$businessProcessMetaTypeId == $metaTypeId) {
                 
-                $this->db->Execute("UPDATE META_BUSINESS_PROCESS_LINK SET GETDATA_PROCESS_ID = $idPh1 WHERE GETDATA_PROCESS_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_BUSINESS_PROCESS_LINK SET RULE_META_DATA_ID = $idPh1 WHERE RULE_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_BUSINESS_PROCESS_LINK SET GETDATA_PROCESS_ID = $idPh1 WHERE GETDATA_PROCESS_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_BUSINESS_PROCESS_LINK SET RULE_META_DATA_ID = $idPh1 WHERE RULE_META_DATA_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE META_CARD SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_DATAMART_SCHEDULE SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_CARD SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_DATAMART_SCHEDULE SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE META_DM_PROCESS_DTL SET AUTO_MAP_DELETE_PROCESS_ID = $idPh1 WHERE AUTO_MAP_DELETE_PROCESS_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_DM_ROW_PROCESS_PARAM SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_DM_PROCESS_DTL SET AUTO_MAP_DELETE_PROCESS_ID = $idPh1 WHERE AUTO_MAP_DELETE_PROCESS_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_DM_ROW_PROCESS_PARAM SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE META_GROUP_CONFIG SET INLINE_PROCESS_ID = $idPh1 WHERE INLINE_PROCESS_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_GROUP_CONFIG SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_GROUP_CONFIG SET INLINE_PROCESS_ID = $idPh1 WHERE INLINE_PROCESS_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_GROUP_CONFIG SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE META_GROUP_PARAM_CONFIG SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_GROUP_PARAM_CONFIG SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE META_GROUP_LINK SET RULE_PROCESS_ID = $idPh1 WHERE RULE_PROCESS_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_GROUP_LINK SET CALCULATE_PROCESS_ID = $idPh1 WHERE CALCULATE_PROCESS_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_GROUP_LINK SET RULE_PROCESS_ID = $idPh1 WHERE RULE_PROCESS_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_GROUP_LINK SET CALCULATE_PROCESS_ID = $idPh1 WHERE CALCULATE_PROCESS_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE META_PROCESS_PARAM_LINK SET DEFAULT_VALUE = $idPh1 WHERE DEFAULT_VALUE = $idPh2", array($newMetaCode, $oldMetaCode));
-                $this->db->Execute("UPDATE META_PROCESS_PARAM_LINK SET DONE_BP_ID = $idPh1 WHERE DONE_BP_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_PROCESS_PARAM_LINK SET DO_BP_ID = $idPh1 WHERE DO_BP_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_PROCESS_PARAM_LINK SET DEFAULT_VALUE = $idPh1 WHERE DEFAULT_VALUE = $idPh2", [$newMetaCode, $oldMetaCode]);
+                $this->db->Execute("UPDATE META_PROCESS_PARAM_LINK SET DONE_BP_ID = $idPh1 WHERE DONE_BP_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_PROCESS_PARAM_LINK SET DO_BP_ID = $idPh1 WHERE DO_BP_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE META_PROCESS_REPEATER SET PROCESS_ID = $idPh1 WHERE PROCESS_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_PROCESS_RULE SET RULE_PROCESS_ID = $idPh1 WHERE RULE_PROCESS_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_PROCESS_SCHEDULE SET PROCESS_ID = $idPh1 WHERE PROCESS_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_PROCESS_UNIQUE_MESSAGE SET MAIN_META_DATA_ID = $idPh1 WHERE MAIN_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_PROCESS_WORKFLOW SET DO_BP_ID = $idPh1 WHERE DO_BP_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_STATEMENT_LINK SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_PROCESS_REPEATER SET PROCESS_ID = $idPh1 WHERE PROCESS_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_PROCESS_RULE SET RULE_PROCESS_ID = $idPh1 WHERE RULE_PROCESS_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_PROCESS_SCHEDULE SET PROCESS_ID = $idPh1 WHERE PROCESS_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_PROCESS_UNIQUE_MESSAGE SET MAIN_META_DATA_ID = $idPh1 WHERE MAIN_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_PROCESS_WORKFLOW SET DO_BP_ID = $idPh1 WHERE DO_BP_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_STATEMENT_LINK SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE META_VALIDATION_RULE SET CHECK_PROCESS_META_DATA_ID = $idPh1 WHERE CHECK_PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_VALIDATION_RULE SET RUN_PROCESS_META_DATA_ID = $idPh1 WHERE RUN_PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_VALIDATION_RULE SET SKIP_PROCESS_META_DATA_ID = $idPh1 WHERE SKIP_PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_VALIDATION_RULE SET CHECK_PROCESS_META_DATA_ID = $idPh1 WHERE CHECK_PROCESS_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_VALIDATION_RULE SET RUN_PROCESS_META_DATA_ID = $idPh1 WHERE RUN_PROCESS_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_VALIDATION_RULE SET SKIP_PROCESS_META_DATA_ID = $idPh1 WHERE SKIP_PROCESS_META_DATA_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE META_WFM_STATUS SET MOBILE_PROCESS_META_DATA_ID = $idPh1 WHERE MOBILE_PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_WFM_STATUS SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_WFM_STATUS SET MOBILE_PROCESS_META_DATA_ID = $idPh1 WHERE MOBILE_PROCESS_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_WFM_STATUS SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE META_PROCESS_PARAM_ATTR_LINK SET GET_PROCESS_META_DATA_ID = $idPh1 WHERE GET_PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_PROCESS_PARAM_ATTR_LINK SET EDIT_PROCESS_META_DATA_ID = $idPh1 WHERE EDIT_PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_PROCESS_PARAM_ATTR_LINK SET GET_PROCESS_META_DATA_ID = $idPh1 WHERE GET_PROCESS_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_PROCESS_PARAM_ATTR_LINK SET EDIT_PROCESS_META_DATA_ID = $idPh1 WHERE EDIT_PROCESS_META_DATA_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE META_PROCESS_DEFAULT_GET SET GETDATA_PROCESS_ID = $idPh1 WHERE GETDATA_PROCESS_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_PROCESS_DEFAULT_GET SET GETDATA_PROCESS_ID = $idPh1 WHERE GETDATA_PROCESS_ID = $idPh2", $bindIds);
                 
                 $this->db->Execute("UPDATE META_PROCESS_WF_BEHAVIOUR SET CRITERIA = REGEXP_REPLACE(CRITERIA, '$oldMetaCode.', '$newMetaCode.', 1, 0, 'i') WHERE CRITERIA IS NOT NULL AND LOWER(CRITERIA) LIKE '$oldMetaCodeLower.%'");
                 $this->db->Execute("UPDATE META_PROCESS_WF_BEHAVIOUR SET CRITERIA = REGEXP_REPLACE(CRITERIA, 'done.$oldMetaCode.', 'done.$newMetaCode.', 1, 0, 'i') WHERE CRITERIA IS NOT NULL AND LOWER(CRITERIA) LIKE '%done.$oldMetaCodeLower.%'");
                 $this->db->Execute("UPDATE META_PROCESS_WF_BEHAVIOUR SET CRITERIA = REGEXP_REPLACE(CRITERIA, ' $oldMetaCode.', ' $newMetaCode.', 1, 0, 'i') WHERE CRITERIA IS NOT NULL AND LOWER(CRITERIA) LIKE '% $oldMetaCodeLower.%'");
                 $this->db->Execute("UPDATE META_PROCESS_WF_BEHAVIOUR SET CRITERIA = REGEXP_REPLACE(CRITERIA, '($oldMetaCode.', '($newMetaCode.', 1, 0, 'i') WHERE CRITERIA IS NOT NULL AND LOWER(CRITERIA) LIKE '%($oldMetaCodeLower.%'");
                 
-                $this->db->Execute("UPDATE META_PROCESS_NTF SET SYSTEM_META_GROUP_ID = $idPh1 WHERE SYSTEM_META_GROUP_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE NTF_NOTIFICATION_ACTION SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_PROCESS_NTF SET SYSTEM_META_GROUP_ID = $idPh1 WHERE SYSTEM_META_GROUP_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE NTF_NOTIFICATION_ACTION SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE KPI_TEMPLATE SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE KPI_TEMPLATE_DTL SET GET_PROCESS_ID = $idPh1 WHERE GET_PROCESS_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE KPI_TEMPLATE_DTL SET HELP_PROCESS_META_ID = $idPh1 WHERE HELP_PROCESS_META_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE KPI_TEMPLATE_FACT SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE KPI_TEMPLATE_DTL_FACT SET GET_PROCESS_ID = $idPh1 WHERE GET_PROCESS_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE KPI_INDICATOR_FACT SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE KPI_INDICATOR_INDICATOR_FACT SET GET_PROCESS_ID = $idPh1 WHERE GET_PROCESS_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE KPI_TEMPLATE SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE KPI_TEMPLATE_DTL SET GET_PROCESS_ID = $idPh1 WHERE GET_PROCESS_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE KPI_TEMPLATE_DTL SET HELP_PROCESS_META_ID = $idPh1 WHERE HELP_PROCESS_META_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE KPI_TEMPLATE_FACT SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE KPI_TEMPLATE_DTL_FACT SET GET_PROCESS_ID = $idPh1 WHERE GET_PROCESS_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE KPI_INDICATOR_FACT SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE KPI_INDICATOR_INDICATOR_FACT SET GET_PROCESS_ID = $idPh1 WHERE GET_PROCESS_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE FIN_ACCOUNT_TYPE_BP_CONFIG SET DEBIT_PROCESS_ID = $idPh1 WHERE DEBIT_PROCESS_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE FIN_ACCOUNT_TYPE_BP_CONFIG SET CREDIT_PROCESS_ID = $idPh1 WHERE CREDIT_PROCESS_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE FIN_ACCOUNT_TYPE_BP_CONFIG SET DEBIT_EDIT_PROCESS_ID = $idPh1 WHERE DEBIT_EDIT_PROCESS_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE FIN_ACCOUNT_TYPE_BP_CONFIG SET CREDIT_EDIT_PROCESS_ID = $idPh1 WHERE CREDIT_EDIT_PROCESS_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE FIN_ACCOUNT_TYPE_BP_CONFIG SET DELETE_PROCESS_ID = $idPh1 WHERE DELETE_PROCESS_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE FIN_ACCOUNT_TYPE_BP_CONFIG SET DEBIT_PROCESS_ID = $idPh1 WHERE DEBIT_PROCESS_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE FIN_ACCOUNT_TYPE_BP_CONFIG SET CREDIT_PROCESS_ID = $idPh1 WHERE CREDIT_PROCESS_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE FIN_ACCOUNT_TYPE_BP_CONFIG SET DEBIT_EDIT_PROCESS_ID = $idPh1 WHERE DEBIT_EDIT_PROCESS_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE FIN_ACCOUNT_TYPE_BP_CONFIG SET CREDIT_EDIT_PROCESS_ID = $idPh1 WHERE CREDIT_EDIT_PROCESS_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE FIN_ACCOUNT_TYPE_BP_CONFIG SET DELETE_PROCESS_ID = $idPh1 WHERE DELETE_PROCESS_ID = $idPh2", $bindIds);
                 
             } elseif (Mdmetadata::$statementMetaTypeId == $metaTypeId) {
                 
-                $this->db->Execute("UPDATE CUSTOMER_DEFAULT_META SET SRC_META_DATA_ID = $idPh1 WHERE SRC_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE CUSTOMER_DEFAULT_META SET ACTION_META_DATA_ID = $idPh1 WHERE ACTION_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE CUSTOMER_ST_GROUPING_CONFIG SET STATEMENT_META_DATA_ID = $idPh1 WHERE STATEMENT_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE CUSTOMER_DEFAULT_META SET SRC_META_DATA_ID = $idPh1 WHERE SRC_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE CUSTOMER_DEFAULT_META SET ACTION_META_DATA_ID = $idPh1 WHERE ACTION_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE CUSTOMER_ST_GROUPING_CONFIG SET STATEMENT_META_DATA_ID = $idPh1 WHERE STATEMENT_META_DATA_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE META_STATEMENT_TEMPLATE SET TRG_META_DATA_ID = $idPh1 WHERE TRG_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_DM_STATEMENT_DTL SET STATEMENT_META_DATA_ID = $idPh1 WHERE STATEMENT_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_STATEMENT_TEMPLATE SET TRG_META_DATA_ID = $idPh1 WHERE TRG_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_DM_STATEMENT_DTL SET STATEMENT_META_DATA_ID = $idPh1 WHERE STATEMENT_META_DATA_ID = $idPh2", $bindIds);
                 
             } elseif (Mdmetadata::$reportTemplateMetaTypeId == $metaTypeId) {
                 
-                $this->db->Execute("UPDATE CUSTOMER_TEMPLATE_MAP SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_DM_TEMPLATE_DTL SET TEMPLATE_META_DATA_ID = $idPh1 WHERE TEMPLATE_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_PROCESS_TEMPLATE SET TEMPLATE_META_DATA_ID = $idPh1 WHERE TEMPLATE_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE CUSTOMER_TEMPLATE_MAP SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_DM_TEMPLATE_DTL SET TEMPLATE_META_DATA_ID = $idPh1 WHERE TEMPLATE_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_PROCESS_TEMPLATE SET TEMPLATE_META_DATA_ID = $idPh1 WHERE TEMPLATE_META_DATA_ID = $idPh2", $bindIds);
                 
             } elseif (Mdmetadata::$menuMetaTypeId == $metaTypeId) {
                 
-                $this->db->Execute("UPDATE META_WORKSPACE_LINK SET MENU_META_DATA_ID = $idPh1 WHERE MENU_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_WORKSPACE_LINK SET SUBMENU_META_DATA_ID = $idPh1 WHERE SUBMENU_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_WORKSPACE_LINK SET DEFAULT_MENU_ID = $idPh1 WHERE DEFAULT_MENU_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_WORKSPACE_LINK SET MENU_META_DATA_ID = $idPh1 WHERE MENU_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_WORKSPACE_LINK SET SUBMENU_META_DATA_ID = $idPh1 WHERE SUBMENU_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_WORKSPACE_LINK SET DEFAULT_MENU_ID = $idPh1 WHERE DEFAULT_MENU_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE UM_USER SET CLICK_MENU_ID = $idPh1 WHERE CLICK_MENU_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE UM_USER SET DEFAULT_MENU_ID = $idPh1 WHERE DEFAULT_MENU_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE UM_USER SET CLICK_MENU_ID = $idPh1 WHERE CLICK_MENU_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE UM_USER SET DEFAULT_MENU_ID = $idPh1 WHERE DEFAULT_MENU_ID = $idPh2", $bindIds);
             }
             
             if (Mdmetadata::$metaGroupMetaTypeId == $metaTypeId || Mdmetadata::$businessProcessMetaTypeId == $metaTypeId) {
                 
-                $this->db->Execute("UPDATE CUSTOMER_META_USER_CONFIG SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE CUSTOMER_META_WS SET SRC_META_DATA_ID = $idPh1 WHERE SRC_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE CUSTOMER_META_WS SET TRG_META_DATA_ID = $idPh1 WHERE TRG_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE CUSTOMER_DV_FIELD SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE CUSTOMER_DV_OFFLINE_MOBILE SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE CUSTOMER_META_OFFLINE SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE CUSTOMER_META_USER_CONFIG SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE CUSTOMER_META_WS SET SRC_META_DATA_ID = $idPh1 WHERE SRC_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE CUSTOMER_META_WS SET TRG_META_DATA_ID = $idPh1 WHERE TRG_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE CUSTOMER_DV_FIELD SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE CUSTOMER_DV_OFFLINE_MOBILE SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE CUSTOMER_META_OFFLINE SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE META_MENU_LINK SET COUNT_META_DATA_ID = $idPh1 WHERE COUNT_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_MENU_LINK SET COUNT_META_DATA_ID = $idPh1 WHERE COUNT_META_DATA_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE META_GROUP_RELATION SET SRC_META_DATA_ID = $idPh1 WHERE SRC_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_GROUP_RELATION SET TRG_META_DATA_ID = $idPh1 WHERE TRG_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_GROUP_CONFIG SET TRG_META_DATA_ID = $idPh1 WHERE TRG_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_GROUP_RELATION SET SRC_META_DATA_ID = $idPh1 WHERE SRC_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_GROUP_RELATION SET TRG_META_DATA_ID = $idPh1 WHERE TRG_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_GROUP_CONFIG SET TRG_META_DATA_ID = $idPh1 WHERE TRG_META_DATA_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE META_SEMANTIC_TYPE SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_SRC_TRG_PARAM SET SRC_META_DATA_ID = $idPh1 WHERE SRC_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_TAG_MAP SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_VALIDATION_RULE SET LINK_META_DATA_ID = $idPh1 WHERE LINK_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_SEMANTIC_TYPE SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_SRC_TRG_PARAM SET SRC_META_DATA_ID = $idPh1 WHERE SRC_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_TAG_MAP SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_VALIDATION_RULE SET LINK_META_DATA_ID = $idPh1 WHERE LINK_META_DATA_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE META_BP_LAYOUT_SECTION SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_BP_LAYOUT_SECTION SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE META_DM_PROCESS_DTL SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_DM_TRANSFER_PROCESS SET GET_META_DATA_ID = $idPh1 WHERE GET_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_DM_TRANSFER_PROCESS SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_DM_TRANSFER_PROCESS SET DEFAULT_VALUE = $idPh1 WHERE DEFAULT_VALUE = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_DM_PROCESS_DTL SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_DM_TRANSFER_PROCESS SET GET_META_DATA_ID = $idPh1 WHERE GET_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_DM_TRANSFER_PROCESS SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_DM_TRANSFER_PROCESS SET DEFAULT_VALUE = $idPh1 WHERE DEFAULT_VALUE = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE META_DASHBOARD_LINK SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_DASHBOARD_LINK SET PROCESS_META_DATA_ID4 = $idPh1 WHERE PROCESS_META_DATA_ID4 = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_DASHBOARD_LINK SET PROCESS_META_DATA_ID3 = $idPh1 WHERE PROCESS_META_DATA_ID3 = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_DASHBOARD_LINK SET PROCESS_META_DATA_ID2 = $idPh1 WHERE PROCESS_META_DATA_ID2 = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_DASHBOARD_LINK SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_DASHBOARD_LINK SET PROCESS_META_DATA_ID4 = $idPh1 WHERE PROCESS_META_DATA_ID4 = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_DASHBOARD_LINK SET PROCESS_META_DATA_ID3 = $idPh1 WHERE PROCESS_META_DATA_ID3 = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_DASHBOARD_LINK SET PROCESS_META_DATA_ID2 = $idPh1 WHERE PROCESS_META_DATA_ID2 = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE META_LAYOUT_PARAM_MAP SET BP_META_DATA_ID = $idPh1 WHERE BP_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_PACKAGE_LINK SET COUNT_META_DATA_ID = $idPh1 WHERE COUNT_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_PARAM_VALUES SET PARAM_META_DATA_ID = $idPh1 WHERE PARAM_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_LAYOUT_PARAM_MAP SET BP_META_DATA_ID = $idPh1 WHERE BP_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_PACKAGE_LINK SET COUNT_META_DATA_ID = $idPh1 WHERE COUNT_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_PARAM_VALUES SET PARAM_META_DATA_ID = $idPh1 WHERE PARAM_META_DATA_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE META_PROCESS_PARAM_ATTR_LINK SET MORE_META_DATA_ID = $idPh1 WHERE MORE_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_PROCESS_PARAM_LINK SET DEFAULT_VALUE = $idPh1 WHERE DEFAULT_VALUE = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_PROCESS_PARAM_ATTR_LINK SET MORE_META_DATA_ID = $idPh1 WHERE MORE_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_PROCESS_PARAM_LINK SET DEFAULT_VALUE = $idPh1 WHERE DEFAULT_VALUE = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE META_DATA_ATTACH SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_DATA_SEQUENCE_CONFIG SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_DATA_ATTACH SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_DATA_SEQUENCE_CONFIG SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", $bindIds);
             }
             
             if (Mdmetadata::$metaGroupMetaTypeId == $metaTypeId 
@@ -7536,28 +7538,28 @@ class Mdupgrade_Model extends Model {
                 || Mdmetadata::$statementMetaTypeId == $metaTypeId 
                 || Mdmetadata::$reportTemplateMetaTypeId == $metaTypeId) {
                 
-                $this->db->Execute("UPDATE CUSTOMER_PROXY_CONFIG SET ACTION_META_DATA_ID = $idPh1 WHERE ACTION_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE CUSTOMER_USE_CHILD SET TRG_META_DATA_ID = $idPh1 WHERE TRG_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE CUSTOMER_USE_CHILD SET SRC_META_DATA_ID = $idPh1 WHERE SRC_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE CUSTOMER_PROXY_CONFIG SET ACTION_META_DATA_ID = $idPh1 WHERE ACTION_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE CUSTOMER_USE_CHILD SET TRG_META_DATA_ID = $idPh1 WHERE TRG_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE CUSTOMER_USE_CHILD SET SRC_META_DATA_ID = $idPh1 WHERE SRC_META_DATA_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE META_MENU_LINK SET ACTION_META_DATA_ID = $idPh1 WHERE ACTION_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_MENU_LINK SET ACTION_META_DATA_ID = $idPh1 WHERE ACTION_META_DATA_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE META_DM_DM_MAP SET SRC_META_DATA_ID = $idPh1 WHERE SRC_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_DM_DM_MAP SET TRG_META_DATA_ID = $idPh1 WHERE TRG_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_DM_DRILLDOWN_DTL SET LINK_META_DATA_ID = $idPh1 WHERE LINK_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_DM_DM_MAP SET SRC_META_DATA_ID = $idPh1 WHERE SRC_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_DM_DM_MAP SET TRG_META_DATA_ID = $idPh1 WHERE TRG_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_DM_DRILLDOWN_DTL SET LINK_META_DATA_ID = $idPh1 WHERE LINK_META_DATA_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE META_DM_PROCESS_IGNORE SET MAIN_META_DATA_ID = $idPh1 WHERE MAIN_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_DM_PROCESS_IGNORE SET TRG_META_DATA_ID = $idPh1 WHERE TRG_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_DM_PROCESS_IGNORE SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_DM_PROCESS_IGNORE SET MAIN_META_DATA_ID = $idPh1 WHERE MAIN_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_DM_PROCESS_IGNORE SET TRG_META_DATA_ID = $idPh1 WHERE TRG_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_DM_PROCESS_IGNORE SET PROCESS_META_DATA_ID = $idPh1 WHERE PROCESS_META_DATA_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE META_DM_TEMPLATE_DTL SET SRC_META_DATA_ID = $idPh1 WHERE SRC_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_PACKAGE_LINK SET DEFAULT_META_ID = $idPh1 WHERE DEFAULT_META_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_DM_TEMPLATE_DTL SET SRC_META_DATA_ID = $idPh1 WHERE SRC_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_PACKAGE_LINK SET DEFAULT_META_ID = $idPh1 WHERE DEFAULT_META_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE META_BUG_FIXING_DTL SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_BP_EXPRESSION_PROCESS SET USE_META_DATA_ID = $idPh1 WHERE USE_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_BUG_FIXING_DTL SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_BP_EXPRESSION_PROCESS SET USE_META_DATA_ID = $idPh1 WHERE USE_META_DATA_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE META_WORKSPACE_PARAM_MAP SET TARGET_META_ID = $idPh1 WHERE TARGET_META_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE META_WORKSPACE_PARAM_MAP SET LINK_META_DATA_ID = $idPh1 WHERE LINK_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE META_WORKSPACE_PARAM_MAP SET TARGET_META_ID = $idPh1 WHERE TARGET_META_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE META_WORKSPACE_PARAM_MAP SET LINK_META_DATA_ID = $idPh1 WHERE LINK_META_DATA_ID = $idPh2", $bindIds);
                 
                 $this->db->Execute("UPDATE META_BUSINESS_PROCESS_LINK SET LOAD_EXPRESSION_STRING = REPLACE(LOAD_EXPRESSION_STRING, '$oldMetaId', '$newMetaId') WHERE LOAD_EXPRESSION_STRING LIKE '%$oldMetaId%'");
                 $this->db->Execute("UPDATE META_BUSINESS_PROCESS_LINK SET EVENT_EXPRESSION_STRING = REPLACE(EVENT_EXPRESSION_STRING, '$oldMetaId', '$newMetaId') WHERE EVENT_EXPRESSION_STRING LIKE '%$oldMetaId%'");
@@ -7599,29 +7601,29 @@ class Mdupgrade_Model extends Model {
                 $this->db->Execute("UPDATE KPI_INDICATOR SET SAVE_EXPRESSION_STRING = REPLACE(SAVE_EXPRESSION_STRING, '''$oldMetaCode''', '''$newMetaCode''') WHERE SAVE_EXPRESSION_STRING LIKE '%''$oldMetaCode''%'");
                 $this->db->Execute("UPDATE KPI_INDICATOR SET AFTER_SAVE_EXPRESSION_STRING = REPLACE(AFTER_SAVE_EXPRESSION_STRING, '''$oldMetaCode''', '''$newMetaCode''') WHERE AFTER_SAVE_EXPRESSION_STRING LIKE '%''$oldMetaCode''%'");
                 
-                $this->db->Execute("UPDATE UM_META_BLOCK SET ACTION_META_DATA_ID = $idPh1 WHERE ACTION_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE UM_META_LOCK SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE UM_CRITERIA SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE UM_OBJECT SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+                $this->db->Execute("UPDATE UM_META_BLOCK SET ACTION_META_DATA_ID = $idPh1 WHERE ACTION_META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE UM_META_LOCK SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE UM_CRITERIA SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE UM_OBJECT SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", $bindIds);
                 
-                $this->db->Execute("UPDATE CONFIG_VALUE SET CONFIG_VALUE = $idPh1 WHERE CONFIG_VALUE = $idPh2", array($newMetaId, $oldMetaId));
-                $this->db->Execute("UPDATE CONFIG_VALUE SET CONFIG_VALUE = $idPh1 WHERE LOWER(CONFIG_VALUE) = $idPh2", array($newMetaCode, Str::lower($oldMetaCode)));
+                $this->db->Execute("UPDATE CONFIG_VALUE SET CONFIG_VALUE = $idPh1 WHERE CONFIG_VALUE = $idPh2", $bindIds);
+                $this->db->Execute("UPDATE CONFIG_VALUE SET CONFIG_VALUE = $idPh1 WHERE LOWER(CONFIG_VALUE) = $idPh2", [$newMetaCode, Str::lower($oldMetaCode)]);
             }
             
-            $this->db->Execute("UPDATE META_META_MAP SET TRG_META_DATA_ID = $idPh1 WHERE TRG_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-            $this->db->Execute("UPDATE META_PROXY_MAP SET TRG_META_DATA_ID = $idPh1 WHERE TRG_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+            $this->db->Execute("UPDATE META_META_MAP SET TRG_META_DATA_ID = $idPh1 WHERE TRG_META_DATA_ID = $idPh2", $bindIds);
+            $this->db->Execute("UPDATE META_PROXY_MAP SET TRG_META_DATA_ID = $idPh1 WHERE TRG_META_DATA_ID = $idPh2", $bindIds);
             
-            $this->db->Execute("UPDATE KPI_INDICATOR_INDICATOR_MAP SET LOOKUP_META_DATA_ID = $idPh1 WHERE LOOKUP_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+            $this->db->Execute("UPDATE KPI_INDICATOR_INDICATOR_MAP SET LOOKUP_META_DATA_ID = $idPh1 WHERE LOOKUP_META_DATA_ID = $idPh2", $bindIds);
             
-            $this->db->Execute("UPDATE UM_QUICK_MENU SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-            $this->db->Execute("UPDATE UM_META_PERMISSION SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-            $this->db->Execute("UPDATE UM_META_PERMISSION_CACHE SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
-            $this->db->Execute("UPDATE UM_META_PERMISSION_CACHE SET PARENT_META_DATA_ID = $idPh1 WHERE PARENT_META_DATA_ID = $idPh2", array($newMetaId, $oldMetaId));
+            $this->db->Execute("UPDATE UM_QUICK_MENU SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", $bindIds);
+            $this->db->Execute("UPDATE UM_META_PERMISSION SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", $bindIds);
+            $this->db->Execute("UPDATE UM_META_PERMISSION_CACHE SET META_DATA_ID = $idPh1 WHERE META_DATA_ID = $idPh2", $bindIds);
+            $this->db->Execute("UPDATE UM_META_PERMISSION_CACHE SET PARENT_META_DATA_ID = $idPh1 WHERE PARENT_META_DATA_ID = $idPh2", $bindIds);
             
-            $result = array('status' => 'success');
+            $result = ['status' => 'success'];
             
         } catch (Exception $ex) {
-            $result = array('status' => 'error', 'message' => $ex->getMessage());
+            $result = ['status' => 'error', 'message' => $ex->getMessage()];
         }
         
         return $result;

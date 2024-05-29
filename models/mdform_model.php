@@ -8264,7 +8264,7 @@ class Mdform_Model extends Model {
                         $title = '<div data-section-path="'.$arrRow['COLUMN_NAME_PATH'].'" class="mv-rows-title mv-rows-title-'.$arrRow['SHOW_TYPE'].'" style="text-align: '.$arrRow['BODY_ALIGN'].';">' . Lang::line($arrRow['NAME']) . $labelTooltip . '</div>';
                     }
                     
-                    if ($arrRow['SHOW_TYPE'] == 'label') {
+                    if ($arrRow['SHOW_TYPE'] == 'label' && empty($arrRow['TAB_NAME'])) {
                         
                         $prevControlType = isset(self::$prevControlType['noTab']) ? self::$prevControlType['noTab'] : null;
                         self::$prevControlType['noTab'] = 'label';
@@ -8341,6 +8341,10 @@ class Mdform_Model extends Model {
                 
                 if ($arrRow['TAB_NAME_TOP']) {
                     
+                    if (isset(self::$prevControlType['noTab']) && self::$prevControlType['noTab'] != 'tab') {
+                        $render[] = '<!--divClassRowEnd-->';
+                    }                       
+                    
                     if ($arrRow['TAB_NAME']) {
                         
                         Mdform::$topTabRender[$arrRow['TAB_NAME_TOP'].'sysTopTabName'][$arrRow['TAB_NAME']][] = $renderControl;
@@ -8349,9 +8353,15 @@ class Mdform_Model extends Model {
                         Mdform::$topTabRender[$arrRow['TAB_NAME_TOP']][] = $renderControl;
                     }
                     
+                    self::$prevControlType['noTab'] = 'tab';
+                    
                 } else {
                     
                     if ($arrRow['TAB_NAME']) {
+                                                
+                        if (isset(self::$prevControlType['noTab']) && self::$prevControlType['noTab'] != 'tab') {
+                            $render[] = '<!--divClassRowEnd-->';
+                        }                        
                         
                         Mdform::$tabRender[$arrRow['TAB_NAME']][] = $renderControl;
                         
@@ -8362,6 +8372,8 @@ class Mdform_Model extends Model {
                         if (issetParam($arrRow['IS_SHOW_SECTION_NAME'])) {
                             Mdform::$tabSectionRenderSidebar = true;
                         }
+                        
+                        self::$prevControlType['noTab'] = 'tab';
                         
                     } else {
                         

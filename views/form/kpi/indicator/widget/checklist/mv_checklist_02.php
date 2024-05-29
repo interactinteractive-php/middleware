@@ -23,7 +23,7 @@ $renderType = $this->methodRow['RENDER_THEME'];
             ?>            
             <img style="height: 24px" src="<?php echo $logoImage; ?>"/>
             <p class="mb-0 mt-0" style="font-size: 20px;font-weight: bold;<?php echo $headerTitleCss ?>"><?php echo $this->title ?></p>
-            <a title="Хаах" href="javascript:;" onclick="checklistCloseDialog()">
+            <a title="Хаах" href="javascript:;" onclick="checklistCloseDialog(this)">
                 <i style="font-size: 16px;color:#737373" class="far fa-times"></i>
             </a>
         </div>   
@@ -75,7 +75,7 @@ $renderType = $this->methodRow['RENDER_THEME'];
                     if (!$this->isIgnoreHeaderProcess) {
                     ?>
                     <div class="tab-pane active" id="structabcustom_<?php echo $this->uniqId; ?>">
-                        <div class="mv-checklist-main-render" style="background-color: rgb(244, 244, 244); width: 100%; padding: 10px 20px;">
+                        <div class="mv-checklist-main-render" style="background-color: rgb(244, 244, 244); width: 100%; padding: 10px 10px;">
                             <form method="post" enctype="multipart/form-data">
                                 <div class="meta-toolbar is-bp-open-">
                                     <div class="main-process-text">
@@ -326,9 +326,16 @@ if ($renderType == 'paper_main_window') {
     border-bottom: 0;
     padding-bottom: 0;
     margin-bottom: 0;
+    background-color: #fff;
+    padding-left: 40px;
+    padding-right: 25px;
+    padding-top: 15px;    
+    border-top-left-radius: .75rem;
+    border-top-right-radius: .75rem;    
 }
 .mv-checklist2-render-parent .mv-checklist-main-render .meta-toolbar .main-process-text {
-    display: none;
+    /*display: none;*/
+    font-size: 12px;
 }    
 .mv-checklist2-render-parent .bp-add-one-row-num {
     display: none;
@@ -373,7 +380,7 @@ if ($renderType == 'paper_main_window') {
     margin-top: -6px;
 }
 .mv-checklist2-render-parent {
-    margin: -33px -15px 0px -16px!important;
+    margin: -33px -15px 0px -20px!important;
 }
 .mv-checklist2-render-parent button.bp-btn-save i {
     display: none;
@@ -437,7 +444,7 @@ if ($renderType == 'paper_main_window') {
 .mv-checklist2-render-parent .mv-checklist-menu {
     height: 70vh;
     padding: 0;
-    margin-left: -5px;
+    /*margin-left: -5px;*/
     margin-right: -10px;
     overflow: auto;
 }
@@ -490,7 +497,7 @@ if ($renderType == 'paper_main_window') {
 }
 .kpi-form-paper-portrait .kpi-form-paper-portrait-child {
     padding-right: 15px !important;
-    padding-bottom: 0 !important;
+    padding-bottom: 0 !important;    
 }
 .kpi-form-paper-portrait {
     background-image: url("<?php echo $bgImage; ?>"); 

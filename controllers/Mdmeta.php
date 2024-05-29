@@ -4519,12 +4519,12 @@ class Mdmeta extends Controller {
     
     public static function isAccessMetaImport() {
         $sessionUserId = Ue::sessionUserId();
-        return ((defined('CONFIG_META_IMPORT') && CONFIG_META_IMPORT) || $sessionUserId == '144617860666271' || $sessionUserId == '1479354350613' || $sessionUserId == '1453998999913' || $sessionUserId == '1479354372402');
+        return ((defined('CONFIG_META_IMPORT') && CONFIG_META_IMPORT) || $sessionUserId == '144617860666271' || $sessionUserId == '1479354350613' || $sessionUserId == '1453998999913' || $sessionUserId == '1479354372402' || $sessionUserId == '1479354351113');
     }
     
     public static function isAccessMetaImportCopy() {
         $sessionUserId = Ue::sessionUserId();
-        return ($sessionUserId == '144617860666271' || $sessionUserId == '1479354372402');
+        return ($sessionUserId == '144617860666271' || $sessionUserId == '1479354372402' || $sessionUserId == '1479354351113');
     }
     
     public static function isAddMetaAccess() {

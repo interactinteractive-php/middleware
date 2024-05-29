@@ -7,8 +7,16 @@ var strIndicatorId_<?php echo $this->uniqId; ?> = '<?php echo $this->strIndicato
 $(function() { 
     
     if ($checkListMenu_<?php echo $this->uniqId; ?>.length) {
-        $checkListMenu_<?php echo $this->uniqId; ?>.height($(window).height() - $checkListMenu_<?php echo $this->uniqId; ?>.offset().top - 51);
+        $checkListMenu_<?php echo $this->uniqId; ?>.height($(window).height() - $checkListMenu_<?php echo $this->uniqId; ?>.offset().top - 23);
     }   
+    
+    if ($(".mv-checklist-main-render").length) {
+        $(".mv-checklist-main-render").css("min-height", $(window).height() - $checkListMenu_<?php echo $this->uniqId; ?>.offset().top - 139);
+    }
+    
+    if ($(".mv-checklist-render").length) {
+        $(".mv-checklist-render").css("min-height", $(window).height() - $checkListMenu_<?php echo $this->uniqId; ?>.offset().top - 139);
+    }
     
     $checkListMenu_<?php echo $this->uniqId; ?>.on('click', 'a.nav-link:not(.disabled), .add-mv-relation-btn', function() {
         var $this = $(this);
@@ -1348,7 +1356,7 @@ function checkListParentMenuShowHide(uniqId, $parent) {
         }
     }, 1);
 }
-function checklistCloseDialog () {
-    $('#dialog-valuemap-<?php echo $this->indicatorId ?>').dialog('close');
+function checklistCloseDialog (elem) {
+    $(elem).closest(".ui-dialog-content").dialog('close');
 }
 </script>
