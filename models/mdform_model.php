@@ -15447,7 +15447,7 @@ class Mdform_Model extends Model {
                     } else {
                         $sortField = "T0.$idField DESC";
                     }
-                } else {
+                } elseif ($columnName != '') {
                     if ($sortField) {
                         $sortField .= ", T0.$columnName DESC";
                     } else {

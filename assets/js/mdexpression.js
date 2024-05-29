@@ -18842,7 +18842,7 @@ function bpRunKpiIndicatorDataMart(mainSelector, elem, indicatorId, isAsync, par
     
     var paramData = {};
     
-    if (typeof paramsPath != 'undefined') {
+    if (typeof paramsPath != 'undefined' && paramsPath != '') {
         
         var paramsPathArr = paramsPath.split('|');
         var paramsLength = paramsPathArr.length;
