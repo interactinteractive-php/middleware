@@ -1218,18 +1218,31 @@ function checkListSaveKpiIndicatorForm(elem) {
 }
 function mvCheckListSidebarClose(elem) {
     var $self = $(elem);    
-    if ($self.find("i").hasClass("fa-long-arrow-left")) {
+    if ($self.find("i").hasClass("fa-arrow-alt-to-left")) {
         $self.attr("title", "Sidebar нээх");
-        $self.closest(".sidebar").css("width", "20px").find(".sidebar-content").hide();
-        $self.find("i").removeClass("fa-long-arrow-left").addClass("fa-long-arrow-right");
-        var wcontw = $self.closest('.mv-checklist2-render-parent').width() - 50;
+        $self.closest(".sidebar").css("width", "0").find(".sidebar-content").hide();
+        $self.find("i").removeClass("fa-arrow-alt-to-left").addClass("fa-arrow-alt-to-right");
+        var wcontw = $self.closest('.mv-checklist2-render-parent').width() - 0;
         $self.closest('.mv-checklist2-render-parent').find('.checklist2-content-section').css('max-width', wcontw+'px');   
+        $self.closest(".d-flex").css({
+            position: "absolute",
+            "margin-left": "7px",
+            "background-color": "#fff",
+            padding: "4px",
+            "margin-top": "93px"
+        });
+        $self.closest(".sidebar").css({
+            position: "absolute",
+            left: "3px"
+        });
         $(window).trigger("resize");
     } else {
         $self.attr("title", "Sidebar хураах");
         $self.closest(".sidebar").css("width", "280px").find(".sidebar-content").show();
-        $self.find("i").removeClass("fa-long-arrow-right").addClass("fa-long-arrow-left");
-        var wcontw = $self.closest('.mv-checklist2-render-parent').width() - 290;
+        $self.closest(".d-flex").removeAttr("style");
+        $self.closest(".sidebar").removeAttr("style");
+        $self.find("i").removeClass("fa-arrow-alt-to-right").addClass("fa-arrow-alt-to-left");
+        var wcontw = $self.closest('.mv-checklist2-render-parent').width() - 280;
         $self.closest('.mv-checklist2-render-parent').find('.checklist2-content-section').css('max-width', wcontw+'px');
         $(window).trigger("resize");
     }

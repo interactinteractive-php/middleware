@@ -29574,8 +29574,8 @@ class Mdform_Model extends Model {
                     
                     if ($fieldsConfig['SRC_IS_UNIQUE'] == '1') {
                         
-                        if ($dbFieldType == 'NUMBER' || $dbFieldType == 'INT') {
-                            $equal .= 'SRC.'.$fieldsConfig['SRC_COLUMN_NAME'].' = TO_NUMBER(TRG.'.$fieldsConfig['TRG_COLUMN_NAME'].') AND ';
+                        if ($dbFieldType == 'NUMBER' || $dbFieldType == 'INT') { 
+                            $equal .= 'SRC.'.$fieldsConfig['SRC_COLUMN_NAME']." = TO_NUMBER(REPLACE(TRG.".$fieldsConfig['TRG_COLUMN_NAME'].", ',')) AND "; 
                         } elseif ($dbFieldType == 'DATE') {
                             $equal .= 'SRC.'.$fieldsConfig['SRC_COLUMN_NAME'].' = TO_DATE(TRG.'.$fieldsConfig['TRG_COLUMN_NAME'].', \'YYYY-MM-DD HH24:MI:SS\') AND ';
                         } else {
@@ -29623,10 +29623,10 @@ class Mdform_Model extends Model {
                         
                     } elseif ($dbFieldType == 'NUMBER' || $dbFieldType == 'INT') {
                         
-                        $values .= 'TO_NUMBER(TRG.'.$fieldsConfig['TRG_COLUMN_NAME'].'), ';
+                        $values .= "TO_NUMBER(REPLACE(TRG.".$fieldsConfig['TRG_COLUMN_NAME'].", ',')), ";
                         
                         if ($fieldsConfig['SRC_IS_UNIQUE'] != '1') {
-                            $update .= 'SRC.'.$fieldsConfig['SRC_COLUMN_NAME'].' = TO_NUMBER(TRG.'.$fieldsConfig['TRG_COLUMN_NAME'].'), ';
+                            $update .= 'SRC.'.$fieldsConfig['SRC_COLUMN_NAME']." = TO_NUMBER(REPLACE(TRG.".$fieldsConfig['TRG_COLUMN_NAME'].", ',')), ";
                         }
                     } elseif ($dbFieldType == 'DATE') {
                         

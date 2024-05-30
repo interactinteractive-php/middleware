@@ -104,7 +104,7 @@ $renderType = $this->methodRow['RENDER_THEME'];
                             <div class="d-flex">
                                 <div class="sidebar sidebar-light sidebar-secondary sidebar-expand-md pr-2" style="width:280px">
                                     <div class="d-flex justify-content-end">
-                                        <a href="javascript:;" title="Sidebar хураах" onclick="mvCheckListSidebarClose(this)" style="color: #333;font-size: 15px;line-height: 0;"><i class="far fa-long-arrow-left"></i></a>
+                                        <a href="javascript:;" title="Sidebar хураах" onclick="mvCheckListSidebarClose(this)" style="color: #333;font-size: 15px;line-height: 0;"><i class="far fa-arrow-alt-to-left"></i></a>
                                     </div>
                                     <div class="sidebar-content">
 
