@@ -6781,6 +6781,27 @@ class Mdform_Model extends Model {
                 );
             }
             break;
+            
+            case 'toggle':
+            {
+                if (isset($templateRow['rowNum']) && $templateRow['rowNum'] !== '') {
+                    $controlName = 'mvParam'.Mdform::$addonPathPrefix.Mdform::$pathPrefix.'['.$columnNamePath.']['.$templateRow['rowNum'].']';
+                }
+                
+                $control = '<label class="bp-toggle-btn">' . Form::checkbox(
+                    [
+                        'name' => $controlName, 
+                        'id' => $controlName, 
+                        'data-path' => $columnNamePath, 
+                        'data-col-path' => $code, 
+                        'class' => 'notuniform toggleInit', 
+                        'data-field-name' => $cellId, 
+                        'value' => '1', 
+                        'saved_val' => $value 
+                    ] + $addAttrs 
+                ) . '<span class="bp-toggle-btn-slider round"></span></label>';
+            }
+            break;
         
             case 'date':
             {
