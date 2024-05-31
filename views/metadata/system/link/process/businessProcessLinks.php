@@ -567,20 +567,17 @@
                             <td class="left-padding">
                                 <label for="helpContentId"><?php echo $this->lang->line('MET_99990359'); ?> (CONTENT ID):</label>
                             </td>
-                            <td>
+                            <td colspan="2">
                                 <?php
                                 echo Form::text(
                                     array(
                                         'name' => 'helpContentId',
                                         'id' => 'helpContentId',
                                         'placeholder' => 'Контентийн ID',
-                                        'class' => 'form-control',
+                                        'class' => 'form-control longInit',
                                     )
                                 );
                                 ?>
-                            </td>
-                            <td style="text-align: right;">
-                                <?php echo Form::button(array('class' => 'btn btn-sm purple-plum', 'value' => '...', 'onclick' => 'manageHelpContent(this);')); ?>
                             </td>
                         </tr>
                         <tr>
@@ -1124,22 +1121,6 @@ function manageTheme(elem) {
         Core.initAjax($("#" + $dialogName));
         Core.unblockUI();
     });
-}
-    
-function manageHelpContent(elem) {
-    if (typeof contentHtmlList === 'undefined') {
-        $.getScript(URL_APP + 'middleware/assets/js/contentui/contentHtmlList.js', function(){
-            $.getStylesheet(URL_APP + 'middleware/assets/css/contentui/contentHtmlList.css');
-            contentHtmlList.initDecimalAdjust();
-            contentHtmlList.initContentHtmlList(function($dialogName, $appendToForm, data){
-                contentHtmlList.showContentHtmlListDialog($dialogName, $appendToForm, data, elem);    
-            });
-        });
-    } else {
-        contentHtmlList.initContentHtmlList(function($dialogName, $appendToForm, data){
-            contentHtmlList.showContentHtmlListDialog($dialogName, $appendToForm, data, elem);    
-        });
-    }
 }
 function setParamAttributesNew(elem) {
 

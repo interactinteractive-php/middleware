@@ -70,6 +70,7 @@ if (Input::postCheck('endSessionLogStatusCombo')) {
 }
 ?>
 <div class="kpi-ind-tmplt-section" id="kpi-<?php echo $this->uniqId; ?>" data-process-id="<?php echo $this->indicatorId; ?>" data-bp-uniq-id="<?php echo $this->uniqId; ?>">
+    <div class="row" style="background-color: #fff;border-bottom-left-radius: .75rem;border-bottom-right-radius: .75rem;">
     <?php
     if (!Input::numeric('isIgnoreRunButton')) {
         
@@ -225,6 +226,7 @@ if (Input::postCheck('endSessionLogStatusCombo')) {
     echo $this->standardHiddenFields;
     echo implode('', Mdform::$headerHiddenControl);
     ?>
+</div>
 </div>
 <?php
 if (issetParam($this->renderComponentsBanner) === '1') {

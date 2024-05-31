@@ -624,15 +624,18 @@ $(function() {
                                 <div>'+$this.text()+'</div>\n\
                                 <div class="main-process-text-description">'+(dataHtml.indicatorInfo && dataHtml.indicatorInfo.DESCRIPTION ? dataHtml.indicatorInfo.DESCRIPTION : '')+'</div>\n\
                             </div>';
-                        var sveActionBtn = ''
+                        var sveActionBtn = '';
                         
                         if (viewMode_<?php echo $this->uniqId; ?> != 'view') {
-                            sveActionBtn = '<div class="ml-auto pull-right">'+
-                                    '<button type="button" class="btn btn-sm btn-circle btn-success bpMainSaveButton bp-btn-save" onclick="checkListSaveKpiIndicatorForm(this, \'\', \''+strIndicatorId+'\');"><i class="icon-checkmark-circle2"></i> '+plang.get('save_btn')+'</button>'+
-                                '</div>';
+                            
+                            sveActionBtn = '<div class="ml-auto pull-right">';
+                            if (dataHtml.hasOwnProperty('helpContentId') && dataHtml.helpContentId !== null && dataHtml.helpContentId !== '') {
+                                sveActionBtn += '<button type="button" class="btn btn-sm btn-circle btn-success bpMainSaveButton bp-btn-help mr-1" onclick="redirectHelpContent(this, \''+dataHtml.helpContentId+'\', \''+strIndicatorId+'\', \'mv_method\');">'+plang.get('menu_system_guide')+'</button>';
+                            }
+                                sveActionBtn += '<button type="button" class="btn btn-sm btn-circle btn-success bpMainSaveButton bp-btn-save" onclick="checkListSaveKpiIndicatorForm(this, \'\', \''+strIndicatorId+'\');"><i class="icon-checkmark-circle2"></i> '+plang.get('save_btn')+'</button>';
+                            sveActionBtn += '</div>';
                         }
                         
-                        //renderHeader += sveActionBtn;
                         renderHeader += '</div>';
                 
                         html.push('<form method="post" enctype="multipart/form-data">');

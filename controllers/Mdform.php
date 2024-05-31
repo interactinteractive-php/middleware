@@ -37,6 +37,7 @@ class Mdform extends Controller {
     public static $indicatorFormLogo = null;
     public static $methodStructureIndicatorId = null;
     public static $currentKpiTypeId = null;
+    public static $helpContentId = null;
     public static $addonId = 0;
     public static $radioPrefix = '';
     public static $labelName = '';
@@ -1206,9 +1207,10 @@ class Mdform extends Controller {
             
             if ($this->view->crudIndicatorId) {
                 
-                $isMethodWithParam = $this->model->getKpiIndicatorMapChildCountModel($this->view->crudIndicatorId);
+                $methodRow = $this->model->getKpiIndicatorRowModel($this->view->crudIndicatorId);
+                Mdform::$helpContentId = isset($methodRow['CONTENT_ID']) ? $methodRow['CONTENT_ID'] : null;
                 
-                if ($isMethodWithParam) {
+                if (isset($methodRow['COUNT_PARAM']) && $methodRow['COUNT_PARAM']) {
                     $structureIndicatorRow = $this->model->getKpiIndicatorRowModel($structureIndicatorId);
                     $this->view->indicatorId = $this->view->crudIndicatorId;
                 }
@@ -1367,19 +1369,20 @@ class Mdform extends Controller {
                     }
                 }
                 
-//                if (!Mdform::$tabRender && !Mdform::$topTabRender) {
-//                }
-                $this->view->form = str_replace(['<!--divClassRowStart-->', '<!--divClassRowEnd-->'], ['<div class="row mv-header-params">', '</div>'], $this->view->form);
+                /*if (!Mdform::$tabRender && !Mdform::$topTabRender) {
+                }
+                $this->view->form = str_replace(['<!--divClassRowStart-->', '<!--divClassRowEnd-->'], ['<div class="row mv-header-params">', '</div>'], $this->view->form);*/
                         
                 $response = [
-                    'status' => 'success', 
-                    'html' => $this->view->form, 
-                    'name' => $this->view->title, 
-                    'windowType' => $dataFirstRow['WINDOW_TYPE'], 
-                    'windowSize' => $dataFirstRow['WINDOW_SIZE'], 
-                    'windowWidth' => $dataFirstRow['WINDOW_WIDTH'], 
-                    'windowHeight' => $dataFirstRow['WINDOW_HEIGHT'], 
-                    'uniqId' => $this->view->uniqId 
+                    'status'        => 'success', 
+                    'html'          => $this->view->form, 
+                    'name'          => $this->view->title, 
+                    'windowType'    => $dataFirstRow['WINDOW_TYPE'], 
+                    'windowSize'    => $dataFirstRow['WINDOW_SIZE'], 
+                    'windowWidth'   => $dataFirstRow['WINDOW_WIDTH'], 
+                    'windowHeight'  => $dataFirstRow['WINDOW_HEIGHT'], 
+                    'uniqId'        => $this->view->uniqId, 
+                    'helpContentId' => Mdform::$helpContentId
                 ];
                 
             } else {

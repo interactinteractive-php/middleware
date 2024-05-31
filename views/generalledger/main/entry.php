@@ -59,7 +59,7 @@ if (!$this->isAjax) {
             <div class="form-actions mt15 form-actions-btn">
                 <div class="row">
                     <div class="col-md-12 text-right">
-                        <?php
+                        <?php 
                         if ($this->isAjax && $this->isDataView) {
                             echo html_tag('button', 
                                 array(
@@ -71,6 +71,7 @@ if (!$this->isAjax) {
                                 '<i class="fa fa-reply"></i> ' . $this->lang->line('back_btn')  
                             );
                         } 
+                        echo Mdcommon::redirectHelpContentButton('FIN_GL_ENTRY_HELP_CONTENT');
                         echo html_tag('button', 
                             array(
                                 'type' => 'button', 

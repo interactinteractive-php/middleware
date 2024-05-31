@@ -4282,107 +4282,123 @@ class Mdform_Model extends Model {
             
             try {
                 
+                $cache = phpFastCache();
                 $langCode = Lang::getCode();
-            
-                $row = $this->db->GetRow("
-                    SELECT 
-                        KI.ID, 
-                        KI.CODE, 
-                        ".$this->db->IfNull('KI.LABEL_NAME', "FNC_TRANSLATE('$langCode', KI.TRANSLATION_VALUE, 'NAME', KI.NAME)")." AS NAME, 
-                        KI.DESCRIPTION, 
-                        KI.RENDER_TYPE, 
-                        KI.TABLE_NAME, 
-                        KI.QUERY_STRING, 
-                        KI.PARENT_ID, 
-                        LOWER(KI.TYPE_CODE) AS TYPE_CODE, 
-                        KI.NAME_PATTERN, 
-                        KI.KPI_TYPE_ID, 
-                        KI.STRUCTURE_INDICATOR_ID, 
-                        KI.META_REF_STRUCTURE_ID, 
-                        null AS PIVOT_VALUE_META_DATA_ID, 
-                        null AS PIVOT_VALUE_CRITERIA, 
-                        null AS INDICATOR_COL_WIDTH, 
-                        null AS WIDTH, 
-                        null AS HEIGHT, 
-                        null AS EXPRESSION_TEMPLATE_ID,
-                        null AS TYPE_ID, 
-                        null AS DEFAULT_TEMPLATE_ID, 
-                        null AS MERGE_COL_COUNT, 
-                        KI.IS_USE_WORKFLOW, 
-                        KI.IS_FILTER_SHOW_DATA, 
-                        KI.IS_USE_COMPANY_DEPARTMENT_ID, 
-                        KI.IS_DATA_COMPANY_DEPARTMENT_ID, 
-                        KI.IS_ADDON_FILE, 
-                        KI.IS_ADDON_PHOTO,
-                        KI.GRAPH_JSON, 
-                        KI.JSON_CONFIG, 
-                        KI.GRID_OPTION, 
-                        KI.WIDGET_ID, 
-                        KI.METHOD_WIDGET_ID, 
-                        KI.PROFILE_PICTURE, 
-                        KI.WINDOW_WIDTH, 
-                        KI.WINDOW_SIZE,
-                        KI.RENDER_THEME, 
-                        KI.ICON, 
-                        KI.SEARCH_TYPE, 
-                        KI.SEARCH_COLUMN_NUMBER, 
-                        KI.IS_DATA_DELETE_PERMANENTLY, 
-                        MW.CODE AS RELATION_WIDGET_CODE, 
-                        MWW.CODE AS WIDGET_CODE, 
-                        (
-                            SELECT 
-                                COUNT(1) 
-                            FROM KPI_INDICATOR_INDICATOR_MAP T0 
-                                INNER JOIN KPI_INDICATOR T1 ON T1.ID = T0.TRG_INDICATOR_ID 
-                                    AND T1.KPI_TYPE_ID = 2011  
-                                INNER JOIN META_REPORT_TEMPLATE_LINK T2 ON T2.MAIN_INDICATOR_ID = T1.ID 
-                                    AND T2.DATA_INDICATOR_ID IS NOT NULL 
-                            WHERE T0.SRC_INDICATOR_ID = KI.ID  
-                                AND T0.SEMANTIC_TYPE_ID = 10000015
-                        ) AS COUNT_REPORT_TEMPLATE, 
-                        (
-                            SELECT 
-                                COUNT(1) 
-                            FROM KPI_INDICATOR_INDICATOR_MAP T0 
-                                INNER JOIN KPI_INDICATOR T1 ON T1.ID = T0.TRG_INDICATOR_ID
-                            WHERE T0.SRC_INDICATOR_ID = KI.ID  
-                                AND T0.SEMANTIC_TYPE_ID = 29
-                        ) AS COUNT_IS_SUBGRID, 
-                        (
-                            SELECT 
-                                COUNT(1) 
-                            FROM KPI_INDICATOR_INDICATOR_MAP T0 
-                            WHERE T0.MAIN_INDICATOR_ID = KI.ID 
-                                AND T0.IS_UNIQUE = 1 
-                                AND T0.COLUMN_NAME IS NOT NULL 
-                                AND ".$this->db->IfNull('T0.IS_INPUT', '0')." = 1 
-                                AND T0.SHOW_TYPE NOT IN ('row', 'rows', 'label', 'config') 
-                        ) AS COUNT_UNIQUE 
-                    FROM KPI_INDICATOR KI 
-                        LEFT JOIN META_WIDGET MW ON MW.ID = KI.RELATION_WIDGET_ID 
-                        LEFT JOIN META_WIDGET MWW ON MWW.ID = KI.WIDGET_ID 
-                    WHERE KI.ID = ".$this->db->Param(0), 
-                    [$templateId]
-                );
-
-                if ($row) {
-
-                    $isQueryString = ($row['QUERY_STRING']) ? true : false;
-                    $isCheckSystemTable = $isQueryString ? true : self::isCheckSystemTable($row['TABLE_NAME']);
-
-                    $row['isCheckSystemTable'] = $isCheckSystemTable;
+                $cacheName = 'kpi_'.$templateId.'_hdr_'.$langCode;
+                $row = $cache->get($cacheName);
+                
+                if ($row == null) {
                     
-                    if ($row['GRID_OPTION']) {
-                        $gridOption = @json_decode($row['GRID_OPTION'], true);
-                        
-                        if ($gridOption) {
-                            $row['gridOption'] = Arr::changeKeyLower($gridOption);
+                    $row = $this->db->GetRow("
+                        SELECT 
+                            KI.ID, 
+                            KI.CODE, 
+                            ".$this->db->IfNull('KI.LABEL_NAME', "FNC_TRANSLATE('$langCode', KI.TRANSLATION_VALUE, 'NAME', KI.NAME)")." AS NAME, 
+                            KI.DESCRIPTION, 
+                            KI.RENDER_TYPE, 
+                            KI.TABLE_NAME, 
+                            KI.QUERY_STRING, 
+                            KI.PARENT_ID, 
+                            LOWER(KI.TYPE_CODE) AS TYPE_CODE, 
+                            KI.NAME_PATTERN, 
+                            KI.KPI_TYPE_ID, 
+                            KI.STRUCTURE_INDICATOR_ID, 
+                            KI.META_REF_STRUCTURE_ID, 
+                            null AS PIVOT_VALUE_META_DATA_ID, 
+                            null AS PIVOT_VALUE_CRITERIA, 
+                            null AS INDICATOR_COL_WIDTH, 
+                            null AS WIDTH, 
+                            null AS HEIGHT, 
+                            null AS EXPRESSION_TEMPLATE_ID,
+                            null AS TYPE_ID, 
+                            null AS DEFAULT_TEMPLATE_ID, 
+                            null AS MERGE_COL_COUNT, 
+                            KI.IS_USE_WORKFLOW, 
+                            KI.IS_FILTER_SHOW_DATA, 
+                            KI.IS_USE_COMPANY_DEPARTMENT_ID, 
+                            KI.IS_DATA_COMPANY_DEPARTMENT_ID, 
+                            KI.IS_ADDON_FILE, 
+                            KI.IS_ADDON_PHOTO,
+                            KI.GRAPH_JSON, 
+                            KI.JSON_CONFIG, 
+                            KI.GRID_OPTION, 
+                            KI.WIDGET_ID, 
+                            KI.METHOD_WIDGET_ID, 
+                            KI.PROFILE_PICTURE, 
+                            KI.WINDOW_WIDTH, 
+                            KI.WINDOW_SIZE,
+                            KI.RENDER_THEME, 
+                            KI.ICON, 
+                            KI.SEARCH_TYPE, 
+                            KI.SEARCH_COLUMN_NUMBER, 
+                            KI.IS_DATA_DELETE_PERMANENTLY, 
+                            KI.CONTENT_ID, 
+                            MW.CODE AS RELATION_WIDGET_CODE, 
+                            MWW.CODE AS WIDGET_CODE, 
+                            (
+                                SELECT 
+                                    COUNT(1) 
+                                FROM KPI_INDICATOR_INDICATOR_MAP T0 
+                                    INNER JOIN KPI_INDICATOR T1 ON T1.ID = T0.TRG_INDICATOR_ID 
+                                        AND T1.KPI_TYPE_ID = 2011  
+                                    INNER JOIN META_REPORT_TEMPLATE_LINK T2 ON T2.MAIN_INDICATOR_ID = T1.ID 
+                                        AND T2.DATA_INDICATOR_ID IS NOT NULL 
+                                WHERE T0.SRC_INDICATOR_ID = KI.ID  
+                                    AND T0.SEMANTIC_TYPE_ID = 10000015
+                            ) AS COUNT_REPORT_TEMPLATE, 
+                            (
+                                SELECT 
+                                    COUNT(1) 
+                                FROM KPI_INDICATOR_INDICATOR_MAP T0 
+                                    INNER JOIN KPI_INDICATOR T1 ON T1.ID = T0.TRG_INDICATOR_ID
+                                WHERE T0.SRC_INDICATOR_ID = KI.ID  
+                                    AND T0.SEMANTIC_TYPE_ID = 29
+                            ) AS COUNT_IS_SUBGRID, 
+                            (
+                                SELECT 
+                                    COUNT(1) 
+                                FROM KPI_INDICATOR_INDICATOR_MAP T0 
+                                WHERE T0.MAIN_INDICATOR_ID = KI.ID 
+                                    AND T0.IS_UNIQUE = 1 
+                                    AND T0.COLUMN_NAME IS NOT NULL 
+                                    AND ".$this->db->IfNull('T0.IS_INPUT', '0')." = 1 
+                                    AND T0.SHOW_TYPE NOT IN ('row', 'rows', 'label', 'config') 
+                            ) AS COUNT_UNIQUE, 
+                            (
+                                SELECT 
+                                    COUNT(1) 
+                                FROM KPI_INDICATOR_INDICATOR_MAP 
+                                WHERE MAIN_INDICATOR_ID = KI.ID 
+                                    AND COLUMN_NAME IS NOT NULL 
+                            ) AS COUNT_PARAM 
+                        FROM KPI_INDICATOR KI 
+                            LEFT JOIN META_WIDGET MW ON MW.ID = KI.RELATION_WIDGET_ID 
+                            LEFT JOIN META_WIDGET MWW ON MWW.ID = KI.WIDGET_ID 
+                        WHERE KI.ID = ".$this->db->Param(0), 
+                        [$templateId]
+                    );
+
+                    if ($row) {
+
+                        $isQueryString = ($row['QUERY_STRING']) ? true : false;
+                        $isCheckSystemTable = $isQueryString ? true : self::isCheckSystemTable($row['TABLE_NAME']);
+
+                        $row['isCheckSystemTable'] = $isCheckSystemTable;
+
+                        if ($row['GRID_OPTION']) {
+                            $gridOption = @json_decode($row['GRID_OPTION'], true);
+
+                            if ($gridOption) {
+                                $row['gridOption'] = Arr::changeKeyLower($gridOption);
+                            }
                         }
-                    }
-                    
-                    $row['subgrid'] = '';
-                    if ($row['COUNT_IS_SUBGRID']) {
-                        $row['subgrid'] = self::isSubDataView($templateId);
+
+                        $row['subgrid'] = '';
+                        if ($row['COUNT_IS_SUBGRID']) {
+                            $row['subgrid'] = self::isSubDataView($templateId);
+                        }
+                        
+                        $cache->set($cacheName, $row, Mdwebservice::$expressionCacheTime);
                     }
                 }
 
@@ -6428,7 +6444,7 @@ class Mdform_Model extends Model {
                 $tt++;
             }                      
             $sideSectionRender = [];
-            $sideSectionRender[] = '<div class="d-flex">';
+            $sideSectionRender[] = '<div class="d-flex" style="background-color: rgb(244, 244, 244);">';
             $sideSectionRender[] = '<div class="mv-checklist-section-sidebar">';
             $sideSectionRender[] = '<div style="">';
             $sideSectionRender[] = implode('', $tnames);
@@ -8186,6 +8202,10 @@ class Mdform_Model extends Model {
                         continue;
                     }
                     
+                    if ($depth == 0 && issetParam(self::$prevControlType['firstLevelType']) == 'label') {
+                        $controlRender[] = '<!--divClassRowEnd-->';
+                    }                    
+                    
                     if ($arrRow['EXPRESSION_STRING']) {
                         
                         $expStr = html_entity_decode($arrRow['EXPRESSION_STRING']);
@@ -8220,6 +8240,10 @@ class Mdform_Model extends Model {
                     
                     $control = self::kpiIndicatorControl($arrRow, $rowData);
                     
+                    if ($depth == 0 && isset(self::$prevControlType['firstLevelType'])) {
+                        self::$prevControlType['firstLevelType'] = $arrRow['SHOW_TYPE'];
+                    }                      
+                    
                     if ($inlineRows) {
                         
                         Mdform::$headerInlineFields[] = ['rowsPath' => $inlineRows, 'fieldPath' => $arrRow['COLUMN_NAME_PATH'], 'label' => $label, 'control' => $control];
@@ -8253,7 +8277,7 @@ class Mdform_Model extends Model {
                             }
                                 
                         $controlRender[] = '</div>';
-                    }
+                    }                                     
                     
                 } elseif ($arrRow['IS_RENDER'] == '1') {
                     
@@ -8285,7 +8309,7 @@ class Mdform_Model extends Model {
                         $title = '<div data-section-path="'.$arrRow['COLUMN_NAME_PATH'].'" class="mv-rows-title mv-rows-title-'.$arrRow['SHOW_TYPE'].'" style="text-align: '.$arrRow['BODY_ALIGN'].';">' . Lang::line($arrRow['NAME']) . $labelTooltip . '</div>';
                     }
                     
-                    if ($arrRow['SHOW_TYPE'] == 'label' && empty($arrRow['TAB_NAME'])) {
+                    if ($arrRow['SHOW_TYPE'] == 'label') {
                         
                         $prevControlType = isset(self::$prevControlType['noTab']) ? self::$prevControlType['noTab'] : null;
                         self::$prevControlType['noTab'] = 'label';
@@ -8305,7 +8329,7 @@ class Mdform_Model extends Model {
                         }
                         
                         $controlRender[] = $title;
-                        $controlRender[] = '<div data-section-path="'.$arrRow['COLUMN_NAME_PATH'].'">';
+                        $controlRender[] = '<div class="row" data-section-path="'.$arrRow['COLUMN_NAME_PATH'].'">';
                         
                         if ($childControls) {
                             $controlRender[] = $childControls;
@@ -8330,7 +8354,7 @@ class Mdform_Model extends Model {
                         $rowsData = (is_array(Mdform::$kpiDmMart) ? issetParamArray(Mdform::$kpiDmMart[$arrRow['COLUMN_NAME_PATH']]) : []);
                         
                         $controlRender[] = $title;
-                        $controlRender[] = '<div data-section-path="'.$arrRow['COLUMN_NAME_PATH'].'">';
+                        $controlRender[] = '<div style="margin-right: 2.2rem;margin-left: 2.2rem;" data-section-path="'.$arrRow['COLUMN_NAME_PATH'].'">';
                         
                         if ($isTemplateConfig || $isTemplateRows) {
                             $controlRender[] = self::rowsKpiIndicatorTemplate($indicatorId, $data, $arrRow['ID'], $arrRow, $rowsData);
@@ -8343,7 +8367,7 @@ class Mdform_Model extends Model {
                     } elseif ($arrRow['SHOW_TYPE'] == 'row') {
                         
                         $controlRender[] = $title;
-                        $controlRender[] = '<div data-section-path="'.$arrRow['COLUMN_NAME_PATH'].'">';
+                        $controlRender[] = '<div style="margin-right: 2.2rem;margin-left: 2.2rem;" data-section-path="'.$arrRow['COLUMN_NAME_PATH'].'">';
                         $controlRender[] = self::rowKpiIndicator($indicatorId, $data, $arrRow['ID'], $arrRow, (is_array(Mdform::$kpiDmMart) ? issetParamArray(Mdform::$kpiDmMart[$arrRow['COLUMN_NAME_PATH']]) : []));
                         $controlRender[] = '</div>';
                     }
@@ -8352,7 +8376,7 @@ class Mdform_Model extends Model {
                         
                         self::$prevControlType['firstLevelType'] = $arrRow['SHOW_TYPE'];
                         
-                        if ($depth == 0 && self::$prevControlType['firstLevelType'] != 'label') {
+                        if (self::$prevControlType['firstLevelType'] != 'label') {
                             $controlRender[] = '<!--divClassRowEnd-->';
                         }
                     }
@@ -8393,6 +8417,10 @@ class Mdform_Model extends Model {
                         if (issetParam($arrRow['IS_SHOW_SECTION_NAME'])) {
                             Mdform::$tabSectionRenderSidebar = true;
                         }
+                        
+//                        if ('17168665506533' == $arrRow['ID']) {
+//                            pa(Mdform::$tabRender);
+//                        }                        
                         
                         self::$prevControlType['noTab'] = 'tab';
                         
@@ -12464,7 +12492,7 @@ class Mdform_Model extends Model {
                 $rs = self::dbAutoExecuteMetaVerseData(Mdform::$mvDbParams['header']['tableName'], Mdform::$mvDbParams['header']['data']);
                 
                 if ($rs && isset($setStartWfmStatusId)) {
-                    $setWfmStatusArr = array('statusId' => $setStartWfmStatusId, 'metaDataId' => $wfmStructureId, 'id' => $rowId);
+                    $setWfmStatusArr = ['statusId' => $setStartWfmStatusId, 'metaDataId' => $wfmStructureId, 'id' => $rowId];
                 }
             
             } else {
@@ -12809,7 +12837,7 @@ class Mdform_Model extends Model {
                 
                 $_POST['newWfmStatusid'] = $setWfmStatusArr['statusId'];
                 $_POST['metaDataId'] = $setWfmStatusArr['metaDataId'];
-                $_POST['dataRow'] = ['id' => $setWfmStatusArr['id']];
+                $_POST['dataRow'] = array_merge(Mdform::$mvDbParams['header']['data'], ['id' => $setWfmStatusArr['id']]);
                 $_POST['description'] = '';
                 $_POST['isIndicator'] = 1;
                 
@@ -16445,39 +16473,39 @@ class Mdform_Model extends Model {
                                 ob_end_clean();
 
                                 if ($error) {
-                                    return array('status' => 'warning', 'message' => Mdcommon::parseCodeErrorMsg($error));
+                                    return ['status' => 'warning', 'message' => Mdcommon::parseCodeErrorMsg($error)];
                                 } elseif ($isCheck) {
                                     
                                     $lastError = error_get_last();
                                     if (isset($lastError['file']) && strpos($lastError['file'], 'mdform_model') !== false) {
-                                        return array('status' => 'warning', 'message' => Mdcommon::parseCodeErrorMsg($lastError['message']));
+                                        return ['status' => 'warning', 'message' => Mdcommon::parseCodeErrorMsg($lastError['message'])];
                                     } 
                                     
                                     if (!$message) {
                                         $message = 'Нөхцөл тохирохгүй байна!';
                                     }
 
-                                    return array('status' => 'warning', 'message' => $message);
+                                    return ['status' => 'warning', 'message' => $message];
                                 }
             
                             } catch (ParseError $p) {
-                                return array('status' => 'error', 'message' => $p->getMessage());
+                                return ['status' => 'error', 'message' => $p->getMessage()];
                             } catch (Error $p) {
-                                return array('status' => 'error', 'message' => $p->getMessage());
+                                return ['status' => 'error', 'message' => $p->getMessage()];
                             } catch (Throwable $p) {
-                                return array('status' => 'error', 'message' => $p->getMessage());
+                                return ['status' => 'error', 'message' => $p->getMessage()];
                             } catch (Exception $p) {
-                                return array('status' => 'error', 'message' => $p->getMessage());
+                                return ['status' => 'error', 'message' => $p->getMessage()];
                             }
                         }
                     }
                 } else {
-                    return array('status' => 'warning', 'message' => $this->lang->line('msg_pls_list_select'));
+                    return ['status' => 'warning', 'message' => $this->lang->line('msg_pls_list_select')];
                 }
             }
         }
         
-        return array('status' => 'success');
+        return ['status' => 'success'];
     }
     
     public function getCountIndicatorActionCriteria($mainIndicatorId, $actionIndicatorId) {
@@ -16526,10 +16554,11 @@ class Mdform_Model extends Model {
                     AND RS.CRITERIA IS NOT NULL 
                     AND (UR.USER_ID IS NOT NULL OR UK.USER_ID IS NOT NULL) 
                 GROUP BY  
-                    PK.SEGMENTATION_ID
+                    PK.SEGMENTATION_ID 
             ) T0 
-                INNER JOIN REF_SEGMENTATION T1 ON T1.ID = T0.SEGMENTATION_ID", 
-            array($mainIndicatorId, $actionIndicatorId, Ue::sessionUserKeyId()));
+            INNER JOIN REF_SEGMENTATION T1 ON T1.ID = T0.SEGMENTATION_ID", 
+            [$mainIndicatorId, $actionIndicatorId, Ue::sessionUserKeyId()]
+        );
         
         return $data;
     }
@@ -27960,7 +27989,7 @@ class Mdform_Model extends Model {
             FROM KPI_INDICATOR_INDICATOR_MAP 
             WHERE MAIN_INDICATOR_ID = ".$this->db->Param(0)." 
                 AND COLUMN_NAME IS NOT NULL", 
-            array($indicatorId)
+            [$indicatorId]
         );
         
         return $count;
@@ -27968,7 +27997,7 @@ class Mdform_Model extends Model {
     
     public function getIndicatorInputOutputFieldsModel($indicatorId, $mode = null) {
         
-        $arr = array('input' => array(), 'output' => array());
+        $arr = ['input' => [], 'output' => []];
         
         try {
             
@@ -27993,7 +28022,7 @@ class Mdform_Model extends Model {
                     AND PARENT_ID IS NULL 
                 ORDER BY ORDER_NUMBER ASC";
             
-            $data = $this->db->GetAll($sql, array($indicatorId));
+            $data = $this->db->GetAll($sql, [$indicatorId]);
             
             foreach ($data as $row) {
                 if ($row['SEMANTIC_TYPE_ID'] == '10000000') {

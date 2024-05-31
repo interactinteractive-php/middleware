@@ -4,13 +4,13 @@ if (!defined('_VALID_PHP'))
     exit('Direct access to this location is not allowed.');
 
 /**
- * Mdcashmanagement Class 
+ * Mdasset Class 
  * 
  * @package     IA PHPframework
  * @subpackage	Middleware
- * @category	Cash Management
+ * @category	Asset Management
  * @author	Ts.Ulaankhuu <ulaankhuu@veritech.mn>
- * @link	http://www.interactive.mn/PHPframework/Middleware/Cashmanagement
+ * @link	http://www.interactive.mn/PHPframework/Middleware/Assetmanagement
  */
 class Mdasset extends Controller {
 

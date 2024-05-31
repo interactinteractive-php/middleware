@@ -394,6 +394,16 @@ function manageKpiIndicatorValue(elem, kpiTypeId, indicatorId, isEdit, opt, call
                         }
                     });
                 }
+                
+                if (data.hasOwnProperty('helpContentId') && data.helpContentId !== null && data.helpContentId !== '') {
+                    buttons.splice(0, 0, {
+                        text: plang.get('menu_system_guide'),
+                        class: 'btn btn-sm green-meadow float-left bp-btn-help',
+                        click: function(e) {
+                            redirectHelpContent($(e.target), data.helpContentId, indicatorId, 'mv_method');
+                        }
+                    });
+                }
     
                 $dialog.empty().append('<form method="post" enctype="multipart/form-data">' + data.html + '</form>');
                 $dialog.dialog({

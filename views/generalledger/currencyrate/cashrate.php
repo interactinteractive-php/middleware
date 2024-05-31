@@ -238,8 +238,11 @@ if (!$this->isAjax) {
         <div class="form-actions">
             <div class="row">
                 <div class="col-md-12 text-right">
-                    <?php echo Form::button(array('class' => 'btn btn-circle green-meadow bp-btn-save saveCashrate', 'value' => '<i class="icon-checkmark-circle2"></i> ' . $this->lang->line('save_btn'))); ?>
-                    <?php echo Form::button(array('class' => 'btn btn-circle blue-madison cancelCashrate', 'value' => $this->lang->line('cancel_btn'))); ?>
+                    <?php 
+                    echo Mdcommon::redirectHelpContentButton('FIN_CASH_RATE_HELP_CONTENT');
+                    echo Form::button(array('class' => 'btn btn-circle green-meadow bp-btn-save saveCashrate', 'value' => '<i class="icon-checkmark-circle2"></i> ' . $this->lang->line('save_btn'))); 
+                    echo Form::button(array('class' => 'btn btn-circle blue-madison cancelCashrate', 'value' => $this->lang->line('cancel_btn'))); 
+                    ?>
                 </div>
             </div>
         </div>

@@ -765,4 +765,43 @@ class Mdhelpdesk extends Controller {
         return null;
     }    
     
+    public function cloud_user_help($contentId = '') 
+    {
+        Auth::handleLogin();
+        $isAjax = is_ajax_request();
+        
+        if ($isAjax == false && $contentId == '') {
+            Message::add('d', '', URL . 'appmenu/indexnew');
+        }
+        
+        if ($isAjax == true && $contentId == '') {
+            $contentId = Input::numeric('contentId');
+        }
+        
+        $result = [
+            'expiredate'     => Date::currentDate('Y-m-d H:i:s'), 
+            'username'       => 'clouduser', 
+            'firstname'      => 'cloud', 
+            'lastname'       => 'cloud', 
+            'stateregnumber' => 'cloud', 
+            'email'          => 'cloud@veritech.mn', 
+            'phone'          => null, 
+            'departmentcode' => 'CLOUD', 
+            'roleid'         => null,
+            'inactive'       => 0
+        ];
+        
+        $hashJson = json_encode($result, JSON_UNESCAPED_UNICODE);
+        $hash     = Hash::encryption($hashJson);
+        $hash     = str_replace(['+', '='], ['tttnmhttt', 'ttttntsuttt'], $hash);
+        
+        $helpUrl  = 'https://help.veritech.mn/login/authorization?user='.$hash.'&filterid='.$contentId;
+        
+        if ($isAjax == false) {
+            header('location: '.$helpUrl);
+        } else {
+            convJson(['status' => 'success', 'url' => $helpUrl]);
+        }
+    }
+    
 }

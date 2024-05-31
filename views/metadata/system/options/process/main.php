@@ -549,22 +549,15 @@
             <div class="form-group">
                 <label class="col-form-label col-lg-4"><?php echo $this->lang->line('MET_99990359') ?> (content id)</label>
                 <div class="col-lg-8 p-0">
-                    <div class="input-group">
-                        <?php
-                        echo Form::text(
-                            array(
-                                'name' => 'helpContentId',
-                                'id' => 'helpContentId',
-                                'placeholder' => $this->lang->line('setting_content'),
-                                'class' => 'form-control float-left',
-                                'value' => $this->bpRow['HELP_CONTENT_ID']
-                            )
-                        );
-                        ?>
-                        <span class="input-group-append">
-                            <?php echo Form::button(array('class' => 'btn btn-sm purple-plum btn-light', 'value' => '...', 'onclick' => 'manageHelpContent(this);')); ?>
-                        </span>
-                    </div>
+                    <?php
+                    echo Form::text([
+                        'name' => 'helpContentId',
+                        'id' => 'helpContentId',
+                        'placeholder' => $this->lang->line('setting_content'),
+                        'class' => 'form-control longInit',
+                        'value' => $this->bpRow['HELP_CONTENT_ID']
+                    ]);
+                    ?>
                 </div>
             </div>
         </div>

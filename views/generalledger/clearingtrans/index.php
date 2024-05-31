@@ -195,7 +195,10 @@ if (!$this->isAjax) {
     <div class="form-actions mt10">
         <div class="row">
             <div class="col-md-12 text-right">
-                <?php echo Form::button(array('class' => 'btn btn-circle green-meadow bp-btn-save saveClearingTrans', 'value' => '<i class="icon-checkmark-circle2"></i> ' . $this->lang->line('save_btn'))); ?>
+                <?php 
+                echo Mdcommon::redirectHelpContentButton('FIN_GL_CLEARING_HELP_CONTENT');
+                echo Form::button(array('class' => 'btn btn-circle green-meadow bp-btn-save saveClearingTrans', 'value' => '<i class="icon-checkmark-circle2"></i> ' . $this->lang->line('save_btn'))); 
+                ?>
             </div>
         </div>
     </div>

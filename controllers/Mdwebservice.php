@@ -2152,7 +2152,6 @@ class Mdwebservice extends Controller {
                 if ($fillParamValue = self::findRowKeyValFillData($fillParamData, $lowerParamName)) {
                     
                     $fillParamValue = Mdmetadata::objectDeCompress($fillParamValue);
-                    
                     $attrArray['value'] = $fillParamValue;
                 }
                 
@@ -4270,7 +4269,7 @@ class Mdwebservice extends Controller {
             $saveAddModeWithGet = $this->view->methodRow['RUN_MODE'] == 'saveadd' && $this->view->processActionType == 'insert' ? 'saveadd' : '';
             $this->view->runMode = $this->view->methodRow['RUN_MODE'] == 'saveadd' ? $this->lang->line('save_btn_add') : '';
             
-            $this->view->isKnowledge = issetParam($this->view->methodRow['IS_KNOWLEDGE']);
+            $this->view->helpContentId = $this->view->methodRow['HELP_CONTENT_ID'];
             $this->view->isShowPrevNext = $this->view->methodRow['IS_SHOW_PREVNEXT'];
 
             if (Input::post('isSystemMeta') == 'true') {
@@ -4909,8 +4908,7 @@ class Mdwebservice extends Controller {
                     'metaType' => 'businessProcess', 
                     'metaDataId' => $this->view->methodId, 
                     'uniqId' => $this->view->uniqId,
-                    'helpContentId' => null,
-                    'isKnowledge' => $this->view->isKnowledge,
+                    'helpContentId' => $this->view->helpContentId,
                     'isShowPrevNext' => $this->view->isShowPrevNext,
                     'selectedRowData' => $this->view->selectedRowData, 
                     'isSystemProcess' => $this->view->isSystemProcess, 

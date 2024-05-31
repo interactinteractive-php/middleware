@@ -19,8 +19,11 @@
                 <div class="meta-toolbar">
                     <span class="text-uppercase"><?php echo Lang::lineDefault('PL_031777', 'Үндсэн хөрөнгийн элэгдэл тооцох'); ?></span>
                     <div class="ml-auto">
-                        <?php echo Form::button(array('class' => 'btn btn-circle btn-sm btn-success saveDepreciationBook', 'value' => $this->lang->line('save_btn'))); ?>
-                        <?php echo Form::button(array('class' => 'btn btn-circle btn-sm default cancelDepreciationBook', 'value' => $this->lang->line('cancel_btn'))); ?>
+                        <?php 
+                        echo Mdcommon::redirectHelpContentButton('FIN_ASSET_DEPRECATION_HELP_CONTENT');
+                        echo Form::button(array('class' => 'btn btn-circle btn-sm btn-success saveDepreciationBook', 'value' => $this->lang->line('save_btn'))); 
+                        echo Form::button(array('class' => 'btn btn-circle btn-sm default cancelDepreciationBook', 'value' => $this->lang->line('cancel_btn'))); 
+                        ?>
                     </div>
                 </div>
             </div>

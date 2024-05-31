@@ -82,7 +82,17 @@ $renderType = $this->methodRow['RENDER_THEME'];
                                         <div><?php echo $this->title; ?></div>                                        
                                     </div>
                                     <div class="ml-auto">
-                                        <button type="button" class="btn btn-sm btn-circle btn-success bp-btn-save" onclick="saveMvCheckListCheck(this);">
+                                        <?php
+                                        if (Mdform::$helpContentId) {
+                                            echo html_tag('button', [
+                                                    'type' => 'button', 
+                                                    'class' => 'btn btn-sm btn-circle btn-success bp-btn-help', 
+                                                    'onclick' => 'redirectHelpContent(this, \''.Mdform::$helpContentId.'\', \''.$this->structureIndicatorId.'\', \'mv_method\');'
+                                                ], $this->lang->line('menu_system_guide')
+                                            );
+                                        }
+                                        ?>
+                                        <button type="button" class="ml-1 btn btn-sm btn-circle btn-success bp-btn-check" onclick="saveMvCheckListCheck(this);">
                                             <i class="icon-checkmark-circle2"></i> Шалгах
                                         </button>
                                         <button type="button" class="ml-1 btn btn-sm btn-circle btn-success bp-btn-save" onclick="saveKpiIndicatorHeaderForm(this);">
@@ -357,6 +367,7 @@ if ($renderType == 'paper_main_window') {
     padding-left: 20px;
 }
 .mv-checklist2-render-parent .mv-checklist-render button.bp-add-one-row,
+.mv-checklist2-render-parent .mv-checklist-render button.btn-xs.btn-outline-success,
 .mv-checklist2-render-parent .mv-checklist-render button.btn-xs.green-meadow {
     background-color: #eee !important;
     color: #252F4A;
@@ -364,6 +375,7 @@ if ($renderType == 'paper_main_window') {
     padding: 0px 5px 0px 5px;
     height: 21px !important;
     min-height: 21px !important;    
+    border-color: #eee !important;
 }    
 .mv-checklist2-render-parent .main-process-text-description {
     color: #99A1B7;
@@ -386,7 +398,9 @@ if ($renderType == 'paper_main_window') {
     display: none;
 }
 .mv-checklist2-render-parent button.bp-btn-save, 
-.mv-checklist2-render-parent button.bp-btn-saveadd {
+.mv-checklist2-render-parent button.bp-btn-saveadd, 
+.mv-checklist2-render-parent button.bp-btn-help,
+.mv-checklist2-render-parent .meta-toolbar button.bp-btn-help {
     color: #fff!important;
     border-color: #1B84FF!important;
     padding-left: 18px!important;
@@ -396,7 +410,9 @@ if ($renderType == 'paper_main_window') {
     font-size: 12px!important;
 }
 .mv-checklist2-render-parent button.bp-btn-save:hover, 
-.mv-checklist2-render-parent button.bp-btn-saveadd:hover {
+.mv-checklist2-render-parent button.bp-btn-saveadd:hover, 
+.mv-checklist2-render-parent button.bp-btn-help:hover,
+.mv-checklist2-render-parent .meta-toolbar button.bp-btn-help:hover {
     background-color: #1B84FF!important;
 }
 .mv-checklist2-render-parent .mv-rows-title:not(.mv-rows-title-label) {
@@ -476,7 +492,7 @@ if ($renderType == 'paper_main_window') {
 }
 .mv-checklist2-render-parent .sectiongidseperatorcontent legend {
     padding: 12px !important;
-    padding-left: 43px !important;
+    padding-left: 34px !important;
 }
 .mv-checklist2-render-parent .sectiongidseperator {
     height: 15px;
@@ -698,6 +714,7 @@ input.kpi-notfocus-readonly-input::placeholder {
 .mv-checklist2-render-parent .mv-rows-title-label {
     font-size: 14px;
     color: #555;
+    padding-left: 32px;
 }
 .mv-checklist2-render-parent .mv-hdr-label-control-label label {
     color: #666;
@@ -724,6 +741,8 @@ input.kpi-notfocus-readonly-input::placeholder {
 }
 .mv-checklist2-render-parent .mv-hdr-label-control {
     margin-bottom: 10px;
+    padding-left: 25px;
+    padding-right: 25px;    
 }
 .mv-checklist2-render-parent .mv-hdr-label-control-input .form-control .select2-choice,
 .mv-checklist2-render-parent .mv-hdr-label-control-input .form-control.select2-container-active .select2-choice,

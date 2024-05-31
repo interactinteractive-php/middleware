@@ -66,7 +66,7 @@ class Mdwebservice_Model extends Model {
                         SELECT
                             COUNT(TEMPLATE_META_DATA_ID)
                         FROM META_PROCESS_TEMPLATE     
-                        WHERE PROCESS_LINK_ID = $metaDataIdPh
+                        WHERE PROCESS_LINK_ID = $metaDataIdPh 
                     ) AS COUNT_PROCESS_TEMPLATE, 
                     (
                         SELECT 
@@ -87,15 +87,6 @@ class Mdwebservice_Model extends Model {
                         FROM META_CALENDAR_LINK
                         WHERE LINK_META_DATA_ID = $metaDataIdPh
                     ) AS COUNT_CALENDAR_LINK, 
-                    CASE 
-                        WHEN (
-                            SELECT 
-                                COUNT(ID)
-                            FROM KNOWLEDGE_META_DATA_MAP 
-                            WHERE META_DATA_ID = $metaDataIdPh 
-                        ) > 0 
-                        THEN 1 
-                    ELSE 0 END AS IS_KNOWLEDGE, 
                     (
                         SELECT
                             COUNT(1) 

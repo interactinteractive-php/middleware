@@ -74,6 +74,7 @@ if (!$this->isAjax) {
                                 '<i class="fa fa-reply"></i> ' . $this->lang->line('back_btn')  
                             );
                         }
+                        echo Mdcommon::redirectHelpContentButton('FIN_GL_ENTRY_HELP_CONTENT');
                         echo html_tag('button', 
                             array(
                                 'type' => 'button', 

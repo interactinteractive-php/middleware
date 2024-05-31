@@ -1957,4 +1957,20 @@ class Mdcommon extends Controller {
         return false;
     }
     
+    public static function redirectHelpContentButton($configCode) {
+        
+        $button    = null;
+        $contentId = Config::getFromCache($configCode);
+        
+        if ($contentId) {
+            $button = html_tag('button', [
+                'type' => 'button', 
+                'class' => 'btn btn-circle btn-sm btn-info bp-btn-help mr-1', 
+                'onclick' => 'redirectHelpContent(this, \''.$contentId.'\', \''.$configCode.'\', \'pf_config\');'
+            ], Lang::line('menu_system_guide'));
+        }
+        
+        return $button;
+    }
+    
 }

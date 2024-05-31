@@ -31,7 +31,6 @@ if ($this->isDialog == false) {
                 ), '<i class="icon-arrow-left22"></i>', true
             );
             $mainProcessBtnBar .= ' <div class="main-process-text">';
-                //$mainProcessBtnBar .= ' <span class="bp-text">' . $this->lang->line('business_process') . ' - </span>';
                 $mainProcessBtnBar .= '<span>' . $this->lang->line($this->methodRow['META_DATA_NAME']) . '</span>';
             $mainProcessBtnBar .= '</div>';
         } else {
@@ -83,10 +82,10 @@ if ($this->isDialog == false) {
     
     $mainProcessBtnBar .= Form::button(
             array(
-                'class' => 'btn btn-info btn-circle btn-sm float-left mr5 bp-btn-help',
-                'value' => '<i class="icon-help"></i> Тусламж',
-                'onclick' => "pfHelpDataView('".$this->methodId."');"
-            ), (issetParam($this->isKnowledge) ? true : false)
+                'class' => 'btn btn-info btn-circle btn-sm mr-1 bp-btn-help',
+                'value' => $this->lang->line('menu_system_guide'),
+                'onclick' => "redirectHelpContent(this, '".$this->helpContentId."', '".$this->methodId."', 'meta_process');"
+            ), ($this->helpContentId ? true : false)
             ) . Form::button(
             array(
                 'class' => 'btn btn-sm btn-circle btn-success mr5',

@@ -5223,6 +5223,7 @@ function metaFullOptions(metaDataId, folderId, element, isMetaArea) {
                     open: function() {
                         disableScrolling();
                         Core.initUniform($dialog);
+                        Core.initLongInput($dialog);
                         Core.initComponentSwitchery($dialog);
                     },
                     beforeClose: function() {

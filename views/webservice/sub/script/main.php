@@ -1153,12 +1153,6 @@
             }
             ?>            
         });
-        
-        <?php
-        if ($this->dmMetaDataId && $this->isEditMode) {
-            echo "createDeleteProcessButton(".json_encode($this->isDialog).", bp_window_".$this->methodId.", '".$this->dmMetaDataId."', '".$this->methodId."', '".$this->uniqId."');"."\n";
-        }
-        ?>
                 
         <?php if (isset($this->basketPath) && $this->basketPath) { ?>
             var _basketPath_<?php echo $this->methodId; ?> = <?php echo $this->basketPathJson ?>;

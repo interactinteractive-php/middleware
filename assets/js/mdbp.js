@@ -10779,3 +10779,17 @@ function mssSignature(phoneNumber) {
     
     return response.responseJSON;
 }
+function redirectHelpContent(elem, contentId, sourceId, fromType) {
+    $.ajax({
+        type: 'post',
+        url: 'mdhelpdesk/cloud_user_help',
+        data: {contentId: contentId, sourceId: sourceId, fromType: fromType},
+        dataType: 'json',
+        success: function(data) {
+            if (data.status == 'success') {
+                window.open(data.url, '_blank');
+            }
+        },
+        error: function(e) { console.log(e); }
+    });
+}

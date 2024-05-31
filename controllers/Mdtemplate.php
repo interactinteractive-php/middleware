@@ -4235,10 +4235,10 @@ class Mdtemplate extends Controller {
             self::toArchiveWfm(); exit;
             
         } catch (Exception $ex) {
-            $response = array('status' => 'error', 'message' => $ex->getMessage());
+            $response = ['status' => 'error', 'message' => $ex->getMessage()];
         }
         
-        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+        convJson($response);
     }
     
     public static function clearPdfTempFile() {

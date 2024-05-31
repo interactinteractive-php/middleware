@@ -368,12 +368,12 @@ function callWebServiceByMeta(metaDataId, isDialog, valuePackageId, isSystemMeta
                         }
                     ];
                     
-                    if (data.hasOwnProperty('isKnowledge') && data.isKnowledge != '0') {
+                    if (data.hasOwnProperty('helpContentId') && data.helpContentId !== null && data.helpContentId !== '') {
                         buttons.splice(0, 0, {
-                            text: 'Тусламж',
+                            text: plang.get('menu_system_guide'),
                             class: 'btn btn-info btn-sm float-left bp-btn-help',
-                            click: function() {
-                                pfHelpDataView(data.metaDataId);
+                            click: function(e) {
+                                redirectHelpContent($(e.target), data.helpContentId, data.metaDataId, 'meta_process');
                             }
                         });
                     }
@@ -1948,6 +1948,64 @@ function addGLPopup(elem, processMetaDataId, dataViewId, paramData) {
                 $('<div id="' + $dialogName + '"></div>').appendTo('body');
             }
             var $dialog = $('#' + $dialogName);
+            var buttons = [
+                {
+                    text: plang.get('save_btn'),
+                    class: 'btn green-meadow btn-sm bp-btn-save',
+                    click: function() {
+                        $('form#glEntryForm', '#' + $dialogName).ajaxSubmit({
+                            type: 'post',
+                            url: 'mdgl/createGlEntry',
+                            dataType: 'json',
+                            beforeSend: function() {
+                                Core.blockUI({message: 'Loading...', boxed: true});
+                            },
+                            success: function(data) {
+                                PNotify.removeAll();
+
+                                if (data.status == 'success') {
+                                    new PNotify({
+                                        title: 'Success',
+                                        text: data.message,
+                                        type: 'success',
+                                        sticker: false
+                                    });
+                                    $dialog.dialog('close');
+                                    dataViewReload(dataViewId);
+                                } else {
+                                    new PNotify({
+                                        title: data.status,
+                                        text: data.message,
+                                        type: data.status,
+                                        sticker: false,
+                                        hide: true,
+                                        addclass: pnotifyPosition,
+                                        delay: 1000000000
+                                    });
+                                }
+                                Core.unblockUI();
+                            }
+                        });
+                    }
+                },
+                {
+                    text: plang.get('close_btn'),
+                    class: 'btn blue-madison btn-sm bp-btn-close',
+                    click: function() {
+                        $dialog.dialog('close');
+                    }
+                }
+            ];
+            
+            if (data.hasOwnProperty('helpContentId') && data.helpContentId !== null && data.helpContentId !== '') {
+                buttons.splice(0, 0, {
+                    text: plang.get('menu_system_guide'),
+                    class: 'btn btn-sm green-meadow float-left bp-btn-help',
+                    click: function(e) {
+                        redirectHelpContent($(e.target), data.helpContentId, 'FIN_GL_ENTRY_HELP_CONTENT', 'pf_config');
+                    }
+                });
+            }
     
             $dialog.empty().append(data.html);
             $dialog.dialog({
@@ -1963,54 +2021,7 @@ function addGLPopup(elem, processMetaDataId, dataViewId, paramData) {
                 close: function() {
                     $dialog.empty().dialog('destroy').remove();
                 },
-                buttons: [
-                    {
-                        text: plang.get('save_btn'),
-                        class: 'btn green-meadow btn-sm bp-btn-save',
-                        click: function() {
-                            $('form#glEntryForm', '#' + $dialogName).ajaxSubmit({
-                                type: 'post',
-                                url: 'mdgl/createGlEntry',
-                                dataType: 'json',
-                                beforeSend: function() {
-                                    Core.blockUI({message: 'Loading...', boxed: true});
-                                },
-                                success: function(data) {
-                                    PNotify.removeAll();
-
-                                    if (data.status == 'success') {
-                                        new PNotify({
-                                            title: 'Success',
-                                            text: data.message,
-                                            type: 'success',
-                                            sticker: false
-                                        });
-                                        $dialog.dialog('close');
-                                        dataViewReload(dataViewId);
-                                    } else {
-                                        new PNotify({
-                                            title: data.status,
-                                            text: data.message,
-                                            type: data.status,
-                                            sticker: false,
-                                            hide: true,
-                                            addclass: pnotifyPosition,
-                                            delay: 1000000000
-                                        });
-                                    }
-                                    Core.unblockUI();
-                                }
-                            });
-                        }
-                    },
-                    {
-                        text: plang.get('close_btn'),
-                        class: 'btn blue-madison btn-sm bp-btn-close',
-                        click: function() {
-                            $dialog.dialog('close');
-                        }
-                    }
-                ]
+                buttons: buttons
             });
             $dialog.dialog('open');
             Core.unblockUI();
@@ -2034,6 +2045,64 @@ function editGLPopup(elem, processMetaDataId, dataViewId, paramData) {
                 $('<div id="' + $dialogName + '"></div>').appendTo('body');
             }
             var $dialog = $('#' + $dialogName);
+            var buttons = [
+                {
+                    text: plang.get('save_btn'),
+                    class: 'btn green-meadow btn-sm bp-btn-save',
+                    click: function() {
+                        $('form#glEntryForm', '#' + $dialogName).ajaxSubmit({
+                            type: 'post',
+                            url: 'mdgl/updateGlEntry',
+                            dataType: 'json',
+                            beforeSend: function() {
+                                Core.blockUI({message: 'Loading...', boxed: true});
+                            },
+                            success: function(data) {
+                                PNotify.removeAll();
+
+                                if (data.status == 'success') {
+                                    new PNotify({
+                                        title: 'Success',
+                                        text: data.message,
+                                        type: 'success',
+                                        sticker: false
+                                    });
+                                    $dialog.dialog('close');
+                                    dataViewReload(dataViewId);
+                                } else {
+                                    new PNotify({
+                                        title: data.status,
+                                        text: data.message,
+                                        type: data.status,
+                                        sticker: false,
+                                        hide: true,
+                                        addclass: pnotifyPosition,
+                                        delay: 1000000000
+                                    });
+                                }
+                                Core.unblockUI();
+                            }
+                        });
+                    }
+                },
+                {
+                    text: plang.get('close_btn'),
+                    class: 'btn blue-madison btn-sm bp-btn-close',
+                    click: function() {
+                        $dialog.dialog('close');
+                    }
+                }
+            ];
+            
+            if (data.hasOwnProperty('helpContentId') && data.helpContentId !== null && data.helpContentId !== '') {
+                buttons.splice(0, 0, {
+                    text: plang.get('menu_system_guide'),
+                    class: 'btn btn-sm green-meadow float-left bp-btn-help',
+                    click: function(e) {
+                        redirectHelpContent($(e.target), data.helpContentId, 'FIN_GL_ENTRY_HELP_CONTENT', 'pf_config');
+                    }
+                });
+            }
     
             $dialog.empty().append(data.html);
             $dialog.dialog({
@@ -2049,54 +2118,7 @@ function editGLPopup(elem, processMetaDataId, dataViewId, paramData) {
                 close: function() {
                     $dialog.empty().dialog('destroy').remove();
                 },
-                buttons: [
-                    {
-                        text: plang.get('save_btn'),
-                        class: 'btn green-meadow btn-sm bp-btn-save',
-                        click: function() {
-                            $('form#glEntryForm', '#' + $dialogName).ajaxSubmit({
-                                type: 'post',
-                                url: 'mdgl/updateGlEntry',
-                                dataType: 'json',
-                                beforeSend: function() {
-                                    Core.blockUI({message: 'Loading...', boxed: true});
-                                },
-                                success: function(data) {
-                                    PNotify.removeAll();
-
-                                    if (data.status == 'success') {
-                                        new PNotify({
-                                            title: 'Success',
-                                            text: data.message,
-                                            type: 'success',
-                                            sticker: false
-                                        });
-                                        $dialog.dialog('close');
-                                        dataViewReload(dataViewId);
-                                    } else {
-                                        new PNotify({
-                                            title: data.status,
-                                            text: data.message,
-                                            type: data.status,
-                                            sticker: false,
-                                            hide: true,
-                                            addclass: pnotifyPosition,
-                                            delay: 1000000000
-                                        });
-                                    }
-                                    Core.unblockUI();
-                                }
-                            });
-                        }
-                    },
-                    {
-                        text: plang.get('close_btn'),
-                        class: 'btn blue-madison btn-sm bp-btn-close',
-                        click: function() {
-                            $dialog.dialog('close');
-                        }
-                    }
-                ]
+                buttons: buttons
             });
             $dialog.dialog('open');
             Core.unblockUI();
@@ -11043,12 +11065,12 @@ function runBusinessProcessWithDataView(dataGrid, mainMetaDataId, processMetaDat
                     }
                 ];
                 
-                if (data.hasOwnProperty('isKnowledge') && data.isKnowledge != '0') {
+                if (data.hasOwnProperty('helpContentId') && data.helpContentId !== null && data.helpContentId !== '') {
                     buttons.splice(0, 0, {
-                        text: 'Тусламж',
+                        text: plang.get('menu_system_guide'),
                         class: 'btn btn-info btn-sm float-left bp-btn-help',
-                        click: function() {
-                            pfHelpDataView(data.metaDataId);
+                        click: function(e) {
+                            redirectHelpContent($(e.target), data.helpContentId, data.metaDataId, 'meta_process');
                         }
                     });
                 }
@@ -12000,12 +12022,12 @@ function runBusinessProcessGetDataWithDataView(dataGrid, mainMetaDataId, process
                     }
                 ];
                 
-                if (data.hasOwnProperty('isKnowledge') && data.isKnowledge != '0') {
+                if (data.hasOwnProperty('helpContentId') && data.helpContentId !== null && data.helpContentId !== '') {
                     buttons.splice(0, 0, {
-                        text: 'Тусламж',
+                        text: plang.get('menu_system_guide'),
                         class: 'btn btn-info btn-sm float-left bp-btn-help',
-                        click: function() {
-                            pfHelpDataView(data.metaDataId);
+                        click: function(e) {
+                            redirectHelpContent($(e.target), data.helpContentId, data.metaDataId, 'meta_process');
                         }
                     });
                 }

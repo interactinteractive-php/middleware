@@ -134,7 +134,8 @@ class Mdgl extends Controller {
                 'title' => $this->view->title, 
                 'metaType' => 'add_gl', 
                 'uniqId' => $this->view->uniqId, 
-                'glMainDvId' => self::$glMainDvId
+                'glMainDvId' => self::$glMainDvId, 
+                'helpContentId' => Config::getFromCache('FIN_GL_ENTRY_HELP_CONTENT')
             ];
             
             jsonResponse($response);
@@ -253,11 +254,11 @@ class Mdgl extends Controller {
 
         if ($this->view->isglcopy) {
             
-            $param = array(
+            $param = [
                 'objectId' => '40002',
                 'bookTypeId' => '2', 
                 'bookDate' => Date::formatter($this->view->paramList['bookdate'], 'Y-m-d')
-            );
+            ];
             $ins = &getInstance();
             $ins->load->model('mdcommon', 'middleware/models/');
             $getAutoNum = $ins->model->getAutoNumberModel($param);
@@ -276,6 +277,7 @@ class Mdgl extends Controller {
                 'uniqId' => $this->view->uniqId, 
                 'isPrint' => $this->view->isPrint, 
                 'glMainDvId' => self::$glMainDvId, 
+                'helpContentId' => Config::getFromCache('FIN_GL_ENTRY_HELP_CONTENT'), 
                 'save_btn' => $this->lang->line('save_btn'), 
                 'close_btn' => $this->lang->line('close_btn'), 
                 'print_btn' => $this->lang->line('print_btn')
