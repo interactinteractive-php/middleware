@@ -21284,7 +21284,7 @@ class Mdform_Model extends Model {
             $valueSelectCol = '';
             $orderBy        = '';
             $subCondition   = '';
-            $columnsConfig  = $defaultValueFilterData = [];
+            $columnsConfig  = $defaultValueFilterData = $filterNamedParams = [];
             
             $isCategoryCombo = $isCategoryGroupCombo = false;
             $isFirstLoad = Input::numeric('isFirstLoad');
@@ -21294,7 +21294,19 @@ class Mdform_Model extends Model {
             }
             
             if ($isQueryString) {
-                $tableName = "($queryString)";
+                
+                $configRow['isFilter'] = true;
+                $filterParams = self::getKpiIndicatorColumnsModel($indicatorId, $configRow);
+                $replaceQueryString = "($queryString)";
+                
+                $tableName = $replaceQueryString;
+                
+                foreach ($filterParams as $filterParam) {
+                    if ($filterParam['TRG_ALIAS_NAME'] != '') {
+                        $replaceQueryString = str_ireplace(':'.$filterParam['TRG_ALIAS_NAME'], 'NULL', $replaceQueryString);
+                        $filterNamedParams[strtoupper($filterParam['TRG_ALIAS_NAME'])] = $filterParam['DEFAULT_VALUE'];
+                    }
+                }
             } 
             
             if ($permissionCriteria) {
@@ -21465,6 +21477,15 @@ class Mdform_Model extends Model {
                 
                 foreach ($filterData as $filterColName => $filterColVals) {
                     
+                    $filterColName = strtoupper($filterColName);
+                    
+                    unset($filterNamedParams[$filterColName]);
+                    
+                    if ($filterColName == 'FILTERNEXTWFMUSERID' && $filterColVals) {
+                        $filterNextWfmUserId = $filterColVals;
+                        continue;
+                    }
+                    
                     if (isset($filterColVals[0]['begin'])) {
                         
                         foreach ($filterColVals as $filterColVal) {
@@ -21487,7 +21508,7 @@ class Mdform_Model extends Model {
                             }
                         }
                         
-                    } elseif (isset($filterColVals[0]['operator'])) { 
+                    } elseif (isset($filterColVals[0]['operator']) && isset($filterColVals[0]['operand'])) { 
                         
                         $orCriteria = '';
                         
@@ -21498,22 +21519,45 @@ class Mdform_Model extends Model {
                         $orCriteria = rtrim(trim($orCriteria), ' OR');
                         $subCondition .= " AND ($orCriteria)";
                         
+                    } elseif (!is_array($filterColVals)) {
+                        
+                        if (stripos($tableName, ':'.$filterColName) !== false) {
+                            $tableName = str_ireplace(':'.$filterColName, ($filterColVals != '' ? "'".self::fixFilterColValue($filterColVals)."'" : 'NULL'), $tableName);
+                        } elseif ($filterColVals != '') {
+                            $subCondition .= " AND LOWER($filterColName) = '%".self::fixFilterColValue(Str::lower($filterColVals))."%'";
+                        }
+                        
                     } else {
                         
-                        $subCondition .= ' AND ( ';
+                        if (stripos($tableName, ':'.$filterColName) !== false) {
+                            
+                            $tableName = str_ireplace(':'.$filterColName.' is null', '1 IS NULL', $tableName);
+                            $tableName = str_ireplace(':'.$filterColName.' is not null', '1 IS NOT NULL', $tableName);
+                            $tableName = str_ireplace(':'.$filterColName, "'".Arr::implode_r("','", $filterColVals, true)."'", $tableName);
+                            
+                        } else {
+                            
+                            $subCondition .= ' AND ( ';
 
-                        foreach ($filterColVals as $filterColVal) {
-                            if ($filterColVal == 'isnull') {
-                                $subCondition .= " $filterColName = '' OR $filterColName IS NULL OR";
-                            } else {
-                                $filterColVal = self::fixFilterColValue($filterColVal);
-                                $subCondition .= " $filterColName = '$filterColVal' OR";
+                            foreach ($filterColVals as $filterColVal) {
+                                if ($filterColVal == 'isnull') {
+                                    $subCondition .= " $filterColName = '' OR $filterColName IS NULL OR";
+                                } else {
+                                    $filterColVal = self::fixFilterColValue($filterColVal);
+                                    $subCondition .= " $filterColName = '$filterColVal' OR";
+                                }
                             }
+
+                            $subCondition = rtrim($subCondition, 'OR');
+
+                            $subCondition .= ' ) ';
                         }
-
-                        $subCondition = rtrim($subCondition, 'OR');
-
-                        $subCondition .= ' ) ';
+                    } 
+                }
+                
+                if ($filterNamedParams) {
+                    foreach ($filterNamedParams as $filterNamedParam => $filterNamedParamDefVal) {
+                        $tableName = str_ireplace(':'.$filterNamedParam, ($filterNamedParamDefVal != '' ? "'".$filterNamedParamDefVal."'" : 'NULL'), $tableName);
                     }
                 }
             }
