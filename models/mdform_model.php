@@ -6312,6 +6312,7 @@ class Mdform_Model extends Model {
                     $selectedRow = json_decode(html_entity_decode(Input::post('mapSelectedRow'), ENT_QUOTES, 'UTF-8'), true);
                     if ($selectedRow) {
                         Mdform::$defaultTplSavedId = 1;
+                        $selectedRow = Arr::changeKeyLower($selectedRow);
                         foreach ($mapData as $mapRow) {
                             Mdform::$kpiDmMart[strtoupper($mapRow['TRG_INDICATOR_PATH'])] = issetParam($selectedRow[strtolower($mapRow['SRC_INDICATOR_PATH'])]);
                         }
@@ -6347,12 +6348,12 @@ class Mdform_Model extends Model {
             if (Mdform::$tabSectionRender) {
             
                 foreach (Mdform::$tabRender as $tabName => $tabContent) {
-
-                    $render[] = '<div class="sectiongidseperator"></div>';
+                    
                     $render[] = '<div class="sectiongidseperatorcontent-container"><fieldset class="sectiongidseperatorcontent collapsible row" data-initialized="1">';
-                    $render[] = '<legend id="sectiongid'.$t.'" style="padding-top: 20px !important;">'.$tabName.'</legend>';
+                    $render[] = '<legend id="sectiongid'.$t.'" style="padding-top: 12px !important;">'.$tabName.'</legend>';
                     $render[] = implode('', $tabContent);
                     $render[] = '</fieldset></div>';
+                    $render[] = '<div class="sectiongidseperator"></div>';
 
                     $t ++;
                 }          
@@ -6440,7 +6441,7 @@ class Mdform_Model extends Model {
             $tnames = [];
             $tt = 1;
             foreach (Mdform::$tabRender as $tabName => $tabContent) {
-                $tnames[] = '<div class="my-2"><a href="#sectiongid'.$tt.'" style="color: #666;font-weight: bold;">'.$tabName.'</a></div>';
+                $tnames[] = '<div class=""><a href="#sectiongid'.$tt.'" style="color: #666;">'.$tabName.'</a></div>';
                 $tt++;
             }                      
             $sideSectionRender = [];
@@ -6450,7 +6451,7 @@ class Mdform_Model extends Model {
             $sideSectionRender[] = implode('', $tnames);
             $sideSectionRender[] = '</div>';
             $sideSectionRender[] = '</div>';
-            $sideSectionRender[] = '<div class="ml20 w-100">';
+            $sideSectionRender[] = '<div class="ml10 w-100">';
             $sideSectionRender[] = implode('', $render);
             $sideSectionRender[] = '</div>';
             $sideSectionRender[] = '</div>';
@@ -7694,6 +7695,7 @@ class Mdform_Model extends Model {
                 $control = '<button type="button" onClick="bpWebCamera(this)" class="btn blue btn-sm" data-path="'.$columnNamePath.'" title="Вэб камер"><i class="fa fa-camera"></i></button>' . $webCamPhoto . $hiddenForm;
             }
             break;
+            
             case 'icon_picker':
             {
                 $attrArray = array(
@@ -8351,10 +8353,10 @@ class Mdform_Model extends Model {
                         $isTemplateConfig = issetParam($arrRow['isTemplateConfig']);
                         $isTemplateRows = $arrRow['TEMPLATE_TABLE_NAME'] ? true : false;
                         
-                        $rowsData = (is_array(Mdform::$kpiDmMart) ? issetParamArray(Mdform::$kpiDmMart[$arrRow['COLUMN_NAME_PATH']]) : []);
+                        $rowsData = is_array(Mdform::$kpiDmMart) ? issetParamArray(Mdform::$kpiDmMart[$arrRow['COLUMN_NAME_PATH']]) : [];
                         
                         $controlRender[] = $title;
-                        $controlRender[] = '<div style="margin-right: 2.2rem;margin-left: 2.2rem;" data-section-path="'.$arrRow['COLUMN_NAME_PATH'].'">';
+                        $controlRender[] = '<div style="margin-right: 2.2rem;margin-left: 2.2rem;overflow-x: auto;" data-section-path="'.$arrRow['COLUMN_NAME_PATH'].'">';
                         
                         if ($isTemplateConfig || $isTemplateRows) {
                             $controlRender[] = self::rowsKpiIndicatorTemplate($indicatorId, $data, $arrRow['ID'], $arrRow, $rowsData);
@@ -8364,10 +8366,12 @@ class Mdform_Model extends Model {
                         
                         $controlRender[] = '</div>';
                         
+                        Mdform::$pathSuffix = null;
+                        
                     } elseif ($arrRow['SHOW_TYPE'] == 'row') {
                         
                         $controlRender[] = $title;
-                        $controlRender[] = '<div style="margin-right: 2.2rem;margin-left: 2.2rem;" data-section-path="'.$arrRow['COLUMN_NAME_PATH'].'">';
+                        $controlRender[] = '<div style="margin-right: 2.2rem;margin-left: 2.2rem;overflow-x: auto;" data-section-path="'.$arrRow['COLUMN_NAME_PATH'].'">';
                         $controlRender[] = self::rowKpiIndicator($indicatorId, $data, $arrRow['ID'], $arrRow, (is_array(Mdform::$kpiDmMart) ? issetParamArray(Mdform::$kpiDmMart[$arrRow['COLUMN_NAME_PATH']]) : []));
                         $controlRender[] = '</div>';
                     }
@@ -9182,6 +9186,8 @@ class Mdform_Model extends Model {
                                         $renderBody[] = '<div class="param-tree-container" style="display: none">';
                                             $renderBody[] = self::rowsKpiIndicator($indicatorId, [], $arrRow['ID'], $arrRow, [], $depth + 1, $childArr);
                                         $renderBody[] = '</div>';
+                                        
+                                        Mdform::$pathSuffix = null;
 
                                     } elseif ($arrRow['SHOW_TYPE'] == 'row') {
                                         
@@ -9300,6 +9306,8 @@ class Mdform_Model extends Model {
                                             $render[] = '<div class="param-tree-container" style="display: none">';
                                                 $render[] = self::rowsKpiIndicator($indicatorId, [], $arrRow['ID'], $arrRow, issetParamArray($row[$arrRow['COLUMN_NAME']]), $depth + 1, $childArr, $k);
                                             $render[] = '</div>';
+                                            
+                                            Mdform::$pathSuffix = $pathSuffix;
 
                                         } elseif ($arrRow['SHOW_TYPE'] == 'row') {
 
@@ -9487,6 +9495,8 @@ class Mdform_Model extends Model {
                     $control .= '<div class="param-tree-container" style="display: none">';
                         $control .= self::rowsKpiIndicator($indicatorId, [], $arrRow['ID'], $arrRow, issetParamArray($rowDatas[$arrRow['COLUMN_NAME']]), $depth + 1, $childArr);
                     $control .= '</div>';
+                    
+                    Mdform::$pathSuffix = null;
 
                 } else {
                     $control = self::kpiIndicatorControl($arrRow, $rowDatas);
@@ -12823,14 +12833,14 @@ class Mdform_Model extends Model {
             }
             
             $response = [
-                'status' => 'success', 
-                'message' => Lang::line('msg_save_success'), 
+                'status'      => 'success', 
+                'message'     => Lang::line('msg_save_success'), 
                 'indicatorId' => $kpiMainIndicatorId, 
-                'id' => $rowId, 
-                'rowId' => $rowId, 
-                'uniqId' => getUID(), 
-                'idField' => $kpiTblIdField, 
-                'result' => Mdform::$mvDbParams['header']['data']
+                'id'          => $rowId, 
+                'rowId'       => $rowId, 
+                'uniqId'      => getUID(), 
+                'idField'     => $kpiTblIdField, 
+                'result'      => Mdform::$mvDbParams['header']['data']
             ];
             
             if (isset($setWfmStatusArr)) {
@@ -13047,21 +13057,34 @@ class Mdform_Model extends Model {
         
         if (isset($wfmStatusParams['wfmstatusid'])) {
             
-            $mainIndicatorId = Input::param($wfmStatusParams['mainindicatorid']);
-            
-            if ($mainIndicatorId != $configRow['ID']) {
-                $configRow = self::getKpiIndicatorRowModel($mainIndicatorId);
+            if (isset($wfmStatusParams['systemmetagroupid']) && !isset($wfmStatusParams['mainindicatorid'])) {
+                
+                $metaDataId = $wfmStatusParams['systemmetagroupid'];
+                $isMetaGroup = true;
+                
+            } else {
+                $mainIndicatorId = Input::param($wfmStatusParams['mainindicatorid']);
+
+                if ($mainIndicatorId != $configRow['ID']) {
+                    $configRow = self::getKpiIndicatorRowModel($mainIndicatorId);
+                }
+
+                $metaDataId = $configRow['STRUCTURE_INDICATOR_ID'] ? $configRow['STRUCTURE_INDICATOR_ID'] : $configRow['ID'];
             }
-            
-            $metaDataId = $configRow['STRUCTURE_INDICATOR_ID'] ? $configRow['STRUCTURE_INDICATOR_ID'] : $configRow['ID'];
             
             $this->load->model('mdobject', 'middleware/models/');
             
             $_POST['newWfmStatusid'] = Input::param($wfmStatusParams['wfmstatusid']);
             $_POST['metaDataId'] = $metaDataId;
-            $_POST['dataRow'] = ['id' => Input::param($wfmStatusParams['recordid']), 'wfmstatusid' => Input::param($wfmStatusParams['currentwfmstatusid'])];
+            
+            if (isset($isMetaGroup) && $isMetaGroup) {
+                $_POST['dataRow'] = $wfmStatusParams['datarow'];
+            } else {
+                $_POST['dataRow'] = ['id' => $rowId, 'wfmstatusid' => Input::param($wfmStatusParams['currentwfmstatusid'])];
+                $_POST['isIndicator'] = 1;
+            }
+            
             $_POST['description'] = '';
-            $_POST['isIndicator'] = 1;
 
             $response = $this->model->setRowWfmStatusModel();
         }
@@ -16028,6 +16051,7 @@ class Mdform_Model extends Model {
                 
                 $rows = $rs->_array;                  
                 $childRecordCountKey = 'CHILDRECORDCOUNT';
+                $iconColorCodeKey = 'ICON_COLOR_CODE';
                 
                 if ($isUseWorkflow) {
 
@@ -16057,6 +16081,7 @@ class Mdform_Model extends Model {
                 if (Input::numeric('isLowerCase')) {
                     $rows = Arr::changeKeyLower($rows);
                     $childRecordCountKey = 'childrecordcount';
+                    $iconColorCodeKey = 'icon_color_code';
                 }
                 
                 if ($aggregateField) {
@@ -16066,8 +16091,19 @@ class Mdform_Model extends Model {
                 if (isset($treeConfigs)) {
                         
                     if (isset($rows[0])) {
+                        
+                        $isIconColorCode = false;
+                        
+                        if (array_key_exists($iconColorCodeKey, $rows[0])) {
+                            $isIconColorCode = true;
+                        }
+                        
                         foreach ($rows as $rowIndex => $rowData) {
                             $rows[$rowIndex]['state'] = (isset($rowData[$childRecordCountKey]) && $rowData[$childRecordCountKey]) ? 'closed' : 'open';
+                            
+                            if ($isIconColorCode) {
+                                $rows[$rowIndex]['iconCls'] = $rowData[$iconColorCodeKey];
+                            }   
                         }
                     }
 

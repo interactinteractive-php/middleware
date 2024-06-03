@@ -4414,6 +4414,9 @@ class Mdwidget extends Controller {
             case 'exam_resultlist':
                 $htmlPath = 'relation/result';
                 break;
+            case 'case_checklist':
+                $htmlPath = 'relation/case';
+                break;
             case 'preview_calendar':
                 $htmlPath = 'relation/calendar';
                 $title = $this->view->title;

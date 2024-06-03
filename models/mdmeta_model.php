@@ -5412,8 +5412,15 @@ class Mdmeta_Model extends Model {
                 if ($moduleId == $row['metadataid']) {
                     $activeClass = ' active';
                 }
+                
+                $linkOnClick = "";
+                if ($row['weburl'] == 'mdform/indicatorProduct/16805027402801') {
+                    $indicatorId = '16805027402801';
+                    $linkHref = 'javascript:;';
+                    $linkOnClick = ' onclick="mvProductRenderInit(this, \''.$linkHref.'\', \''.$indicatorId.'\');"';                    
+                }
 
-                $item .= '<a href="javascript:;" data-moduleid="'.$row['metadataid'].'" data-code="'.$row['code'].'" data-original-title="'.$this->lang->line($row['name']).'" data-weburl="'.$row['weburl'].'" data-urltrg="'.$row['urltrg'].'" data-bookmarkurl="'.$row['bookmarkurl'].'" data-bookmarktrg="'.$row['bookmarktrg'].'" data-actionmetadataid="'.$row['actionmetadataid'].'" data-actionmetatypeid="'.$row['actionmetatypeid'].'" class="nav-link d-flex flex-column'.$activeClass.'" data-pfgotometa="1">';
+                $item .= '<a href="javascript:;"'.$linkOnClick.' data-moduleid="'.$row['metadataid'].'" data-code="'.$row['code'].'" data-original-title="'.$this->lang->line($row['name']).'" data-weburl="'.$row['weburl'].'" data-urltrg="'.$row['urltrg'].'" data-bookmarkurl="'.$row['bookmarkurl'].'" data-bookmarktrg="'.$row['bookmarktrg'].'" data-actionmetadataid="'.$row['actionmetadataid'].'" data-actionmetatypeid="'.$row['actionmetatypeid'].'" class="nav-link d-flex flex-column'.$activeClass.'" data-pfgotometa="1">';
 
                 if ($row['icon']) {
                     $item .= '<i class="far '.$row['icon'].'"></i>';

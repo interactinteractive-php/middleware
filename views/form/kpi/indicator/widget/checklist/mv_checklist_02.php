@@ -43,7 +43,7 @@ $renderType = $this->methodRow['RENDER_THEME'];
             ?>
 
             <div class="bp-tabs tabbable-line mv-main-tabs mv-checklist-tab w-100">
-                <ul class="nav nav-tabs" style="padding-top: <?php echo $renderType == 'paper_main_window' ? '15px' : '3px' ?> !important;">
+                <ul class="nav nav-tabs" style="padding-top: <?php echo $renderType == 'paper_main_window' ? '10px' : '3px' ?> !important;padding-bottom: 0px !important;">
                     <?php
                     if (!$this->isIgnoreHeaderProcess) {
                     ?>
@@ -111,10 +111,10 @@ $renderType = $this->methodRow['RENDER_THEME'];
                         if ($tabName != 'яяяrow') { 
                     ?>                    
                         <div class="tab-pane <?php echo ($this->isIgnoreHeaderProcess ? ($tabId == 1 ? 'active' : '') : ''); ?>" id="maintabcustom_<?php echo $this->uniqId; ?>_<?php echo $tabId; ?>" style="padding-bottom: 0 !important;padding-top: 0 !important;padding-right: 0 !important;">
-                            <div class="d-flex">
-                                <div class="sidebar sidebar-light sidebar-secondary sidebar-expand-md pr-2" style="width:280px">
+                            <div class="d-flex" style="background-color: rgb(244, 244, 244)">
+                                <div class="sidebar sidebar-light sidebar-secondary sidebar-expand-md mt-2 ml-2" style="width:280px;border-radius: .75rem;">
                                     <div class="d-flex justify-content-end">
-                                        <a href="javascript:;" title="Sidebar хураах" onclick="mvCheckListSidebarClose(this)" style="color: #333;font-size: 15px;line-height: 0;"><i class="far fa-arrow-alt-to-left"></i></a>
+                                        <a href="javascript:;" title="Sidebar хураах" onclick="mvCheckListSidebarClose(this)" style="color: #333;font-size: 15px;line-height: 0;margin-top: 5px;margin-right: 12px;"><i class="far fa-arrow-alt-to-left"></i></a>
                                     </div>
                                     <div class="sidebar-content">
 
@@ -461,7 +461,7 @@ if ($renderType == 'paper_main_window') {
     height: 70vh;
     padding: 0;
     /*margin-left: -5px;*/
-    margin-right: -10px;
+    /*margin-right: -10px;*/
     overflow: auto;
 }
 .mv-checklist2-render-parent .mv-checklist-menu:not(.mv-checklist-card-menu) li {

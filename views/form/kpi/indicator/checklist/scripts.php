@@ -59,7 +59,8 @@ $(function() {
             if (metaTypeId == '200101010000011') { //Process
                 
                 viewProcess_<?php echo $this->uniqId; ?>.find(".mv_checklist_render_all").addClass("hidden");
-                if (viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).length && viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).html().length) {       
+                if (viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).length && viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).html().length) { 
+                    Core.unblockUI();
                     viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).removeClass("hidden");
                     return;
                 }                
@@ -125,7 +126,8 @@ $(function() {
             } else if (metaTypeId == '200101010000016') { //Dataview
             
                 viewProcess_<?php echo $this->uniqId; ?>.find(".mv_checklist_render_all").addClass("hidden");
-                if (viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).length && viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).html().length) {       
+                if (viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).length && viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).html().length) { 
+                    Core.unblockUI();
                     viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).removeClass("hidden");
                     return;
                 }
@@ -175,6 +177,13 @@ $(function() {
                 
             } else if (metaTypeId == '200101010000032') { //Chart
             
+                viewProcess_<?php echo $this->uniqId; ?>.find(".mv_checklist_render_all").addClass("hidden");
+                if (viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).length && viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).html().length) { 
+                    Core.unblockUI();
+                    viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).removeClass("hidden");
+                    return;
+                }            
+            
                 $.ajax({
                     type: 'post',
                     url: 'mddashboard/diagramRenderByPost',
@@ -184,13 +193,29 @@ $(function() {
                         Core.blockUI({message: 'Loading...', boxed: true});
                     },
                     success: function (data) {
-                        viewProcess_<?php echo $this->uniqId; ?>.empty().append(data.Html).promise().done(function () {
-                            Core.unblockUI();
-                        });
+                        if (viewProcessWindow_<?php echo $this->uniqId; ?>) {                            
+                            if (!viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).length) {
+                                viewProcess_<?php echo $this->uniqId; ?>.append('<div class="mv_checklist_render_all" id="mv_checklist_id_'+metaDataId+'"></div>');
+                            }                        
+                            viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).append(data.Html).promise().done(function () {
+                                Core.unblockUI();
+                            });
+                        } else {
+                            viewProcess_<?php echo $this->uniqId; ?>.empty().append(data.Html).promise().done(function () {
+                                Core.unblockUI();
+                            });
+                        }
                     },
                     error: function(){ alert('Error'); Core.unblockUI(); }
                 });
             } else if (metaTypeId == '200101010000035') { //Statement
+            
+                viewProcess_<?php echo $this->uniqId; ?>.find(".mv_checklist_render_all").addClass("hidden");
+                if (viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).length && viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).html().length) { 
+                    Core.unblockUI();
+                    viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).removeClass("hidden");
+                    return;
+                }                  
             
                 $.ajax({
                     type: 'post',
@@ -200,9 +225,18 @@ $(function() {
                         Core.blockUI({message: 'Loading...', boxed: true});
                     },
                     success: function (dataHtml) {
-                        viewProcess_<?php echo $this->uniqId; ?>.empty().append(dataHtml).promise().done(function () {
-                            Core.unblockUI();
-                        });
+                        if (viewProcessWindow_<?php echo $this->uniqId; ?>) {                            
+                            if (!viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).length) {
+                                viewProcess_<?php echo $this->uniqId; ?>.append('<div class="mv_checklist_render_all" id="mv_checklist_id_'+metaDataId+'"></div>');
+                            }  
+                            viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).append(dataHtml).promise().done(function () {
+                                Core.unblockUI();
+                            });                            
+                        } else {
+                            viewProcess_<?php echo $this->uniqId; ?>.empty().append(dataHtml).promise().done(function () {
+                                Core.unblockUI();
+                            });
+                        }                        
                     },
                     error: function(){ alert('Error'); Core.unblockUI(); }
                 });
@@ -294,7 +328,8 @@ $(function() {
             } else if (metaDataId == '1482131909084156') { //Salary menu meta id
             
                 viewProcess_<?php echo $this->uniqId; ?>.find(".mv_checklist_render_all").addClass("hidden");
-                if (viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).length && viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).html().length) {       
+                if (viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).length && viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).html().length) { 
+                    Core.unblockUI();
                     viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).removeClass("hidden");
                     return;
                 }            
@@ -327,7 +362,8 @@ $(function() {
             } else if (metaDataId == '16842269788489') { //Time Plan menu meta id
             
                 viewProcess_<?php echo $this->uniqId; ?>.find(".mv_checklist_render_all").addClass("hidden");
-                if (viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).length && viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).html().length) {       
+                if (viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).length && viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).html().length) { 
+                    Core.unblockUI();
                     viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).removeClass("hidden");
                     return;
                 }                 
@@ -376,7 +412,8 @@ $(function() {
             } else if (metaDataId == '16293670316521') { //Time Balance menu meta id
             
                 viewProcess_<?php echo $this->uniqId; ?>.find(".mv_checklist_render_all").addClass("hidden");
-                if (viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).length && viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).html().length) {       
+                if (viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).length && viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).html().length) { 
+                    Core.unblockUI();
                     viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+metaDataId).removeClass("hidden");
                     return;
                 }                  
@@ -585,7 +622,8 @@ $(function() {
             if (kpiTypeId == '2008' || isMartRender > 0) { 
             
                 viewProcess_<?php echo $this->uniqId; ?>.find(".mv_checklist_render_all").addClass("hidden");
-                if (viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+indicatorId).length && viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+indicatorId).html().length) {       
+                if (viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+indicatorId).length && viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+indicatorId).html().length) { 
+                    Core.unblockUI();
                     viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+indicatorId).removeClass("hidden");
                     viewProcessComment_<?php echo $this->uniqId; ?>.empty();
                     return;
@@ -721,6 +759,10 @@ $(function() {
                                     var $checkElements = $render.find("input[type='checkbox']");
                                     $checkElements.attr({'data-isdisabled': 'true', style: 'cursor: not-allowed', 'tabindex': '-1'});
                                     $checkElements.closest('.checker').addClass('disabled');
+                                }
+                                
+                                if (viewProcess_<?php echo $this->uniqId; ?>.find(".sectiongidseperatorcontent-container").length) {
+                                    viewProcess_<?php echo $this->uniqId; ?>.find(".meta-toolbar").hide();
                                 }
 
                                 if (isComment == '1' && postData.hasOwnProperty('recordId')) {
@@ -940,7 +982,8 @@ $(function() {
             } else {
             
                 viewProcess_<?php echo $this->uniqId; ?>.find(".mv_checklist_render_all").addClass("hidden");
-                if (viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+indicatorId).length && viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+indicatorId).html().length) {       
+                if (viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+indicatorId).length && viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+indicatorId).html().length) { 
+                    Core.unblockUI();
                     viewProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+indicatorId).removeClass("hidden");
                     viewProcessComment_<?php echo $this->uniqId; ?>.empty();
                     return;
@@ -1065,6 +1108,20 @@ $(function() {
     var wcontw = $checkList_<?php echo $this->uniqId; ?>.width() - 290;
     $checkList_<?php echo $this->uniqId; ?>.find('.checklist2-content-section').css('max-width', wcontw+'px');
     $(window).trigger("resize");    
+    $(".new-vlogo-link-backpage").css("background", "#fff");
+    $(".new-vlogo-link-backpage").find("img").attr("src", "<?php echo issetParam($logoImage) ?>");
+    
+    $(".mv-checklist2-render-parent").on("click", ".mv-checklist-section-sidebar a", function(){
+        $(this).parent().parent().find("div").removeClass("active");
+        $(this).parent().addClass("active");
+        $(".mv-checklist2-render-parent").find(".sectiongidseperatorcontent").removeAttr("style");
+        $(".mv-checklist2-render-parent").find(".sectiongidseperatorcontent").find("legend").removeAttr("style");
+        $(".mv-checklist2-render-parent").find("legend"+$(this).attr("href")).css({"border": "1px solid rgb(27, 132, 255)","border-bottom": "none"}).parent().css("border", "1px solid #1B84FF");
+    });
+    
+//    if ($checkList_<?php echo $this->uniqId; ?>.find(".sectiongidseperatorcontent-container").length) {
+//        $checkList_<?php echo $this->uniqId; ?>.find(".meta-toolbar").hide();
+//    }    
     
 });
 
@@ -1230,9 +1287,8 @@ function mvCheckListSidebarClose(elem) {
         $self.closest(".d-flex").css({
             position: "absolute",
             "margin-left": "7px",
-            "background-color": "#fff",
             padding: "4px",
-            "margin-top": "93px"
+            "margin-top": "<?php echo $renderType == 'paper_main_window' ? '51' : '82' ?>px"
         });
         $self.closest(".sidebar").css({
             position: "absolute",
@@ -1240,10 +1296,10 @@ function mvCheckListSidebarClose(elem) {
         });
         $(window).trigger("resize");
     } else {
-        $self.attr("title", "Sidebar хураах");
-        $self.closest(".sidebar").css("width", "280px").find(".sidebar-content").show();
+        $self.attr("title", "Sidebar хураах");        
         $self.closest(".d-flex").removeAttr("style");
         $self.closest(".sidebar").removeAttr("style");
+        $self.closest(".sidebar").css({"width": "280px","border-radius": ".75rem"}).find(".sidebar-content").show();
         $self.find("i").removeClass("fa-arrow-alt-to-right").addClass("fa-arrow-alt-to-left");
         var wcontw = $self.closest('.mv-checklist2-render-parent').width() - 280;
         $self.closest('.mv-checklist2-render-parent').find('.checklist2-content-section').css('max-width', wcontw+'px');
