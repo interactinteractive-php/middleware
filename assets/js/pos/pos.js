@@ -13887,7 +13887,7 @@ function posNotVatCustomerList() {
         autoOpen: false,
         title: data.title,
         width: 550,
-        height: "auto",
+        height: $(window).height() - 100,
         modal: true,
         closeOnEscape: isCloseOnEscape,
         /*position: {my: 'top', at: 'top+13%'},*/

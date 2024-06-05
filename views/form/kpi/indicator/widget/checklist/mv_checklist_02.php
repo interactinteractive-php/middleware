@@ -77,10 +77,14 @@ $renderType = $this->methodRow['RENDER_THEME'];
                     <div class="tab-pane active" id="structabcustom_<?php echo $this->uniqId; ?>">
                         <div class="mv-checklist-main-render" style="background-color: rgb(244, 244, 244); width: 100%; padding: 10px 10px;">
                             <form method="post" enctype="multipart/form-data">
+                                <div class="meta-toolbar meta-toolbar-checklist is-bp-open-" style="padding-left: 26px;">
+                                    <div class="main-process-text">
+                                        <div class=""><?php echo $this->title; ?></div>                                        
+                                    </div>                                
+                                </div>                                
                                 <?php echo $this->headerProcess; ?>
                                 <div class="meta-toolbar is-bp-open-" style="background-color: transparent;">
-                                    <div class="main-process-text">
-                                        <div class="hidden"><?php echo $this->title; ?></div>                                        
+                                    <div class="main-process-text">                             
                                     </div>
                                     <div class="ml-auto">
                                         <?php
@@ -213,7 +217,7 @@ $renderType = $this->methodRow['RENDER_THEME'];
                                                             echo '</li>';
                                                             
                                                             if ($groupRow['row']['IS_SEPERATOR'] == 1) {
-                                                                echo '<li class="nav-item" style="border: 1px solid rgb(244, 244, 244);margin-top: 10px;margin-bottom: 10px;"></li>';
+                                                                echo '<li class="nav-item" style="margin-top: 10px;margin-bottom: 10px;"><div style="border: 1px solid rgb(244, 244, 244);margin-left: 20px;margin-right: 20px;"></div></li>';
                                                             }
                                                         }
                                                     }

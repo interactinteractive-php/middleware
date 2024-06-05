@@ -1119,9 +1119,9 @@ $(function() {
         $(".mv-checklist2-render-parent").find("legend"+$(this).attr("href")).css({"border": "1px solid rgb(27, 132, 255)","border-bottom": "none"}).parent().css("border", "1px solid #1B84FF");
     });
     
-//    if ($checkList_<?php echo $this->uniqId; ?>.find(".sectiongidseperatorcontent-container").length) {
-//        $checkList_<?php echo $this->uniqId; ?>.find(".meta-toolbar").hide();
-//    }    
+    if ($checkList_<?php echo $this->uniqId; ?>.find(".mv-checklist-main-render").find(".sectiongidseperatorcontent-container").length) {
+        $checkList_<?php echo $this->uniqId; ?>.find(".meta-toolbar-checklist").hide();
+    }    
     
 });
 

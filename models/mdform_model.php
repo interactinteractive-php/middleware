@@ -19231,7 +19231,7 @@ class Mdform_Model extends Model {
                         KIIM.SHOW_TYPE 
                     ORDER BY 
                         KIIM.ORDER_NUMBER ASC", 
-                    array($mainIndicatorId)
+                    [$mainIndicatorId]
                 );
 
                 if ($columnConfig) {
@@ -19244,7 +19244,7 @@ class Mdform_Model extends Model {
                     $tableName    = $srcTableName ? $srcTableName : $schemaName . 'D_'.$mainIndicatorId;
                     $isTblCreated = self::table_exists($this->db, $tableName);
 
-                    $dbField      = array();
+                    $dbField      = [];
 
                     foreach ($columnConfig as $col) {
 
@@ -19374,11 +19374,13 @@ class Mdform_Model extends Model {
                             CODE, 
                             NAME, 
                             KPI_TYPE_ID, 
-                            QUERY_STRING 
+                            QUERY_STRING, 
+                            POSTGRE_SQL 
                         FROM KPI_INDICATOR 
                         WHERE ID IN ($ids) 
                             AND KPI_TYPE_ID IN (1040, 1043, 1044) 
                             AND DELETED_USER_ID IS NULL 
+                            AND (QUERY_STRING IS NOT NULL OR POSTGRE_SQL IS NOT NULL) 
                         ORDER BY 
                             CASE ID 
                             $orderByCase 
@@ -19397,6 +19399,7 @@ class Mdform_Model extends Model {
                         T0.NAME, 
                         T0.KPI_TYPE_ID, 
                         T0.QUERY_STRING, 
+                        T0.POSTGRE_SQL, 
                         (
                             SELECT 
                                 COUNT(1) 
@@ -19411,10 +19414,11 @@ class Mdform_Model extends Model {
                     WHERE T0.PARENT_ID = $idPh1 
                         AND T0.KPI_TYPE_ID IN (1040, 1043, 1044, 1100, 1000, 2009) 
                         AND T0.DELETED_USER_ID IS NULL 
+                        AND (T0.QUERY_STRING IS NOT NULL OR T0.POSTGRE_SQL IS NOT NULL) 
                     ORDER BY 
                         T0.ORDER_NUMBER ASC, 
                         T0.ID ASC", 
-                    array($mainIndicatorId)
+                    [$mainIndicatorId]
                 );
             }
 
@@ -19443,9 +19447,17 @@ class Mdform_Model extends Model {
                         
                         Mdform::clearCacheData($row['ID']);
 
-                    } elseif ($row['KPI_TYPE_ID'] == '1043' && $row['QUERY_STRING']) {
+                    } elseif ($row['KPI_TYPE_ID'] == '1043') {
 
-                        $queryStr = $row['QUERY_STRING'];
+                        $queryStr = trim($row['QUERY_STRING']);
+                        
+                        if (DB_DRIVER == 'postgres9') {
+                            $postgreSql = trim($row['POSTGRE_SQL']);
+                            if (!empty($postgreSql) && strlen($postgreSql) > 10) {
+                                $queryStr = $postgreSql;
+                            }
+                        }
+                        
                         $queryStr = self::replaceNamedParameters($queryStr, $lastDate, $parameters); 
                         
                         $startTime = Date::currentDate();

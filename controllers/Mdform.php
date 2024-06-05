@@ -1802,12 +1802,13 @@ class Mdform extends Controller {
                 $this->view->renderGrid = $this->view->renderPrint('kpi/indicator/widget/grid/calendar', self::$viewPath);
             }
 
-            if ($this->view->viewType !== 'list' && (
+            if (issetParam($this->view->viewType) !== 'list' && (
                     Mdwidget::mvDataSetAvailableWidgets($this->view->row['WIDGET_ID']) 
                     || $widgetInfo = Mdwidget::mvDataSetAvailableWidgets($this->view->relationComponents) 
-                    || $widgetWInfo = Mdwidget::mvDataSetAvailableWidgets($this->view->relationWidgetComponents)
                 )) { 
 
+                    $widgetWInfo = Mdwidget::mvDataSetAvailableWidgets($this->view->relationWidgetComponents);
+                    
                     $this->load->model('mdform', 'middleware/models/');
 
                     if (issetParam($widgetWInfo)) {
