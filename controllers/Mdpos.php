@@ -2413,6 +2413,8 @@ class Mdpos extends Controller {
                 if (isset($this->view->getLocker['alertmsg']) && $this->view->getLocker['alertmsg']) {
                     $response['message'] = $this->view->getLocker['alertmsg'];
                 }
+            } else {
+                $response['message'] = 'Локерийн дугаар олдсонгүй!';
             }            
         }
         echo json_encode($response); exit;        

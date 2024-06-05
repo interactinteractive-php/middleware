@@ -354,11 +354,14 @@
     </button>
     <?php
     }
+    if (Config::getFromCacheDefault('POS_IS_SHOW_TALON_LIST', null, '1')) { 
     ?>
     <button type="button" class="btn btn-block btn-circle btn-sm blue-madison" onclick="posTalonList();">
         <?php echo $this->lang->line('POS_0046'); ?> <span class="infoShortcut">(Shift+F3)</span>
     </button>
-    <?php if ($this->isCreateDeposit) { ?>
+    <?php 
+    }
+    if ($this->isCreateDeposit) { ?>
     <button type="button" class="btn btn-block btn-circle btn-sm grey-cascade" onclick="posCreateDepozit('<?php echo $this->isCreateDeposit ?>');">
         <?php echo 'Депозит үүсгэх'; ?>
     </button>

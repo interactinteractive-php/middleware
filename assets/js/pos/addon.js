@@ -1141,6 +1141,13 @@ function posLockerUnilock(elem, processMetaDataId, dataViewId, selectedRow, para
 
 }
 
+$(document.body).on("keydown", "#newLockerNfcCartReader", function (e) {
+    var keyCode = e.keyCode ? e.keyCode : e.which;
+    if (keyCode == 13) {
+        posLockerUnilockCheckNew($(this).val());
+    }    
+});
+
 function posLockerUnilockNew(elem, processMetaDataId, dataViewId, selectedRow, paramData) {
     
   var $dialogName = "dialog-pos-nfc-reader";
@@ -1148,7 +1155,7 @@ function posLockerUnilockNew(elem, processMetaDataId, dataViewId, selectedRow, p
   var $dialog = $("#" + $dialogName);
 
   $dialog.empty().append('<div style="text-align: center;">'+
-    '<input type="text" class="form-control">'+
+    '<input type="text" id="newLockerNfcCartReader" class="form-control">'+
     '<img style="height: 250px;" alt="nfc reader" src="middleware/assets/img/pos/nfc-reader.jpg" />'+
     '</div>');
 
@@ -1168,21 +1175,11 @@ function posLockerUnilockNew(elem, processMetaDataId, dataViewId, selectedRow, p
     buttons: []
   });
   $dialog.dialog("open");    
-    
-    $dialog.find('input').on("keydown", function (e) {
-      var keyCode = e.keyCode ? e.keyCode : e.which;
-      if (keyCode == 13) {
-          posLockerUnilockCheckNew($(this).val());
-      }
-    });    
-    //posLockerUnilockCheckNew();
-
 }
 
 function posLockerUnilockCheckNew(getLockerCode) {
     
-    if (getLockerCode) {
-        $('#dialog-pos-nfc-reader').dialog("close");
+    if (getLockerCode) {        
 
         $tabMainContainer = $('body').find("div.m-tab > div.tabbable-line > ul.card-multi-tab-navtabs");
         if ($tabMainContainer.find("a[href='#app_tab_mdposLocker_1566556713853_1992']").length) {
@@ -1208,8 +1205,10 @@ function posLockerUnilockCheckNew(getLockerCode) {
                 });
                 return;
             }
+            
+            $('#dialog-pos-nfc-reader').dialog("close");
 
-            appMultiTab({ weburl: 'mdpos', metaDataId: 'mdposLocker_1566556713853_1991', title: 'POS', type: 'selfurl', recordId: getLockerCode, selectedRow: { keycode: getLockerCode, id: '', typeid: '5' } }, this, function(elem, param, data) {
+            appMultiTab({ weburl: 'mdpos', metaDataId: 'mdposLocker_1566556713853_1992', title: 'POS', type: 'selfurl', recordId: getLockerCode, selectedRow: { keycode: getLockerCode, id: '', typeid: '5' } }, this, function(elem, param, data) {
                 if (typeof data.chooseCashier === 'undefined') {
                     elem.find('.pos-wrap').css({"margin-left":"-15px", "margin-right":"-16px", "margin-top":"-9px"});
                     if (typeof checkInitPosJS === 'undefined') {

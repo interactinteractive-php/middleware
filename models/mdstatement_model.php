@@ -889,14 +889,14 @@ class Mdstatement_model extends Model {
             'ignorePermission' => 1 
         );
         
-        if (Input::postCheck('detectGroupingUserOption') && Input::postCheck('groupingUserOption') && Input::postCheck('groupingUserOptionNotChecked')) {
+        /*if (Input::postCheck('detectGroupingUserOption') && Input::postCheck('groupingUserOption') && Input::postCheck('groupingUserOptionNotChecked')) {
             
             $groupingUserOptionNotChecked = $_POST['groupingUserOptionNotChecked'];
 
             foreach ($groupingUserOptionNotChecked as $groupingField) {
                 $param['grouping'][] = $groupingField; 
             }
-        }
+        }*/
         
         $gridOption = $this->model->getDVGridOptionsModel($dataViewId);
         

@@ -275,6 +275,8 @@ $(function() {
                                         viewProcess_<?php echo $this->uniqId; ?>.find('.pos-left-inside-help').css("position","inherit");
                                     }, 600);
                                     
+                                    isPOSLayoutAjaxLoad = false;
+                                    
                                     if (typeof checkInitPosJS === 'undefined') {
                                         $.ajax({
                                             url: "middleware/assets/js/pos/pos.js",
@@ -1103,13 +1105,11 @@ $(function() {
     if (isset($this->rowData) && $this->rowData) {
         echo Mdform::checkListRelationCriteriaScript($this->rowData, $this->relationList, $this->uniqId);
     }
-    ?>
-
-    var wcontw = $checkList_<?php echo $this->uniqId; ?>.width() - 290;
-    $checkList_<?php echo $this->uniqId; ?>.find('.checklist2-content-section').css('max-width', wcontw+'px');
-    $(window).trigger("resize");    
+    ?> 
+    
     $(".new-vlogo-link-backpage").css("background", "#fff");
     $(".new-vlogo-link-backpage").find("img").attr("src", "<?php echo issetParam($logoImage) ?>");
+    $(".appmenu-newdesign-header-1").css("box-shadow", "none");
     
     $(".mv-checklist2-render-parent").on("click", ".mv-checklist-section-sidebar a", function(){
         $(this).parent().parent().find("div").removeClass("active");

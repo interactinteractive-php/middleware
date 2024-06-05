@@ -710,7 +710,7 @@ class Mdmeta_Model extends Model {
                     $menu .= '<a href="javascript:;" class="veri-app-engage-btn p-0" data-toggle="tooltip" data-placement="left" data-close-others="true" aria-expanded="false" onclick="redirectFunction(this, \'mdhelpdesk/ssoLogin\')" title="Help center">';
                         $menu .= '<i class="fas fa-question-circle font-size-16"></i>';
                     $menu .= '</a>';
-                    $menu .= '<a href="javascript:;" class="newtab d-none " target="_blank"></a>';
+                    $menu .= '<a href="javascript:;" class="newtab d-none" target="_blank"></a>';
                     
                 } elseif ($rowMeta['linkHref'] === 'mdobject/package/1648088644166855') {
                     
@@ -736,6 +736,12 @@ class Mdmeta_Model extends Model {
                     
                     $menu .= '<a href="'.$rowMeta['linkHref'].'" target="_blank" class="veri-app-engage-btn p-0 hdr-open-notification-list" data-toggle="tooltip" data-placement="left" title="Check query">';
                         $menu .= '<i class="fas fa-exclamation-circle font-size-16"></i>' . $countMetaData;
+                    $menu .= '</a>';
+                    
+                } elseif ($row['metadataid'] === '1717413145805304' && Config::getFromCache('PF_METAVERSE_COMMAND_PROMPT_URL')) {
+                    
+                    $menu .= '<a href="javascript:;" class="veri-app-engage-btn p-0" data-toggle="tooltip" data-placement="left" title="MetaVerse Command Prompt" onclick="metaVerseCommandPromptIframe(this);">';
+                        $menu .= '<i class="fas fa-terminal font-size-16"></i>';
                     $menu .= '</a>';
                     
                 }

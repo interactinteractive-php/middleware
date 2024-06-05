@@ -84,12 +84,11 @@ if ($this->isDialog == false) {
         $mainProcessBtnBar .= '<div class="ml-auto">
                 ' . Form::button(
             array(
-                'class' => 'btn btn-info btn-circle btn-sm float-left mr5',
-                'value' => '<i class="icon-help"></i> Тусламж',
-                'onclick' => "pfHelpDataView('" . $this->methodId . "');"
-            ),
-            ($this->isKnowledge ? true : false)
-        ) . html_tag(
+                'class' => 'btn btn-info btn-circle btn-sm mr-1 bp-btn-help',
+                'value' => $this->lang->line('menu_system_guide'),
+                'onclick' => "redirectHelpContent(this, '".$this->helpContentId."', '".$this->methodId."', 'meta_process');"
+            ), ($this->helpContentId ? true : false)
+            ) . html_tag(
             'button',
             array(
                 'type' => 'button',

@@ -38,7 +38,7 @@ class Mdform extends Controller {
     public static $methodStructureIndicatorId = null;
     public static $currentKpiTypeId = null;
     public static $helpContentId = null;
-    public static $addonId = 0;
+    public static $labelWidth = null;
     public static $radioPrefix = '';
     public static $labelName = '';
     public static $inputId = '';
@@ -47,11 +47,11 @@ class Mdform extends Controller {
     public static $subUniqId = '';
     public static $kpiFullExpressions = '';
     public static $kpiRenderType = '';
+    public static $addonId = 0;
     public static $kpiControlIndex = 0;
     public static $isShowName = 0;
-    public static $mergeColCount = 2;
     public static $indicatorLevel = 0;
-    public static $labelWidth = null;
+    public static $mergeColCount = 2;
     public static $isKpiTempCriteria = false;
     public static $isIndicatorMerge = false;
     public static $isSubKpiForm = false;
@@ -67,6 +67,8 @@ class Mdform extends Controller {
     public static $isGetTrgAliasName = false;
     public static $isGetLookupRowData = false;
     public static $isProductCheckPermission = false;
+    public static $tabSectionRender = false;
+    public static $tabSectionRenderSidebar = false;
     public static $processParamData = [];
     public static $kpiDmDtlData = [];
     public static $kpiDmMart = [];
@@ -82,8 +84,6 @@ class Mdform extends Controller {
     public static $indicatorTemplateRow = [];
     public static $indicatorConfigValues = [];
     public static $tabRender = [];
-    public static $tabSectionRender = false;
-    public static $tabSectionRenderSidebar = false;
     public static $topTabRender = [];
     public static $topTabRenderShow = [];
     public static $gridStyler = [];
@@ -96,6 +96,7 @@ class Mdform extends Controller {
     public static $mvParamsConfig = [];
     public static $mvDbParams = [];
     public static $mvPivotColumnFilter = [];
+    public static $wizardStepControls = [];
     public static $typeIds = ['100', '101', '102', '103', '104', '105'];
     public static $semanticTypes = ['checkListParamMap' => 116, 'component' => 10000010, 'normal' => 44, 'config' => 79];
     public static $numberTypes = ['number', 'long', 'decimal', 'decimal_zero', 'bigdecimal', 'percent'];
@@ -1314,29 +1315,6 @@ class Mdform extends Controller {
                     $this->view->componentRenderType = '';
                 }
                 
-                if ($this->view->kpiTypeId == '2013') {
-                    
-                    $this->view->additionalInfo = $this->model->getIndicatorAdditionalInfoModel($this->view->kpiTypeId, $this->view->indicatorId);
-                    
-                    if (isset($this->view->additionalInfo['STRUCTURE_LIMIT']) && isset($this->view->additionalInfo['STRUCTURE_TAB_NAME'])) {
-                        
-                        $structureMap = $this->model->getIndicatorSemanticMapCountModel($this->view->indicatorId, 10000017);
-                        
-                        if ($structureMap) {
-                            
-                            $this->view->structureTabContent = self::addonStructureForm($this->view->indicatorId, $structureMap);
-                            $this->view->structureTab = array(
-                                'tabName'    => $this->view->additionalInfo['STRUCTURE_TAB_NAME'], 
-                                'tabContent' => $this->view->renderPrint('kpi/indicator/recordmap/addonStructure', self::$viewPath)
-                            );
-                            
-                            if ($mainTabName = issetParam($this->view->additionalInfo['DEFAULT_TAB_NAME'])) {
-                                $this->view->mainTabName = $mainTabName;
-                            }
-                        }
-                    }
-                }
-                
                 if ($this->view->kpiTypeId == '2009') {
                     $this->view->isKpiIndicatorRender = '1';
                 }
@@ -1661,11 +1639,6 @@ class Mdform extends Controller {
         convJson($response);
     }
     
-    public function removeAddonStructureForm() {
-        $response = $this->model->removeAddonStructureFormModel();
-        jsonResponse($response);
-    }
-    
     public function indicatorList($indicatorId = '', $isReturnArray = false) {
         
         if (!isset($this->view)) {
@@ -1829,10 +1802,12 @@ class Mdform extends Controller {
                 $this->view->renderGrid = $this->view->renderPrint('kpi/indicator/widget/grid/calendar', self::$viewPath);
             }
 
-            if (Mdwidget::mvDataSetAvailableWidgets($this->view->row['WIDGET_ID']) 
-                || $widgetInfo = Mdwidget::mvDataSetAvailableWidgets($this->view->relationComponents) 
-                || $widgetWInfo = Mdwidget::mvDataSetAvailableWidgets($this->view->relationWidgetComponents)) {                            
-                if ($this->view->viewType !== 'list') {
+            if ($this->view->viewType !== 'list' && (
+                    Mdwidget::mvDataSetAvailableWidgets($this->view->row['WIDGET_ID']) 
+                    || $widgetInfo = Mdwidget::mvDataSetAvailableWidgets($this->view->relationComponents) 
+                    || $widgetWInfo = Mdwidget::mvDataSetAvailableWidgets($this->view->relationWidgetComponents)
+                )) { 
+
                     $this->load->model('mdform', 'middleware/models/');
 
                     if (issetParam($widgetWInfo)) {
@@ -1841,9 +1816,11 @@ class Mdform extends Controller {
                         $this->view->relationComponentsConfigData = $this->model->getRelationComponentsConfigModel($this->view->relationComponents[$widgetInfo['name']]['MAP_ID']);
                     }
                     $this->view->relationColumnData = Arr::groupByArrayOnlyRow($this->view->columnsData, 'COLUMN_NAME', false);
-
-                    foreach ($this->view->relationComponentsConfigData as $rk => $rrow) {
-                        $this->view->relationViewConfig[$rk] = checkDefaultVal($this->view->relationColumnData[$rrow]['COLUMN_NAME'], $rrow);
+                    
+                    if (isset($this->view->relationComponentsConfigData)) {
+                        foreach ($this->view->relationComponentsConfigData as $rk => $rrow) {
+                            $this->view->relationViewConfig[$rk] = checkDefaultVal($this->view->relationColumnData[$rrow]['COLUMN_NAME'], $rrow);
+                        }
                     }
 
                     $this->view->row['gridOption']['theme'] = 'no-border';
@@ -1853,7 +1830,6 @@ class Mdform extends Controller {
                     $this->view->renderGridList = $this->view->renderPrint('kpi/indicator/renderGrid', self::$viewPath);
                     
                     $this->view->renderGrid = self::renderWidgetDataSet($this->view->row, $widgetWInfo ? $widgetWInfo : $widgetInfo);
-                }
             }            
         }
         
@@ -4842,83 +4818,6 @@ class Mdform extends Controller {
         echo json_encode($response, JSON_UNESCAPED_UNICODE);
     }
     
-    public function addonStructureForm($srcIndicatorId = '', $structureMap = array()) {
-        
-        $response = $selectedIds = array();
-        $postIds = Input::post('selectedIds');
-        $rowIndex = '[addonForm]';
-        
-        if ($postIds) {
-            
-            $isJson = true;
-            $postRowIndex = Input::numeric('rowIndex');
-            
-            if ($postRowIndex != '') {
-                $subFormKeyName = Input::post('subFormKeyName');
-                $rowIndex = '['.$subFormKeyName.']['.$postRowIndex.']';
-            }
-            
-            foreach ($postIds as $selectedId) {
-                $selectedIds[] = array('ID' => $selectedId, 'TRG_RECORD_ID' => Input::numeric('savedRecordId'));
-            }
-            
-        } elseif (Mdform::$defaultTplSavedId && $srcIndicatorId && $structureMap) {
-            $selectedIds = $this->model->getIndicatorMapBySemanticSavedIdsModel($srcIndicatorId, Mdform::$defaultTplSavedId, $structureMap);
-        }
-        
-        foreach ($selectedIds as $selectedRow) {
-            
-            $selectedId = $selectedRow['ID'];
-            $data = $this->model->getKpiIndicatorTemplateModel($selectedId);
-            
-            if ($data) {
-                
-                $dataFirstRow = $data[0];          
-                self::$subUniqId = getUID();
-                self::$addonPathPrefix = $rowIndex.'['.$selectedId.'_'.self::$subUniqId.']';
-                
-                if ($dataFirstRow['LABEL_WIDTH']) {
-                    self::$labelWidth = $dataFirstRow['LABEL_WIDTH'];
-                }
-                
-                self::$tabRender = array();
-                self::$topTabRender = array();
-                self::$indicatorColExpression = array();
-                self::$indicatorCellExpression = array();
-                self::$indicatorHdrExpression = array();
-                self::$addonId = 1;
-                
-                Mdform::$defaultTplSavedId = $selectedRow['TRG_RECORD_ID'];
-                
-                $form = $this->model->renderKpiIndicatorTemplateModel($selectedId, $dataFirstRow['TABLE_NAME'], $data);  
-                
-                $this->view->subUniqId = self::$subUniqId;
-                
-                $this->view->addonScripts = self::fncIndicatorColExpression($this->view->subUniqId, $selectedId, Mdform::$indicatorColExpression);
-                $this->view->addonScripts .= self::fncIndicatorCellExpression($this->view->subUniqId, $selectedId, Mdform::$indicatorCellExpression);
-                $this->view->addonScripts .= self::fncIndicatorHdrExpression($this->view->subUniqId, $selectedId, Mdform::$indicatorHdrExpression);
-                
-                $this->view->addonFullExp = self::indicatorFullExpression($this->view->subUniqId, $selectedId, '2013');
-                
-                $scripts = $this->view->renderPrint('kpi/indicator/recordmap/addonStructureScript', self::$viewPath); 
-                
-                $response[] = array(
-                    'id'       => $selectedId,
-                    'recordId' => $selectedRow['TRG_RECORD_ID'],
-                    'uniqId'   => self::$subUniqId,
-                    'name'     => $this->lang->line($dataFirstRow['NAME']),
-                    'form'     => $form . $scripts
-                );
-            }
-        }
-        
-        if (isset($isJson)) {
-            echo json_encode($response, JSON_UNESCAPED_UNICODE);
-        } else {
-            return $response;
-        }
-    }
-    
     public function lookupAutoComplete() {
         
         $type = Input::post('type');
@@ -5451,15 +5350,15 @@ class Mdform extends Controller {
 
             eval('$array = array_map(function($field) { return '.$fields.'; }, $rows);');
 
-            $rowsHtml = $this->model->indicatorRowsRender($mainIndicatorId, $groupPath, array($groupPath => $array), false);
+            $rowsHtml = $this->model->indicatorRowsRender($mainIndicatorId, $groupPath, [$groupPath => $array], false);
             
-            $response = array('status' => 'success', 'rows' => $rowsHtml);
+            $response = ['status' => 'success', 'rows' => $rowsHtml];
             
         } catch (Exception $ex) {
-            $response = array('status' => 'error', 'message' => $ex->getMessage());
+            $response = ['status' => 'error', 'message' => $ex->getMessage()];
         }
         
-        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+        convJson($response);
     }
     
     public function microUpdateClientObject($obj, $id) { 
@@ -6725,7 +6624,7 @@ class Mdform extends Controller {
     
     public function mvRunAllCheckQuery() {
         $response = $this->model->mvRunAllCheckQueryModel();
-        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+        convJson($response);
     }    
     
     public function runMvDataSet($args = array()) {

@@ -17,7 +17,6 @@ class Mdform_Model extends Model {
     private static $lookupDatas = [];
     private static $indicatorIdFields = [];
     private static $calcLogDtl = [];
-    private static $prevControlType = [];
     private static $mvParams = [];
     private static $functionList = [];
     private static $isObjectType = false;
@@ -4950,6 +4949,7 @@ class Mdform_Model extends Model {
                         NULL AS WIDGET_POSITION, 
                         NULL AS IS_FILTER, 
                         NULL AS TAB_RENDER_TYPE, 
+                        NULL AS WIZARD_STEP, 
                         NULL AS IS_SHOW_SECTION_NAME, 
                         NULL AS IS_FROM_MART_EXPRESSION, 
                         NULL AS WIDGET_CODE, 
@@ -5057,7 +5057,8 @@ class Mdform_Model extends Model {
                         M.METHOD_WIDGET_POSITION, 
                         M.WIDGET_POSITION, 
                         M.IS_FILTER, 
-                        M.TAB_RENDER_TYPE, 
+                        LOWER(M.TAB_RENDER_TYPE) AS TAB_RENDER_TYPE, 
+                        M.WIZARD_STEP, 
                         M.IS_SHOW_SECTION_NAME, 
                         CASE WHEN M.ALL_CELL_EXPRESSION IS NOT NULL 
                         THEN 1 ELSE 0 END AS IS_FROM_MART_EXPRESSION, 
@@ -5210,11 +5211,17 @@ class Mdform_Model extends Model {
                         $data[$k]['REAL_TRG_ALIAS_NAME'] = substr($data[$k]['REAL_TRG_ALIAS_NAME'], strrpos($data[$k]['REAL_TRG_ALIAS_NAME'], '.') + 1);
                     }
                     
-                    if ($row['IS_HEADER'] == '1' && !$isCheckSystemTable) {
-                        if ($data[$k]['COLUMN_NAME'] == 'ID') {
-                            $data[$k]['INPUT_NAME'] = 'META_VALUE_ID';
-                            $isHeaderIdColumn = true;
-                        }
+                    if ($row['IS_HEADER'] == '1' && $row['IS_RENDER'] == '1' && $row['IS_SHOW_SECTION_NAME'] == '1') {
+                        $data[0]['IS_SHOW_SECTION_NAME'] = 1;
+                    }
+                    
+                    if ($row['IS_HEADER'] == '1' && $row['IS_RENDER'] == '1' && $row['TAB_RENDER_TYPE'] == 'section') {
+                        $data[0]['TAB_RENDER_TYPE'] = 'section';
+                    }
+                    
+                    if ($row['IS_HEADER'] == '1' && !$isCheckSystemTable && $data[$k]['COLUMN_NAME'] == 'ID') {
+                        $data[$k]['INPUT_NAME'] = 'META_VALUE_ID';
+                        $isHeaderIdColumn = true;
                     }
                 }
                 
@@ -6239,10 +6246,6 @@ class Mdform_Model extends Model {
             Mdform::$defaultTplSavedId = 1;
             Mdform::$kpiDmMart = self::getConsolidateFillDataModel($indicatorId);
             
-            if ($rowId = issetParam(Mdform::$kpiDmMart['ID'])) {
-                Mdform::$firstTplId = $rowId;
-            }
-            
         } elseif ((Mdform::$defaultTplSavedId && $dataTableName) || (Mdform::$defaultTplSavedId && !$dataTableName && Mdform::$inputId)) {
             
             $getData = self::getMetaVerseDataModel($indicatorId, ['recordId' => Mdform::$defaultTplSavedId]);
@@ -6262,10 +6265,6 @@ class Mdform_Model extends Model {
             
             Mdform::$defaultTplSavedId = 1;
             Mdform::$kpiDmMart = self::getDefaultFillDataModel($indicatorId);
-            
-            if ($rowId = issetParam(Mdform::$kpiDmMart['ID'])) {
-                Mdform::$firstTplId = $rowId;
-            }
             
         } elseif (Input::postCheck('fillDynamicSelectedRow')) {
             
@@ -6446,14 +6445,14 @@ class Mdform_Model extends Model {
             }                      
             $sideSectionRender = [];
             $sideSectionRender[] = '<div class="d-flex" style="background-color: rgb(244, 244, 244);">';
-            $sideSectionRender[] = '<div class="mv-checklist-section-sidebar">';
-            $sideSectionRender[] = '<div style="">';
-            $sideSectionRender[] = implode('', $tnames);
-            $sideSectionRender[] = '</div>';
-            $sideSectionRender[] = '</div>';
-            $sideSectionRender[] = '<div class="ml10 w-100">';
-            $sideSectionRender[] = implode('', $render);
-            $sideSectionRender[] = '</div>';
+                $sideSectionRender[] = '<div class="mv-checklist-section-sidebar">';
+                    $sideSectionRender[] = '<div style="">';
+                        $sideSectionRender[] = implode('', $tnames);
+                    $sideSectionRender[] = '</div>';
+                $sideSectionRender[] = '</div>';
+                $sideSectionRender[] = '<div class="ml10 w-100">';
+                    $sideSectionRender[] = implode('', $render);
+                $sideSectionRender[] = '</div>';
             $sideSectionRender[] = '</div>';
             
             return implode('', $sideSectionRender);
@@ -7145,6 +7144,10 @@ class Mdform_Model extends Model {
                     $attrArray['placeholder'] = Lang::line('code_search');
                     $attrArray['value'] = $selectedCode;
                     $attrArray['title'] = $selectedCode;
+                    
+                    if ($isRequired == '1') {
+                        $attrArray['required'] = 'required';
+                    }
                     
                     $controlCodeInput = Form::text($attrArray);
                     
@@ -8184,7 +8187,8 @@ class Mdform_Model extends Model {
                 self::$indicatorTableName = $row['TABLE_NAME'];
             }
             
-            $lastKey = array_key_last($arr);
+            $isShowSectionName = issetParam($row['IS_SHOW_SECTION_NAME']);
+            $tabRenderType     = issetParam($row['TAB_RENDER_TYPE']);
                 
             foreach ($arr as $k => $arrRow) {
                 
@@ -8202,11 +8206,7 @@ class Mdform_Model extends Model {
                         $arrRow['SHOW_TYPE'] = 'hidden';
                         Mdform::$headerHiddenControl[] = self::kpiIndicatorControl($arrRow, $rowData);
                         continue;
-                    }
-                    
-                    if ($depth == 0 && issetParam(self::$prevControlType['firstLevelType']) == 'label') {
-                        $controlRender[] = '<!--divClassRowEnd-->';
-                    }                    
+                    }                 
                     
                     if ($arrRow['EXPRESSION_STRING']) {
                         
@@ -8240,11 +8240,7 @@ class Mdform_Model extends Model {
                     $labelAttr['text'] = $labelText;
                     $label = Form::label($labelAttr);
                     
-                    $control = self::kpiIndicatorControl($arrRow, $rowData);
-                    
-                    if ($depth == 0 && isset(self::$prevControlType['firstLevelType'])) {
-                        self::$prevControlType['firstLevelType'] = $arrRow['SHOW_TYPE'];
-                    }                      
+                    $control = self::kpiIndicatorControl($arrRow, $rowData);                     
                     
                     if ($inlineRows) {
                         
@@ -8313,21 +8309,12 @@ class Mdform_Model extends Model {
                     
                     if ($arrRow['SHOW_TYPE'] == 'label') {
                         
-                        $prevControlType = isset(self::$prevControlType['noTab']) ? self::$prevControlType['noTab'] : null;
-                        self::$prevControlType['noTab'] = 'label';
-                        
                         $rowsData = (is_array(Mdform::$kpiDmMart) ? issetParamArray(Mdform::$kpiDmMart[$arrRow['COLUMN_NAME_PATH']]) : []);
                         $childControls = self::childKpiIndicatorTemplate($indicatorId, $data, $arrRow['ID'], $arrRow, $depth + 1, $rowsData);
                         
                         if ($setColumnGrid = issetParam($arrRow['COLUMN_GRID'])) {
                             
-                            if ($depth == 0 && issetParam(self::$prevControlType['firstLevelType']) != 'label') {
-                                $controlRender[] = '<!--divClassRowStart-->';
-                            }
-                            
                             $controlRender[] = '<div class="col-md-'.$setColumnGrid.'">'; /* start label col */
-                            
-                            self::$prevControlType['firstLevelType'] = 'label';
                         }
                         
                         $controlRender[] = $title;
@@ -8335,7 +8322,6 @@ class Mdform_Model extends Model {
                         
                         if ($childControls) {
                             $controlRender[] = $childControls;
-                            $controlRender[] = '<!--divClassRowEnd-->'; /* grid-ийн row классын хаах тааг */
                         } 
                         
                         if ($setColumnGrid) {
@@ -8343,8 +8329,6 @@ class Mdform_Model extends Model {
                         }
                         
                         $controlRender[] = '</div>';
-                        
-                        self::$prevControlType['noTab'] = $prevControlType;
                         
                     } elseif ($arrRow['SHOW_TYPE'] == 'rows') {
                         
@@ -8372,92 +8356,48 @@ class Mdform_Model extends Model {
                         
                         $controlRender[] = $title;
                         $controlRender[] = '<div style="margin-right: 2.2rem;margin-left: 2.2rem;overflow-x: auto;" data-section-path="'.$arrRow['COLUMN_NAME_PATH'].'">';
-                        $controlRender[] = self::rowKpiIndicator($indicatorId, $data, $arrRow['ID'], $arrRow, (is_array(Mdform::$kpiDmMart) ? issetParamArray(Mdform::$kpiDmMart[$arrRow['COLUMN_NAME_PATH']]) : []));
+                            $controlRender[] = self::rowKpiIndicator($indicatorId, $data, $arrRow['ID'], $arrRow, (is_array(Mdform::$kpiDmMart) ? issetParamArray(Mdform::$kpiDmMart[$arrRow['COLUMN_NAME_PATH']]) : []));
                         $controlRender[] = '</div>';
-                    }
-                    
-                    if ($depth == 0 && isset(self::$prevControlType['firstLevelType'])) {
-                        
-                        self::$prevControlType['firstLevelType'] = $arrRow['SHOW_TYPE'];
-                        
-                        if (self::$prevControlType['firstLevelType'] != 'label') {
-                            $controlRender[] = '<!--divClassRowEnd-->';
-                        }
                     }
                 }
                 
                 $renderControl = implode('', $controlRender);
                 
-                if ($arrRow['TAB_NAME_TOP']) {
-                    
-                    if (isset(self::$prevControlType['noTab']) && self::$prevControlType['noTab'] != 'tab') {
-                        $render[] = '<!--divClassRowEnd-->';
-                    }                       
+                if ($arrRow['TAB_NAME_TOP']) {                      
                     
                     if ($arrRow['TAB_NAME']) {
-                        
                         Mdform::$topTabRender[$arrRow['TAB_NAME_TOP'].'sysTopTabName'][$arrRow['TAB_NAME']][] = $renderControl;
-                        
                     } else {
                         Mdform::$topTabRender[$arrRow['TAB_NAME_TOP']][] = $renderControl;
                     }
                     
-                    self::$prevControlType['noTab'] = 'tab';
-                    
                 } else {
                     
-                    if ($arrRow['TAB_NAME']) {
-                                                
-                        if (isset(self::$prevControlType['noTab']) && self::$prevControlType['noTab'] != 'tab') {
-                            $render[] = '<!--divClassRowEnd-->';
-                        }                        
+                    if (!$isShowSectionName && $wizardStep = issetParam($arrRow['WIZARD_STEP'])) {
                         
+                        Mdform::$wizardStepControls[] = [
+                            'wizardStep' => $wizardStep, 
+                            'control'    => $renderControl, 
+                            'tabName'    => $arrRow['TAB_NAME']
+                        ];
+                        
+                        continue;
+                    }
+                    
+                    if ($arrRow['TAB_NAME']) { 
                         Mdform::$tabRender[$arrRow['TAB_NAME']][] = $renderControl;
-                        
-                        if (Str::lower(issetParam($arrRow['TAB_RENDER_TYPE'])) == 'section') {
-                            Mdform::$tabSectionRender = true;
-                        }
-                        
-                        if (issetParam($arrRow['IS_SHOW_SECTION_NAME'])) {
-                            Mdform::$tabSectionRenderSidebar = true;
-                        }
-                        
-//                        if ('17168665506533' == $arrRow['ID']) {
-//                            pa(Mdform::$tabRender);
-//                        }                        
-                        
-                        self::$prevControlType['noTab'] = 'tab';
-                        
                     } else {
-                        
-                        if (
-                            (!self::$prevControlType || (isset(self::$prevControlType['noTab']) && (self::$prevControlType['noTab'] == 'label' || self::$prevControlType['noTab'] == 'row' || self::$prevControlType['noTab'] == 'rows'))) 
-                            && $arrRow['SHOW_TYPE'] != 'label' && $arrRow['SHOW_TYPE'] != 'row' && $arrRow['SHOW_TYPE'] != 'rows') {
-                            
-                            $render[] = '<!--divClassRowStart-->';
-                        }
-                        
-                        if (isset(self::$prevControlType['noTab']) 
-                            && self::$prevControlType['noTab'] != 'label' 
-                            && self::$prevControlType['noTab'] != 'row' 
-                            && self::$prevControlType['noTab'] != 'rows' 
-                            && (
-                                $arrRow['SHOW_TYPE'] == 'label' || $arrRow['SHOW_TYPE'] == 'row' || $arrRow['SHOW_TYPE'] == 'rows'  
-                            )) {
-                            
-                            $render[] = '<!--divClassRowEnd-->';
-                        }
-                        
                         $render[] = $renderControl;
-                        
-                        self::$prevControlType['noTab'] = $arrRow['SHOW_TYPE'];
-                        
-                        if ($depth == 0 && $lastKey == $k && $arrRow['SHOW_TYPE'] != 'label' && $arrRow['SHOW_TYPE'] != 'row' && $arrRow['SHOW_TYPE'] != 'rows') {
-                            $render[] = '<!--divClassRowEnd-->';
-                        }
                     }
                 }
-
+            }
+            
+            if ($tabRenderType == 'section') {
+                Mdform::$tabSectionRender = true;
+            }
+            
+            if ($isShowSectionName) {
+                Mdform::$tabSectionRenderSidebar = true;
             }
         }
         
@@ -9672,7 +9612,7 @@ class Mdform_Model extends Model {
                 LEFT JOIN META_WIDGET MW ON MW.ID = M.WIDGET_ID 
             WHERE M.MAIN_INDICATOR_ID = ".$this->db->Param(0)." 
                 AND LOWER(M.COLUMN_NAME_PATH) = ".$this->db->Param(1), 
-            array($indicatorId, strtolower($groupPath))
+            [$indicatorId, strtolower($groupPath)]
         );
 
         Mdform::$pathSuffix = '[0]';
@@ -9683,8 +9623,7 @@ class Mdform_Model extends Model {
         
         $rowDatas = $rowDatas[$groupPath];
         
-        $data = self::getKpiIndicatorTemplateModel($indicatorId);
-        
+        $data   = self::getKpiIndicatorTemplateModel($indicatorId);
         $render = self::rowsKpiIndicator($indicatorId, $data, $arrRow['ID'], $arrRow, $rowDatas);
         
         loadPhpQuery();
@@ -16599,27 +16538,6 @@ class Mdform_Model extends Model {
         return $data;
     }
     
-    public function removeAddonStructureFormModel() {
-        
-        $_POST['indicatorId'] = Input::numeric('trgIndicatorId');
-        $_POST['selectedRows'] = array(array('ID' => Input::numeric('trgRecordId')));
-        
-        $result = self::removeKpiDynamicDataModel();
-        
-        if ($result['status'] == 'success') {
-            
-            $_POST['refStructureId'] = Input::numeric('srcIndicatorId');
-            $_POST['sourceId'] = Input::numeric('srcRecordId');
-            $_POST['trgRefStructureId'] = Input::numeric('trgIndicatorId');
-            $_POST['trgSourceId'] = Input::numeric('trgRecordId');
-            
-            return self::bpRelationRemoveRowModel();
-            
-        } else {
-            return $result;
-        }
-    }
-    
     public function addRowKpiIndicatorTemplateModel() {
         
         try {
@@ -21331,6 +21249,8 @@ class Mdform_Model extends Model {
             
             if ($isQueryString) {
                 
+                unset(self::$indicatorColumns[$indicatorId]);
+                
                 $configRow['isFilter'] = true;
                 $filterParams = self::getKpiIndicatorColumnsModel($indicatorId, $configRow);
                 $replaceQueryString = "($queryString)";
@@ -21594,6 +21514,16 @@ class Mdform_Model extends Model {
                 if ($filterNamedParams) {
                     foreach ($filterNamedParams as $filterNamedParam => $filterNamedParamDefVal) {
                         $tableName = str_ireplace(':'.$filterNamedParam, ($filterNamedParamDefVal != '' ? "'".$filterNamedParamDefVal."'" : 'NULL'), $tableName);
+                    }
+                }
+                
+            } elseif (isset($filterParams)) {
+                
+                foreach ($filterParams as $filterParam) {
+                    
+                    if ($filterParam['TRG_ALIAS_NAME'] != '') {    
+                        $bindVal = ($filterParam['DEFAULT_VALUE'] != '') ? "'".Mdmetadata::setDefaultValue($filterParam['DEFAULT_VALUE'])."'" : 'NULL';
+                        $tableName = str_ireplace(':'.$filterParam['TRG_ALIAS_NAME'], $bindVal, $tableName);
                     }
                 }
             }
@@ -30159,7 +30089,8 @@ class Mdform_Model extends Model {
                     T0.ICON, 
                     T0.DESCRIPTION, 
                     T0.WIDGET_CODE, 
-                    T0.IS_DATAMART_RENDER  
+                    T0.IS_DATAMART_RENDER,
+                    T5.IS_SEPERATOR
                 FROM ( 
                     $checkPermissionWithAs 
                     SELECT 
@@ -30481,24 +30412,7 @@ class Mdform_Model extends Model {
             $idPh2 = $this->db->Param(1);
             $idPh3 = $this->db->Param(2);
             
-            $headerLogId = $this->db->GetOne("
-                SELECT 
-                    ID 
-                FROM END_TO_END_SESSION_LOG 
-                WHERE SRC_DATASET_ID = $idPh1 
-                    AND SRC_RECORD_ID = $idPh2", 
-                array($structureIndicatorId, $recordId)
-            );
-            
-            /*$headerLogId = $this->db->GetOne("
-                SELECT 
-                    ID 
-                FROM END_TO_END_SESSION_LOG 
-                WHERE END_TO_END_INDICATOR_ID = $idPh1 
-                    AND SRC_DATASET_ID = $idPh2 
-                    AND SRC_RECORD_ID = $idPh3", 
-                array($listIndicatorId, $structureIndicatorId, $recordId)
-            );*/
+            $headerLogId = $this->db->GetOne("SELECT ID FROM END_TO_END_SESSION_LOG WHERE SRC_DATASET_ID = $idPh1 AND SRC_RECORD_ID = $idPh2", [$structureIndicatorId, $recordId]);
             
             if ($headerLogId) {
                 
@@ -30512,9 +30426,9 @@ class Mdform_Model extends Model {
                         T2.WFM_STATUS_COLOR
                     FROM END_TO_END_SESSION_LOG_DTL T0 
                         INNER JOIN KPI_INDICATOR T1 ON T1.ID = T0.STEP_INDICATOR_ID 
-                        INNER JOIN META_WFM_STATUS T2 ON T2.ID = T0.WFM_STATUS_ID 
+                        LEFT JOIN META_WFM_STATUS T2 ON T2.ID = T0.WFM_STATUS_ID 
                     WHERE T0.LOG_ID = $idPh1", 
-                    array($headerLogId)
+                    [$headerLogId]
                 );
                 
                 $arr = [];
@@ -30527,13 +30441,13 @@ class Mdform_Model extends Model {
             
         } catch (Exception $ex) { }
         
-        return array('headerLogId' => $headerLogId, 'detailData' => $detailData);
+        return ['headerLogId' => $headerLogId, 'detailData' => $detailData];
     }
 
     public function getRelationComponentsConfigModel($indicatorMapId) {
         $qry = "SELECT ". $this->db->IfNull("SRC_INDICATOR_PATH",  "DEFAULT_VALUE")." AS SRC_INDICATOR_PATH, TRG_INDICATOR_PATH FROM KPI_INDICATOR_INDICATOR_MAP WHERE SRC_INDICATOR_MAP_ID = " . $this->db->Param(0);
-        $data = $this->db->GetAll($qry, array($indicatorMapId));
-        $result = array();
+        $data = $this->db->GetAll($qry, [$indicatorMapId]);
+        $result = [];
 
         if ($data) {
             $result = Arr::changeKeyLower(Arr::groupByArrayOnlyRow($data, 'TRG_INDICATOR_PATH', 'SRC_INDICATOR_PATH'));
@@ -30807,6 +30721,9 @@ class Mdform_Model extends Model {
             
             if ($data) {
                 
+                $sessionUserKeyId = Ue::sessionUserKeyId();
+                $ipAddress        = get_client_ip();
+                
                 $selectedRow = Arr::changeKeyLower(json_decode(html_entity_decode(Input::post('headerParams'), ENT_QUOTES, 'UTF-8'), true));
                 $dataGrouped = Arr::groupByArray($data, 'STEP_INDICATOR_ID');
                 $statusDtl   = $messageDtl = [];
@@ -30863,10 +30780,10 @@ class Mdform_Model extends Model {
                             'ID'                => getUID(), 
                             'LOG_ID'            => $hdrLogId,
                             'STEP_INDICATOR_ID' => $stepIndicatorId,
-                            'IP_ADDRESS'        => get_client_ip(),
+                            'IP_ADDRESS'        => $ipAddress,
                             'STATUS_CODE'       => $checkListStatus, 
                             'CREATED_DATE'      => Date::currentDate(), 
-                            'CREATED_USER_ID'   => Ue::sessionUserKeyId()
+                            'CREATED_USER_ID'   => $sessionUserKeyId
                         ];
                         $this->db->AutoExecute('END_TO_END_SESSION_LOG_DTL', $dataInsert);  
                     }

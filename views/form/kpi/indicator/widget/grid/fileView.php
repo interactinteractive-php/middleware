@@ -332,12 +332,18 @@ foreach ($dataResult as $groupName => $groupRow) {
         if (issetParam($row['PHYSICAL_PATH'])) {
     ?>
     <a href="javascript:;" class="mv-cardview" title="<?php echo $row['FILE_NAME']; ?>">
-        <div class="no-dataview" data-crud-indicatorid="<?php echo $deleteCrudId ?>" data-rowdata="<?php echo $rowJson; ?>" style="position: absolute;z-index: 10;margin-left: 80px;display: none" onclick="<?php echo $deleteClickAction ?>">
+        <?php
+        if ($deleteCrudId) {
+        ?>
+        <div class="no-dataview" data-crud-indicatorid="<?php echo $deleteCrudId; ?>" data-rowdata="<?php echo $rowJson; ?>" style="position: absolute;z-index: 10;margin-left: 80px;display: none" onclick="<?php echo $deleteClickAction; ?>">
             <i class="far fa-times" style="font-size: 13px;color: red;"></i>
         </div>
+        <?php
+        }
+        ?>
         <div class="card" style="border: none;box-shadow: none;">
             <div class="card-body">
-                <div class="card-img-actions mb-2 mt-2" onclick="bpFilePreview(this);" data-fileurl="<?php echo $row['PHYSICAL_PATH'] ?>" data-filename="<?php echo $row['FILE_NAME'] ?>" data-extension="<?php echo $row['FILE_EXTENSION'] ?>">
+                <div class="card-img-actions mb-2 mt-2" onclick="bpFilePreview(this);" data-fileurl="<?php echo $row['PHYSICAL_PATH']; ?>" data-filename="<?php echo $row['FILE_NAME']; ?>" data-extension="<?php echo $row['FILE_EXTENSION']; ?>">
                     <img class="directory-img ml20" style="height: 70px;" src="assets/core/global/img/document/big/pdf2.png"/>
                 </div>
                 <h5>
@@ -349,8 +355,9 @@ foreach ($dataResult as $groupName => $groupRow) {
     <?php
         }
     } 
+        if ($createClickAction) {
     ?>
-    <a href="javascript:;" onclick="<?php echo $createClickAction ?>" data-list-relation="1" data-rowdata="<?php echo htmlentities(json_encode($groupRow['row'], JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8') ?>" data-mapid="<?php echo $mapId ?>" data-main-indicatorid="<?php echo $this->indicatorId; ?>" data-crud-indicatorid="<?php echo $createCrudId ?>" class="mv-cardview no-dataview" style="margin-bottom: 30px;background-color: #eaeaea;height: 70px;width: 60px;margin-top: 10px;margin-left: 20px;">
+    <a href="javascript:;" onclick="<?php echo $createClickAction; ?>" data-list-relation="1" data-rowdata="<?php echo htmlentities(json_encode($groupRow['row'], JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8') ?>" data-mapid="<?php echo $mapId ?>" data-main-indicatorid="<?php echo $this->indicatorId; ?>" data-crud-indicatorid="<?php echo $createCrudId ?>" class="mv-cardview no-dataview" style="margin-bottom: 30px;background-color: #eaeaea;height: 70px;width: 60px;margin-top: 10px;margin-left: 20px;">
         <div class="card" style="border: none;box-shadow: none;">
             <div class="card-body">
                 <i style="font-size: 26px;position: absolute;margin-top: 20px;margin-left: 18px;color:#ccc" class="fa fa-plus"></i>
@@ -358,6 +365,7 @@ foreach ($dataResult as $groupName => $groupRow) {
         </div>
     </a>    
     <?php 
+        }
     }
     echo '</div>';
 }

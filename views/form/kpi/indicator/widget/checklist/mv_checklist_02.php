@@ -8,7 +8,7 @@ $renderType = $this->methodRow['RENDER_THEME'];
                 $headerTitleCss = 'position: fixed;
                 top: 12px;
                 z-index: 99;
-                left: 300px;
+                left: 185px;
                 font-size: 16px;
                 font-weight: 600;'; 
             } 
@@ -43,7 +43,7 @@ $renderType = $this->methodRow['RENDER_THEME'];
             ?>
 
             <div class="bp-tabs tabbable-line mv-main-tabs mv-checklist-tab w-100">
-                <ul class="nav nav-tabs" style="padding-top: <?php echo $renderType == 'paper_main_window' ? '10px' : '3px' ?> !important;padding-bottom: 0px !important;">
+                <ul class="nav nav-tabs" style="padding-top: 3px !important;padding-bottom: 0px !important;">
                     <?php
                     if (!$this->isIgnoreHeaderProcess) {
                     ?>
@@ -77,9 +77,10 @@ $renderType = $this->methodRow['RENDER_THEME'];
                     <div class="tab-pane active" id="structabcustom_<?php echo $this->uniqId; ?>">
                         <div class="mv-checklist-main-render" style="background-color: rgb(244, 244, 244); width: 100%; padding: 10px 10px;">
                             <form method="post" enctype="multipart/form-data">
-                                <div class="meta-toolbar is-bp-open-">
+                                <?php echo $this->headerProcess; ?>
+                                <div class="meta-toolbar is-bp-open-" style="background-color: transparent;">
                                     <div class="main-process-text">
-                                        <div><?php echo $this->title; ?></div>                                        
+                                        <div class="hidden"><?php echo $this->title; ?></div>                                        
                                     </div>
                                     <div class="ml-auto">
                                         <?php
@@ -99,8 +100,7 @@ $renderType = $this->methodRow['RENDER_THEME'];
                                             <i class="icon-checkmark-circle2"></i> <?php echo $this->lang->line('save_btn'); ?>
                                         </button>
                                     </div>
-                                </div>
-                                <?php echo $this->headerProcess; ?>
+                                </div>                                
                             </form>
                         </div>                
                     </div>
@@ -211,6 +211,10 @@ $renderType = $this->methodRow['RENDER_THEME'];
                                                         if ($groupName != 'яяяrow') {
                                                                 echo '</ul>';
                                                             echo '</li>';
+                                                            
+                                                            if ($groupRow['row']['IS_SEPERATOR'] == 1) {
+                                                                echo '<li class="nav-item" style="border: 1px solid rgb(244, 244, 244);margin-top: 10px;margin-bottom: 10px;"></li>';
+                                                            }
                                                         }
                                                     }
                                                     ?>
@@ -398,6 +402,7 @@ if ($renderType == 'paper_main_window') {
     display: none;
 }
 .mv-checklist2-render-parent button.bp-btn-save, 
+.mv-checklist2-render-parent button.bp-btn-check, 
 .mv-checklist2-render-parent button.bp-btn-saveadd, 
 .mv-checklist2-render-parent button.bp-btn-help,
 .mv-checklist2-render-parent .meta-toolbar button.bp-btn-help {
@@ -788,20 +793,26 @@ input.kpi-notfocus-readonly-input::placeholder {
 <?php require getBasePath() . 'middleware/views/form/kpi/indicator/checklist/scripts.php'; ?>
 
 <script type="text/javascript">
-var $checkListTabLink = $('#mv-checklist-render-parent-<?php echo $this->uniqId; ?>').find('.mv-checklist-tab-link');
+var wcontw = $checkList_<?php echo $this->uniqId; ?>.width() - 290;
+$checkList_<?php echo $this->uniqId; ?>.find('.checklist2-content-section').css('max-width', wcontw+'px');
+
+var $checkListTabLink = $('#mv-checklist-render-parent-<?php echo $this->uniqId; ?>').find('.mv-checklist-tab-link.active');
 if ($checkListTabLink.length == 1) {
-    var $selTb = $('#mv-checklist-render-parent-<?php echo $this->uniqId; ?>').find('.mv-checklist-tab > .tab-content');
+    var $selTb = $('#mv-checklist-render-parent-<?php echo $this->uniqId; ?>').find('.mv-checklist-tab > .tab-content');    
     var $selTbLength = $selTb.length;
     if ($selTbLength == 1) {
-        var $tabPane = $selTb.find('> .tab-pane');
+        var $tabPane = $selTb.find('> .tab-pane.active');
         var $tabInsideMenu = $tabPane.find('li.nav-item:not(.d-none) > .mv_checklist_02_sub.nav-link'), tabInsideMenuLength = $tabInsideMenu.length;
         
         if (tabInsideMenuLength == 1) {
             $tabPane.find('> .d-flex > .sidebar').hide();
-            $tabPane.find('> .d-flex > .w-100').css('max-width', '');
+            setTimeout(function () {
+                $tabPane.find('> .d-flex > .w-100').css('max-width', '');
+            }, 300);
         }
     } 
 }
+$(window).trigger("resize");
 
 $('#mv-checklist-render-parent-<?php echo $this->uniqId; ?>').on('shown.bs.tab', '.mv-checklist-tab-link', function() {
     var $tabPane = $($(this).attr('href')), 

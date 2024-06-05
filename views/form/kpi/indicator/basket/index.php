@@ -84,11 +84,14 @@ $(function() {
     $('#commonSelectableBasketDataGrid_<?php echo $this->indicatorId ?>').datagrid('loadData', []);
     
     $('a[href="#kpibasket-list-<?php echo $this->indicatorId; ?>"]').on('shown.bs.tab', function(){
-        $('#objectdatagrid-<?php echo $this->indicatorId; ?>').datagrid('resize');
+        $('#objectdatagrid_<?php echo $this->indicatorId; ?>').datagrid('resize');
     });
     
     $('a[href="#kpibasket-basket-<?php echo $this->indicatorId; ?>"]').on('shown.bs.tab', function(){
-        $('#commonSelectableBasketDataGrid_<?php echo $this->indicatorId; ?>').datagrid('resize');
+        setTimeout(function() {
+            $('#commonSelectableBasketDataGrid_<?php echo $this->indicatorId; ?>').datagrid('resize');
+            $('#commonSelectableBasketDataGrid_<?php echo $this->indicatorId; ?>').datagrid('fixRowHeight');
+        }, 5);
     });
 });
 
@@ -150,7 +153,7 @@ function basketCommonSelectableDataGrid_<?php echo $this->indicatorId; ?>() {
     if (chooseType == 'multi') {
 
         var basketRows = $basketGrid.datagrid('getRows');
-        var dvRows = $('#objectdatagrid-<?php echo $this->indicatorId; ?>').datagrid('getSelections');
+        var dvRows = $('#objectdatagrid_<?php echo $this->indicatorId; ?>').datagrid('getSelections');
 
         setTimeout(function() {
 
@@ -181,7 +184,7 @@ function basketCommonSelectableDataGrid_<?php echo $this->indicatorId; ?>() {
 
     } else {
 
-        var rows = $('#objectdatagrid-<?php echo $this->indicatorId; ?>').datagrid('getSelections');
+        var rows = $('#objectdatagrid_<?php echo $this->indicatorId; ?>').datagrid('getSelections');
 
         if ((chooseType == 'single' || chooseType == 'singlealways') && rows.length > 0) {
             $basketGrid.datagrid('loadData', []);

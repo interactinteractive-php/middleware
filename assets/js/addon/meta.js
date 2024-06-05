@@ -9526,3 +9526,93 @@ function metaConfigChangeLog(mainSelector, isSetUniqId) {
         });
     }
 }
+function metaVerseCommandPromptIframe(elem) {
+    $.ajax({
+        type: 'post',
+        url: 'mdintegration/metaVerseCommandPromptIframeUrl',
+        dataType: 'json',
+        success: function(data) { 
+            PNotify.removeAll();
+            
+            if (data.status == 'success') {
+                
+                var $dialogName = 'dialog-mv-commandprompt-iframe';
+                if (!$('#' + $dialogName).length) { 
+                    $('<div id="' + $dialogName + '"></div>').appendTo('body'); 
+                } else {
+                    $('#' + $dialogName).dialogExtend('restore');
+                    return;
+                }
+                var $dialog = $('#' + $dialogName), html = [];
+                
+                html.push('<iframe style="width: 100%; height: '+($(window).height() - 150)+'px; border: 0" src="'+data.url+'"></iframe>');
+
+                $dialog.empty().append(html.join(''));
+                $dialog.dialog({
+                    dialogClass: 'no-padding-dialog',
+                    cache: false,
+                    resizable: true,
+                    bgiframe: true,
+                    autoOpen: false,
+                    title: 'MetaVerse Command Prompt', 
+                    width: 1000,
+                    height: 'auto',
+                    minHeight: 500,
+                    modal: true,
+                    position: {my: 'top', at: 'top+0'},
+                    resize: function() {
+                        metaVerseCommandPromptIframeResize($dialog);
+                    }, 
+                    close: function() {
+                        $dialog.empty().dialog('destroy').remove();
+                    }
+                }).dialogExtend({
+                    "closable": true,
+                    "maximizable": true,
+                    "minimizable": true,
+                    "collapsable": false,
+                    "dblclick": "maximize",
+                    "minimizeLocation": "left",
+                    "icons": {
+                        "close": "ui-icon-circle-close",
+                        "maximize": "ui-icon-extlink",
+                        "minimize": "ui-icon-minus",
+                        "collapse": "ui-icon-triangle-1-s",
+                        "restore": "ui-icon-newwin"
+                    }, 
+                    "maximize": function() { 
+                        metaVerseCommandPromptIframeResize($dialog);
+                        $dialog.closest(".ui-dialog").nextAll('.ui-widget-overlay:first').removeClass('display-none');
+                    }, 
+                    "minimize": function() { 
+                        $dialog.closest('.ui-dialog').nextAll('.ui-widget-overlay:first').addClass('display-none');
+                    }, 
+                    "restore": function() { 
+                        metaVerseCommandPromptIframeResize($dialog, $(window).height() - 150);
+                        $dialog.closest('.ui-dialog').nextAll('.ui-widget-overlay:first').removeClass('display-none');
+                    }
+                });
+                $dialog.dialog('open');
+            } else {
+                new PNotify({
+                    title: data.status,
+                    text: data.message,
+                    type: data.status,
+                    sticker: false,
+                    hide: true,
+                    addclass: pnotifyPosition
+                });
+            }
+        },
+        error: function(e) { console.log(e); }
+    });
+}
+
+function metaVerseCommandPromptIframeResize(dialog, setHeight) {
+    var $iframe = dialog.find('iframe');
+    if ($iframe.length) {
+        /*var iframeHeight = (typeof setHeight != 'undefined' ? setHeight : (dialog.height() - 10));*/
+        $iframe.css('height', dialog.height() - 10);
+    }
+    return;
+}

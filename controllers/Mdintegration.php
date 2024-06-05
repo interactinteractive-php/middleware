@@ -2016,4 +2016,21 @@ class Mdintegration extends Controller {
             jsonResponse(array('status' => 'warning', 'message' => $e->getMessage()));
         }
     }
+    
+    public function metaVerseCommandPromptIframeUrl() {
+        Auth::handleLogin();
+        
+        $getConfigUrl = Config::getFromCache('PF_METAVERSE_COMMAND_PROMPT_URL');
+        
+        if ($getConfigUrl) {
+            $getConfigUrl = rtrim($getConfigUrl, '/').'/';
+            $url = $getConfigUrl.'?ssid='.Ue::appUserSessionId();
+            $response = ['status' => 'success', 'url' => $url];
+        } else {
+            $response = ['status' => 'error', 'message' => 'No config! /PF_METAVERSE_COMMAND_PROMPT_URL/'];
+        }
+        
+        convJson($response);
+    }
+    
 }

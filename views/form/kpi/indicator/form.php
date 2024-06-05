@@ -58,8 +58,9 @@
         
     }
 </style>
-<?php } ?>
-<?php
+<?php 
+} 
+
 if (issetParam($this->renderComponentsBanner) === '1') {
     echo '<div class="col-md-12 center-sidebar metaverse-banner">';
         echo issetParam($this->showBanner);
@@ -110,23 +111,8 @@ if (Input::postCheck('endSessionLogStatusCombo')) {
     <div class="bp-tabs tabbable-line mv-main-tabs">
         <ul class="nav nav-tabs">
             
-            <?php
-            $mainTabActive = ' active';
-            
-            if (isset($this->structureTab)) {
-                $mainTabActive = '';
-            ?>
             <li class="nav-item">
-                <a href="#structab_<?php echo $this->uniqId; ?>" class="nav-link active" data-toggle="tab" aria-expanded="false">
-                    <?php echo $this->structureTab['tabName']; ?>
-                </a>
-            </li>
-            <?php
-            }
-            ?>
-            
-            <li class="nav-item">
-                <a href="#maintab_<?php echo $this->uniqId; ?>" class="nav-link<?php echo $mainTabActive; ?>" data-toggle="tab" aria-expanded="false">
+                <a href="#maintab_<?php echo $this->uniqId; ?>" class="nav-link active" data-toggle="tab" aria-expanded="false">
                     <?php echo $this->mainTabName; ?>
                 </a>
             </li>
@@ -162,8 +148,10 @@ if (Input::postCheck('endSessionLogStatusCombo')) {
         
         <div class="tab-content">
             
-            <div class="tab-pane<?php echo $mainTabActive; ?>" id="maintab_<?php echo $this->uniqId; ?>">
-                <?php echo $this->form; ?>
+            <div class="tab-pane active" id="maintab_<?php echo $this->uniqId; ?>">
+                <div class="row">
+                    <?php echo $this->form; ?>
+                </div>
             </div>
             
             <?php
@@ -183,14 +171,6 @@ if (Input::postCheck('endSessionLogStatusCombo')) {
             ?>
             <div class="tab-pane" id="relationtab_<?php echo $this->uniqId; ?>">
                 <?php echo $this->recordMapRender; ?>
-            </div>
-            <?php
-            }
-            
-            if (isset($this->structureTab)) {
-            ?>
-            <div class="tab-pane active" id="structab_<?php echo $this->uniqId; ?>">
-                <?php echo $this->structureTab['tabContent']; ?>
             </div>
             <?php
             }
@@ -279,33 +259,15 @@ if (typeof isKpiIndicatorScript === 'undefined') {
 }
 
 function saveKpiIndicatorForm(elem, uniqId, indicatorId) {
-    if (typeof isKpiIndicatorScript === 'undefined') {
-        $.cachedScript('<?php echo autoVersion('middleware/assets/js/addon/indicator.js'); ?>').done(function() {
-            saveKpiIndicatorFormInit(elem, uniqId, indicatorId);
-        });
-    } else {
-        saveKpiIndicatorFormInit(elem, uniqId, indicatorId);
-    }
+    saveKpiIndicatorFormInit(elem, uniqId, indicatorId);
 }
 
 function runKpiIndicatorInternalQuery(elem, uniqId, indicatorId) {
-    if (typeof isKpiIndicatorScript === 'undefined') {
-        $.cachedScript('<?php echo autoVersion('middleware/assets/js/addon/indicator.js'); ?>').done(function() {
-            runKpiIndicatorInternalQueryInit(elem, uniqId, indicatorId);
-        });
-    } else {
-        runKpiIndicatorInternalQueryInit(elem, uniqId, indicatorId);
-    }
+    runKpiIndicatorInternalQueryInit(elem, uniqId, indicatorId);
 }
 
 function renderAddModeIndicatorTab(uniqId, indicatorId, type, elem) {
-    if (typeof isKpiIndicatorScript === 'undefined') {
-        $.cachedScript('<?php echo autoVersion('middleware/assets/js/addon/indicator.js'); ?>').done(function() {
-            renderAddModeIndicatorTabInit(uniqId, indicatorId, type, elem);
-        });
-    } else {
-        renderAddModeIndicatorTabInit(uniqId, indicatorId, type, elem);
-    }
+    renderAddModeIndicatorTabInit(uniqId, indicatorId, type, elem);
 }
 
 <?php echo $this->fullExp['varFnc']; ?>   

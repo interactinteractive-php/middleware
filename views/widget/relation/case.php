@@ -58,11 +58,15 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                     <?php } ?>
                 </div>
                 <ul class="nav nav-tabs nav-tabs-bottom mt-3">
-                    <li class="nav-item"><a href="#tab-info-section-<?php echo $this->uniqId ?>" class="nav-link active" data-toggle="tab"><?php echo Lang::line('LMS_'. $this->mainIndicatorId .'TITLE_001') ?> </a></li>
-                    <li class="nav-item"><a href="#tab-question-section<?php echo $this->uniqId ?>" class="nav-link" data-toggle="tab"><?php echo Lang::line('LMS_'. $this->mainIndicatorId .'TITLE_002') ?></a></li>
+                    <?php if ($isRead !== '0') { ?>
+                        <li class="nav-item"><a href="#tab-info-section-<?php echo $this->uniqId ?>" class="nav-link active" data-toggle="tab"><?php echo Lang::line('LMS_'. $this->mainIndicatorId .'TITLE_001') ?> </a></li>
+                        <li class="nav-item"><a href="#tab-question-section<?php echo $this->uniqId ?>" class="nav-link" data-toggle="tab"><?php echo Lang::line('LMS_'. $this->mainIndicatorId .'TITLE_002') ?></a></li>
+                    <?php } else { ?>
+                        <li class="nav-item"><a href="#tab-question-section<?php echo $this->uniqId ?>" class="nav-link active" data-toggle="tab"><?php echo Lang::line('LMS_'. $this->mainIndicatorId .'TITLE_002') ?></a></li>
+                    <?php } ?>
                 </ul>
                 <div class="tab-content">
-                    <div class="tab-pane fade active show" id="tab-info-section-<?php echo $this->uniqId ?>">
+                    <div class="tab-pane fade <?php echo ($isRead !== '0') ? 'active show' : '' ?>" id="tab-info-section-<?php echo $this->uniqId ?>">
                         <div class="kpi-ind-tmplt-section padding-content">
                             <div class="row m-0">
                                 
@@ -95,7 +99,7 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                             </div>
                         </div>
                     </div>
-                    <div class="tab-pane fade" id="tab-question-section<?php echo $this->uniqId ?>">
+                    <div class="tab-pane fade <?php echo ($isRead === '0') ? 'active show' : '' ?>" id="tab-question-section<?php echo $this->uniqId ?>">
                         <form method="post" enctype="multipart/form-data" class="saveForm">
                             <div class="d-flex">
                                 <div class="d-none">
@@ -122,7 +126,7 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                                 <div class="sidebar sidebar-light sidebar-secondary sidebar-expand-md pr-2" style="width:280px">
                                     <div class="sidebar-content">
                                         <div class="card">
-                                            <div class="card-body mv-checklist-menu" >
+                                            <div class="card-body mv-checklist-menu">
                                                 <ul class="nav nav-sidebar" data-nav-type="accordion">
                                                     <?php 
                                                     if (issetParam($rowsArray['position-1'])) {
@@ -554,7 +558,7 @@ if (issetParamArray($this->relationComponentsConfigData['rows'])) {
                         border-left: 0 !important;
                     }
                     .casePointElement {
-                        width: 90px;
+                        width: 105px;
 
                         .input-group-btn {
                             button {
