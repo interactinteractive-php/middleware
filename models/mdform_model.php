@@ -20560,6 +20560,11 @@ class Mdform_Model extends Model {
                 "COMPANY_DEPARTMENT_ID" NUMBER(18,0), 
                 "GENERATED_DATE" DATE 
             )';
+            
+            if (DB_DRIVER == 'postgres9') {
+                $createTableScript = str_replace(' CHAR)', ')', $createTableScript);
+                $createTableScript = str_replace('"', '', $createTableScript);
+            }
 
             $this->db->Execute($createTableScript);
             
