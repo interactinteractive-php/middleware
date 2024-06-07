@@ -289,7 +289,7 @@ function kpiIndicatorGmapLoad_<?php echo $this->indicatorId; ?>() {
                 filterData: getFilterData.filterData,
                 drillDownCriteria: '<?php echo $this->drillDownCriteria; ?>', 
                 page: 1, 
-                rows: 500
+                rows: 50000
             };    
 
             $.ajax({

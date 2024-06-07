@@ -11068,9 +11068,19 @@ function runBusinessProcessWithDataView(dataGrid, mainMetaDataId, processMetaDat
                 if (data.hasOwnProperty('helpContentId') && data.helpContentId !== null && data.helpContentId !== '') {
                     buttons.splice(0, 0, {
                         text: plang.get('menu_system_guide'),
-                        class: 'btn btn-info btn-sm float-left bp-btn-help',
+                        class: 'btn green-meadow btn-sm float-left bp-btn-help',
                         click: function(e) {
                             redirectHelpContent($(e.target), data.helpContentId, data.metaDataId, 'meta_process');
+                        }
+                    });
+                }
+                
+                if (typeof is_pfd != 'undefined' && is_pfd) {
+                    buttons.splice(0, 0, {
+                        text: plang.get('set_help_content_btn'),
+                        class: 'btn green-meadow btn-sm float-left bp-btn-help',
+                        click: function(e) {
+                            setHelpContent($(e.target), data.helpContentId, data.metaDataId, 'meta_process');
                         }
                     });
                 }
@@ -12025,9 +12035,19 @@ function runBusinessProcessGetDataWithDataView(dataGrid, mainMetaDataId, process
                 if (data.hasOwnProperty('helpContentId') && data.helpContentId !== null && data.helpContentId !== '') {
                     buttons.splice(0, 0, {
                         text: plang.get('menu_system_guide'),
-                        class: 'btn btn-info btn-sm float-left bp-btn-help',
+                        class: 'btn green-meadow btn-sm float-left bp-btn-help',
                         click: function(e) {
                             redirectHelpContent($(e.target), data.helpContentId, data.metaDataId, 'meta_process');
+                        }
+                    });
+                }
+                
+                if (typeof is_pfd != 'undefined' && is_pfd) {
+                    buttons.splice(0, 0, {
+                        text: plang.get('set_help_content_btn'),
+                        class: 'btn green-meadow btn-sm float-left bp-btn-help',
+                        click: function(e) {
+                            setHelpContent($(e.target), data.helpContentId, data.metaDataId, 'meta_process');
                         }
                     });
                 }
@@ -22566,32 +22586,25 @@ function sendMailReportTemplate(elem, dataViewId, emailTo, emailSubject, emailFi
                             if ($("#report-mail-form").valid()) {
 
                                 var $parent = $(elem).closest(".report-preview");
-                                $("div#contentRepeat", $parent).empty();
+                                $parent.find('div#contentRepeat').empty();
                                 
                                 if (copies >= 1) {
-                                    $("page", $parent).each(function(j) {
+                                    var $page = $parent.find('page'), pageLength = $page.length, divideTag = '';
+                                    var divide = Math.ceil(copies / 2);
+                                    
+                                    if (pageLength > 1 || divide > 1) {
+                                        divideTag = '<div style="page-break-after: always;"></div>'; 
+                                    }
+                                    $page.each(function() {
                                         var $thisPage = $(this);
                                         if (pageType == '2col') {
-                                            $("#contentRepeat", $parent).append($thisPage.find("#exContent").get(0).outerHTML+'<div style="page-break-after: always;"></div>');
+                                            $parent.find('#contentRepeat').append($thisPage.find("#exContent").get(0).outerHTML + divideTag);
                                         } else {
-                                            for (var i = 0; i < copies; i++) {
-                                                if (isNewPage == '1') {
-                                                    if (pageOrientation == 'landscape') {
-                                                        $("#contentRepeat", $parent).append($thisPage.find("#externalContent > table > tbody > tr > td").get(0).innerHTML+'<div style="page-break-after: always;"></div>');
-                                                    } else {
-                                                        $("#contentRepeat", $parent).append($thisPage.find("#externalContent > tbody > tr > td").get(0).innerHTML+'<div style="page-break-after: always;"></div>');
-                                                    }
-                                                } else {
-                                                    if (pageType == '2col') {
-                                                        $("#contentRepeat", $parent).append($thisPage.find("#exContent").html()+'<div style="page-break-after: always;"></div>');
-                                                    } else {
-                                                        $("#contentRepeat", $parent).append($thisPage.find("#externalContent").get(0).outerHTML+'<div style="page-break-after: always;"></div>');
-                                                    }
-                                                }
+                                            for (var i = 0; i < divide; i++) {
+                                                $parent.find('#contentRepeat').append($thisPage.find("#externalContent").get(0).outerHTML + divideTag);
                                             }
                                         }
                                     });
-                                    $("div#contentRepeat", $parent).find("#externalContent").last().removeAttr('style');
                                 }
                                 
                                 $("div#contentRepeat", $parent).find('img').css('max-width', '100%');

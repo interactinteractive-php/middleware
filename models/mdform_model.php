@@ -14957,7 +14957,7 @@ class Mdform_Model extends Model {
 
             $mapConfigs = $this->db->GetAll("
                 SELECT 
-                    UPPER(T2.TABLE_NAME) AS TABLE_NAME, 
+                    NVL(T2.QUERY_STRING, UPPER(T2.TABLE_NAME)) AS TABLE_NAME, 
                     UPPER(T1.COLUMN_NAME) AS TRG_COLUMN_NAME, 
                     UPPER(T3.COLUMN_NAME) AS PK_COLUMN_NAME, 
                     T4.COLUMN_NAME AS MAIN_SELECT_COLUMN_NAME, 
@@ -14972,15 +14972,19 @@ class Mdform_Model extends Model {
                         AND T4.TRG_INDICATOR_MAP_ID = T1.ID 
                     INNER JOIN KPI_INDICATOR_INDICATOR_MAP T5 ON T5.MAIN_INDICATOR_ID = T4.MAIN_INDICATOR_ID 
                         AND T5.ID = T4.RELATED_INDICATOR_MAP_ID     
-                WHERE T1.ID IN ($trgMapIds) 
-                GROUP BY 
-                    UPPER(T2.TABLE_NAME), 
-                    UPPER(T1.COLUMN_NAME), 
-                    UPPER(T3.COLUMN_NAME), 
-                    T4.COLUMN_NAME, 
-                    T5.COLUMN_NAME");
+                WHERE T1.ID IN ($trgMapIds)");
             
             if ($mapConfigs) {
+                
+                $mapConfigs = array_map(
+                    'unserialize',
+                    array_unique(
+                        array_map(
+                            'serialize',
+                            $mapConfigs
+                        )
+                    )
+                );
 
                 $mapConfigs = Arr::groupByArray($mapConfigs, 'TABLE_NAME');
                 $mainSelectColumn = $selectColumn = $leftJoin = null;
@@ -15000,6 +15004,10 @@ class Mdform_Model extends Model {
 
                     $pkColumnName = $mapConfigRow['PK_COLUMN_NAME'];
                     $mainJoinColumnName = $mapConfigRow['MAIN_JOIN_COLUMN_NAME'];
+                    
+                    if (strlen($joinTableName) > 30 && stripos($joinTableName, 'select') !== false && stripos($joinTableName, 'from') !== false) {
+                        $joinTableName = "($joinTableName)";
+                    }
 
                     $leftJoin .= "LEFT JOIN $joinTableName T$aliasNum ON T$aliasNum.$pkColumnName = T1.$mainJoinColumnName ";
 
@@ -15093,10 +15101,12 @@ class Mdform_Model extends Model {
             $relatedColumnsQuery = self::generateQueryRelatedColumnsModel($indicatorId, $row, $columns);
             
             if ($relatedColumnsQuery) {
+                
                 $queryString = $relatedColumnsQuery;
                 $isQueryString = true;
                 $isCheckSystemTable = true;
                 $row['isIgnoreStandardFields'] = true;
+                
                 $columns = self::getKpiIndicatorColumnsModel($indicatorId, $row);
             }
             
@@ -15979,6 +15989,13 @@ class Mdform_Model extends Model {
                 $rs = new stdClass();
                 $rs->_array = $rows;
    
+            } elseif ($isGoogleMap) {
+                
+                $rows = $this->db->GetAll($selectList);
+                
+                $rs = new stdClass();
+                $rs->_array = $rows;
+                
             } else {
                 
                 $rs = $this->db->SelectLimit($selectList, $rows, $offset);
@@ -19414,7 +19431,7 @@ class Mdform_Model extends Model {
                     WHERE T0.PARENT_ID = $idPh1 
                         AND T0.KPI_TYPE_ID IN (1040, 1043, 1044, 1100, 1000, 2009) 
                         AND T0.DELETED_USER_ID IS NULL 
-                        AND (T0.QUERY_STRING IS NOT NULL OR T0.POSTGRE_SQL IS NOT NULL) 
+                        AND (T0.KPI_TYPE_ID <> 1043 OR (T0.KPI_TYPE_ID = 1043 AND (T0.QUERY_STRING IS NOT NULL OR T0.POSTGRE_SQL IS NOT NULL))) 
                     ORDER BY 
                         T0.ORDER_NUMBER ASC, 
                         T0.ID ASC", 

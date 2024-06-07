@@ -1709,7 +1709,6 @@ class Mdlayout extends Controller {
         $layoutConfig = $this->prepareLayoutData($layoutId);
         $style = ''; //($layoutId === '17091131987379') ? 'width: 80%; margin: 0 auto;' : '';
         $sectionHtml = '<main class="h-full w-full page-main-layout-'.$layoutId.'" style="background-color:#F3F4F6; '. $style .'">';
-
         $sectionHtml .= $this->layoutSection($layoutConfig["layout"], issetParam($layoutConfig["className"]), $layoutConfig);
         $sectionHtml .= '</main>';
         

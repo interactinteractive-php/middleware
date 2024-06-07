@@ -1,21 +1,34 @@
 <?php 
     $renderAtom = new Mdwidget(); 
-    $uid = getUID(); ?>
+    $uid = getUID(); 
+    ?>
 <div class="card-body cloud_tab<?php echo $uid ?> position-relative">
     <div class="position-absolute" style="top: 0; right: 0;">
         <a class="btn blue rounded-xl" href="javascript:;" onclick="mvNormalRelationRender(this, '2008', '190189444', {methodIndicatorId: '190189654', structureIndicatorId: '190189444'});" style="border-radius: 100px;"><i class="far fa-plus-circle" style="color:"></i> АПП ҮҮСГЭХ</a>        
     </div>     
     <ul class="nav nav-pills nav-pills<?php echo $uid ?>">
-        <li class="nav-item active mr-1">
-            <a href="#basic-1-tab<?php echo $uid ?>" class="nav-link active" data-layoutid="<?php echo '17091131749959' ?>" data-toggle="tab">Сүүлд хөгжүүлсэн</a>
-        </li>
-        <li class="nav-item">
-            <a href="#basic-2-tab<?php echo $uid ?>" class="nav-link" data-layoutid="<?php echo '17091131945649' ?>" data-toggle="tab">Нээлттэй апп</a>
-        </li>
+        <?php 
+        if (issetParam($this->datasrc[0])) {
+            $index = 1;
+            foreach ($this->datasrc[0] as $key => $row) { ?>
+                <li class="nav-item <?php echo  $index == 1 ? 'active' : '' ?> mr-1">
+                    <a href="#basic-<?php echo $index ?>-tab<?php echo $uid ?>" class="nav-link <?php echo  $index == 1 ? 'active' : '' ?>" data-layoutid="<?php echo $row ?>" data-toggle="tab"><?php echo Lang::line('TAB_TITLE_' . $row) ?></a>
+                </li>
+            <?php    
+            $index++;
+            }
+        } ?>
     </ul>
     <div class="tab-content tab-content<?php echo $uid ?>">
-        <div class="tab-pane fade show active" id="basic-1-tab<?php echo $uid ?>"></div>
-        <div class="tab-pane fade" id="basic-2-tab<?php echo $uid ?>"></div>
+        <?php 
+            if (issetParam($this->datasrc[0])) {
+                $index = 1;
+                foreach ($this->datasrc[0] as $key => $row) { ?>
+                    <div class="tab-pane fade <?php echo  $index == 1 ? 'show active' : '' ?>" id="basic-<?php echo $index ?>-tab<?php echo $uid ?>"></div>
+                <?php  
+                $index++;  
+                }
+            } ?>
     </div>
 </div>
 <style type="text/css">
