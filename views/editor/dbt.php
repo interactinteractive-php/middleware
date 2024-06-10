@@ -70,11 +70,9 @@ $(function() {
         remoteFilter: true,
         filterDelay: 10000000000,
         fitColumns: false,
-        columns: [[
-            {field: 'ck', checkbox:true}
-        ]],
+        columns: [],
         onLoadSuccess: function(){
-            showGridMessage(configMainDataGrid);
+            showGridMessage($dbtDatagrid);
         }
     });
 });
@@ -87,7 +85,7 @@ function dbtRun(elem) {
     
     if (sqlQuerySql !== null && sqlQuerySql !== '') {
         
-        var dbs = encodeURIComponent(window.btoa(sqlQuerySql));
+        var dbs = btoa(unescape(encodeURIComponent(sqlQuerySql)));
         
         $.ajax({
             type: 'post',
@@ -102,10 +100,8 @@ function dbtRun(elem) {
                     
                     var setColumns = [], getColumns = data.columns;
                     
-                    setColumns.push({field: 'ck', checkbox:true});
-                    
                     for (var c in getColumns) {
-                        setColumns.push({field: c, title: c,width: 130});
+                        setColumns.push({field: c, title: c, width: 130});
                     }
                     
                     $dbtDatagrid.datagrid({
