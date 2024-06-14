@@ -1269,7 +1269,7 @@ class Mdform extends Controller {
                     $this->view->addonTabs = self::renderEditModeIndicatorTab($this->view->uniqId, $dataFirstRow, $firstTplId); 
                 } else {
                     $this->view->addonTabs = self::renderAddModeIndicatorTab($this->view->uniqId, $dataFirstRow); 
-                }                
+                }          
                 
                 $this->view->mainTabName = 'Үндсэн';
                 $this->view->componentRenderType = 'tab';
@@ -1329,6 +1329,11 @@ class Mdform extends Controller {
 
                 $this->view->showBanner = self::getFormBanner($this->view->indicatorId);
                 $this->view->renderComponentsBanner = ($this->view->showBanner) ? '1' : '0';
+                
+//                pa($methodRow);
+//                if (true) {
+//                    $this->view->form = self::widgetBuilderRender($this->view->crudIndicatorId);
+//                }
 
                 $this->view->form = $this->view->renderPrint('kpi/indicator/form', self::$viewPath);
                 
@@ -1734,6 +1739,10 @@ class Mdform extends Controller {
         if (Input::numeric('isIgnoreFilter')) {
             $this->view->isIgnoreFilter = true;
         }
+
+        if (Input::post('chooseType') && issetParam($this->view->row['IS_USE_BASKET_FILTER']) === '0') {
+            $this->view->isIgnoreFilter = true;
+        }
         
         if ($this->view->idField && $this->view->nameField && $this->view->parentField) {
             $this->view->isGridType = 'treegrid';
@@ -1828,7 +1837,7 @@ class Mdform extends Controller {
                     $this->view->row['gridOption']['theme'] = 'no-border';
                     $this->view->columns = $this->model->renderKpiIndicatorColumnsModel($this->view->indicatorId, $this->view->row['isCheckSystemTable'], array('columnsData' => $this->view->columnsData));
                     $this->load->model('mdform', 'middleware/models/');
-
+                    
                     $this->view->renderGridList = $this->view->renderPrint('kpi/indicator/renderGrid', self::$viewPath);
                     
                     $this->view->renderGrid = self::renderWidgetDataSet($this->view->row, $widgetWInfo ? $widgetWInfo : $widgetInfo);
@@ -6309,7 +6318,32 @@ class Mdform extends Controller {
             );
         }*/
         
-        if ($trgRecordId) {
+        $mapData = $this->model->getIndicatorSrcTrgPathModel($srcMapId, $trgIndicatorId);
+        
+        if ($mapData) {
+            
+            $selectedRow = Input::post('selectedRow');
+            $selectedRow = Arr::changeKeyLower($selectedRow);
+            $getParams = [];
+            
+            foreach ($mapData as $mapRow) {
+                if ($mapRow['SRC_INDICATOR_PATH'] == '' && $mapRow['DEFAULT_VALUE'] != '') {
+                    $setValue = Mdmetadata::setDefaultValue($mapRow['DEFAULT_VALUE']);
+                } else {
+                    $setValue = issetParam($selectedRow[strtolower($mapRow['SRC_INDICATOR_PATH'])]);
+                }
+                $getParams[strtoupper($mapRow['TRG_INDICATOR_PATH'])] = $setValue;
+
+                $trgRefStructureId = $mapRow['GET_ID'];
+            }
+            
+            $getDetailData = $this->model->getMetaVerseDataModel($trgRefStructureId, $getParams);
+            
+            if ($getData = issetParam($getDetailData['data'])) {
+                $_POST['transferSelectedRow'] = $getData;
+            }
+        
+        } elseif ($trgRecordId) {
             
             $_POST['param']['dynamicRecordId'] = $trgRecordId; 
             $_POST['param']['idField'] = 'IDFIELD';
@@ -6342,6 +6376,10 @@ class Mdform extends Controller {
                         $setValue = issetParam($selectedRow[strtolower($mapRow['SRC_INDICATOR_PATH'])]);
                     }
                     $getParams[strtoupper($mapRow['TRG_INDICATOR_PATH'])] = $setValue;
+                    
+                    if ($mapRow['GET_ID'] && $mapRow['SEMANTIC_TYPE_ID'] == 120) {
+                        $trgRefStructureId = $mapRow['GET_ID'];
+                    }
                 }
                 
                 $getDetailData = $this->model->getMetaVerseDataModel($trgRefStructureId, $getParams);
@@ -6762,22 +6800,40 @@ class Mdform extends Controller {
     public function mvProductRender() {
         
         $indicatorId = Input::numeric('indicatorId');
-
+        
         if (!isset($this->model)) {
-            $this->load->model('mdform', 'middleware/models/');
-            $this->model = new Mdform_Model();
-        }            
-        
-        Mdform::$isProductCheckPermission = true;
-        $relationList = $this->model->getChildRenderStructureModel($indicatorId, [Mdform::$semanticTypes['normal'], Mdform::$semanticTypes['config']]);
-        
-        if ($relationList) {
-            $_POST['mainIndicatorId'] = $indicatorId;
-            $_POST['methodIndicatorId'] = $indicatorId;
-            $_POST['isIgnoreHeaderProcess'] = 1;
-            self::mvNormalRelationRender($relationList);
+            $this->load->model('appmenu');
+            $this->model = new Appmenu_Model();
         } else {
-            convJson(['status' => 'no_config']);
+            $this->load->model('appmenu');
+        }
+        
+        $licenseRow = $this->model->getMetaVerseLicenseListModel($indicatorId);
+        
+        if (isset($licenseRow['isActive']) && $licenseRow['isActive'] == '0') {
+            
+            convJson(['status' => 'info', 'message' => 'Ашиглах эрхгүй байна. Та лицензээ шалгана уу!']);
+            
+        } else {
+        
+            if (!isset($this->model)) {
+                $this->load->model('mdform', 'middleware/models/');
+                $this->model = new Mdform_Model();
+            } else {
+                $this->load->model('mdform', 'middleware/models/');
+            }
+
+            Mdform::$isProductCheckPermission = true;
+            $relationList = $this->model->getChildRenderStructureModel($indicatorId, [Mdform::$semanticTypes['normal'], Mdform::$semanticTypes['config']]);
+
+            if ($relationList) {
+                $_POST['mainIndicatorId'] = $indicatorId;
+                $_POST['methodIndicatorId'] = $indicatorId;
+                $_POST['isIgnoreHeaderProcess'] = 1;
+                self::mvNormalRelationRender($relationList);
+            } else {
+                convJson(['status' => 'no_config']);
+            }
         }
     }
     
@@ -6974,6 +7030,42 @@ class Mdform extends Controller {
         
         $response = ['status' => 'success', 'message' => 'Success', 'expression' => $expressionContent];
         convJson($response);
+    }
+    
+    public static function groupByArrayIsset($rows, $key) {
+        $result = array();
+        
+        foreach ($rows as $data) {
+            if (isset($data[$key])) {
+                $id = $data[$key];
+                if (isset($result[$id])) {
+                    $result[$id]['rows'][] = $data;
+                } else {
+                    $result[$id]['rows'] = array($data);
+                    $result[$id]['row'] = $data;
+                }
+            }
+        }
+        
+        return $result;
+    }    
+    
+    public function widgetBuilderRender($crudIndicatorId) {
+        $columnsData = $this->model->getKpiIndicatorColumnsModel('16570237736369');
+        $columnsGroupData = self::groupByArrayIsset($columnsData, "WIDGET_POSITION");
+        $getData = Mdform::$kpiDmMart;
+        $getToPosition = [];
+        
+        if ($columnsGroupData) {
+            foreach ($columnsGroupData as $key => $row) {
+                $colpath = $row['row']['COLUMN_NAME'];
+                $getToPosition['position'.$key] = issetParam($getData[$colpath.'_DESC']) ? $getData[$colpath.'_DESC'] : issetParam($getData[$colpath]);
+            }
+        }
+        
+        $renderResult = (new Mdwidget())->atomicBuild('17157492525033', 'render', $getToPosition, []);
+        
+        return $renderResult;
     }
     
 }

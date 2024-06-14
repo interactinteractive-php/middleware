@@ -4332,6 +4332,7 @@ class Mdform_Model extends Model {
                             KI.SEARCH_COLUMN_NUMBER, 
                             KI.IS_DATA_DELETE_PERMANENTLY, 
                             KI.CONTENT_ID, 
+                            KI.IS_USE_BASKET_FILTER, 
                             MW.CODE AS RELATION_WIDGET_CODE, 
                             MWW.CODE AS WIDGET_CODE, 
                             (
@@ -5379,7 +5380,8 @@ class Mdform_Model extends Model {
         $mapData = $db->GetAll("
             SELECT 
                 SRC_INDICATOR_PATH, 
-                TRG_INDICATOR_PATH 
+                TRG_INDICATOR_PATH, 
+                DEFAULT_VALUE 
             FROM KPI_INDICATOR_INDICATOR_MAP 
             WHERE SRC_INDICATOR_MAP_ID = ".$db->Param(0)." 
                 AND SEMANTIC_TYPE_ID = ".$db->Param(1), [$mapId, $semanticTypeId]);
@@ -5758,11 +5760,21 @@ class Mdform_Model extends Model {
                     
                     $srcPath = $relationConfig['SRC_INDICATOR_PATH'];
                     
-                    if (strpos($srcPath, '.') !== false) {
-                        $srcPath = substr($srcPath, strrpos($srcPath, '.') + 1);
+                    if ($srcPath) {
+                        if (strpos($srcPath, '.') !== false) {
+                            $srcPath = substr($srcPath, strrpos($srcPath, '.') + 1);
+                        }
+
+                        $srcPathVal = issetParam($rowData[$srcPath]);
+                    } else {
+                        $defaultValue = issetParam($relationConfig['DEFAULT_VALUE']);
+                        
+                        if ($defaultValue != '') {
+                            $srcPathVal = Mdmetadata::setDefaultValue($defaultValue);
+                        }
                     }
                     
-                    $srcPathVal = issetParam($rowData[$srcPath]);
+                    
                     $trgPath = $relationConfig['TRG_INDICATOR_PATH'];
                     
                     if (strpos($trgPath, '.') !== false) {
@@ -14267,6 +14279,7 @@ class Mdform_Model extends Model {
                         THEN 1 ELSE 0 END AS IS_SELECT_QUERY, 
                         KIIM.RELATED_INDICATOR_MAP_ID, 
                         KIIM.TRG_INDICATOR_MAP_ID, 
+                        KIIM.WIDGET_POSITION, 
                         NULL AS GROUP_CONFIG_FIELD_PATH, 
                         NULL AS GROUP_CONFIG_PARAM_PATH, 
                         NULL AS GROUP_CONFIG_LOOKUP_PATH, 
@@ -14405,7 +14418,7 @@ class Mdform_Model extends Model {
                 )
             );
             
-            if ($configRow['IS_USE_WORKFLOW'] == '1') {
+            if (issetParam($configRow['IS_USE_WORKFLOW']) == '1') {
                 
                 $isAlreadyWfmColumn = false;
                 
@@ -15701,9 +15714,12 @@ class Mdform_Model extends Model {
                             $filterNextWfmUserId = Mdmetadata::setDefaultValue($filterParam['DEFAULT_VALUE']);
                             continue;
                         }
-                    
-                        $bindVal = ($filterParam['DEFAULT_VALUE'] != '') ? "'".Mdmetadata::setDefaultValue($filterParam['DEFAULT_VALUE'])."'" : 'NULL';
-                        $tableName = str_ireplace(':'.$filterParam['TRG_ALIAS_NAME'], $bindVal, $tableName);
+                        
+                        if (stripos($tableName, ':'.$filterParam['TRG_ALIAS_NAME']) !== false) {
+                            $bindVal = ($filterParam['DEFAULT_VALUE'] != '') ? "'".Mdmetadata::setDefaultValue($filterParam['DEFAULT_VALUE'])."'" : 'NULL';
+                            $tableName = str_ireplace(':'.$filterParam['TRG_ALIAS_NAME'], $bindVal, $tableName);
+                            $isSubCondition = true;
+                        }
                     }
                 }
             }
@@ -16046,7 +16062,9 @@ class Mdform_Model extends Model {
                     $rows = $tmpRows;
                 }
                 
-                if (Input::numeric('isLowerCase')) {
+                $isLowerCase = Input::numeric('isLowerCase');
+                
+                if ($isLowerCase) {
                     $rows = Arr::changeKeyLower($rows);
                     $childRecordCountKey = 'childrecordcount';
                     $iconColorCodeKey = 'icon_color_code';
@@ -16066,12 +16084,46 @@ class Mdform_Model extends Model {
                             $isIconColorCode = true;
                         }
                         
-                        foreach ($rows as $rowIndex => $rowData) {
-                            $rows[$rowIndex]['state'] = (isset($rowData[$childRecordCountKey]) && $rowData[$childRecordCountKey]) ? 'closed' : 'open';
+                        if (false /*$isSubCondition*/) {
                             
-                            if ($isIconColorCode) {
-                                $rows[$rowIndex]['iconCls'] = $rowData[$iconColorCodeKey];
-                            }   
+                            function buildTree($elements, $parentId = null) {
+                                $branch = [];
+
+                                foreach ($elements as $element) {
+                                    if ($element['parent_id'] == $parentId) {
+                                        $children = buildTree($elements, $element['id']);
+                                        if ($children) {
+                                            $element['children'] = $children;
+                                        }
+                                        $branch[] = $element;
+                                    }
+                                }
+
+                                return $branch;
+                            }
+                            
+                            if ($isLowerCase) {
+                                $idField     = strtolower($idField);
+                                $parentField = strtolower($parentField);
+                            }
+                            
+                            foreach ($rows as $rowIndex => $rowData) {
+                                $rows[$rowIndex]['state'] = (isset($rowData[$childRecordCountKey]) && $rowData[$childRecordCountKey]) ? 'closed' : 'open';
+
+                                if ($isIconColorCode) {
+                                    $rows[$rowIndex]['iconCls'] = $rowData[$iconColorCodeKey];
+                                }   
+                            }
+                            
+                        } else {
+                            
+                            foreach ($rows as $rowIndex => $rowData) {
+                                $rows[$rowIndex]['state'] = (isset($rowData[$childRecordCountKey]) && $rowData[$childRecordCountKey]) ? 'closed' : 'open';
+
+                                if ($isIconColorCode) {
+                                    $rows[$rowIndex]['iconCls'] = $rowData[$iconColorCodeKey];
+                                }   
+                            }
                         }
                     }
 
@@ -16120,9 +16172,9 @@ class Mdform_Model extends Model {
     public function responseGridExceptionMessage($message) {
         
         if (strpos($message, 'ORA-00942') !== false) {
-            $response = array('status' => 'success', 'message' => $message, 'rows' => array(), 'total' => 0);
+            $response = ['status' => 'success', 'message' => $message, 'rows' => [], 'total' => 0];
         } else {
-            $response = array('status' => 'error', 'message' => $message, 'rows' => array(), 'total' => 0);
+            $response = ['status' => 'error', 'message' => $message, 'rows' => [], 'total' => 0];
         }
         
         return $response;
@@ -23969,6 +24021,7 @@ class Mdform_Model extends Model {
     }
     
     public function getKpiIndicatorProcessModel($srcId, $trgId = null) {
+        $basketScript = Input::post('chooseType') ? " AND M.IS_USE_BASKET = 1 " : "";
         
         try {
             $idPh = $this->db->Param(0);
@@ -24030,7 +24083,7 @@ class Mdform_Model extends Model {
                     t0.CODE AS WIDGET_CODE
                 FROM KPI_INDICATOR K 
                     INNER JOIN KPI_INDICATOR_INDICATOR_MAP M ON K.ID = M.SRC_INDICATOR_ID 
-                        AND M.SEMANTIC_TYPE_ID = 10000009 
+                        AND M.SEMANTIC_TYPE_ID = 10000009  $basketScript
                     INNER JOIN KPI_INDICATOR KI ON M.TRG_INDICATOR_ID = KI.ID 
                     INNER JOIN KPI_INDICATOR_INDICATOR_MAP M1 ON KI.ID = M1.TRG_INDICATOR_ID 
                         AND K.ID = M1.SRC_INDICATOR_ID 
@@ -29986,6 +30039,7 @@ class Mdform_Model extends Model {
                     T0.DESCRIPTION, 
                     T0.WIDGET_CODE, 
                     T0.IS_DATAMART_RENDER,
+                    T0.IS_SEPERATOR AS IS_SEPERATOR_MAP,
                     T5.IS_SEPERATOR,
                     T5.IS_OPEN_GROUP 
                 FROM ( 
@@ -30007,6 +30061,7 @@ class Mdform_Model extends Model {
                         T1.IS_COMMENT, 
                         T1.ICON, 
                         T1.DESCRIPTION, 
+                        T1.IS_SEPERATOR,
                         T6.CODE AS WIDGET_CODE, 
                         T3.META_DATA_ID, 
                         ".$this->db->IfNull('T4.LIST_NAME', $this->db->IfNull('T5.PROCESS_NAME', 'T3.META_DATA_NAME'))." AS META_DATA_NAME, 
@@ -30051,6 +30106,7 @@ class Mdform_Model extends Model {
                         T1.IS_COMMENT, 
                         T1.ICON, 
                         T1.DESCRIPTION, 
+                        T1.IS_SEPERATOR,
                         T6.CODE, 
                         T3.META_DATA_ID, 
                         T3.META_DATA_NAME, 
@@ -30143,6 +30199,8 @@ class Mdform_Model extends Model {
     public function getSrcTrgPathModel($srcMapId, $trgIndicatorId) {
         $data = $this->db->GetAll("
             SELECT 
+                GET_ID, 
+                SEMANTIC_TYPE_ID, 
                 SRC_INDICATOR_PATH, 
                 TRG_INDICATOR_PATH, 
                 DEFAULT_VALUE, 
@@ -30153,7 +30211,41 @@ class Mdform_Model extends Model {
                 AND TRG_INDICATOR_PATH IS NOT NULL 
                 AND (SRC_INDICATOR_PATH IS NOT NULL OR DEFAULT_VALUE IS NOT NULL) 
             GROUP BY 
-                SRC_INDICATOR_PATH, TRG_INDICATOR_PATH, DEFAULT_VALUE, CRITERIA", 
+                GET_ID, 
+                SEMANTIC_TYPE_ID, 
+                SRC_INDICATOR_PATH, 
+                TRG_INDICATOR_PATH, 
+                DEFAULT_VALUE, 
+                CRITERIA", 
+            [$srcMapId, $trgIndicatorId]
+        );
+        
+        return $data;
+    }
+    
+    public function getIndicatorSrcTrgPathModel($srcMapId, $trgIndicatorId) {
+        $data = $this->db->GetAll("
+            SELECT 
+                GET_ID, 
+                SEMANTIC_TYPE_ID, 
+                SRC_INDICATOR_PATH, 
+                TRG_INDICATOR_PATH, 
+                DEFAULT_VALUE, 
+                CRITERIA 
+            FROM KPI_INDICATOR_INDICATOR_MAP 
+            WHERE SRC_INDICATOR_MAP_ID = ".$this->db->Param(0)." 
+                AND TRG_INDICATOR_ID = ".$this->db->Param(1)." 
+                AND TRG_INDICATOR_PATH IS NOT NULL 
+                AND (SRC_INDICATOR_PATH IS NOT NULL OR DEFAULT_VALUE IS NOT NULL) 
+                AND SEMANTIC_TYPE_ID = 120 
+                AND GET_ID IS NOT NULL 
+            GROUP BY 
+                GET_ID, 
+                SEMANTIC_TYPE_ID, 
+                SRC_INDICATOR_PATH, 
+                TRG_INDICATOR_PATH, 
+                DEFAULT_VALUE, 
+                CRITERIA", 
             [$srcMapId, $trgIndicatorId]
         );
         
