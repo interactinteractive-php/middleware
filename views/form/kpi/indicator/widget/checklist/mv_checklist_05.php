@@ -41,6 +41,9 @@ $renderType = '';
                     <li class="nav-item">
                         <a style="padding-top: 3px;" href="#maintabcustom_1719031535425301_2" class="nav-link" data-toggle="tab" aria-expanded="false">Тайлан</a>
                     </li>
+                    <li class="nav-item">
+                        <a style="padding-top: 3px;" href="#maintabcustom_1719031535425301_3" class="nav-link" data-toggle="tab" aria-expanded="false">Ажил үүрэг</a>
+                    </li>
                 </ul>
                 <div class="tab-content" style="padding-top: 0px;padding-bottom: 0px;">                                         
                     <div class="tab-pane active" id="maintabcustom_1719031535425301_1" style="padding-bottom: 0 !important;padding-top: 0 !important;padding-right: 0 !important;">                
@@ -76,23 +79,7 @@ $renderType = '';
                                 </div>                
                                 <div class="mv-checklist4-render-relation pl-2 pr-2">
                                 </div>                
-                            </div>     
-                            <div class="sidebar sidebar-dark sidebar-secondary sidebar-expand-md mt-2 mr-2 ml-2" style="width:300px;border-radius: .75rem;height: 340px;">
-                                <div class="d-flex">
-                                    <div style="font-size: 15px;padding: 10px;font-weight: bold;">Миний ажлууд</div>
-                                    <a href="javascript:;" title="Sidebar хураах" class="checklist-sidebar-close-btn" onclick="mvCheckListSidebarClose(this)" style="">
-                                        <i class="icon-arrow-left5 hidden"></i>
-                                    </a>
-                                </div>
-                                <div class="sidebar-content" style="overflow-y: auto;height: 300px;">
-                                    <div class="card">
-                                        <div class="card-body mv-checklist-menu kpidv-data-tree-col mv-checklist-taskmenu">
-                                            <div id="indicatorTreeView_17189630753551" data-indicatorid="17189630753551" class="tree-demo mt-1 indicatorTreeView_17189630753551" style="overflow-x: hidden;">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>        
+                            </div>           
                         </div>                
                     <?php 
                         $tabId ++;      
@@ -120,28 +107,45 @@ $renderType = '';
                                     </div>
                                 </div>
                             </div>
-                            <div class="w-100 checklist2-content-section content-wrapper-<?php echo $renderType ?>" style="background-color: #f4f4f4; max-width: 1205px">
+                            <div class="w-100 checklist2-content-section content-wrapper-<?php echo $renderType ?>" style="background-color: #f4f4f4; max-width: 1205px;overflow-x: auto;">
                                 <div>
                                     <div class="content-wrapper pt-2 pl-3 pr-3 pb-0 mv-checklist-render mv-checklist-render-report">        
                                     </div>                
                                 </div>                
-                            </div>       
-                            <div class="sidebar sidebar-dark sidebar-secondary sidebar-expand-md mt-2 mr-2 ml-2" style="width:300px;border-radius: .75rem;height: 340px;">
-                                <div class="d-flex">
-                                    <div style="font-size: 15px;padding: 10px;font-weight: bold;">Миний ажлууд</div>
+                            </div>               
+                        </div>                
+                    <?php 
+                        $tabId ++;      
+                    ?>                                  
+                    </div>
+                    <div class="tab-pane" id="maintabcustom_1719031535425301_3" style="padding-bottom: 0 !important;padding-top: 0 !important;padding-right: 0 !important;">
+                        <?php
+                            $tabId = 1;
+                            ?>                    
+                        <div class="d-flex w-100" style="background-color: rgb(244, 244, 244)">
+        <!--                                sidebar-light-->
+                            <div class="sidebar sidebar-dark sidebar-secondary sidebar-expand-md mt-2 ml-2" style="width:300px;border-radius: .75rem;">
+                                <div class="d-flex justify-content-end">
                                     <a href="javascript:;" title="Sidebar хураах" class="checklist-sidebar-close-btn" onclick="mvCheckListSidebarClose(this)" style="">
                                         <i class="icon-arrow-left5 hidden"></i>
                                     </a>
                                 </div>
-                                <div class="sidebar-content" style="overflow-y: auto;height: 300px;">
+                                <div class="sidebar-content">
+
                                     <div class="card">
                                         <div class="card-body mv-checklist-menu kpidv-data-tree-col mv-checklist-taskmenu">
-                                            <div id="indicatorTreeView_17189630753551" data-indicatorid="17189630753551" class="tree-demo mt-1 indicatorTreeView_17189630753551" style="overflow-x: hidden;">
+                                            <div id="indicatorTreeView_17189630753551" data-indicatorid="17189630753551" class="tree-demo mt-1" style="overflow-x: hidden;">
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>          
+                            </div>
+                            <div class="w-100 checklist2-content-section content-wrapper-<?php echo $renderType ?>" style="background-color: #f4f4f4; max-width: 1205px;overflow-x: auto;">
+                                <div>
+                                    <div class="content-wrapper pt-2 pl-3 pr-3 pb-0 mv-checklist-render mv-checklist-render-task">        
+                                    </div>                
+                                </div>                
+                            </div>             
                         </div>                
                     <?php 
                         $tabId ++;      
@@ -165,6 +169,15 @@ if ($renderType == 'paper_main_window') {
 ?>
 
 <style type="text/css">
+.mv-checklist-render-report .kl-layout-filter {
+    position: absolute;
+    right: 32px;        
+    margin-top: 7px;
+}
+.mv-checklist-render-report .kl-layout-filter.kl-layout-filter-closed .kl-layout-filter-footer,
+.mv-checklist-render-report .kl-layout-filter.kl-layout-filter-closed .kpi-indicator-filter-title {
+    display: none;
+}
 .mv-checklist2-render-parent .mv-checklist-render-comment .media-body .p-2.pb3 {
     background-color: #eee !important;
 }   
@@ -390,9 +403,9 @@ if ($renderType == 'paper_main_window') {
     border-radius: 5px;
     width: calc(100% / 5);
 }
-.mv-checklist2-render-parent .mv-checklist-taskmenu {
+/*.mv-checklist2-render-parent .mv-checklist-taskmenu {
     min-height: 300px !important;
-}
+}*/
 .mv-checklist2-render-parent .mv-checklist-menu {
     padding: 0;
     /*margin-left: -5px;*/
@@ -773,14 +786,14 @@ input.kpi-notfocus-readonly-input::placeholder {
 .kpidv-data-tree-col .jstree-default li:not(.jstree-closed,.jstree-open) .jstree-ocl {
     display: none;
 }
+.kpidv-data-tree-col.mv-checklist-taskmenu .mv-tree-filter-icon {
+    color:#b0b7ee;
+    font-size: 15px;    
+}
 .kpidv-data-tree-col .mv-tree-filter-icon {
     color:#b0b7ee;
     font-size: 15px;
     margin-left: 4px;
-}
-.mv-checklist-taskmenu .mv-tree-filter-icon {
-    color:#7482f3;
-    font-size: 15px;
 }
 .kpidv-data-tree-col .jstree-default .jstree-custom-folder-icon.green.jstree-closed>.jstree-ocl, 
 .kpidv-data-tree-col .jstree-default .jstree-custom-folder-icon.green.jstree-open>.jstree-ocl {
@@ -846,20 +859,21 @@ input.kpi-notfocus-readonly-input::placeholder {
 var viewProcessWindow_<?php echo $this->uniqId; ?> = false;
 var viewMode_<?php echo $this->uniqId; ?> = '';
 var $checkList_<?php echo $this->uniqId; ?> = $('#mv-checklist-render-parent-<?php echo $this->uniqId; ?>');
-var $checkListMenu_<?php echo $this->uniqId; ?> = $checkList_<?php echo $this->uniqId; ?>.find('.mv-checklist-menu:not(.mv-checklist-taskmenu)');
+var $checkListMenu_<?php echo $this->uniqId; ?> = $checkList_<?php echo $this->uniqId; ?>.find('.mv-checklist-menu');
 var viewProcess_<?php echo $this->uniqId; ?> = $checkList_<?php echo $this->uniqId; ?>.find('.mv-checklist-render:visible');
 var viewReportProcess_<?php echo $this->uniqId; ?> = $checkList_<?php echo $this->uniqId; ?>.find('.mv-checklist-render-report');
+var viewTaskProcess_<?php echo $this->uniqId; ?> = $checkList_<?php echo $this->uniqId; ?>.find('.mv-checklist-render-task');
 var indicatorId = $("#indicatorTreeView_17189630742541").data('indicatorid');
 var rIndicatorId = $("#indicatorTreeView_17189630747991").data('indicatorid');
 var taskIndicatorId = $("#indicatorTreeView_17189630753551").data('indicatorid');
 var filterIdCheck4 = '';
 var rowDataTreeSidebar = {};
 
-var wcontw = $('.mv-checklist2-render-parent').width() - 632;
+var wcontw = $('.mv-checklist2-render-parent').width() - 300;
 $('.mv-checklist2-render-parent').find('.checklist2-content-section').css('max-width', wcontw+'px'); 
 
 if ($checkListMenu_<?php echo $this->uniqId; ?>.length) {
-    $checkListMenu_<?php echo $this->uniqId; ?>.height($(window).height() - $checkListMenu_<?php echo $this->uniqId; ?>.offset().top + 5);
+    $checkListMenu_<?php echo $this->uniqId; ?>.css('min-height', $(window).height() - 195);
 }   
 
 $("#indicatorTreeView_17189630742541").jstree({
@@ -1003,27 +1017,7 @@ $("#indicatorTreeView_17189630742541").jstree({
                         $checkElements.closest('.checker').addClass('disabled');
                     }
 
-                    if (isComment == '1' && postData.hasOwnProperty('recordId')) {
-
-                        viewProcessComment_<?php echo $this->uniqId; ?>.empty().append('<div style="font-weight: bold;padding: 10px 0 7px 0;">Сэтгэгдэл</div>');
-
-                        $.ajax({
-                            type: 'post',
-                            url: 'mdwebservice/renderEditModeBpCommentTab',
-                            data: {
-                                uniqId: uniqId, 
-                                refStructureId: jsonObj.mainIndicatorId, 
-                                sourceId: postData.recordId, 
-                                listMetaDataId: indicatorId
-                            },
-                            success: function(data) {
-                                viewProcessComment_<?php echo $this->uniqId; ?>.append(data);
-                                Core.unblockUI();
-                            }
-                        });
-                    } else {
-                        Core.unblockUI();
-                    }
+                    Core.unblockUI();
 
                 });                            
 
@@ -1662,28 +1656,8 @@ $("#indicatorTreeView_17189630747991").jstree({
                                 $checkElements.attr({'data-isdisabled': 'true', style: 'cursor: not-allowed', 'tabindex': '-1'});
                                 $checkElements.closest('.checker').addClass('disabled');
                             }
-
-                            if (isComment == '1' && postData.hasOwnProperty('recordId')) {
-
-                                viewProcessComment_<?php echo $this->uniqId; ?>.empty().append('<div style="font-weight: bold;padding: 10px 0 7px 0;">Сэтгэгдэл</div>');
-
-                                $.ajax({
-                                    type: 'post',
-                                    url: 'mdwebservice/renderEditModeBpCommentTab',
-                                    data: {
-                                        uniqId: uniqId, 
-                                        refStructureId: jsonObj.mainIndicatorId, 
-                                        sourceId: postData.recordId, 
-                                        listMetaDataId: indicatorId
-                                    },
-                                    success: function(data) {
-                                        viewProcessComment_<?php echo $this->uniqId; ?>.append(data);
-                                        Core.unblockUI();
-                                    }
-                                });
-                            } else {
-                                Core.unblockUI();
-                            }
+                            
+                            Core.unblockUI();
 
                         });                            
 
@@ -1717,27 +1691,7 @@ $("#indicatorTreeView_17189630747991").jstree({
                                 viewReportProcess_<?php echo $this->uniqId; ?>.find(".meta-toolbar").hide();
                             }
 
-                            if (isComment == '1' && postData.hasOwnProperty('recordId')) {
-
-                                viewProcessComment_<?php echo $this->uniqId; ?>.empty().append('<div style="font-weight: bold;padding: 10px 0 7px 0;">Сэтгэгдэл</div>');
-
-                                $.ajax({
-                                    type: 'post',
-                                    url: 'mdwebservice/renderEditModeBpCommentTab',
-                                    data: {
-                                        uniqId: uniqId, 
-                                        refStructureId: jsonObj.mainIndicatorId, 
-                                        sourceId: postData.recordId, 
-                                        listMetaDataId: indicatorId
-                                    },
-                                    success: function(data) {
-                                        viewProcessComment_<?php echo $this->uniqId; ?>.append(data);
-                                        Core.unblockUI();
-                                    }
-                                });
-                            } else {
-                                Core.unblockUI();
-                            }
+                            Core.unblockUI();
 
                         });
                     }
@@ -1951,11 +1905,6 @@ $("#indicatorTreeView_17189630747991").jstree({
                 isIgnoreTitle: 1
             };
 
-            if (isComment == '1' && recordId != '') {
-                postData.isComment = 1;
-                postData.dynamicHeight = ($(window).height() / 2) - 40;
-            }
-
             $.ajax({
                 type: 'post',
                 url: 'mdform/indicatorList/' + kpiIndicatorId,
@@ -1979,7 +1928,7 @@ $("#indicatorTreeView_17189630747991").jstree({
 
                             var renderHeader = '<div class="meta-toolbar is-bp-open-">'+
                                 '<div class="main-process-text">\n\
-                                    <div>'+$this.text()+'</div>\n\
+                                    <div></div>\n\
                                     <div style="" class="main-process-text-description">'+(dataJson && dataJson.DESCRIPTION ? dataJson.DESCRIPTION : '')+'</div>\n\
                                 </div>'+
                             '</div>';
@@ -2059,7 +2008,7 @@ $("#indicatorTreeView_17189630747991").jstree({
     //$('.kpidv-data-tree-col').find('li').first().find('a').click();
 });
 
-$(".indicatorTreeView_17189630753551").jstree({
+$("#indicatorTreeView_17189630753551").jstree({
     "core": {
         "themes": {
             "responsive": true,
@@ -2104,12 +2053,12 @@ $(".indicatorTreeView_17189630753551").jstree({
 //    $('.kpidv-data-bptree-col').find('li').removeClass('active');
 //    $('.kpidv-data-bptree-col').find('li#'+nid).addClass('active');
 
-    var mvTitle = $('.mv-checklist-taskmenu').find('li#'+nid).find('.p-row-title').text();
+    var mvTitle = $('.mv-checklist-taskmenu').find('li#'+nid+'>.jstree-anchor').find('.p-row-title').text();
 
     var strIndicatorId = rowDataTreeSidebar.MAIN_INDICATOR_ID;
     
     if (strIndicatorId == '' || strIndicatorId == null) {
-        alert('Indicator тохируулаагүй байна!');
+        viewTaskProcess_<?php echo $this->uniqId; ?>.empty().append('Indicator тохируулаагүй байна!');
         return;
     }
 
@@ -2142,19 +2091,24 @@ $(".indicatorTreeView_17189630753551").jstree({
         success: function(dataHtml) {
             var html = [];
 
+//            var renderHeader = '<div class="meta-toolbar is-bp-open-">'+
+//                '<div class="main-process-text">\n\
+//                    <div>'+mvTitle+'</div>\n\
+//                    <div class="main-process-text-description">'+(dataHtml.indicatorInfo && dataHtml.indicatorInfo.DESCRIPTION ? dataHtml.indicatorInfo.DESCRIPTION : '')+'</div>\n\
+//                </div>';
             var sveActionBtn = '';
 
             if (viewMode_<?php echo $this->uniqId; ?> != 'view') {
 
-                sveActionBtn = '<div style="">';
+                sveActionBtn = '<div class="ml-auto pull-right">';
 
-//                if (typeof is_pfd != 'undefined' && is_pfd) {
-//                    sveActionBtn += '<button type="button" class="btn btn-sm btn-circle btn-success bpMainSaveButton bp-btn-help mr-1" onclick="setHelpContent(this, \''+dataHtml.helpContentId+'\', \''+indicatorId+'\', \'mv_method\');">'+plang.get('set_help_content_btn')+'</button>';
+//                        if (typeof is_pfd != 'undefined' && is_pfd) {
+//                            sveActionBtn += '<button type="button" class="btn btn-sm btn-circle btn-success bpMainSaveButton bp-btn-help mr-1" onclick="setHelpContent(this, \''+dataHtml.helpContentId+'\', \''+indicatorId+'\', \'mv_method\');">'+plang.get('set_help_content_btn')+'</button>';
+//                        }
+
+//                if (dataHtml.hasOwnProperty('helpContentId') && dataHtml.helpContentId !== null && dataHtml.helpContentId !== '') {
+//                    sveActionBtn += '<button type="button" class="btn btn-sm btn-circle btn-success bpMainSaveButton bp-btn-help mr-1" onclick="redirectHelpContent(this, \''+dataHtml.helpContentId+'\', \''+indicatorId+'\', \'mv_method\');">'+plang.get('menu_system_guide')+'</button>';
 //                }
-
-                if (dataHtml.hasOwnProperty('helpContentId') && dataHtml.helpContentId !== null && dataHtml.helpContentId !== '') {
-                    sveActionBtn += '<button type="button" class="btn btn-sm btn-circle btn-success bpMainSaveButton bp-btn-help mr-1" onclick="redirectHelpContent(this, \''+dataHtml.helpContentId+'\', \''+indicatorId+'\', \'mv_method\');">'+plang.get('menu_system_guide')+'</button>';
-                }
                     sveActionBtn += '<button type="button" class="btn btn-sm btn-circle btn-success bpMainSaveButton bp-btn-save" onclick="checkListSaveKpiIndicatorForm(this, \'\', \''+strIndicatorId+'\');"><i class="icon-checkmark-circle2"></i> '+plang.get('save_btn')+'</button>';
                 sveActionBtn += '</div>';
             }
@@ -2162,61 +2116,88 @@ $(".indicatorTreeView_17189630753551").jstree({
                 '<div class="main-process-text">\n\
                     <div>'+mvTitle+'</div>\n\
                     <div class="main-process-text-description">'+(dataHtml.indicatorInfo && dataHtml.indicatorInfo.DESCRIPTION ? dataHtml.indicatorInfo.DESCRIPTION : '')+'</div>\n\
-                </div>'+sveActionBtn;
+                </div>'+sveActionBtn;            
 
             renderHeader += '</div>';
 
             html.push('<form method="post" enctype="multipart/form-data">');
-                //html.push(renderHeader);
-                //html.push(sveActionBtn);
+                html.push(renderHeader);
                 html.push(dataHtml.html);
+                //html.push(sveActionBtn);
             html.push('</form>');
-                        
-            var $dialogName = "dialog-task-mv";
-            if (!$("#" + $dialogName).length) {
-              $('<div id="' + $dialogName + '"></div>').appendTo("body");
-            }
-            var $dialog = $("#" + $dialogName);
 
-            $dialog.empty().append(html.join(''));
-            $dialog.dialog({
-              cache: false,
-              resizable: true,
-              bgiframe: true,
-              autoOpen: false,
-              title: mvTitle,
-              width: 1000,
-              height: "auto",
-              modal: true,
-              open: function () { },
-              close: function () {
-                $dialog.empty().dialog("destroy").remove();
-              },
-              buttons: [
-                {
-                  text: plang.get("save_btn"),
-                  class: "btn btn-sm green-meadow bpMainSaveButton",
-                  click: function () {
-                    checkList5SaveKpiIndicatorForm($dialog);
-                    $dialog.dialog("close");
-                  }
-                },
-                {
-                  text: plang.get("close_btn"),
-                  class: "btn btn-sm blue-madison",
-                  click: function () {
-                    $dialog.dialog("close");
-                  }
+            if (viewProcessWindow_<?php echo $this->uniqId; ?>) {
+
+                if (!viewReportProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+indicatorId).length) {
+                    viewReportProcess_<?php echo $this->uniqId; ?>.append('<div class="mv_checklist_render_all" id="mv_checklist_id_'+indicatorId+'"></div>');
                 }
-              ]
-            });
-            Core.unblockUI();
-            $dialog.dialog("open");            
+                viewReportProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+indicatorId).append(html.join('')).promise().done(function() {
+
+                    if (viewMode_<?php echo $this->uniqId; ?> == 'view') {
+
+                        var $render = viewReportProcess_<?php echo $this->uniqId; ?>.find("#mv_checklist_id_"+indicatorId);
+
+                        $render.find('.bp-add-one-row').parent().remove();
+                        $render.find('.bp-remove-row, button.red, button.bp-btn-save, button.green-meadow, button.bp-file-choose-btn, a[onclick*="bpFileChoosedRemove"], span.filename, a[onclick*="kpiIndicatorRelationRemoveRows"], div.input-group.quick-item-process').remove();
+                        $render.find('input[type="text"], textarea').addClass('kpi-notfocus-readonly-input').attr('readonly', 'readonly');
+                        $render.find("div[data-s-path]").addClass('select2-container-disabled kpi-notfocus-readonly-input');
+                        $render.find('button[onclick*="dataViewSelectableGrid"], button[onclick*="chooseKpiIndicatorRowsFromBasket"]').prop('disabled', true);
+                        $render.find('[data-action-name="exportexcel"]').removeClass('d-none');
+
+                        var $radioElements = $render.find("input[type='radio']");
+                        if ($radioElements.length) {
+                            $radioElements.attr({'data-isdisabled': 'true', style: 'cursor: not-allowed', 'tabindex': '-1'});
+                            $radioElements.closest('.radio').addClass('disabled');
+                        }
+
+                        var $checkElements = $render.find("input[type='checkbox']");
+                        $checkElements.attr({'data-isdisabled': 'true', style: 'cursor: not-allowed', 'tabindex': '-1'});
+                        $checkElements.closest('.checker').addClass('disabled');
+                    }
+
+                    Core.unblockUI();
+
+                });                            
+
+            } else {                           
+
+                viewTaskProcess_<?php echo $this->uniqId; ?>.empty().append(html.join('')).promise().done(function() {
+
+                    if (viewMode_<?php echo $this->uniqId; ?> == 'view') {
+
+                        var $render = viewTaskProcess_<?php echo $this->uniqId; ?>;
+
+                        $render.find('.bp-add-one-row').parent().remove();
+                        $render.find('.bp-remove-row, button.red, button.bp-btn-save, button.green-meadow, button.bp-file-choose-btn, a[onclick*="bpFileChoosedRemove"], span.filename, a[onclick*="kpiIndicatorRelationRemoveRows"], div.input-group.quick-item-process').remove();
+                        $render.find('input[type="text"], textarea').addClass('kpi-notfocus-readonly-input').attr('readonly', 'readonly');
+                        $render.find("div[data-s-path]").addClass('select2-container-disabled kpi-notfocus-readonly-input');
+                        $render.find('button[onclick*="dataViewSelectableGrid"], button[onclick*="chooseKpiIndicatorRowsFromBasket"]').prop('disabled', true);
+                        $render.find('[data-action-name="exportexcel"]').removeClass('d-none');
+
+                        var $radioElements = $render.find("input[type='radio']");
+                        if ($radioElements.length) {
+                            $radioElements.attr({'data-isdisabled': 'true', style: 'cursor: not-allowed', 'tabindex': '-1'});
+                            $radioElements.closest('.radio').addClass('disabled');
+                        }
+
+                        var $checkElements = $render.find("input[type='checkbox']");
+                        $checkElements.attr({'data-isdisabled': 'true', style: 'cursor: not-allowed', 'tabindex': '-1'});
+                        $checkElements.closest('.checker').addClass('disabled');
+                    }
+
+                    if (viewTaskProcess_<?php echo $this->uniqId; ?>.find(".sectiongidseperatorcontent-container").length) {
+                        viewTaskProcess_<?php echo $this->uniqId; ?>.find(".meta-toolbar").hide();
+                    }
+
+                    Core.unblockUI();
+
+                });
+            }
         }
-    });    
+    }); 
 
 }).bind('loaded.jstree', function (e, data) {
-    $('.kpidv-data-tree-col').find('li').first().find('a').click();
+    //$('.kpidv-data-tree-col').find('li').first().find('a').click();
 });
 
 var $checkListTabLink = $('#mv-checklist-render-parent-<?php echo $this->uniqId; ?>').find('.mv-checklist-tab-link.active');

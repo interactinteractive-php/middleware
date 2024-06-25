@@ -3445,15 +3445,7 @@ function pinCodeChangeWfmStatusId(elem, bpObj, wfmStatusId, metaDataId, refStruc
                                     if (typeof bpObj == 'undefined') {
                                         var args = Array.prototype.slice.call(pinCodeArguments);
                                         args.splice(1, 1);     
-
-                                        var rows = getDataViewSelectedRows(bpObj.mainMetaDataId);  
-                                        var row = rows[0];
-
-                                        if (row && row.hasOwnProperty('signatureimage')) {
-                                            bpWatermarkByPdf(row, function () { window['changeWfmStatusId'].apply(elem, args) });
-                                        } else {
-                                            window['changeWfmStatusId'].apply(elem, args);
-                                        }
+                                        window['changeWfmStatusId'].apply(elem, args);
                                     } else {
                                         
                                         var rows = getDataViewSelectedRows(bpObj.mainMetaDataId);  
@@ -4603,30 +4595,52 @@ function bpWatermarkByPdf (selectedRow, callback) {
     var pageSize = typeof selectedRow.pagesize !== 'undefined' && selectedRow.pagesize ? selectedRow.pagesize : '';
     var signaturePosition = typeof selectedRow.signatureposition !== 'undefined' && selectedRow.signatureposition ? selectedRow.signatureposition : '';
     var signaturetext = typeof selectedRow.signaturetext !== 'undefined' && selectedRow.signaturetext ? selectedRow.signaturetext : '';
-    /* var $windowHeight = (pageSize === 'a5') ? : '' 720; */
+    var pageStyle = typeof selectedRow.pagestyle !== 'undefined' && selectedRow.pagestyle ? selectedRow.pagestyle : '';
+
     var $windowHeight =  720;
     var $windowWidth =  491;
     
+    switch (pageStyle) {
+        case 'landspace':
+            $windowWidth =  720;
+            $windowHeight =  491;
+            break;
+        case 'portrait':
+                        
+            break;
+    }
+
     if (selectedRow && selectedRow.hasOwnProperty('signaturetype') && selectedRow['signaturetype'] === 'all') { 
         setDocumentSign(pdfPath, signatureImage, signaturePosition, 'all', 10, 10, contentId, signaturetext, callback);
     } else {
-        var $uniqId = getUniqueId('no');
+        if (selectedRow && selectedRow.hasOwnProperty('pagenumber') && selectedRow.hasOwnProperty('signaturex')  && selectedRow.hasOwnProperty('signaturey')) { 
+            setDocumentSign(pdfPath, signatureImage, signaturePosition, selectedRow['pagenumber'], selectedRow['signaturex'], selectedRow['signaturey'], contentId, signaturetext, callback);
+        } else {
+            var $uniqId = getUniqueId('no');
+        
+            signPdfWithCoordinate = function signPdfWithCoordinate(coordinate) {
+                $("#callIframeCanvasHardSign" + $uniqId).empty().dialog('destroy').remove();
+        
+                /* var funcArguments = [elem, wfmStatusId, metaDataId, refStructureId, newWfmStatusColor, newWfmStatusName]; */
+        
+                if (typeof pdfPath !== 'undefined') {
+                    if (pdfPath.split('.').pop().toLowerCase() === 'pdf') {
+                        var paperSize = 573;
+                        var minusSize = 0;
+                        if (pageSize === 'a5') {
+                            paperSize = 470;
+                            minusSize = 100; 
+                        }
     
-        signPdfWithCoordinate = function signPdfWithCoordinate(coordinate) {
-            $("#callIframeCanvasHardSign" + $uniqId).empty().dialog('destroy').remove();
-    
-            /* var funcArguments = [elem, wfmStatusId, metaDataId, refStructureId, newWfmStatusColor, newWfmStatusName]; */
-    
-            if (typeof pdfPath !== 'undefined') {
-                if (pdfPath.split('.').pop().toLowerCase() === 'pdf') {
-                    var paperSize = 573;
-                    var minusSize = 0;
-                    if (typeof pageSize !== 'undefined' && pageSize === 'a5') {
-                        paperSize = 470;
-                        minusSize = 100; 
+                        setDocumentSign(pdfPath, signatureImage, signaturePosition, coordinate.pageNum, Math.floor(1.33333333* coordinate.x), Math.floor(1.33333333 * (paperSize-coordinate.y))-minusSize, contentId, signaturetext, callback);
+                    } else {
+                        new PNotify({
+                            title: 'Error',
+                            text: 'PDF файл олдсонгүй.',
+                            type: 'error',
+                            sticker: false
+                        });
                     }
-
-                    setDocumentSign(pdfPath, signatureImage, signaturePosition, coordinate.pageNum, Math.floor(1.33333333* coordinate.x), Math.floor(1.33333333 * (paperSize-coordinate.y))-minusSize, contentId, signaturetext, callback);
                 } else {
                     new PNotify({
                         title: 'Error',
@@ -4635,49 +4649,42 @@ function bpWatermarkByPdf (selectedRow, callback) {
                         sticker: false
                     });
                 }
-            } else {
-                new PNotify({
-                    title: 'Error',
-                    text: 'PDF файл олдсонгүй.',
-                    type: 'error',
-                    sticker: false
-                });
-            }
-        };
+            };
+            
+            var filename = pdfPath.replace(/^.*[\\\/]/, '');
+            iframe = '<iframe id="frameStampPos" src="mddoc/canvasStampPos?uniqid=HardSignWindow&pdfPath='+pdfPath+'" height="100%" width="100%" frameBorder="0"></iframe>';
         
-        var filename = pdfPath.replace(/^.*[\\\/]/, '');
-        iframe = '<iframe id="frameStampPos" src="mddoc/canvasStampPos?uniqid=HardSignWindow&pdfPath='+pdfPath+'" height="100%" width="100%" frameBorder="0"></iframe>';
-    
-        if (!$("#callIframeCanvasHardSign" + $uniqId).length) {
-            var div = document.createElement("div");
-            div.id = 'callIframeCanvasHardSign' + $uniqId;
-            div.style = 'display: none';
-            document.body.appendChild(div);
+            if (!$("#callIframeCanvasHardSign" + $uniqId).length) {
+                var div = document.createElement("div");
+                div.id = 'callIframeCanvasHardSign' + $uniqId;
+                div.style = 'display: none';
+                document.body.appendChild(div);
+            }
+        
+            $("#callIframeCanvasHardSign" + $uniqId).empty().append(iframe);
+            $("#callIframeCanvasHardSign" + $uniqId).dialog({
+                cache: false,
+                resizable: false,
+                bgiframe: true,
+                autoOpen: false,
+                title: 'Тамганы байршил',
+                width: $windowWidth,
+                height: $windowHeight,
+                modal: false,
+                open: function (event, ui) {
+                    $("#callIframeCanvasHardSign" + $uniqId).css('overflow', 'hidden'); 
+                },
+                close: function () {
+                    $("#callIframeCanvasHardSign" + $uniqId).empty().dialog('destroy').remove();
+                },
+                buttons: [{text: 'Сонгох', class: 'btn blue-madison btn-sm', click: function () {
+                    var frame = $('#frameStampPos')[0];
+                    frame.contentWindow.postMessage({call:'canvasClickSendValue_HardSignWindow', value: {'pdfPath': pdfPath}})}
+                }]
+            });
+            $("#callIframeCanvasHardSign" + $uniqId).dialog('open');
         }
-    
-        $("#callIframeCanvasHardSign" + $uniqId).empty().append(iframe);
-        $("#callIframeCanvasHardSign" + $uniqId).dialog({
-            cache: false,
-            resizable: false,
-            bgiframe: true,
-            autoOpen: false,
-            title: 'Тамганы байршил',
-            width: $windowWidth,
-            height: $windowHeight,
-            modal: false,
-            open: function (event, ui) {
-                $("#callIframeCanvasHardSign" + $uniqId).css('overflow', 'hidden'); 
-            },
-            close: function () {
-                $("#callIframeCanvasHardSign" + $uniqId).empty().dialog('destroy').remove();
-            },
-            buttons: [{text: 'Сонгох', class: 'btn blue-madison btn-sm', click: function () {
-                var frame = $('#frameStampPos')[0];
-                frame.contentWindow.postMessage({call:'canvasClickSendValue_HardSignWindow', value: {'pdfPath': pdfPath}})}
-            }]
-        });
-        $("#callIframeCanvasHardSign" + $uniqId).dialog('open');
-    }
+    } 
 }
 
 function setDocumentSign (pdfPath, signatureImage, signaturePosition, pageNum, positionX, positionY, contentId, signaturetext, callback) {

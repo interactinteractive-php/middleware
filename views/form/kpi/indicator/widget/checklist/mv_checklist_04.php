@@ -728,6 +728,27 @@ input.kpi-notfocus-readonly-input::placeholder {
 .kpidv-data-tree-col .jstree-default li:not(.jstree-loading) a.jstree-anchor {
     width: 100%;
 }
+.mv-checklist2-render-parent .sidebar.sidebar-dark {
+    background-color: #a8bba4;
+}
+.mv-checklist2-render-parent .sidebar.sidebar-dark .kpidv-data-tree-col .jstree-default .jstree-custom-folder-icon.jstree-closed>.jstree-ocl, 
+.mv-checklist2-render-parent .sidebar.sidebar-dark .kpidv-data-tree-col .jstree-default .jstree-custom-folder-icon.jstree-open>.jstree-ocl {
+    color: #fad45f;
+}
+.mv-checklist2-render-parent .sidebar.sidebar-dark .kpidv-data-tree-col .mv-tree-filter-icon {
+    color: #dadada;
+    margin-right: 3px;
+}
+.mv-checklist2-render-parent .sidebar.sidebar-dark .kpidv-data-tree-col .nameField {
+    padding-right: 40px;
+    padding-left: 3px;
+}
+.mv-checklist2-render-parent .sidebar.sidebar-dark .kpidv-data-tree-col .p-row-title {
+    color: #000;
+    font-weight: bold;
+    font-size: 13px;
+    padding-left: 0;
+}
 .mv-checklist4-render-relation .indicatorView {
     margin-left: .625rem;
     margin-right: .625rem;    
@@ -771,9 +792,17 @@ input.kpi-notfocus-readonly-input::placeholder {
 .mv-checklist2-render-parent .mv-checklist4-render-relation ul.dv-explorer8 > li .dv-img-container .dv-img-container-sub .dv-directory-img {
     width: 65px;
     height: 65px;
+    margin-top: 18px;
 }
 .mv-checklist2-render-parent .mv-checklist4-render-relation ul.dv-explorer8 > li .first-title {
     display: none;
+}
+.mv-checklist2-render-parent .mv-checklist4-render-relation ul.dv-explorer8 > li:hover {
+    background-color: transparent;
+}
+.mv-checklist2-render-parent .mv-checklist4-render-relation .kpi-ind-tmplt-section {
+    margin-right: .625rem;
+    margin-left: .625rem;
 }
 </style>
 
@@ -833,7 +862,7 @@ $("#indicatorTreeView_17187610152661").jstree({
     rowDataTreeSidebar = data.node.original ? data.node.original.rowdata : {};
     $('.kpidv-data-tree-col').find('li').removeClass('active');
     $('.kpidv-data-tree-col').find('li#'+nid).addClass('active');
-    var mvTitle = $('.kpidv-data-tree-col').find('li#'+nid).find('.p-row-title').text();
+    var mvTitle = $('.kpidv-data-tree-col').find('li#'+nid+'>.jstree-anchor').find('.p-row-title').text();
 //    if ($treeFilterLi.hasClass('active')) {
 //        $treeFilterLi.removeClass('active');
 //        $treeFilterLi.find('.mv-tree-filter-icon').removeClass('fas fa-check-square').addClass('far fa-square');
@@ -999,27 +1028,7 @@ $("#indicatorTreeView_17187610152661").jstree({
                         $checkElements.closest('.checker').addClass('disabled');
                     }
 
-                    if (isComment == '1' && postData.hasOwnProperty('recordId')) {
-
-                        viewProcessComment_<?php echo $this->uniqId; ?>.empty().append('<div style="font-weight: bold;padding: 10px 0 7px 0;">Сэтгэгдэл</div>');
-
-                        $.ajax({
-                            type: 'post',
-                            url: 'mdwebservice/renderEditModeBpCommentTab',
-                            data: {
-                                uniqId: uniqId, 
-                                refStructureId: jsonObj.mainIndicatorId, 
-                                sourceId: postData.recordId, 
-                                listMetaDataId: indicatorId
-                            },
-                            success: function(data) {
-                                viewProcessComment_<?php echo $this->uniqId; ?>.append(data);
-                                Core.unblockUI();
-                            }
-                        });
-                    } else {
-                        Core.unblockUI();
-                    }
+                    Core.unblockUI();
 
                 });                            
 
@@ -1098,6 +1107,7 @@ $("#indicatorTreeView_17187610152661").jstree({
     });    
 
 }).bind('loaded.jstree', function (e, data) {
+    $('.kpidv-data-tree-col').find('li#1591184045140').click();
     $('.kpidv-data-tree-col').find('li').first().find('a').click();
 });
 
@@ -1210,17 +1220,13 @@ $('#mv-checklist-render-parent-<?php echo $this->uniqId; ?>').on('shown.bs.tab',
         
         $.ajax({
             type: 'post',
-            url: 'mdform/renderValueMapStructure',
-            data: {
-                mainIndicatorId: '', 
-                structureIndicatorId: '17189657291331', 
-                trgIndicatorId: indicatorId333, 
-                trgIndicatorKpiTypeId: '', 
-                typeCode: '', 
-                recordId: rowDataTreeSidebar.ID, 
-                srcMapId: '', 
-                selectedRow: ''
-            },
+            url: 'mdform/kpiIndicatorTemplateRender',
+            data: {param: {
+                indicatorId: '17189657291331', 
+                crudIndicatorId: indicatorId333, 
+                idField: 'SRC_RECORD_ID', 
+                id: rowDataTreeSidebar.ID
+            }},
             dataType: 'json',
             beforeSend: function() {
                 Core.blockUI({message: 'Loading...', boxed: true});

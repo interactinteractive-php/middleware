@@ -39,7 +39,7 @@
     foreach ($this->recordList as $recordRow) {
         $rowJson = htmlentities(json_encode($recordRow), ENT_QUOTES, 'UTF-8');
     ?>
-        <a href="https://help.veritech.mn/lessons/content?filterid=<?php echo issetParam($recordRow[$this->name4]) ?>" target="_blank" style="width: 211px;margin-right: 12px; margin-bottom: 12px;" class="mv_tiny_card_with_list_widget no-dataview" data-row-data="<?php echo $rowJson; ?>">
+        <a href="javascript:;" onclick="redirectHelpContent(this, '<?php echo issetParam($recordRow[$this->name4]) ?>', '17083326874749', 'meta_process');" style="width: 211px;margin-right: 12px; margin-bottom: 12px;" class="mv_tiny_card_with_list_widget no-dataview" data-row-data="<?php echo $rowJson; ?>">
             <div class="card" style="border: none;box-shadow: 5px 5px 5px 0px rgba(170,170,170,0.5);padding: 0;">
                 <div class="card-body" style="padding:0">
                     <div class="card-img-actions mb-2 p-3" style="height: 230px;background: <?php echo $c[array_rand($c)] ?>">

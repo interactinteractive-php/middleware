@@ -457,6 +457,8 @@ class Mdpki extends Controller {
                     'pdfFilePath' => $pdfFilePath,
                     'stampImageB64' =>   base64_encode(file_get_contents($_SERVER['DOCUMENT_ROOT'] . '/' . $imgfilePath)),
                     'position' => Input::post('signatureposition', 'b_right'),
+                    'locationX' => Input::post('x'),
+                    'locationY' => Input::post('y'),
                 );
                 $result = $this->ws->runResponse(GF_SERVICE_ADDRESS, 'NTR_CONSUL_STAMP_BP', $param);
             }
@@ -520,40 +522,53 @@ class Mdpki extends Controller {
         exit;
 
     }
+    
+    public function imageAddText ($src = 'storage/file_1699845962622998_16227981990065052.png', $dst = 'storage/1719197919423054.png', $text = "2024-06-21 15:00") {
+        try {
+            $info = getimagesize($src);
+            $extension = image_type_to_extension($info[2]);
+            
+            if ($extension === '.png') {
+                $jpg_image = imagecreatefrompng($src);
+            } else {
+                $jpg_image = imagecreatefromjpeg($src);
+            }
 
-    public function imageAddText ($src = 'storage/test.png', $dst = 'storage/test_add.png', $text = "123") {
-        $jpg_image = imagecreatefrompng($src);
-        $orig_width = imagesx($jpg_image);
-        $orig_height = imagesy($jpg_image);
+            $orig_width = imagesx($jpg_image);
+            $orig_height = imagesy($jpg_image);
 
-        // Allocate A Color For The background
-        $bcolor=imagecolorallocate($jpg_image, 255, 255, 255);
+            // Allocate A Color For The background
+            $bcolor=imagecolorallocate($jpg_image, 255, 255, 255);
 
-        //Create background
-        imagefilledrectangle($jpg_image,  0, $orig_height+100, $orig_width, $orig_height, $bcolor);
-        $orig_width = imagesx($jpg_image);
-        $orig_height = imagesy($jpg_image);
-        
-        // Create a canvas containing both the image and text
-        $canvas = imagecreatetruecolor($orig_width, $orig_height + 40); // Extra height for text
-        $bcolor = imagecolorallocate($canvas, 255, 255, 255); // Background color
-        imagefilledrectangle($canvas, 0, 0, $orig_width, $orig_height + 40, $bcolor); // Add background color
-        
-        // Save image to the new canvas
-        imagecopyresampled($canvas, $jpg_image, 0, 0, 0, 0, $orig_width, $orig_height, $orig_width, $orig_height);
-        
-        // Add text below the image
+            //Create background
+            imagefilledrectangle($jpg_image,  0, $orig_height+100, $orig_width, $orig_height, $bcolor);
+            $orig_width = imagesx($jpg_image);
+            $orig_height = imagesy($jpg_image);
+            
+            // Create a canvas containing both the image and text
+            $canvas = imagecreatetruecolor($orig_width, $orig_height + 20); // Extra height for text
+            $bcolor = imagecolorallocate($canvas, 255, 255, 255); // Background color
+            imagefilledrectangle($canvas, 0, 0, $orig_width, $orig_height + 20, $bcolor); // Add background color
+            
+            // Save image to the new canvas
+            imagecopyresampled($canvas, $jpg_image, 0, 0, 0, 0, $orig_width, $orig_height, $orig_width, $orig_height);
+            
+            // Add text below the image
 
-        $font_path = $_SERVER['DOCUMENT_ROOT'] . "/assets/custom/css/font/Arial.ttf"; // Change to your own font file
-        $color = imagecolorallocate($canvas, 0, 0, 0); // Text color
-        imagettftext($canvas, 14, 0, 10, $orig_height + 30, $color, $font_path, $text);
-        
-        // Output the final image
-        header('Content-type: image/jpg');
-        imagepng($canvas, $dst);
-        
-        // Clean up memory
-        imagedestroy($jpg_image);
-        imagedestroy($canvas);
+            $font_path = $_SERVER['DOCUMENT_ROOT'] . "/assets/custom/css/font/Arial.ttf"; // Change to your own font file
+            $color = imagecolorallocate($canvas, 0, 0, 0); // Text color
+            imagettftext($canvas, 7, 0, 0, $orig_height + 10, $color, $font_path, $text);
+            
+            // Output the final image
+            /* header('Content-type: image/png'); */
+            imagejpeg($canvas, $dst);
+
+            
+            // Clean up memory
+            imagedestroy($jpg_image);
+            imagedestroy($canvas);   
+        }   catch (Exception $ex) {
+
+        }
     }
 }
