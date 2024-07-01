@@ -448,6 +448,24 @@ class Mdwebservice extends Controller {
             'ignorePermission' => 1 
         );
 
+        parse_str(Input::post('drillDownDefaultCriteria'), $criteria);
+        if (is_array($criteria)) {
+                    
+            foreach ($criteria as $key => $val) {
+                if ($val == 'isnull') {
+                    $lookUpParam['criteria'][$key][] = array(
+                        'operator' => 'IS NULL',
+                        'operand' => ''
+                    );
+                } elseif ($val != '') {
+                    $lookUpParam['criteria'][$key][] = array(
+                        'operator' => '=',
+                        'operand' => $val
+                    );
+                }
+            }
+        }
+        
         $result = Webservice::runSerializeResponse(self::$gfServiceAddress, Mddatamodel::$getDataViewCommand, $lookUpParam);
 
         if (isset($result['result']) && count($result['result']) > 0) {
@@ -9644,7 +9662,7 @@ class Mdwebservice extends Controller {
         return true;
     }
     
-    public static function bpFileUpload(array $input, array $fileAttr, int $prefix = 1) {
+    public static function bpFileUpload($input = [], $fileAttr = [], $prefix = 1) {
         
         if (isset($input['uploadPath']) && $input['uploadPath']) {
             $filePath = $input['uploadPath'];
@@ -14556,7 +14574,8 @@ class Mdwebservice extends Controller {
     public function comboDataSet() {
         
         $jsonAttr = Input::post('jsonAttr');
-        
+        /* var_dump($jsonAttr);
+        die; */
         if (!issetParam($jsonAttr['PROCESS_META_DATA_ID']) || !issetParam($jsonAttr['META_DATA_ID']) || !issetParam($jsonAttr['PARAM_REAL_PATH'])) {
             echo json_encode(['emptyCombo' => 'OK']); exit;
         }

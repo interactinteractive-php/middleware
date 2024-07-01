@@ -3307,6 +3307,9 @@ function urlRedirectByDataView(elem, processMetaDataId, url, target, dataViewId,
                 callomsconferenceAddForm(paramData, '', undefined, '', 'dataViewReload', dataViewId);
             }
             return;
+        } else if (urlLower == 'mdform/selectcourtcase') {
+            checkList5SelectRowDvAcceptBtn1719369128320017();
+            return;
         } else if (urlLower == 'cmsconferenceweblink' || urlLower == 'cmsconferenceweblink_1') {
             var viewType = (urlLower == 'cmsconferenceweblink_1') ? '2' : '1';
             if (typeof selectedRow === 'undefined') {
@@ -13009,6 +13012,11 @@ function transferProcessAction(passPath, mainMetaDataId, processMetaDataId, meta
             otpChangeWfmStatusId(elem, {mainMetaDataId: mainMetaDataId, processMetaDataId: processMetaDataId, metaTypeId: metaTypeId, whereFrom: whereFrom, params: params, dataGrid: dataGrid, wfmStatusParams: wfmStatusParams, drillDownType: drillDownType});
             return;
 
+        }  else if (passPath === 'watermark') {
+
+            beforeWaterMarkChangeWfmStatusId(elem, {mainMetaDataId: mainMetaDataId, processMetaDataId: processMetaDataId, metaTypeId: metaTypeId, whereFrom: whereFrom, params: params, dataGrid: dataGrid, wfmStatusParams: wfmStatusParams, drillDownType: drillDownType});
+            return;
+
         } else {
             $.ajax({
                 type: 'post',
@@ -18088,7 +18096,7 @@ function changeWfmStatusId(element, wfmStatusId, metaDataId, refStructureId, new
     }, 500);
 }
 
-function beforeWaterMarkChangeWfmStatusId(elem, wfmStatusId, metaDataId, refStructureId, newWfmStatusColor, newWfmStatusName) {
+function beforeWaterMarkChangeWfmStatusId(elem, bpObj, wfmStatusId, metaDataId, refStructureId, newWfmStatusColor, newWfmStatusName) {
 
     signPdfWithCoordinate = function signPdfWithCoordinate(coordinate) {
         $('#callIframeCanvasHardSign').empty().dialog('destroy').remove();
@@ -18096,7 +18104,11 @@ function beforeWaterMarkChangeWfmStatusId(elem, wfmStatusId, metaDataId, refStru
         if (isObject(refStructureId)) {
             var row = refStructureId;
         } else {
-            var rows = getDataViewSelectedRows(metaDataId);
+            if (typeof bpObj == 'undefined') {
+                var rows = getDataViewSelectedRows(metaDataId);
+            } else {
+                var rows = getDataViewSelectedRows(bpObj.mainMetaDataId);
+            }
             var row = rows[0];
         }
         
@@ -18145,6 +18157,7 @@ function beforeWaterMarkChangeWfmStatusId(elem, wfmStatusId, metaDataId, refStru
                         signatureposition: signaturePosition,
                         contentid: contentId,
                         signaturetext: signaturetext,
+                        selectedRow: row,
                     },
                     dataType: 'json',
                     beforeSend: function() {
@@ -18161,7 +18174,13 @@ function beforeWaterMarkChangeWfmStatusId(elem, wfmStatusId, metaDataId, refStru
                         });
 
                         if (data.status === 'success') {
-                            setTimeout(function(){ window[funcName].apply(null, funcArguments); }, 2000);
+
+                            if (typeof bpObj == 'undefined') {
+                                setTimeout(function(){ window[funcName].apply(null, funcArguments); }, 2000);
+                            } else {
+                                var funcArguments = [bpObj.mainMetaDataId, bpObj.processMetaDataId, bpObj.metaTypeId, bpObj.whereFrom, elem, bpObj.params, bpObj.dataGrid, bpObj.wfmStatusParams, bpObj.drillDownType];
+                                window['privateTransferProcessAction'].apply(elem, funcArguments);
+                            }
                         }  
                     },
                     error: function (jqXHR, exception) {
@@ -18187,23 +18206,28 @@ function beforeWaterMarkChangeWfmStatusId(elem, wfmStatusId, metaDataId, refStru
             });
         }
     };
-    
+    console.log(metaDataId);
     if (isObject(refStructureId)) {
         var row = refStructureId;
     } else {
-        var rows = getDataViewSelectedRows(metaDataId);
+        if (typeof bpObj == 'undefined') {
+            var rows = getDataViewSelectedRows(metaDataId);
+        } else {
+            var rows = getDataViewSelectedRows(bpObj.mainMetaDataId);
+        }
         var row = rows[0];
     }
-
+    
+    
     var pdfPath = row.physicalpath;
     var pageStyle = typeof row.pagestyle !== 'undefined' && row.pagestyle ? row.pagestyle : '';
     
     var $windowHeight =  720;
     var $windowWidth =  491;
     switch (pageStyle) {
-        case 'landspace':
-            $windowWidth =  720;
-            $windowHeight =  491;
+        case 'landscape':
+            $windowWidth =  715;
+            $windowHeight =  651;
             break;
         case 'portrait':
                         
@@ -18211,7 +18235,7 @@ function beforeWaterMarkChangeWfmStatusId(elem, wfmStatusId, metaDataId, refStru
     }
     
     var filename = pdfPath.replace(/^.*[\\\/]/, '');
-    iframe = '<iframe id="frameStampPos" src="mddoc/canvasStampPos?uniqid=HardSignWindow&pdfPath='+pdfPath+'" height="100%" width="100%" frameBorder="0"></iframe>';
+    iframe = '<iframe id="frameStampPos" src="mddoc/canvasStampPos?uniqid=HardSignWindow&pdfPath='+pdfPath+'&pageStyle='+pageStyle+'"  height="100%" width="100%" frameBorder="0"></iframe>';
 
     if (!$('#callIframeCanvasHardSign').length) {
         var div = document.createElement("div");

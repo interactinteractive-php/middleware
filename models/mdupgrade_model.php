@@ -4,7 +4,7 @@ class Mdupgrade_Model extends Model {
     
     private static $exportIgnoreColumns = ['CREATED_USER_ID', 'MODIFIED_USER_ID', 'EXPORT_SCRIPT', 'COPY_COUNT', 'COMPANY_DEPARTMENT_ID'];
     private static $exportIgnoreTableColumns = ['META_PROCESS_RULE' => ['IS_ACTIVE' => 1]];
-    private static $ignoreDeleteScriptTables = ['UM_SYSTEM', 'META_PROCESS_RULE'];
+    private static $ignoreDeleteScriptTables = ['UM_SYSTEM', 'META_PROCESS_RULE', 'FIN_GENERAL_LEDGER_TMP', 'FIN_GENERAL_LEDGER_TMP_DTL', 'FIN_GENERAL_LEDGER_TMP_GROUP', 'FIN_GENERAL_LEDGER_TMP_CONFIG'];
     private static $executedTables = [];
     private static $executedTablesPrimaryColumn = [];
     private static $exportedMetaIds = [];
@@ -1930,6 +1930,39 @@ class Mdupgrade_Model extends Model {
                 'GLOBE_DICTIONARY' => array()
             ),
             
+            'gltemplate' => array(
+                'FIN_GENERAL_LEDGER_TMP' => array(
+                    array(
+                        'table' => 'FIN_GENERAL_LEDGER_TMP_DTL', 
+                        'link' => array(
+                            array(
+                                'src' => 'ID', 
+                                'trg' => 'FIN_GL_TMP_ID'
+                            )
+                        ), 
+                        'child' => array(
+                            array(
+                                'table' => 'FIN_GENERAL_LEDGER_TMP_CONFIG', 
+                                'link' => array(
+                                    array(
+                                        'src' => 'ID', 
+                                        'trg' => 'FIN_GL_TMP_DTL_ID'
+                                    )
+                                )
+                            )
+                        )
+                    ), 
+                    array(
+                        'table' => 'FIN_GENERAL_LEDGER_TMP_GROUP', 
+                        'link' => array(
+                            array(
+                                'src' => 'ID', 
+                                'trg' => 'FIN_GL_TMP_ID'
+                            )
+                        )
+                    )
+                )
+            )
         );
     }
     
@@ -2171,7 +2204,7 @@ class Mdupgrade_Model extends Model {
                 
                 $fileContent = Compression::gzinflate($exportData['result']);
                 
-                if ($fileContent && strpos($fileContent, '<meta id="') === false) {
+                if ($fileContent && strpos($fileContent, ' dbDriver="') === false) {
                     return array('status' => 'error', 'message' => 'PHP export хийсэн файл уншуулна уу!', 'logs' => '');
                 } 
                 
@@ -2646,6 +2679,24 @@ class Mdupgrade_Model extends Model {
                         LEFT JOIN UM_SYSTEM_USER UM ON UM.USER_ID = US.SYSTEM_USER_ID 
                         LEFT JOIN UM_SYSTEM_USER UD ON UD.USER_ID = MD.MODIFIED_USER_ID 
                     WHERE HDR.ID IN ($ids)  
+                    
+                    UNION 
+                    
+                    SELECT 
+                        'gltemplate' AS META_TYPE_ID, 
+                        MD.ID AS META_DATA_ID, 
+                        MD.TEMPLATE_CODE AS META_DATA_CODE, 
+                        ".$this->db->IfNull('UD.USERNAME', 'UM.USERNAME')." AS USER_NAME, 
+                        ".$this->db->IfNull('MD.MODIFIED_DATE', 'MD.CREATED_DATE')." AS MODIFIED_DATE, 
+                        HDR.CREATED_DATE, 
+                        NULL AS SRC_RECORD_ID 
+                    FROM META_BUG_FIXING HDR 
+                        INNER JOIN META_BUG_FIXING_DTL DTL ON DTL.META_BUG_FIXING_ID = HDR.ID 
+                        INNER JOIN FIN_GENERAL_LEDGER_TMP MD ON MD.ID = DTL.GL_TEMPLATE_ID 
+                        LEFT JOIN UM_USER US ON US.USER_ID = MD.CREATED_USER_ID 
+                        LEFT JOIN UM_SYSTEM_USER UM ON UM.USER_ID = US.SYSTEM_USER_ID 
+                        LEFT JOIN UM_SYSTEM_USER UD ON UD.USER_ID = MD.MODIFIED_USER_ID 
+                    WHERE HDR.ID IN ($ids) 
                         
                 ) TMP 
                 GROUP BY 
@@ -4689,6 +4740,17 @@ class Mdupgrade_Model extends Model {
                         WHERE ID IN ($ids)"
                     );
 
+                } elseif ($objectCode == 'gltemplate') {
+
+                    $objects = $this->db->GetAll("
+                        SELECT 
+                            ID AS META_DATA_ID, 
+                            'gltemplate' AS META_TYPE_ID, 
+                            TEMPLATE_CODE AS META_DATA_CODE 
+                        FROM FIN_GENERAL_LEDGER_TMP 
+                        WHERE ID IN ($ids)"
+                    );
+
                 }
             
             } catch (Exception $ex) { 
@@ -4801,7 +4863,7 @@ class Mdupgrade_Model extends Model {
                 
                 $fileContent = Compression::gzinflate(file_get_contents($_FILES['import_file']['tmp_name'][$i]));
                 
-                if ($fileContent && strpos($fileContent, '<meta id="') !== false) {
+                if ($fileContent && strpos($fileContent, ' dbDriver="') !== false) {
                     
                     if ($objectCode == 'dbupdate') {
                         
@@ -6594,7 +6656,7 @@ class Mdupgrade_Model extends Model {
                 
                 $fileContent = Compression::gzinflate(file_get_contents($_FILES['import_file']['tmp_name'][$i]));
                 
-                if ($fileContent && strpos($fileContent, '<meta id="') !== false) {
+                if ($fileContent && strpos($fileContent, ' dbDriver="') !== false) {
                     
                     if ($isMetaImportCopy) {
                         
@@ -6813,7 +6875,7 @@ class Mdupgrade_Model extends Model {
                     
                     $updateContent = Compression::gzinflate($patchRow['PATCH']);
                     
-                    if ($updateContent && strpos($updateContent, '<meta id="') !== false) {
+                    if ($updateContent && strpos($updateContent, ' dbDriver="') !== false) {
                         $updateSources[] = $updateContent;
                     }
                 }
@@ -6857,7 +6919,7 @@ class Mdupgrade_Model extends Model {
                     
                     $updateContent = Compression::gzinflate($oldPatch);
                     
-                    if ($updateContent && strpos($updateContent, '<meta id="') !== false) {
+                    if ($updateContent && strpos($updateContent, ' dbDriver="') !== false) {
                         
                         $response = self::executeUpgradeScript(array($updateContent));
                         
@@ -6964,7 +7026,7 @@ class Mdupgrade_Model extends Model {
 
                 $fileContent = Compression::gzinflate($exportData['result']);
 
-                if ($fileContent && strpos($fileContent, '<meta id="') === false) {
+                if ($fileContent && strpos($fileContent, ' dbDriver="') === false) {
                     return ['status' => 'error', 'message' => 'PHP export хийсэн файл уншуулна уу!', 'logs' => ''];
                 } 
 
@@ -7013,7 +7075,7 @@ class Mdupgrade_Model extends Model {
 
                                 $fileContent = Compression::gzinflate($exportData['result']);
 
-                                if ($fileContent && strpos($fileContent, '<meta id="') === false) {
+                                if ($fileContent && strpos($fileContent, ' dbDriver="') === false) {
                                     return ['status' => 'error', 'message' => 'PHP export хийсэн файл уншуулна уу!', 'logs' => ''];
                                 } 
 
@@ -7872,7 +7934,7 @@ class Mdupgrade_Model extends Model {
                 }
             }
             
-            $data = $this->db->GetAll("SELECT ID, DESCRIPTION FROM META_BUG_FIXING WHERE DESCRIPTION IS NOT NULL $where ORDER BY CREATED_DATE DESC");
+            $data = $this->db->GetAll("SELECT ID, DESCRIPTION FROM META_BUG_FIXING WHERE DESCRIPTION IS NOT NULL $where ORDER BY MODIFIED_DATE DESC, CREATED_DATE DESC");
             
             return ['status' => 'success', 'data' => $data];
         } catch (Exception $ex) {
@@ -8006,7 +8068,7 @@ class Mdupgrade_Model extends Model {
         $inputContent = file_get_contents('php://input');
         $fileContent  = Compression::gzinflate($inputContent);
 
-        if ($fileContent && strpos($fileContent, '<meta id="') === false) {
+        if ($fileContent && strpos($fileContent, ' dbDriver="') === false) {
             return ['status' => 'error', 'message' => 'PHP export хийсэн файл уншуулна уу!', 'logs' => ''];
         } 
         
@@ -8078,13 +8140,19 @@ class Mdupgrade_Model extends Model {
         $fileContent = file_get_contents($cachePath);
         $fileContent = Compression::gzinflate($fileContent);
         
+        Config::$configArr = [];
+        Config::$allConfigCodeArr = [];
+        
+        self::$isGenerateLanguageFile = true;
         $response = self::executeUpgradeScript([$fileContent]);
                                 
         $status  = issetDefaultVal($response['status'], 'success');
         $message = issetDefaultVal($response['message'], 'Амжилттай');
-        //$logs    = issetParam($response['logs']);
 
         $result = ['status' => $status, 'message' => $message];
+        
+        Config::$configArr = [];
+        Config::$allConfigCodeArr = [];
         
         global $db;
         

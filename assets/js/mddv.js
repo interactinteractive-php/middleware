@@ -1684,6 +1684,7 @@ function toArchiveStatement(elem, defaultName, uniqId, props) {
     if (!$("#" + $dialogName).length) {
         $('<div id="' + $dialogName + '"></div>').appendTo('body');
     }
+    var $dialog = $("#" + $dialogName);
 
     $.ajax({
         type: 'post',
@@ -1691,14 +1692,11 @@ function toArchiveStatement(elem, defaultName, uniqId, props) {
         data: {defaultName: defaultName},
         dataType: 'json',
         beforeSend: function () {
-            Core.blockUI({
-                message: 'Loading...',
-                boxed: true
-            });
+            Core.blockUI({message: 'Loading...', boxed: true});
         },
         success: function (data) {
-            $("#" + $dialogName).empty().append(data.html);
-            $("#" + $dialogName).dialog({
+            $dialog.empty().append(data.html);
+            $dialog.dialog({
                 cache: false,
                 resizable: true,
                 bgiframe: true,
@@ -1708,59 +1706,59 @@ function toArchiveStatement(elem, defaultName, uniqId, props) {
                 height: "auto",
                 modal: true,
                 close: function () {
-                    $("#" + $dialogName).empty().dialog('destroy').remove();
+                    $dialog.empty().dialog('destroy').remove();
                 },
                 buttons: [
                     {text: data.save_btn, class: 'btn green-meadow btn-sm', click: function () {
 
-                            $("#report-archive-form").validate({errorPlacement: function () {}});
+                        $("#report-archive-form").validate({errorPlacement: function () {}});
 
-                            if ($("#report-archive-form").valid()) {
+                        if ($("#report-archive-form").valid()) {
 
-                                var _this = $(elem);
-                                var $parent = _this.closest("div.report-preview");
-                                var $fileIdElem = $parent.find('div[data-file-id]');
-                                var fileId = $fileIdElem.attr('data-file-id');
-                                var statementContent = '';
-                                
-                                if ($fileIdElem.hasAttr('data-count') && Number($fileIdElem.attr('data-count') < 300)) {
-                                    try {
-                                        statementHeaderFreezeDestroy($parent);
-                                        statementContent = encodeURIComponent($parent.find('div.report-preview-print').html());
-                                        statementHeaderFreeze($parent);
-                                    } catch(e) {}
-                                }                                
+                            var _this = $(elem);
+                            var $parent = _this.closest("div.report-preview");
+                            var $fileIdElem = $parent.find('div[data-file-id]');
+                            var fileId = $fileIdElem.attr('data-file-id');
+                            var statementContent = '';
 
-                                $.ajax({
-                                    type: 'post',
-                                    url: 'mddoc/toArchiveSaveStatement',
-                                    data: $("#report-archive-form").serialize() + '&statementContent=' + statementContent + '&' + props + '&fileId=' + fileId,
-                                    dataType: 'json',
-                                    beforeSend: function () {
-                                        Core.blockUI({message: plang.get('msg_saving_block'), boxed: true});
-                                    },
-                                    success: function (data) {
-                                        PNotify.removeAll();
-                                        new PNotify({
-                                            title: data.status,
-                                            text: data.message,
-                                            type: data.status,
-                                            sticker: false
-                                        });
-                                        if (data.status === 'success') {
-                                            $("#" + $dialogName).dialog('close');
-                                        }
-                                        Core.unblockUI();
+                            if ($fileIdElem.hasAttr('data-count') && Number($fileIdElem.attr('data-count') < 300)) {
+                                try {
+                                    statementHeaderFreezeDestroy($parent);
+                                    statementContent = encodeURIComponent($parent.find('div.report-preview-print').html());
+                                    statementHeaderFreeze($parent);
+                                } catch(e) {}
+                            }                                
+
+                            $.ajax({
+                                type: 'post',
+                                url: 'mddoc/toArchiveSaveStatement',
+                                data: $("#report-archive-form").serialize() + '&statementContent=' + statementContent + '&' + props + '&fileId=' + fileId,
+                                dataType: 'json',
+                                beforeSend: function () {
+                                    Core.blockUI({message: plang.get('msg_saving_block'), boxed: true});
+                                },
+                                success: function (data) {
+                                    PNotify.removeAll();
+                                    new PNotify({
+                                        title: data.status,
+                                        text: data.message,
+                                        type: data.status,
+                                        sticker: false
+                                    });
+                                    if (data.status == 'success') {
+                                        $dialog.dialog('close');
                                     }
-                                });
-                            }
-                        }},
+                                    Core.unblockUI();
+                                }
+                            });
+                        }
+                    }},
                     {text: data.close_btn, class: 'btn blue-hoki btn-sm', click: function () {
-                            $("#" + $dialogName).dialog('close');
-                        }}
+                        $dialog.dialog('close');
+                    }}
                 ]
             });
-            $("#" + $dialogName).dialog('open');
+            $dialog.dialog('open');
 
             Core.unblockUI();
         },
@@ -1768,7 +1766,7 @@ function toArchiveStatement(elem, defaultName, uniqId, props) {
             alert('Error');
         }
     }).done(function () {
-        Core.initAjax($("#" + $dialogName));
+        Core.initAjax($dialog);
     });
 }
 function toArchiveReportByWfm(elem, params) {
@@ -3599,8 +3597,17 @@ function otpChangeWfmStatusId(elem, bpObj, wfmStatusId, metaDataId, refStructure
                                                 args.splice(1, 1);     
                                                 window['changeWfmStatusId'].apply(elem, args);
                                             } else {
-                                                var funcArguments = [bpObj.mainMetaDataId, bpObj.processMetaDataId, bpObj.metaTypeId, bpObj.whereFrom, elem, bpObj.params, bpObj.dataGrid, bpObj.wfmStatusParams, bpObj.drillDownType];
-                                                window['privateTransferProcessAction'].apply(elem, funcArguments);
+                                                
+                                                var rows = getDataViewSelectedRows(bpObj.mainMetaDataId);  
+                                                var row = rows[0];
+
+                                                if (row && row.hasOwnProperty('signatureimage')) {
+                                                    var funcArguments = [bpObj.mainMetaDataId, bpObj.processMetaDataId, bpObj.metaTypeId, bpObj.whereFrom, elem, bpObj.params, bpObj.dataGrid, bpObj.wfmStatusParams, bpObj.drillDownType];
+                                                    bpWatermarkByPdf(row, function () { window['privateTransferProcessAction'].apply(elem, funcArguments) });
+                                                } else {
+                                                    var funcArguments = [bpObj.mainMetaDataId, bpObj.processMetaDataId, bpObj.metaTypeId, bpObj.whereFrom, elem, bpObj.params, bpObj.dataGrid, bpObj.wfmStatusParams, bpObj.drillDownType];
+                                                    window['privateTransferProcessAction'].apply(elem, funcArguments);
+                                                }
                                             }
                                             
                                         } else {
@@ -4596,14 +4603,15 @@ function bpWatermarkByPdf (selectedRow, callback) {
     var signaturePosition = typeof selectedRow.signatureposition !== 'undefined' && selectedRow.signatureposition ? selectedRow.signatureposition : '';
     var signaturetext = typeof selectedRow.signaturetext !== 'undefined' && selectedRow.signaturetext ? selectedRow.signaturetext : '';
     var pageStyle = typeof selectedRow.pagestyle !== 'undefined' && selectedRow.pagestyle ? selectedRow.pagestyle : '';
+    var signature = typeof selectedRow.signature !== 'undefined' && selectedRow.signature ? selectedRow.signature : '';
 
     var $windowHeight =  720;
     var $windowWidth =  491;
     
     switch (pageStyle) {
-        case 'landspace':
-            $windowWidth =  720;
-            $windowHeight =  491;
+        case 'landscape':
+            $windowWidth =  715;
+            $windowHeight =  651;
             break;
         case 'portrait':
                         
@@ -4611,10 +4619,10 @@ function bpWatermarkByPdf (selectedRow, callback) {
     }
 
     if (selectedRow && selectedRow.hasOwnProperty('signaturetype') && selectedRow['signaturetype'] === 'all') { 
-        setDocumentSign(pdfPath, signatureImage, signaturePosition, 'all', 10, 10, contentId, signaturetext, callback);
+        setDocumentSign(pdfPath, signatureImage, signaturePosition, 'all', 10, 10, contentId, signaturetext, selectedRow, callback);
     } else {
-        if (selectedRow && selectedRow.hasOwnProperty('pagenumber') && selectedRow.hasOwnProperty('signaturex')  && selectedRow.hasOwnProperty('signaturey')) { 
-            setDocumentSign(pdfPath, signatureImage, signaturePosition, selectedRow['pagenumber'], selectedRow['signaturex'], selectedRow['signaturey'], contentId, signaturetext, callback);
+        if (selectedRow && selectedRow.hasOwnProperty('pagenumber') && selectedRow.hasOwnProperty('signaturex')  && selectedRow.hasOwnProperty('signaturey') && selectedRow['signaturex'] && selectedRow['signaturey']) { 
+            setDocumentSign(pdfPath, signatureImage, signaturePosition, selectedRow['pagenumber'], selectedRow['signaturex'], selectedRow['signaturey'], contentId, signaturetext, selectedRow, callback);
         } else {
             var $uniqId = getUniqueId('no');
         
@@ -4632,7 +4640,7 @@ function bpWatermarkByPdf (selectedRow, callback) {
                             minusSize = 100; 
                         }
     
-                        setDocumentSign(pdfPath, signatureImage, signaturePosition, coordinate.pageNum, Math.floor(1.33333333* coordinate.x), Math.floor(1.33333333 * (paperSize-coordinate.y))-minusSize, contentId, signaturetext, callback);
+                        setDocumentSign(pdfPath, signatureImage, signaturePosition, coordinate.pageNum, Math.floor(1.33333333* coordinate.x), Math.floor(1.33333333 * (paperSize-coordinate.y))-minusSize, contentId, signaturetext, selectedRow, callback);
                     } else {
                         new PNotify({
                             title: 'Error',
@@ -4652,7 +4660,7 @@ function bpWatermarkByPdf (selectedRow, callback) {
             };
             
             var filename = pdfPath.replace(/^.*[\\\/]/, '');
-            iframe = '<iframe id="frameStampPos" src="mddoc/canvasStampPos?uniqid=HardSignWindow&pdfPath='+pdfPath+'" height="100%" width="100%" frameBorder="0"></iframe>';
+            iframe = '<iframe id="frameStampPos" src="mddoc/canvasStampPos?uniqid=HardSignWindow&pdfPath='+pdfPath+'&pageStyle='+pageStyle+'" height="100%" width="100%" frameBorder="0"></iframe>';
         
             if (!$("#callIframeCanvasHardSign" + $uniqId).length) {
                 var div = document.createElement("div");
@@ -4687,7 +4695,7 @@ function bpWatermarkByPdf (selectedRow, callback) {
     } 
 }
 
-function setDocumentSign (pdfPath, signatureImage, signaturePosition, pageNum, positionX, positionY, contentId, signaturetext, callback) {
+function setDocumentSign (pdfPath, signatureImage, signaturePosition, pageNum, positionX, positionY, contentId, signaturetext, selectedRow, callback) {
     
     $.ajax({
         type: 'post',
@@ -4701,6 +4709,7 @@ function setDocumentSign (pdfPath, signatureImage, signaturePosition, pageNum, p
             signatureposition: signaturePosition,
             contentid: contentId,
             signaturetext: signaturetext,
+            selectedRow: selectedRow,
         },
         dataType: 'json',
         beforeSend: function() {

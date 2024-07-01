@@ -3737,7 +3737,7 @@ class Mdwidget extends Controller {
         echo json_encode(array('data' => $cdata)); exit;
     }
 
-    public function widgetStandart($listConfig, $jsonAttr, $criteria = array(), $paging = array('offset' => 1, 'pageSize' => 100)) {
+    public function widgetStandart($listConfig, $jsonAttr, $criteria = array(), $paging = array('offset' => 1, 'pageSize' => 1000)) {
         try {
             
 
@@ -4407,6 +4407,7 @@ class Mdwidget extends Controller {
         $width = '1000';
         $title = '';
         $maximize = true;
+
         switch ($this->view->widgetCode) {
             case 'exam_checklist':
                 $htmlPath = 'relation/checklist';

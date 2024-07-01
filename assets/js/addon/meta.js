@@ -9625,3 +9625,116 @@ function metaVerseCommandPromptIframeResize(dialog, setHeight) {
     }
     return;
 }
+function connectCloudUserDatabase(elem) {
+    $.ajax({
+        type: 'post',
+        url: 'mduser/getCloudUserDbConnections',
+        dataType: 'json',
+        success: function(data) {
+            if (Object.keys(data).length > 0) {
+                
+                var $dialogName = 'dialog-clouduserdb-connect';
+                if (!$('#' + $dialogName).length) { 
+                    $('<div id="' + $dialogName + '"></div>').appendTo('body'); 
+                } 
+                var $dialog = $('#' + $dialogName), html = [];
+                
+                html.push('<div class="row">');
+                    html.push('<div class="col-md-12">');
+                        html.push('<div class="form-group form-group-feedback form-group-feedback-left">');
+                            html.push('<input type="text" class="form-control form-control-sm" placeholder="Хайх..">');
+                            html.push('<div class="form-control-feedback form-control-feedback-sm">');
+                                html.push('<i class="far fa-search" style="margin-top: 9px"></i>');
+                            html.push('</div>');
+                        html.push('</div>');
+                    html.push('</div>');
+                html.push('</div>');
+                
+                html.push('<div class="row mt-3 mb-3">');
+                    html.push('<div class="col-md-12" id="cloud-user-db-connections">');
+                    for (var i in data) {
+                        html.push('<a href="javascript:;" class="badge badge-flat badge-pill border-info badge-icon font-size-12 mr-1 mb8" style="color: #00acc1" data-id="'+data[i]['ID']+'"><i class="far fa-database"></i> '+data[i]['CUSTOMER_NAME']+'</a>');
+                    }
+                    html.push('</div>');
+                html.push('</div>');
+
+                $dialog.empty().append(html.join(''));
+                $dialog.dialog({
+                    cache: false,
+                    resizable: true,
+                    bgiframe: true,
+                    autoOpen: false,
+                    title: 'Cloud database', 
+                    width: 700,
+                    height: 'auto',
+                    modal: true,
+                    /*position: {my: 'top', at: 'top+5'}, */
+                    close: function() {
+                        $dialog.empty().dialog('destroy').remove();
+                    }
+                });
+                $dialog.dialog('open');
+                
+                $dialog.on('keyup', 'input', function(e) {
+        
+                    var code = e.keyCode || e.which;
+                    if (code == '9') return;
+
+                    var inputVal = $(this).val().toLowerCase(), 
+                        $table = $dialog.find('#cloud-user-db-connections'), 
+                        $rows = $table.find('[data-id]');
+
+                    var $filteredRows = $rows.filter(function(){
+                        var $rowElem = $(this);
+                        var value = $rowElem.text().toLowerCase();
+                        return value.indexOf(inputVal) === -1;
+                    });
+
+                    $rows.show();
+                    $filteredRows.hide();
+                });
+                
+                $dialog.on('click', '[data-id]', function() {
+                    PNotify.removeAll();
+                    var $this = $(this), connId = $this.attr('data-id');
+                    $.ajax({
+                        type: 'post',
+                        url: 'mduser/connectCloudUserDb',
+                        data: {connectionId: connId}, 
+                        dataType: 'json',
+                        beforeSend: function() {
+                            Core.blockUI({message: 'Loading...', boxed: true});
+                        },
+                        success: function(dataSub) {
+                            if (dataSub.status == 'success') {
+                                window.location.href = URL_APP + dataSub.url;
+                            } else {
+                                new PNotify({
+                                    title: dataSub.status,
+                                    text: dataSub.message,
+                                    type: dataSub.status,
+                                    sticker: false,
+                                    hide: true,
+                                    addclass: pnotifyPosition
+                                });
+                            }
+                            Core.unblockUI();
+                        }, 
+                        error: function (jqXHR, exception) {
+                            var jsonValue = JSON.parse(jqXHR.responseText);
+                            new PNotify({
+                                title: jsonValue.status,
+                                text: jsonValue.message,
+                                type: jsonValue.status,
+                                sticker: false,
+                                hide: true,
+                                addclass: pnotifyPosition
+                            });
+                            Core.unblockUI();
+                        }
+                    });
+                });
+            }
+        }
+    });
+}
